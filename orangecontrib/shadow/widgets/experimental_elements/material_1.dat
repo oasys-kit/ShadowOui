@@ -1,0 +1,17 @@
+Si               # Chemical Formula
+4.665            # Density g/cm3
+5.43123          # Lattice Parameter Angstrom
+0.486            # Debye-Waller Factor Angstrom-2
+
+# h k l RelativeIntensity 
+1,1,1
+2,2,0
+3,1,1
+4,0,0
+3,3,1
+4,2,2
+5,1,1
+4,4,0
+5,3,1
+6,2,0
+5,3,3
