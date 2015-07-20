@@ -12,7 +12,7 @@ from PyQt4 import QtGui
 class BeamFileReader(widget.OWWidget):
     name = "Beam File Reader"
     description = "Utility: Beam File Reader"
-    icon = "icons/beam_file_reader.svg"
+    icon = "icons/beam_file_reader.png"
     maintainer = "Luca Rebuffi"
     maintainer_email = "luca.rebuffi(@at@)elettra.eu"
     priority = 1
