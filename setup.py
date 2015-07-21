@@ -22,7 +22,7 @@ LICENSE = 'GPLv3'
 
 KEYWORDS = (
     'ray-tracing',
-    'simulator'
+    'simulator',
     'oasys',
 )
 
@@ -66,14 +66,14 @@ NAMESPACE_PACAKGES = ["orangecontrib"]
 ENTRY_POINTS = {
     'oasys.addons' : ("shadow = orangecontrib.shadow", ),
     'oasys.widgets' : (
-        "Experiments = orangecontrib.shadow.widgets.experimental_elements",
-        "Loop Management = orangecontrib.shadow.widgets.loop_management",
-        "Optical Elements = orangecontrib.shadow.widgets.optical_elements",
-        "Compound Optical Elements = orangecontrib.shadow.widgets.compound_optical_elements",
-        "Visualization = orangecontrib.shadow.widgets.plots",
-        "PreProcessor = orangecontrib.shadow.widgets.preprocessor",
-        "Sources = orangecontrib.shadow.widgets.sources",
-        "Utility = orangecontrib.shadow.widgets.utility",
+        "Shadow Experiments = orangecontrib.shadow.widgets.experimental_elements",
+        "Shadow Loop Management = orangecontrib.shadow.widgets.loop_management",
+        "Shadow Optical Elements = orangecontrib.shadow.widgets.optical_elements",
+        "Shadow Compound Optical Elements = orangecontrib.shadow.widgets.compound_optical_elements",
+        "Shadow Visualization = orangecontrib.shadow.widgets.plots",
+        "Shadow PreProcessor = orangecontrib.shadow.widgets.preprocessor",
+        "Shadow Sources = orangecontrib.shadow.widgets.sources",
+        "Shadow Utility = orangecontrib.shadow.widgets.utility",
     ),
     'oasys.menus' : ("Menu = orangecontrib.shadow.menu",)
 }
