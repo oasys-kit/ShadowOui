@@ -61,7 +61,7 @@ PACKAGE_DATA = {
     "orangecontrib.shadow.widgets.utility":["icons/*.png", "icons/*.jpg"],
 }
 
-NAMESPACE_PACAKGES = ["orangecontrib"]
+NAMESPACE_PACAKGES = ["orangecontrib", "orangecontrib.shadow", "orangecontrib.shadow.widgets"]
 
 ENTRY_POINTS = {
     'oasys.addons' : ("shadow = orangecontrib.shadow", ),
