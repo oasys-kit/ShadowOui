@@ -1,9 +1,8 @@
 import sys
 from numpy import array, zeros
-import Orange
 
-from Orange.widgets import widget, gui
-from Orange.widgets.settings import Setting
+from orangewidget import widget, gui
+from orangewidget.settings import Setting
 from PyQt4.QtGui import QApplication
 
 import Shadow

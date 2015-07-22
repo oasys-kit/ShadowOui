@@ -1,7 +1,7 @@
 import numpy
 from oasys.widgets import widget
-from Orange.widgets import gui
-from Orange.widgets.settings import Setting
+from orangewidget import gui
+from orangewidget.settings import Setting
 
 from orangecontrib.shadow.util.shadow_util import ShadowGui
 

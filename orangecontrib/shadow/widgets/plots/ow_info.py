@@ -4,7 +4,8 @@ from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 
 from orangecontrib.shadow.util.shadow_util import ShadowGui
 from orangecontrib.shadow.util.shadow_objects import EmittingStream
-from Orange.widgets import widget, gui
+
+from orangewidget import widget, gui
 
 from Orange.widgets.data.owpythonscript import PythonConsole
 

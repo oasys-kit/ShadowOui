@@ -1,11 +1,10 @@
 import sys
 
-from Orange.widgets import gui
+from orangewidget import gui
+from orangewidget.settings import Setting
 
 from PyQt4 import QtGui
 from PyQt4.QtGui import QApplication
-
-from Orange.widgets.settings import Setting
 
 from orangecontrib.shadow.util.shadow_util import ShadowPlot, ShadowGui
 from orangecontrib.shadow.widgets.gui import ow_automatic_element

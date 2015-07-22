@@ -1,7 +1,7 @@
 import sys, time
 from PyQt4 import QtGui
-from Orange.widgets import gui
-from Orange.widgets.settings import Setting
+from orangewidget import gui
+from orangewidget.settings import Setting
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowOpticalElement, ShadowCompoundOpticalElement, EmittingStream, TTYGrabber
 
 from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog, ShadowPlot

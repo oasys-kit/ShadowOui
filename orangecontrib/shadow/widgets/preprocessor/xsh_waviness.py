@@ -4,8 +4,8 @@ from PyQt4.QtGui import QTextEdit, QTextCursor, QApplication, QFileDialog, QScro
     QMessageBox, QHeaderView
 from PyQt4.QtCore import QRect, Qt
 from oasys.widgets import widget
-from Orange.widgets import gui
-from Orange.widgets.settings import Setting
+from orangewidget import gui
+from orangewidget.settings import Setting
 from Shadow import ShadowTools as ST
 
 from matplotlib import cm

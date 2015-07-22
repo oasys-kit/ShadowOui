@@ -8,7 +8,7 @@ from scipy import optimize, asarray
 from matplotlib.patches import FancyArrowPatch, ArrowStyle
 
 try:
-    from Orange.widgets import gui
+    from orangewidget import gui
 
     import PyMca5.PyMcaGui.plotting.PlotWindow as PlotWindow
     import PyMca5.PyMcaGui.plotting.PlotWidget as PlotWidget
