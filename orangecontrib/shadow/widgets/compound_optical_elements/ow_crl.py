@@ -1,7 +1,8 @@
 import sys
 
-from Orange.widgets import gui
-from Orange.widgets.settings import Setting
+from orangewidget import gui
+from orangewidget.settings import Setting
+
 from PyQt4 import QtGui
 from PyQt4.QtGui import QPalette, QColor, QFont
 

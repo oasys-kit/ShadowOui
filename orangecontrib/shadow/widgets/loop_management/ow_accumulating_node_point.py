@@ -1,9 +1,11 @@
 import sys, numpy, copy
-from Orange.widgets import gui
+
+from orangewidget import gui
+from orangewidget.settings import Setting
+
 from PyQt4 import QtGui
 from PyQt4.QtGui import QPalette, QColor, QFont
 
-from Orange.widgets.settings import Setting
 from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticElement
 from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowTriggerIn

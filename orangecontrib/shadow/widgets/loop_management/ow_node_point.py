@@ -2,9 +2,9 @@ import sys
 
 from oasys.widgets import widget
 
-from Orange.widgets import gui
+from orangewidget import gui
 from PyQt4 import QtGui
-from Orange.widgets.settings import Setting
+from orangewidget.settings import Setting
 from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog
 from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn, ShadowTriggerOut
 

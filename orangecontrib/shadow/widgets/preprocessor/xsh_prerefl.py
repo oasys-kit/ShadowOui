@@ -1,8 +1,8 @@
 import sys
 from PyQt4.QtGui import QTextEdit, QTextCursor, QDoubleValidator, QApplication
 from oasys.widgets import widget
-from Orange.widgets import gui
-from Orange.widgets.settings import Setting
+from orangewidget import gui
+from orangewidget.settings import Setting
 from Shadow.ShadowPreprocessorsXraylib import prerefl
 
 try:

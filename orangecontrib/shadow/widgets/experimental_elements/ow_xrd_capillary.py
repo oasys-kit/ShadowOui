@@ -1,13 +1,13 @@
 import os, sys, scipy, copy, numpy, random, shutil, time
 
-from Orange.widgets import gui
-from Orange.widgets.settings import Setting
+from orangewidget import gui
+from orangewidget.settings import Setting
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtGui import QApplication, QPalette, QColor, QFont, QDialog
 
 import xraylib
 
-import Orange.canvas.resources as resources
+import orangecanvas.resources as resources
 
 from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn
 
