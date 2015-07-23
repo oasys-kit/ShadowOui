@@ -45,7 +45,7 @@ INSTALL_REQUIRES = (
     'scipy',
     'matplotlib',
     'orange-widget-core>=0.0,<0.1',
-    'oasys>0.1',
+    'oasys>=0.1',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
