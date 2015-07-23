@@ -25,7 +25,7 @@ from orangecontrib.shadow.util.shadow_util import ShadowGui
 
 class OWxsh_pre_mlayer(widget.OWWidget):
     name = "xsh_pre_mlayer"
-    id = "orange.widgets.preprocessor.xsh_pre_mlayer"
+    id = "xsh_pre_mlayer"
     description = "xoppy application to compute..."
     icon = "icons/premlayer.png"
     author = "create_widget.py"

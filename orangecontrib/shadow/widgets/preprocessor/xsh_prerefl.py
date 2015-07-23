@@ -25,7 +25,7 @@ from orangecontrib.shadow.util.shadow_util import ShadowGui
 
 class OWxsh_prerefl(widget.OWWidget):
     name = "xsh_prerefl"
-    id = "orange.widgets.preprocessor.xsh_prerefl"
+    id = "xsh_prerefl"
     description = "xoppy application to compute..."
     icon = "icons/prerefl.png"
     author = "create_widget.py"

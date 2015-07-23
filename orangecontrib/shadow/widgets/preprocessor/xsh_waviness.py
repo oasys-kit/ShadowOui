@@ -18,7 +18,7 @@ from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog
 
 class OWxsh_waviness(widget.OWWidget):
     name = "xsh_waviness"
-    id = "orange.widgets.preprocessor.xsh_waviness"
+    id = "xsh_waviness"
     description = "xoppy application to compute..."
     icon = "icons/waviness.png"
     author = "Luca Rebuffi"

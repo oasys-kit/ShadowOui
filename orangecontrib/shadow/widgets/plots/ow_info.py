@@ -1,16 +1,14 @@
 import sys
-from PyQt4 import QtGui
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 
-from orangecontrib.shadow.util.shadow_util import ShadowGui
-from orangecontrib.shadow.util.shadow_objects import EmittingStream
+from PyQt4 import QtGui
+from PyQt4.QtGui import QApplication, QFileDialog
+from PyQt4.QtCore import QRect
 
 from orangewidget import widget, gui
 
-from Orange.widgets.data.owpythonscript import PythonConsole
-
-from PyQt4.QtGui import QApplication, QFileDialog
-from PyQt4.QtCore import QRect
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream
+from orangecontrib.shadow.util.shadow_util import ShadowGui
+from orangecontrib.shadow.util.python_script import PythonConsole
 
 from Shadow import ShadowTools as ST
 
