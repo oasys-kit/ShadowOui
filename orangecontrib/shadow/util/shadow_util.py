@@ -131,7 +131,14 @@ class ShadowGui():
 
     @classmethod
     def checkFile(cls, fileName):
-        filePath = os.getcwd() + '/' + fileName
+
+        if fileName is None: raise Exception("File '" + fileName + "' not existing")
+        if fileName.strip() == "": raise Exception("File '" + fileName + "' not existing")
+
+        if fileName[0] == "/":
+            filePath = fileName
+        else:
+            filePath = os.getcwd() + '/' + fileName
 
         if not os.path.exists(filePath):
             raise Exception("File " + fileName + " not existing")
@@ -749,6 +756,7 @@ class ShadowPhysics:
     def getWavelengthfromShadowK(cls, k_mod): # in cm
         return (2*numpy.pi/k_mod)*1e+8 # in Angstrom
 
+    @classmethod
     def getShadowKFromWavelength(cls, wavelength): # in A
         return (2*numpy.pi/wavelength)*1e+8 # in cm
 
@@ -761,8 +769,12 @@ class ShadowPhysics:
         return cls.A2EV/wavelength # in eV
 
     @classmethod
-    def getEnergyFromShadowK(cls, k_mod): # in Angstrom
-        return cls.K2EV/k_mod # in eV
+    def getEnergyFromShadowK(cls, k_mod): # in cm
+        return  k_mod/cls.K2EV # in eV
+
+    @classmethod
+    def getShadowKFromEnergy(cls, energy): # in A
+        return cls.K2EV*energy # in cm
 
     @classmethod
     def calculateBraggAngle(cls, wavelength, h, k, l, a):

@@ -10,7 +10,6 @@ from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticEleme
 from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowTriggerIn
 
-
 class AccumulatingLoopPoint(AutomaticElement):
     name = "Beam Accumulating Point"
     description = "User Defined: Beam Accumulating Point"
@@ -36,8 +35,12 @@ class AccumulatingLoopPoint(AutomaticElement):
 
     want_main_area = 0
 
-    number_of_accumulated_rays = Setting(10)
+    number_of_accumulated_rays = Setting(10000)
+
     current_number_of_rays = 0
+    current_number_of_total_rays = 0
+    current_number_of_lost_rays = 0
+
     keep_go_rays = Setting(1)
 
     #################################
@@ -48,12 +51,16 @@ class AccumulatingLoopPoint(AutomaticElement):
         super().__init__()
 
         self.setFixedWidth(500)
-        self.setFixedHeight(300)
+        self.setFixedHeight(350)
 
-        left_box_1 = ShadowGui.widgetBox(self.controlArea, "Accumulating Loop Management", addSpace=True, orientation="vertical", height=120)
+        left_box_1 = ShadowGui.widgetBox(self.controlArea, "Accumulating Loop Management", addSpace=True, orientation="vertical", height=200)
 
         ShadowGui.lineEdit(left_box_1, self, "number_of_accumulated_rays", "Number of accumulated good rays\n(before sending signal)", labelWidth=350, valueType=int,
                            orientation="horizontal")
+
+        gui.comboBox(left_box_1, self, "keep_go_rays", label="Remove lost rays from beam", labelWidth=350, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
+
+        gui.separator(left_box_1)
 
         le = ShadowGui.lineEdit(left_box_1, self, "current_number_of_rays", "Current number of good rays", labelWidth=350, valueType=int, orientation="horizontal")
         le.setReadOnly(True)
@@ -65,8 +72,19 @@ class AccumulatingLoopPoint(AutomaticElement):
         palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
         le.setPalette(palette)
 
-        gui.comboBox(left_box_1, self, "keep_go_rays", label="Remove lost rays from beam", labelWidth=350, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
+        le = ShadowGui.lineEdit(left_box_1, self, "current_number_of_lost_rays", "Current number of lost rays", labelWidth=350, valueType=int, orientation="horizontal")
+        le.setReadOnly(True)
+        palette = QtGui.QPalette(le.palette())  # make a copy of the palette
+        palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark red'))
+        palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
+        le.setPalette(palette)
 
+        le = ShadowGui.lineEdit(left_box_1, self, "current_number_of_total_rays", "Current number of total rays", labelWidth=350, valueType=int, orientation="horizontal")
+        le.setReadOnly(True)
+        palette = QtGui.QPalette(le.palette())  # make a copy of the palette
+        palette.setColor(QtGui.QPalette.Text, QtGui.QColor('black'))
+        palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
+        le.setPalette(palette)
 
         button_box = gui.widgetBox(self.controlArea, "", addSpace=True, orientation="horizontal")
 
@@ -91,6 +109,8 @@ class AccumulatingLoopPoint(AutomaticElement):
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the accumulated beam"):
             self.current_number_of_rays = 0
+            self.current_number_of_lost_rays = 0
+            self.current_number_of_total_rays = 0
             self.input_beam = None
 
     def setBeam(self, beam):
@@ -104,7 +124,13 @@ class AccumulatingLoopPoint(AutomaticElement):
             if proceed:
                 go = numpy.where(beam.beam.rays[:, 9] == 1)
 
-                self.current_number_of_rays = self.current_number_of_rays + len(beam.beam.rays[go])
+                nr_good = len(beam.beam.rays[go])
+                nr_total = len(beam.beam.rays)
+                nr_lost = nr_total - nr_good
+
+                self.current_number_of_rays = self.current_number_of_rays + nr_good
+                self.current_number_of_lost_rays = self.current_number_of_lost_rays + nr_lost
+                self.current_number_of_total_rays = self.current_number_of_total_rays + nr_total
 
                 if self.current_number_of_rays <= self.number_of_accumulated_rays:
                     if self.keep_go_rays == 1:
@@ -121,6 +147,8 @@ class AccumulatingLoopPoint(AutomaticElement):
                         self.sendSignal()
 
                         self.current_number_of_rays = 0
+                        self.current_number_of_lost_rays = 0
+                        self.current_number_of_total_rays = 0
                         self.input_beam = None
                     else:
                         QtGui.QMessageBox.critical(self, "QMessageBox.critical()",

@@ -1,4 +1,5 @@
-import sys
+import sys, numpy
+import scipy.stats as stats
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -8,7 +9,7 @@ from PyQt4.QtGui import QApplication, QPalette, QColor, QFont
 from orangecontrib.shadow.widgets.gui import ow_generic_element
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerOut, ShadowBeam, \
     ShadowSource
-from orangecontrib.shadow.util.shadow_util import ShadowGui
+from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowPhysics
 
 class GeometricalSource(ow_generic_element.GenericElement):
 
@@ -105,6 +106,15 @@ class GeometricalSource(ow_generic_element.GenericElement):
     line_int_8 = Setting(0.0)
     line_int_9 = Setting(0.0)
     line_int_10 = Setting(0.0)
+
+    gaussian_central_value = Setting(0.0)
+    gaussian_sigma = Setting(0.0)
+    gaussian_minimum = Setting(0.0)
+    gaussian_maximum = Setting(0.0)
+
+    user_defined_file = Setting("energy_spectrum.dat")
+    user_defined_minimum = Setting(0.0)
+    user_defined_maximum = Setting(0.0)
 
     polarization = Setting(1)
     coherent_beam = Setting(0)
@@ -260,7 +270,7 @@ class GeometricalSource(ow_generic_element.GenericElement):
         energy_wavelength_box = ShadowGui.widgetBox(left_box_3, "Energy/Wavelength", addSpace=True, orientation="vertical", height=420)
 
         gui.comboBox(energy_wavelength_box, self, "photon_energy_distribution", label="Photon Energy Distribution", labelWidth=300,
-                     items=["Single Line", "Several Lines", "Uniform", "Relative Intensities"], orientation="horizontal", callback=self.set_PhotonEnergyDistribution)
+                     items=["Single Line", "Several Lines", "Uniform", "Relative Intensities", "Gaussian", "User Defined"], orientation="horizontal", callback=self.set_PhotonEnergyDistribution)
 
         gui.separator(energy_wavelength_box)
 
@@ -313,6 +323,32 @@ class GeometricalSource(ow_generic_element.GenericElement):
         self.le_line_int_9 = ShadowGui.lineEdit(self.ewp_box_4, self, "line_int_9", "Int 9", labelWidth=100, valueType=float, orientation="horizontal")
         self.le_line_int_10 = ShadowGui.lineEdit(self.ewp_box_4, self, "line_int_10", "Int 10", labelWidth=100, valueType=float, orientation="horizontal")
 
+
+        self.ewp_box_6 = ShadowGui.widgetBox(energy_wavelength_box, "Gaussian", addSpace=True, orientation="vertical")
+
+        ShadowGui.lineEdit(self.ewp_box_6, self, "gaussian_central_value", "Central Value", labelWidth=300, valueType=float, orientation="horizontal")
+        ShadowGui.lineEdit(self.ewp_box_6, self, "gaussian_sigma", "Sigma", labelWidth=300, valueType=float, orientation="horizontal")
+
+        gui.separator(self.ewp_box_6)
+
+        ShadowGui.lineEdit(self.ewp_box_6, self, "gaussian_minimum", "Minimum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
+        ShadowGui.lineEdit(self.ewp_box_6, self, "gaussian_maximum", "Maximum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
+
+        self.ewp_box_7 = ShadowGui.widgetBox(energy_wavelength_box, "User Defined", addSpace=True, orientation="vertical")
+
+        file_box = ShadowGui.widgetBox(self.ewp_box_7, "", addSpace=True, orientation="horizontal", width=510, height=25)
+
+        self.le_user_defined_file = ShadowGui.lineEdit(file_box, self, "user_defined_file", "Spectrum File",
+                                                    labelWidth=100, valueType=str, orientation="horizontal")
+
+        pushButton = gui.button(file_box, self, "...")
+        pushButton.clicked.connect(self.selectFile)
+
+        gui.separator(self.ewp_box_7)
+
+        ShadowGui.lineEdit(self.ewp_box_7, self, "user_defined_minimum", "Minimum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
+        ShadowGui.lineEdit(self.ewp_box_7, self, "user_defined_maximum", "Maximum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
+
         self.set_PhotonEnergyDistribution()
 
         polarization_box = ShadowGui.widgetBox(left_box_3, "Polarization", addSpace=True, orientation="vertical", height=145)
@@ -320,13 +356,13 @@ class GeometricalSource(ow_generic_element.GenericElement):
         gui.comboBox(polarization_box, self, "polarization", label="Polarization", labelWidth=475,
                      items=["No", "Yes"], orientation="horizontal", callback=self.set_Polarization)
 
-        self.ewp_box_6 = ShadowGui.widgetBox(polarization_box, "", addSpace=True, orientation="vertical")
+        self.ewp_box_8 = ShadowGui.widgetBox(polarization_box, "", addSpace=True, orientation="vertical")
 
-        gui.comboBox(self.ewp_box_6, self, "coherent_beam", label="Coherent Beam", labelWidth=475,
+        gui.comboBox(self.ewp_box_8, self, "coherent_beam", label="Coherent Beam", labelWidth=475,
                      items=["No", "Yes"], orientation="horizontal")
 
-        ShadowGui.lineEdit(self.ewp_box_6, self, "phase_diff", "Phase Difference [deg,0=linear,+90=ell/right]", labelWidth=330, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.ewp_box_6, self, "polarization_degree", "Polarization Degree [cos_s/(cos_s+sin_s)]", labelWidth=330, valueType=float, orientation="horizontal")
+        ShadowGui.lineEdit(self.ewp_box_8, self, "phase_diff", "Phase Difference [deg,0=linear,+90=ell/right]", labelWidth=330, valueType=float, orientation="horizontal")
+        ShadowGui.lineEdit(self.ewp_box_8, self, "polarization_degree", "Polarization Degree [cos_s/(cos_s+sin_s)]", labelWidth=330, valueType=float, orientation="horizontal")
 
         self.set_Polarization()
 
@@ -407,6 +443,8 @@ class GeometricalSource(ow_generic_element.GenericElement):
         self.ewp_box_3.setVisible(self.photon_energy_distribution == 2)
         self.ewp_box_4.setVisible(self.photon_energy_distribution == 3)
         self.ewp_box_5.setVisible(self.photon_energy_distribution == 1 or self.photon_energy_distribution == 3)
+        self.ewp_box_6.setVisible(self.photon_energy_distribution == 4)
+        self.ewp_box_7.setVisible(self.photon_energy_distribution == 5)
 
         if self.photon_energy_distribution == 3:
             self.le_line_value_1.parentWidget().children()[1].setFixedWidth(100)
@@ -456,7 +494,11 @@ class GeometricalSource(ow_generic_element.GenericElement):
         self.le_line_int_10.parentWidget().setVisible(self.number_of_lines == 9)
 
     def set_Polarization(self):
-        self.ewp_box_6.setVisible(self.polarization==1)
+        self.ewp_box_8.setVisible(self.polarization==1)
+
+    def selectFile(self):
+        self.le_user_defined_file.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Open Spectrum File", ".", "*.dat, *.txt"))
 
     def runShadowSource(self):
         self.error(self.error_id)
@@ -483,6 +525,11 @@ class GeometricalSource(ow_generic_element.GenericElement):
             self.progressBarSet(50)
 
             beam_out = ShadowBeam.traceFromSource(shadow_src)
+
+            if self.photon_energy_distribution == 4:
+                self.generate_gaussian_spectrum(beam_out)
+            elif self.photon_energy_distribution == 5:
+                self.generate_user_defined_spectrum(beam_out)
 
             self.fix_Intensity(beam_out)
 
@@ -512,6 +559,75 @@ class GeometricalSource(ow_generic_element.GenericElement):
             self.error(self.error_id, "Exception occurred: " + str(exception))
 
         self.progressBarFinished()
+
+    def generate_gaussian_spectrum(self, beam_out):
+        a, b = (self.gaussian_minimum - self.gaussian_central_value) / self.gaussian_sigma, \
+               (self.gaussian_maximum - self.gaussian_central_value) / self.gaussian_sigma
+
+        distribution = stats.truncnorm(a, b, loc=self.gaussian_central_value, scale=self.gaussian_sigma)
+        sampled_spectrum = distribution.rvs(len(beam_out.beam.rays))
+
+        #sampled_spectrum = numpy.random.normal(loc=self.gaussian_central_value, scale=self.gaussian_sigma, size=len(beam_out.beam.rays))
+
+        for index in range(0, len(beam_out.beam.rays)):
+            if self.units == 0:
+                beam_out.beam.rays[index, 10] = ShadowPhysics.getShadowKFromEnergy(energy=sampled_spectrum[index])
+            else:
+                beam_out.beam.rays[index, 10] = ShadowPhysics.getShadowKFromWavelength(wavelength=sampled_spectrum[index])
+
+    def generate_user_defined_spectrum(self, beam_out):
+        spectrum = self.extract_spectrum_from_file(self.user_defined_file)
+
+        sampled_spectrum = self.sample_from_spectrum(spectrum, len(beam_out.beam.rays))
+
+        for index in range(0, len(beam_out.beam.rays)):
+            if self.units == 0:
+                beam_out.beam.rays[index, 10] = ShadowPhysics.getShadowKFromEnergy(energy=sampled_spectrum[index])
+            else:
+                beam_out.beam.rays[index, 10] = ShadowPhysics.getShadowKFromWavelength(wavelength=sampled_spectrum[index])
+
+    def extract_spectrum_from_file(self, spectrum_file_name):
+        spectrum = []
+
+        try:
+            spectrum_file = open(spectrum_file_name, "r")
+
+            rows = spectrum_file.readlines()
+
+            for row in rows:
+
+                if not row.strip() == "":
+                    values = row.split()
+
+                    if not len(values) == 2: raise Exception("Malformed file, must be: <energy> <spaces> <intensity>")
+
+                    energy = float(values[0].strip())
+                    intensity = float(values[1].strip())
+
+                    if energy > self.user_defined_minimum and energy <= self.user_defined_maximum:
+                        spectrum.append([energy, intensity])
+
+        except Exception as err:
+            raise Exception("Problems reading spectrum file: {0}".format(err))
+        except:
+            raise Exception("Unexpected error reading spectrum file: ", sys.exc_info()[0])
+
+        return numpy.array(spectrum)
+
+    def sample_from_spectrum(self, spectrum, npoints):
+        # normalize distribution function
+        spectrum[:, 1] /= spectrum[:, 1].sum()
+
+        #calculate the cumulative distribution function
+        a_cdf = numpy.cumsum(spectrum[:, 1])
+
+        # create randomly distributed npoints
+        rd = numpy.random.rand(npoints)
+
+        # evaluate rd following the inverse of cdf
+        return numpy.interp(rd, a_cdf, spectrum[:, 0])
+
+
 
     # WEIRD MEMORY INITIALIZATION BY FORTRAN. JUST A FIX.
     def fix_Intensity(self, beam_out):
@@ -610,7 +726,9 @@ class GeometricalSource(ow_generic_element.GenericElement):
                 self.line_value_10 = ShadowGui.checkPositiveNumber(self.line_value_10, "Line 10")
         elif self.photon_energy_distribution == 2:
             self.uniform_minimum = ShadowGui.checkPositiveNumber(self.uniform_minimum, "Minimum Energy/Wavelength")
-            self.uniform_maximum = ShadowGui.checkPositiveNumber(self.uniform_maximum, "Maximum Energy/Wavelength")
+            self.uniform_maximum = ShadowGui.checkStrictlyPositiveNumber(self.uniform_maximum, "Maximum Energy/Wavelength")
+
+            if self.uniform_minimum >= self.uniform_maximum: raise Exception("Minimum Energy/Wavelength should be less than Maximum Energy/Wavelength")
         elif self.photon_energy_distribution == 3:
             if self.number_of_lines >= 1:
                 self.line_value_1 = ShadowGui.checkPositiveNumber(self.line_value_1, "Line 1")
@@ -642,6 +760,18 @@ class GeometricalSource(ow_generic_element.GenericElement):
             if self.number_of_lines == 10:
                 self.line_value_10 = ShadowGui.checkPositiveNumber(self.line_value_10, "Line 10")
                 self.line_int_10 = ShadowGui.checkPositiveNumber(self.line_int_1, "Int 10")
+        elif self.photon_energy_distribution == 4:
+            self.gaussian_central_value = ShadowGui.checkStrictlyPositiveNumber(self.gaussian_central_value, "Central Value")
+            self.gaussian_sigma = ShadowGui.checkStrictlyPositiveNumber(self.gaussian_sigma, "Sigma")
+            self.gaussian_minimum = ShadowGui.checkPositiveNumber(self.gaussian_minimum, "Minimum Energy/Wavelength")
+            self.gaussian_maximum = ShadowGui.checkStrictlyPositiveNumber(self.gaussian_maximum, "Maximum Energy/Wavelength")
+
+            if self.gaussian_minimum >= self.gaussian_maximum: raise Exception("Minimum Energy/Wavelength should be less than Maximum Energy/Wavelength")
+
+        elif self.photon_energy_distribution == 5:
+            self.user_defined_file = ShadowGui.checkFile(self.user_defined_file)
+            self.user_defined_minimum = ShadowGui.checkPositiveNumber(self.user_defined_minimum, "Minimum Energy/Wavelength")
+            self.user_defined_maximum = ShadowGui.checkStrictlyPositiveNumber(self.user_defined_maximum, "Maximum Energy/Wavelength")
 
         if self.optimize_source > 0:
             self.max_number_of_rejected_rays = ShadowGui.checkPositiveNumber(self.max_number_of_rejected_rays,
@@ -744,6 +874,8 @@ class GeometricalSource(ow_generic_element.GenericElement):
             shadow_src.src.RL8 = self.line_int_8
             shadow_src.src.RL9 = self.line_int_9
             shadow_src.src.RL10 = self.line_int_10
+        elif self.photon_energy_distribution == 4 or self.angular_distribution == 5:
+            shadow_src.src.PH1 = 1000 # just a number, will be recomputed according to energy distribution
 
         shadow_src.src.F_POLAR = self.polarization
 
