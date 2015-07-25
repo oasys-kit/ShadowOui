@@ -498,7 +498,7 @@ class GeometricalSource(ow_generic_element.GenericElement):
 
     def selectFile(self):
         self.le_user_defined_file.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Open Spectrum File", ".", "*.dat, *.txt"))
+            QtGui.QFileDialog.getOpenFileName(self, "Open Spectrum File", ".", "*.dat; *.txt"))
 
     def runShadowSource(self):
         self.error(self.error_id)
@@ -560,6 +560,12 @@ class GeometricalSource(ow_generic_element.GenericElement):
 
         self.progressBarFinished()
 
+    #########################################################################################
+    #
+    # GENERATION OF GAUSSIAN OR USER DEFINED SPECTRUM
+    #
+    #########################################################################################
+
     def generate_gaussian_spectrum(self, beam_out):
         a, b = (self.gaussian_minimum - self.gaussian_central_value) / self.gaussian_sigma, \
                (self.gaussian_maximum - self.gaussian_central_value) / self.gaussian_sigma
@@ -574,6 +580,8 @@ class GeometricalSource(ow_generic_element.GenericElement):
                 beam_out.beam.rays[index, 10] = ShadowPhysics.getShadowKFromEnergy(energy=sampled_spectrum[index])
             else:
                 beam_out.beam.rays[index, 10] = ShadowPhysics.getShadowKFromWavelength(wavelength=sampled_spectrum[index])
+
+    #########################################################################################
 
     def generate_user_defined_spectrum(self, beam_out):
         spectrum = self.extract_spectrum_from_file(self.user_defined_file)
@@ -612,22 +620,21 @@ class GeometricalSource(ow_generic_element.GenericElement):
         except:
             raise Exception("Unexpected error reading spectrum file: ", sys.exc_info()[0])
 
+        spectrum.insert(0, [self.user_defined_minimum, 0.0])
+
         return numpy.array(spectrum)
 
     def sample_from_spectrum(self, spectrum, npoints):
         # normalize distribution function
         spectrum[:, 1] /= spectrum[:, 1].sum()
-
         #calculate the cumulative distribution function
         a_cdf = numpy.cumsum(spectrum[:, 1])
-
         # create randomly distributed npoints
         rd = numpy.random.rand(npoints)
-
         # evaluate rd following the inverse of cdf
         return numpy.interp(rd, a_cdf, spectrum[:, 0])
 
-
+    #########################################################################################
 
     # WEIRD MEMORY INITIALIZATION BY FORTRAN. JUST A FIX.
     def fix_Intensity(self, beam_out):
