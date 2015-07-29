@@ -96,8 +96,16 @@ class BendingMagnet(ow_generic_element.GenericElement):
         gui.comboBox(left_box_4, self, "optimize_source", label="Optimize Source", items=["No", "Using file with phase/space volume)", "Using file with slit/acceptance"], labelWidth=200,
                      callback=self.set_OptimizeSource, orientation="horizontal")
         self.optimize_file_name_box = ShadowGui.widgetBox(left_box_4, "", addSpace=False, orientation="vertical")
-        ShadowGui.lineEdit(self.optimize_file_name_box, self, "optimize_file_name", "File Name", labelWidth=150,  valueType=str, orientation="horizontal")
-        ShadowGui.lineEdit(left_box_4, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=300,  valueType=int, orientation="horizontal")
+
+
+        file_box = ShadowGui.widgetBox(self.optimize_file_name_box, "", addSpace=True, orientation="horizontal", height=25)
+
+        self.le_optimize_file_name = ShadowGui.lineEdit(file_box, self, "optimize_file_name", "File Name", labelWidth=150,  valueType=str, orientation="horizontal")
+
+        pushButton = gui.button(file_box, self, "...")
+        pushButton.clicked.connect(self.selectOptimizeFile)
+
+        ShadowGui.lineEdit(self.optimize_file_name_box, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=300,  valueType=int, orientation="horizontal")
 
         self.set_OptimizeSource()
 
@@ -128,6 +136,11 @@ class BendingMagnet(ow_generic_element.GenericElement):
 
     def set_OptimizeSource(self):
         self.optimize_file_name_box.setVisible(self.optimize_source != 0)
+
+    def selectOptimizeFile(self):
+        self.le_optimize_file_name.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Open Optimize Source Parameters File", ".", "*.*"))
+
 
     def calculateMagneticField(self):
         self.magnetic_radius=abs(self.magnetic_radius)

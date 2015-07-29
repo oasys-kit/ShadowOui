@@ -11,14 +11,9 @@ except ImportError:
     #print("Error importing: xoppy_doc")
     #raise
     pass
-
-try:
-    from ..tools.xoppy_calc import xoppy_calc_xsh_prerefl
-except ImportError:
-    #print("compute pressed.")
-    #print("Error importing: xoppy_calc_xsh_prerefl")
-    #raise
+except SystemError:
     pass
+
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
 from orangecontrib.shadow.util.shadow_util import ShadowGui
@@ -51,8 +46,6 @@ class OWxsh_prerefl(widget.OWWidget):
 
     def __init__(self):
         super().__init__()
-
-        self.process_showers()
 
         box = ShadowGui.widgetBox(self.controlArea, "Reflectivity Parameters", orientation="vertical")
         
@@ -96,6 +89,8 @@ class OWxsh_prerefl(widget.OWWidget):
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
+
+        self.process_showers()
 
         self.shadow_output = QTextEdit()
         self.shadow_output.setReadOnly(True)

@@ -11,6 +11,8 @@ except ImportError:
     #print("Error importing: xoppy_doc")
     #raise
     pass
+except SystemError:
+    pass
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
 from orangecontrib.shadow.util.shadow_util import ShadowGui
@@ -46,7 +48,8 @@ class OWxsh_bragg(widget.OWWidget):
     def __init__(self):
         super().__init__()
 
-        self.process_showers()
+        self.setFixedWidth(600)
+        self.setFixedHeight(510)
 
         idx = -1 
         
@@ -120,6 +123,8 @@ class OWxsh_bragg(widget.OWWidget):
         out_box = ShadowGui.widgetBox(self.controlArea, "System Output", addSpace=True, orientation="horizontal", height=150)
         out_box.layout().addWidget(self.shadow_output)
 
+        self.process_showers()
+
         box0 = ShadowGui.widgetBox(self.controlArea, "",orientation="horizontal")
         #widget buttons: compute, set defaults, help
         button = gui.button(box0, self, "Compute", callback=self.compute)
@@ -153,7 +158,10 @@ class OWxsh_bragg(widget.OWWidget):
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('xsh_bragg')
+        try:
+            xoppy_doc('xsh_bragg')
+        except:
+            pass
 
     def writeStdOut(self, text):
         cursor = self.shadow_output.textCursor()

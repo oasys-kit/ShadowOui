@@ -73,8 +73,6 @@ class Wiggler(ow_generic_element.GenericElement):
     def __init__(self):
         super().__init__(show_automatic_box=False)
 
-        #self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
-
         left_box_1 = ShadowGui.widgetBox(self.controlArea, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical", height=320, width=self.CONTROL_AREA_WIDTH)
 
         ShadowGui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=300, valueType=int, orientation="horizontal")
@@ -88,7 +86,14 @@ class Wiggler(ow_generic_element.GenericElement):
         self.box_using_file_with_phase_space_volume = ShadowGui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
 
         ShadowGui.lineEdit(self.box_using_file_with_phase_space_volume, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=300, tooltip="Max number of rejected rays", valueType=int, orientation="horizontal")
-        ShadowGui.lineEdit(self.box_using_file_with_phase_space_volume, self, "file_with_phase_space_volume", "File with phase space volume", labelWidth=190, tooltip="File with phase space volume", valueType=str, orientation="horizontal")
+
+
+        file_box = ShadowGui.widgetBox(self.box_using_file_with_phase_space_volume, "", addSpace=True, orientation="horizontal", height=25)
+
+        self.le_optimize_file_name = ShadowGui.lineEdit(file_box, self, "file_with_phase_space_volume", "File with phase space volume", labelWidth=190, tooltip="File with phase space volume", valueType=str, orientation="horizontal")
+
+        pushButton = gui.button(file_box, self, "...")
+        pushButton.clicked.connect(self.selectOptimizeFile)
 
         self.box_using_slit_acceptance = ShadowGui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
 
@@ -131,12 +136,24 @@ class Wiggler(ow_generic_element.GenericElement):
 
         self.b_from_file_box = ShadowGui.widgetBox(left_box_3, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.b_from_file_box, self, "file_with_b_vs_y", "File with B vs Y", labelWidth=150, tooltip="File with B vs Y", valueType=str, orientation="horizontal")
+        file_box = ShadowGui.widgetBox(self.b_from_file_box, "", addSpace=True, orientation="horizontal", height=25)
+
+        self.le_file_with_b_vs_y = ShadowGui.lineEdit(file_box, self, "file_with_b_vs_y", "File with B vs Y", labelWidth=150, tooltip="File with B vs Y", valueType=str, orientation="horizontal")
+
+        pushButton = gui.button(file_box, self, "...")
+        pushButton.clicked.connect(self.selectFileWithBvsY)
 
         self.b_from_harmonics_box = ShadowGui.widgetBox(left_box_3, "", addSpace=False, orientation="vertical")
 
         ShadowGui.lineEdit(self.b_from_harmonics_box, self, "id_period", "ID period [m]", labelWidth=300, tooltip="ID period [m]", valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.b_from_harmonics_box, self, "file_with_harmonics", "File with harmonics", labelWidth=150, tooltip="File with harmonics", valueType=str, orientation="horizontal")
+
+        file_box = ShadowGui.widgetBox(self.b_from_harmonics_box, "", addSpace=True, orientation="horizontal", height=25)
+
+        self.le_file_with_harmonics = ShadowGui.lineEdit(file_box, self, "file_with_harmonics", "File with harmonics", labelWidth=150, tooltip="File with harmonics", valueType=str, orientation="horizontal")
+
+        pushButton = gui.button(file_box, self, "...")
+        pushButton.clicked.connect(self.selectFileWithHarmonics)
+
 
         self.set_Type()
 
@@ -178,6 +195,18 @@ class Wiggler(ow_generic_element.GenericElement):
         self.conventional_sinusoidal_box.setVisible(self.type_combo == 0)
         self.b_from_file_box.setVisible(self.type_combo == 1)
         self.b_from_harmonics_box.setVisible(self.type_combo == 2)
+
+    def selectOptimizeFile(self):
+        self.le_optimize_file_name.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Open Optimize Source Parameters File", ".", "*.*"))
+
+    def selectFileWithBvsY(self):
+        self.le_file_with_b_vs_y.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Open File With B vs Y", ".", "*.*"))
+
+    def selectFileWithHarmonics(self):
+        self.le_file_with_harmonics.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Open File with Harmonics", ".", "*.*"))
 
     def runShadowSource(self):
         self.error(self.error_id)

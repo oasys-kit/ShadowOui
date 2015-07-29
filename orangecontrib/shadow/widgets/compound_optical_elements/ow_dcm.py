@@ -81,7 +81,13 @@ class DCM(ow_generic_element.GenericElement):
 
         ShadowGui.lineEdit(tab_bas, self, "photon_energy_ev", "Photon Eneergy [eV]", labelWidth=350, valueType=float, orientation="horizontal")
 
-        self.le_reflectivity_file = ShadowGui.lineEdit(tab_bas, self, "reflectivity_file", "Reflectivity File", labelWidth=150, valueType=str, orientation="horizontal")
+
+        file_box = ShadowGui.widgetBox(tab_bas, "", addSpace=True, orientation="horizontal", height=25)
+
+        self.le_reflectivity_file = ShadowGui.lineEdit(file_box, self, "reflectivity_file", "Reflectivity File", labelWidth=150, valueType=str, orientation="horizontal")
+
+        pushButton = gui.button(file_box, self, "...")
+        pushButton.clicked.connect(self.selectFilePrerefl)
 
         gui.separator(tab_bas, height=10)
 
@@ -126,6 +132,10 @@ class DCM(ow_generic_element.GenericElement):
         button.setPalette(palette)  # assign new palette
         button.setFixedHeight(45)
         button.setFixedWidth(100)
+
+    def selectFilePrerefl(self):
+        self.le_reflectivity_file.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select Reflectivity File", ".", "*.dat"))
 
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):

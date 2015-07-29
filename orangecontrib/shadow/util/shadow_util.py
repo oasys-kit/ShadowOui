@@ -1,8 +1,8 @@
 __author__ = 'labx'
 
-import numpy, random, os, copy
+import numpy, random, os
 import sys
-from PyQt4.QtGui import QMessageBox, QWidget, QGraphicsScene, QGraphicsView, QFrame, QFont, QPalette, QColor, QGridLayout, QLabel
+from PyQt4.QtGui import QMessageBox, QWidget, QFont, QPalette, QColor, QGridLayout, QLabel, QFileDialog, QIcon, QPixmap
 from PyQt4.QtCore import Qt
 from scipy import optimize, asarray
 from matplotlib.patches import FancyArrowPatch, ArrowStyle
@@ -13,7 +13,11 @@ try:
     import PyMca5.PyMcaGui.plotting.PlotWindow as PlotWindow
     import PyMca5.PyMcaGui.plotting.PlotWidget as PlotWidget
 
-    from PyMca5.PyMcaGui.plotting import ImageView
+    from PyMca5.PyMcaGui import PyMcaQt as qt
+    from PyMca5.PyMcaCore import PyMcaDirs
+    from PyMca5.PyMcaIO import ArraySave
+    from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
+    from PyMca5.PyMcaGui.plotting.ImageView import ImageView
 
     import matplotlib
     import matplotlib.pyplot as plt
@@ -23,6 +27,8 @@ try:
 except ImportError:
     print(sys.exc_info()[1])
     pass
+
+
 
 import Shadow.ShadowToolsPrivate as stp
 
@@ -214,6 +220,115 @@ class ShadowPlot:
 
     #########################################################################################
     #
+    # FOR TEMPORARY USE: FIX AN ERROR IN PYMCA.PLOT.IMAGEWIEW
+    #
+    #########################################################################################
+
+    """Sample code to add 2D dataset saving as text to ImageView."""
+
+
+    class ShadowImageView(ImageView):
+        """Subclass ImageView to add save 2D dataset.
+
+        Image origin and scale are not taken into account while saving the image.
+        """
+        def __init__(self, *args, **kwargs):
+            super(ShadowPlot.ShadowImageView, self).__init__(*args, **kwargs)
+
+            # Disable default save behavior and
+            # connect to icon signal to get save icon events
+            self._imagePlot.enableOwnSave(False)
+            self.sigIconSignal.connect(self._handleSaveIcon)
+
+            # Used in getOutputFileName
+            self.outputDir = None
+            self._saveFilter = None
+
+        def getOutputFileName(self):
+            """Open a FileDialog to get the image filename to save to."""
+            # Copied from PyMca5.PyMcaGui.plotting.MaskImageWidget
+            initdir = PyMcaDirs.outputDir
+            if self.outputDir is not None:
+                if os.path.exists(self.outputDir):
+                    initdir = self.outputDir
+            filedialog = qt.QFileDialog(self)
+            filedialog.setFileMode(filedialog.AnyFile)
+            filedialog.setAcceptMode(qt.QFileDialog.AcceptSave)
+            filedialog.setWindowIcon(qt.QIcon(qt.QPixmap(IconDict["gioconda16"])))
+            formatlist = ["ASCII Files *.dat",
+                          "EDF Files *.edf",
+                          'CSV(, separated) Files *.csv',
+                          'CSV(; separated) Files *.csv',
+                          'CSV(tab separated) Files *.csv']
+            if hasattr(qt, "QStringList"):
+                strlist = qt.QStringList()
+            else:
+                strlist = []
+            for f in formatlist:
+                    strlist.append(f)
+            if self._saveFilter is None:
+                self._saveFilter = formatlist[0]
+            filedialog.setFilters(strlist)
+            filedialog.selectFilter(self._saveFilter)
+            filedialog.setDirectory(initdir)
+            ret = filedialog.exec_()
+            if not ret:
+                return ""
+            filename = filedialog.selectedFiles()[0]
+            if len(filename):
+                filename = qt.safe_str(filename)
+                self.outputDir = os.path.dirname(filename)
+                self._saveFilter = qt.safe_str(filedialog.selectedFilter())
+                filterused = "." + self._saveFilter[-3:]
+                PyMcaDirs.outputDir = os.path.dirname(filename)
+                if len(filename) < 4:
+                    filename = filename + filterused
+                elif filename[-4:] != filterused:
+                    filename = filename + filterused
+            else:
+                filename = ""
+            return filename
+
+        def _handleSaveIcon(self, event):
+            """Handle save icon events.
+
+            Get current active image and save it as a file.
+            """
+            if event['event'] == 'iconClicked' and event['key'] == 'save':
+                imageData = self.getActiveImage()
+                if imageData is None:
+                    qt.QMessageBox.information(self, "No Data",
+                                               "No image to be saved")
+                    return
+                data, legend, info, pixmap = imageData
+                imageList = [data]
+                labels = ['value']
+
+                # Copied from
+                # PyMca5.PyMcaGui.plotting.MaskImageWidget.saveImageList
+                filename = self.getOutputFileName()
+                if not len(filename):
+                    return
+
+                if filename.lower().endswith(".edf"):
+                    ArraySave.save2DArrayListAsEDF(imageList, filename, labels)
+                elif filename.lower().endswith(".csv"):
+                    if "," in self._saveFilter:
+                        csvseparator = ","
+                    elif ";" in self._saveFilter:
+                        csvseparator = ";"
+                    else:
+                        csvseparator = "\t"
+                    ArraySave.save2DArrayListAsASCII(imageList, filename, labels,
+                                                     csv=True,
+                                                     csvseparator=csvseparator)
+                else:
+                    ArraySave.save2DArrayListAsASCII(imageList, filename, labels,
+                                                     csv=False)
+
+
+    #########################################################################################
+    #
     # WIDGET FOR DETAILED PLOT
     #
     #########################################################################################
@@ -400,7 +515,7 @@ class ShadowPlot:
             self.x_scale_factor = x_scale_factor
             self.y_scale_factor = y_scale_factor
 
-            self.plot_canvas = ImageView.ImageView()
+            self.plot_canvas = ShadowPlot.ShadowImageView()
 
             colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
 

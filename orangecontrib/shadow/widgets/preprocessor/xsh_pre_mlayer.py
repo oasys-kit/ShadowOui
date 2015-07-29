@@ -11,13 +11,7 @@ except ImportError:
     #print("Error importing: xoppy_doc")
     #raise
     pass
-
-try:
-    from ..tools.xoppy_calc import xoppy_calc_xsh_pre_mlayer
-except ImportError:
-    #print("compute pressed.")
-    #print("Error importing: xoppy_calc_xsh_pre_mlayer")
-    #raise
+except SystemError:
     pass
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
@@ -69,15 +63,11 @@ class OWxsh_pre_mlayer(widget.OWWidget):
     def __init__(self):
         super().__init__()
 
-        self.process_showers()
-
         self.setFixedWidth(800)
-        self.setFixedHeight(900)
-
+        self.setFixedHeight(930)
 
         box = gui.widgetBox(self.controlArea, "Multilayer Parameters",orientation="vertical")
-        
-        
+
         idx = -1 
         
         #widget index 0 
@@ -140,97 +130,106 @@ class OWxsh_pre_mlayer(widget.OWWidget):
         idx += 1
         gui.comboBox(box, self, "GRADE_DEPTH",
                      label=self.unitLabels()[idx], addSpace=True,
-                    items=['No (Constant)', 'thicknesses,gamma,rough_even and rough_off from file '],
-                    valueType=int, orientation="horizontal")
+                     items=['No (Constant)', 'thicknesses,gamma,rough_even and rough_off from file '],
+                     valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
+
+
+        box_2 = gui.widgetBox(box, "",orientation="vertical")
 
         #widget index 10
         idx += 1
-        ShadowGui.lineEdit(box, self, "N_PAIRS",
+        ShadowGui.lineEdit(box_2, self, "N_PAIRS",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=int, validator=QIntValidator(), labelWidth=350, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box)
+        self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 11
         idx += 1
-        ShadowGui.lineEdit(box, self, "THICKNESS",
+        ShadowGui.lineEdit(box_2, self, "THICKNESS",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box)
+        self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 12
         idx += 1
-        ShadowGui.lineEdit(box, self, "GAMMA",
+        ShadowGui.lineEdit(box_2, self, "GAMMA",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box)
+        self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 13
         idx += 1
-        ShadowGui.lineEdit(box, self, "ROUGHNESS_EVEN",
+        ShadowGui.lineEdit(box_2, self, "ROUGHNESS_EVEN",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box)
+        self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 14
         idx += 1
-        ShadowGui.lineEdit(box, self, "ROUGHNESS_ODD",
+        ShadowGui.lineEdit(box_2, self, "ROUGHNESS_ODD",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box)
+        self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 15
         idx += 1
-        ShadowGui.lineEdit(box, self, "FILE_DEPTH",
+        ShadowGui.lineEdit(box_2, self, "FILE_DEPTH",
                      label=self.unitLabels()[idx], addSpace=True, labelWidth=450, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box)
+        self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 16
         idx += 1
         gui.comboBox(box, self, "GRADE_SURFACE",
                      label=self.unitLabels()[idx], addSpace=True,
-                    items=['No (Constant)', 'thick and gamma graded (from spline files)', 'thickness graded (from quadratic fit)'],
-                    valueType=int, orientation="horizontal")
+                     items=['No (Constant)', 'thick and gamma graded (from spline files)', 'thickness graded (from quadratic fit)'],
+                     valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
+
+        box_3 = gui.widgetBox(box, "",orientation="vertical")
 
         #widget index 17
         idx += 1
-        ShadowGui.lineEdit(box, self, "FILE_SHADOW",
+        ShadowGui.lineEdit(box_3, self, "FILE_SHADOW",
                      label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box)
+        self.show_at(self.unitFlags()[idx], box_3)
 
         #widget index 18
         idx += 1
-        ShadowGui.lineEdit(box, self, "FILE_THICKNESS",
+        ShadowGui.lineEdit(box_3, self, "FILE_THICKNESS",
                      label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box)
+        self.show_at(self.unitFlags()[idx], box_3)
 
         #widget index 19
         idx += 1
-        ShadowGui.lineEdit(box, self, "FILE_GAMMA",
+        ShadowGui.lineEdit(box_3, self, "FILE_GAMMA",
                      label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box)
+        self.show_at(self.unitFlags()[idx], box_3)
+
+        box_4 = gui.widgetBox(box, "",orientation="vertical")
 
         #widget index 20
         idx += 1
-        ShadowGui.lineEdit(box, self, "AA0",
+        ShadowGui.lineEdit(box_4, self, "AA0",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box)
+        self.show_at(self.unitFlags()[idx], box_4)
 
         #widget index 21
         idx += 1
-        ShadowGui.lineEdit(box, self, "AA1",
+        ShadowGui.lineEdit(box_4, self, "AA1",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box)
+                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box_4)
 
         #widget index 22
         idx += 1
-        ShadowGui.lineEdit(box, self, "AA2",
+        ShadowGui.lineEdit(box_4, self, "AA2",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box)
+        self.show_at(self.unitFlags()[idx], box_4)
+
+        self.process_showers()
 
         self.shadow_output = QTextEdit()
         self.shadow_output.setReadOnly(True)
@@ -251,27 +250,96 @@ class OWxsh_pre_mlayer(widget.OWWidget):
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['Output file (for SHADOW/trace): ','Min Energy [eV]','Max Energy [eV]','Density (substrate) [g/cm3]','Material (substrate) (element or formula)','Density (even "bottom" sublayer) [g/cm3]','Material (even sublayer) (element or formula)','Density (odd "top" sublayer) [g/cm3]','Material (odd sublayer) (element or formula)','Bilayer thicknesses graded along the depth? ','Number of bilayers ','bilayer thickness t [A]','gamma ratio [t_even/(t_odd+t_even)]','Roughness even layer [A]','Roughness odd layer [A]','File with list of t_bilayer,gamma,roughness_even,roughness_odd:','Bilayer thicknesses/gamma graded along the surface? ','Output binary file (for SHADOW) with splines','File with bilayer thicknesses versus surface (PRESURFACE format)','File with bilayer gamma versus surface (PRESURFACE format)','Fit bilayer t(y)/t(y=0) vs y: zero-order coefficient (constant)','Fit bilayer t(y)/t(y=0) vs y: linear coefficient (slope)','Fit bilayer t(y)/t(y=0) vs y: 2nd degree coefficient']
+         return ['Output file (for SHADOW/trace): ',
+                 'Min Energy [eV]','Max Energy [eV]',
+                 'Density (substrate) [g/cm3]',
+                 'Material (substrate) (element or formula)',
+                 'Density (even "bottom" sublayer) [g/cm3]',
+                 'Material (even sublayer) (element or formula)',
+                 'Density (odd "top" sublayer) [g/cm3]',
+                 'Material (odd sublayer) (element or formula)',
+                 'Bilayer thicknesses graded along the depth? ',
+                 'Number of bilayers ',
+                 'bilayer thickness t [A]',
+                 'gamma ratio [t_even/(t_odd+t_even)]',
+                 'Roughness even layer [A]',
+                 'Roughness odd layer [A]',
+                 'File with list of t_bilayer,gamma,roughness_even,roughness_odd:',
+                 'Bilayer thicknesses/gamma graded along the surface? ',
+                 'Output binary file (for SHADOW) with splines',
+                 'File with bilayer thicknesses versus surface (PRESURFACE format)',
+                 'File with bilayer gamma versus surface (PRESURFACE format)',
+                 'Fit bilayer t(y)/t(y=0) vs y: zero-order coefficient (constant)',
+                 'Fit bilayer t(y)/t(y=0) vs y: linear coefficient (slope)',
+                 'Fit bilayer t(y)/t(y=0) vs y: 2nd degree coefficient']
 
 
     def unitFlags(self):
-         return ['True','True','True','True','True','True','True','True','True','True','self.GRADE_DEPTH  ==  0','self.GRADE_DEPTH  ==  0','self.GRADE_DEPTH  ==  0','self.GRADE_DEPTH  ==  0','self.GRADE_DEPTH  ==  0','self.GRADE_DEPTH  ==  1','True','self.GRADE_SURFACE  ==  1','self.GRADE_SURFACE  ==  1','self.GRADE_SURFACE  ==  1','self.GRADE_SURFACE  ==  2','self.GRADE_SURFACE  ==  2','self.GRADE_SURFACE  ==  2']
+         return ['True',
+                 'True',
+                 'True',
+                 'True',
+                 'True',
+                 'True',
+                 'True',
+                 'True',
+                 'True',
+                 'True',
+                 'self.GRADE_DEPTH  ==  0',
+                 'self.GRADE_DEPTH  ==  0',
+                 'self.GRADE_DEPTH  ==  0',
+                 'self.GRADE_DEPTH  ==  0',
+                 'self.GRADE_DEPTH  ==  0',
+                 'self.GRADE_DEPTH  ==  1',
+                 'True',
+                 'self.GRADE_SURFACE  ==  1',
+                 'self.GRADE_SURFACE  ==  1',
+                 'self.GRADE_SURFACE  ==  1',
+                 'self.GRADE_SURFACE  ==  2',
+                 'self.GRADE_SURFACE  ==  2',
+                 'self.GRADE_SURFACE  ==  2']
 
     def compute(self):
         sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
-        tmp = pre_mlayer(interactive=False,FILE=self.FILE,E_MIN=self.E_MIN,E_MAX=self.E_MAX,S_DENSITY=self.S_DENSITY,S_MATERIAL=self.S_MATERIAL,E_DENSITY=self.E_DENSITY,E_MATERIAL=self.E_MATERIAL,O_DENSITY=self.O_DENSITY,O_MATERIAL=self.O_MATERIAL,GRADE_DEPTH=self.GRADE_DEPTH,N_PAIRS=self.N_PAIRS,THICKNESS=self.THICKNESS,GAMMA=self.GAMMA,ROUGHNESS_EVEN=self.ROUGHNESS_EVEN,ROUGHNESS_ODD=self.ROUGHNESS_ODD,FILE_DEPTH=self.FILE_DEPTH,GRADE_SURFACE=self.GRADE_SURFACE,FILE_SHADOW=self.FILE_SHADOW,FILE_THICKNESS=self.FILE_THICKNESS,FILE_GAMMA=self.FILE_GAMMA,AA0=self.AA0,AA1=self.AA1,AA2=self.AA2)
+        tmp = pre_mlayer(interactive=False,
+                         FILE=self.FILE,
+                         E_MIN=self.E_MIN,
+                         E_MAX=self.E_MAX,
+                         S_DENSITY=self.S_DENSITY,
+                         S_MATERIAL=self.S_MATERIAL,
+                         E_DENSITY=self.E_DENSITY,
+                         E_MATERIAL=self.E_MATERIAL,
+                         O_DENSITY=self.O_DENSITY,
+                         O_MATERIAL=self.O_MATERIAL,
+                         GRADE_DEPTH=self.GRADE_DEPTH,
+                         N_PAIRS=self.N_PAIRS,
+                         THICKNESS=self.THICKNESS,
+                         GAMMA=self.GAMMA,
+                         ROUGHNESS_EVEN=self.ROUGHNESS_EVEN,
+                         ROUGHNESS_ODD=self.ROUGHNESS_ODD,
+                         FILE_DEPTH=self.FILE_DEPTH,
+                         GRADE_SURFACE=self.GRADE_SURFACE,
+                         FILE_SHADOW=self.FILE_SHADOW,
+                         FILE_THICKNESS=self.FILE_THICKNESS,
+                         FILE_GAMMA=self.FILE_GAMMA,
+                         AA0=self.AA0,
+                         AA1=self.AA1,
+                         AA2=self.AA2)
 
         self.send("PreProcessor_Data", ShadowPreProcessorData(m_layer_data_file_dat=self.FILE, m_layer_data_file_sha=self.FILE_SHADOW))
 
     def defaults(self):
          self.resetSettings()
-         self.compute()
+         #self.compute()
          return
 
     def help1(self):
         print("help pressed.")
-        xoppy_doc('xsh_pre_mlayer')
+        try:
+            xoppy_doc('xsh_pre_mlayer')
+        except:
+            pass
 
     def writeStdOut(self, text):
         cursor = self.shadow_output.textCursor()

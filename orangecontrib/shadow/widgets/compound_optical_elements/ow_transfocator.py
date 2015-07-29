@@ -39,34 +39,6 @@ class Transfocator(ow_generic_element.GenericElement):
 
     CONTROL_AREA_WIDTH = 500
 
-    # nlenses = [4, 8]
-    # slots_empty = [0, 0]
-    # thickness = [625e-4, 625e-4]
-    #
-    # p = [0.0, 0.0]
-    # q = [0.0, 0.0]
-    # surface_shape = [1, 1]
-    # convex_to_the_beam = [1, 1]
-    #
-    # has_finite_diameter = [0, 0]
-    # diameter = [0.0, 0.0]
-    #
-    # is_cylinder = [1, 1]
-    # cylinder_angle = [0.0, 0.0]
-    #
-    # ri_calculation_mode = [0, 0]
-    # prerefl_file = [NONE_SPECIFIED, NONE_SPECIFIED]
-    # refraction_index = [1.0, 1.0]
-    # attenuation_coefficient = [0.0, 0.0]
-    #
-    # radius = [500e-2, 500e-2]
-    # interthickness = [0.001, 0.001]
-    #
-    # use_ccc = [0, 0]
-    #
-    # file_to_write_out = 3
-
-
     nlenses = Setting([4, 8])
     slots_empty = Setting([0, 0])
     thickness = Setting([625e-4, 625e-4])
@@ -868,8 +840,13 @@ class CRLBox(QtGui.QWidget):
 
         self.calculation_mode_2 = ShadowGui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=50)
 
-        self.le_prerefl_file = ShadowGui.lineEdit(self.calculation_mode_2, self, "prerefl_file", "File Prerefl", labelWidth=150, valueType=str, orientation="horizontal",
+        file_box = ShadowGui.widgetBox(self.calculation_mode_2, "", addSpace=True, orientation="horizontal", height=25)
+
+        self.le_prerefl_file = ShadowGui.lineEdit(file_box, self, "prerefl_file", "File Prerefl", labelWidth=100, valueType=str, orientation="horizontal",
                                                   callback=self.transfocator.dump_prerefl_file)
+
+        pushButton = gui.button(file_box, self, "...")
+        pushButton.clicked.connect(self.selectFilePrerefl)
 
         self.set_ri_calculation_mode()
 
@@ -880,6 +857,13 @@ class CRLBox(QtGui.QWidget):
     # GRAPHIC USER INTERFACE MANAGEMENT
     #
     ############################################################
+
+    def selectFilePrerefl(self):
+        self.le_prerefl_file.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select File Prerefl", ".", "*.dat"))
+
+        self.prerefl_file = self.le_prerefl_file.text()
+        self.transfocator.dump_prerefl_file()
 
     def get_surface_shape(self):
         if self.surface_shape == 0:

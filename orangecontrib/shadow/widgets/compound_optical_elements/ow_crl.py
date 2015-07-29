@@ -148,7 +148,12 @@ class CRL(ow_generic_element.GenericElement):
 
         self.calculation_mode_2 = ShadowGui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=50)
 
-        ShadowGui.lineEdit(self.calculation_mode_2, self, "prerefl_file", "File Prerefl", labelWidth=150, valueType=str, orientation="horizontal")
+        file_box = ShadowGui.widgetBox(self.calculation_mode_2, "", addSpace=True, orientation="horizontal", height=25)
+
+        self.le_file_prerefl = ShadowGui.lineEdit(file_box, self, "prerefl_file", "File Prerefl", labelWidth=100, valueType=str, orientation="horizontal")
+
+        pushButton = gui.button(file_box, self, "...")
+        pushButton.clicked.connect(self.selectFilePrerefl)
 
         self.set_ri_calculation_mode()
 
@@ -190,6 +195,10 @@ class CRL(ow_generic_element.GenericElement):
     # GRAPHIC USER INTERFACE MANAGEMENT
     #
     ############################################################
+
+    def selectFilePrerefl(self):
+        self.le_file_prerefl.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select File Prerefl", ".", "*.dat"))
 
     def get_surface_shape(self):
         if self.surface_shape == 0:

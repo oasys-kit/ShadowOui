@@ -618,11 +618,17 @@ class MirrorBox(QtGui.QWidget):
         gui.comboBox(mirror_box, self, "reflectivity_kind", label="Reflectivity Kind", labelWidth=350,
                      items=["Ideal Reflector", "Mirror", "Multilayer"], sendSelectedValue=False, orientation="horizontal", callback=self.set_reflectivity_kind)
 
-        self.reflectivity_box = ShadowGui.widgetBox(mirror_box, "", addSpace=True, orientation="vertical", height=20)
-        self.reflectivity_box_empty = ShadowGui.widgetBox(mirror_box, "", addSpace=True, orientation="vertical", height=20)
+        self.reflectivity_box = ShadowGui.widgetBox(mirror_box, "", addSpace=True, orientation="vertical", height=25)
+        self.reflectivity_box_empty = ShadowGui.widgetBox(mirror_box, "", addSpace=True, orientation="vertical", height=25)
 
-        self.le_reflectivity_files = ShadowGui.lineEdit(self.reflectivity_box, self, "reflectivity_files", "Reflectivity File", labelWidth=150, valueType=str,
+        file_box = ShadowGui.widgetBox(self.reflectivity_box, "", addSpace=True, orientation="horizontal", height=25)
+
+        self.le_reflectivity_files = ShadowGui.lineEdit(file_box, self, "reflectivity_files", "Reflectivity File", labelWidth=150, valueType=str,
                                                         orientation="horizontal", callback=self.kb.dump_reflectivity_files)
+
+        pushButton = gui.button(file_box, self, "...")
+        pushButton.clicked.connect(self.selectFilePrerefl)
+
 
         self.set_reflectivity_kind()
 
@@ -631,12 +637,18 @@ class MirrorBox(QtGui.QWidget):
         gui.comboBox(mirror_box, self, "has_surface_error", label="Surface Error", labelWidth=350,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.set_has_surface_error)
 
-        self.surface_error_box = ShadowGui.widgetBox(mirror_box, "", addSpace=True, orientation="vertical", height=20)
-        self.surface_error_box_empty = ShadowGui.widgetBox(mirror_box, "", addSpace=True, orientation="vertical", height=20)
+        self.surface_error_box = ShadowGui.widgetBox(mirror_box, "", addSpace=True, orientation="vertical", height=25)
+        self.surface_error_box_empty = ShadowGui.widgetBox(mirror_box, "", addSpace=True, orientation="vertical", height=25)
 
-        self.le_surface_error_files = ShadowGui.lineEdit(self.surface_error_box, self, "surface_error_files", "Surface Error File", labelWidth=150, valueType=str,
+
+        file_box = ShadowGui.widgetBox(self.surface_error_box, "", addSpace=True, orientation="horizontal", height=25)
+
+        self.le_surface_error_files = ShadowGui.lineEdit(file_box, self, "surface_error_files", "Surface Error File", labelWidth=150, valueType=str,
                                                          orientation="horizontal",
                                                          callback=self.kb.dump_surface_error_files)
+
+        pushButton = gui.button(file_box, self, "...")
+        pushButton.clicked.connect(self.selectFileSurfaceError)
 
         self.set_has_surface_error()
 
@@ -647,6 +659,20 @@ class MirrorBox(QtGui.QWidget):
     # GRAPHIC USER INTERFACE MANAGEMENT
     #
     ############################################################
+
+    def selectFilePrerefl(self):
+        self.le_reflectivity_files.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select Reflectivity File", ".", "*.dat"))
+
+        self.reflectivity_files = self.le_reflectivity_files.text()
+        self.kb.dump_reflectivity_files()
+
+    def selectFileSurfaceError(self):
+        self.le_surface_error_files.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select Surface Error File", ".", "*.dat; *.sha"))
+
+        self.surface_error_files = self.le_surface_error_files.text()
+        self.kb.dump_surface_error_files()
 
     def get_shape(self):
         if self.shape == 0:

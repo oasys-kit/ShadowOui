@@ -8,7 +8,7 @@ from PyQt4.QtGui import QPalette, QColor, QFont
 from orangecontrib.shadow.widgets.gui import ow_generic_element
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerIn, ShadowPreProcessorData, \
     ShadowOpticalElement, ShadowBeam
-from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowPhysics
+from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowPhysics, ConfirmDialog
 
 class GraphicalOptions:
     is_empty = False
@@ -349,9 +349,13 @@ class OpticalElement(ow_generic_element.GenericElement):
                          callback=self.set_ApertureShape, sendSelectedValue=False, orientation="horizontal")
 
 
-            self.box_aperturing_shape_1 = ShadowGui.widgetBox(self.box_aperturing_shape, "", addSpace=False, orientation="vertical")
+            self.box_aperturing_shape_1 = ShadowGui.widgetBox(self.box_aperturing_shape, "", addSpace=False, orientation="horizontal")
 
-            ShadowGui.lineEdit(self.box_aperturing_shape_1, self, "external_file_with_coordinate", "External file with coordinate", labelWidth=185, valueType=str, orientation="horizontal")
+
+            self.le_external_file_with_coordinate = ShadowGui.lineEdit(self.box_aperturing_shape_1, self, "external_file_with_coordinate", "External file with coordinate", labelWidth=185, valueType=str, orientation="horizontal")
+
+            pushButton = gui.button(self.box_aperturing_shape_1, self, "...")
+            pushButton.clicked.connect(self.selectExternalFileWithCoordinate)
 
             self.box_aperturing_shape_2 = ShadowGui.widgetBox(self.box_aperturing_shape, "", addSpace=False, orientation="vertical")
 
@@ -374,7 +378,13 @@ class OpticalElement(ow_generic_element.GenericElement):
             self.box_absorption_1_empty = ShadowGui.widgetBox(box_absorption, "", addSpace=False, orientation="vertical")
 
             ShadowGui.lineEdit(self.box_absorption_1, self, "thickness", "Thickness [cm]", labelWidth=340, valueType=float, orientation="horizontal")
-            ShadowGui.lineEdit(self.box_absorption_1, self, "opt_const_file_name", "Opt. const. file name", labelWidth=185, valueType=str, orientation="horizontal")
+
+            file_box = ShadowGui.widgetBox(self.box_absorption_1, "", addSpace=True, orientation="horizontal", height=25)
+
+            self.le_opt_const_file_name = ShadowGui.lineEdit(file_box, self, "opt_const_file_name", "Opt. const. file name", labelWidth=150, valueType=str, orientation="horizontal")
+
+            pushButton = gui.button(file_box, self, "...")
+            pushButton.clicked.connect(self.selectOptConstFileName)
 
             self.set_Absorption()
 
@@ -664,7 +674,13 @@ class OpticalElement(ow_generic_element.GenericElement):
                 self.refl_box_pol_1 = ShadowGui.widgetBox(self.refl_box_pol, "", addSpace=True, orientation="vertical")
 
                 gui.separator(self.refl_box_pol_1, width=self.INNER_BOX_WIDTH_L1)
-                ShadowGui.lineEdit(self.refl_box_pol_1, self, "file_prerefl", "File Name", labelWidth=200, valueType=str, orientation="horizontal")
+
+                file_box = ShadowGui.widgetBox(self.refl_box_pol_1, "", addSpace=True, orientation="horizontal", height=25)
+
+                self.le_file_prerefl = ShadowGui.lineEdit(file_box, self, "file_prerefl", "File Name", labelWidth=100, valueType=str, orientation="horizontal")
+
+                pushButton = gui.button(file_box, self, "...")
+                pushButton.clicked.connect(self.selectFilePrerefl)
 
                 self.refl_box_pol_2 = gui.widgetBox(self.refl_box_pol, "", addSpace=False, orientation="vertical")
 
@@ -673,7 +689,13 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 self.refl_box_pol_3 = gui.widgetBox(self.refl_box_pol, "", addSpace=True, orientation="vertical")
 
-                ShadowGui.lineEdit(self.refl_box_pol_3, self, "file_prerefl_m", "File Name", labelWidth=200, valueType=str, orientation="horizontal")
+                file_box = ShadowGui.widgetBox(self.refl_box_pol_3, "", addSpace=True, orientation="horizontal", height=25)
+
+                self.le_file_prerefl_m = ShadowGui.lineEdit(file_box, self, "file_prerefl_m", "File Name", labelWidth=100, valueType=str, orientation="horizontal")
+
+                pushButton = gui.button(file_box, self, "...")
+                pushButton.clicked.connect(self.selectFilePrereflM)
+
                 gui.comboBox(self.refl_box_pol_3, self, "m_layer_tickness", label="Mlayer thickness vary as cosine", labelWidth=350,
                              items=["No", "Yes"],
                              sendSelectedValue=False, orientation="horizontal")
@@ -686,7 +708,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                 self.tab_cryst_2 = ShadowGui.createTabPage(tabs_crystal_setting, "Geometric Setting")
 
                 crystal_box = ShadowGui.widgetBox(self.tab_cryst_1, "Diffraction Parameters", addSpace=True,
-                                                  orientation="vertical", height=220)
+                                                  orientation="vertical", height=240)
 
                 gui.comboBox(crystal_box, self, "diffraction_geometry", label="Diffraction Geometry", labelWidth=300,
                              items=["Bragg", "Laue"],
@@ -702,8 +724,14 @@ class OpticalElement(ow_generic_element.GenericElement):
                 self.crystal_box_1 = ShadowGui.widgetBox(crystal_box, "", addSpace=True, orientation="vertical",
                                                          height=150)
 
-                ShadowGui.lineEdit(self.crystal_box_1, self, "file_crystal_parameters", "File with crystal parameters",
-                                   labelWidth=200, valueType=str, orientation="horizontal")
+
+                file_box = ShadowGui.widgetBox(self.crystal_box_1, "", addSpace=True, orientation="horizontal", height=30)
+
+                self.le_file_crystal_parameters = ShadowGui.lineEdit(file_box, self, "file_crystal_parameters", "File with crystal\nparameters",
+                                   labelWidth=150, valueType=str, orientation="horizontal")
+
+                pushButton = gui.button(file_box, self, "...")
+                pushButton.clicked.connect(self.selectFileCrystalParameters)
 
                 gui.comboBox(self.crystal_box_1, self, "crystal_auto_setting", label="Auto setting", labelWidth=350,
                              items=["No", "Yes"],
@@ -730,12 +758,15 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 ShadowGui.lineEdit(self.autosetting_box_units_2, self, "photon_wavelength", "Set wavelength [Å]", labelWidth=260, valueType=float, orientation="horizontal")
 
-                self.crystal_box_2 = ShadowGui.widgetBox(crystal_box, "", addSpace=True, orientation="vertical",
+                self.crystal_box_2 = ShadowGui.widgetBox(crystal_box, "", addSpace=True, orientation="horizontal",
                                                          height=150)
 
-                ShadowGui.lineEdit(self.crystal_box_2, self, "file_diffraction_profile",
-                                   "File with Diffraction Profile\n(XOP format)", labelWidth=200, valueType=str,
+                self.le_file_diffraction_profile = ShadowGui.lineEdit(self.crystal_box_2, self, "file_diffraction_profile",
+                                   "File with Diffraction\nProfile (XOP format)", labelWidth=150, valueType=str,
                                    orientation="horizontal")
+
+                pushButton = gui.button(self.crystal_box_2, self, "...")
+                pushButton.clicked.connect(self.selectFileDiffractionProfile)
 
                 self.set_DiffractionCalculation()
 
@@ -947,9 +978,12 @@ class OpticalElement(ow_generic_element.GenericElement):
                          items=["sinusoidal", "gaussian", "external spline"],
                          callback=self.set_TypeOfDefect, sendSelectedValue=False, orientation="horizontal")
 
-            self.mod_surf_err_box_1 = ShadowGui.widgetBox(self.surface_error_box, "", addSpace=False, orientation="vertical")
+            self.mod_surf_err_box_1 = ShadowGui.widgetBox(self.surface_error_box, "", addSpace=False, orientation="horizontal")
 
-            ShadowGui.lineEdit(self.mod_surf_err_box_1, self, "ms_defect_file_name", "File name", labelWidth=125, valueType=str, orientation="horizontal")
+            self.le_ms_defect_file_name = ShadowGui.lineEdit(self.mod_surf_err_box_1, self, "ms_defect_file_name", "File name", labelWidth=125, valueType=str, orientation="horizontal")
+
+            pushButton = gui.button(self.mod_surf_err_box_1, self, "...")
+            pushButton.clicked.connect(self.selectDefectFileName)
 
             self.mod_surf_err_box_2 = ShadowGui.widgetBox(self.surface_error_box, "", addSpace=False, orientation="vertical")
 
@@ -964,7 +998,12 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             self.faceted_surface_box =  ShadowGui.widgetBox(mod_surf_box, box="", addSpace=False, orientation="vertical")
 
-            ShadowGui.lineEdit(self.faceted_surface_box, self, "ms_file_facet_descr", "File w/ facet descr.", labelWidth=125, valueType=str, orientation="horizontal")
+            file_box = ShadowGui.widgetBox(self.faceted_surface_box, "", addSpace=True, orientation="horizontal", height=25)
+
+            self.le_ms_file_facet_descr = ShadowGui.lineEdit(file_box, self, "ms_file_facet_descr", "File w/ facet descr.", labelWidth=125, valueType=str, orientation="horizontal")
+
+            pushButton = gui.button(file_box, self, "...")
+            pushButton.clicked.connect(self.selectFileFacetDescr)
 
             gui.comboBox(self.faceted_surface_box, self, "ms_lattice_type", label="Lattice Type", labelWidth=260,
                          items=["rectangle", "hexagonal"], sendSelectedValue=False, orientation="horizontal")
@@ -989,7 +1028,14 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             self.surface_roughness_box =  ShadowGui.widgetBox(mod_surf_box, box="", addSpace=False, orientation="vertical")
 
-            ShadowGui.lineEdit(self.surface_roughness_box, self, "ms_file_surf_roughness", "Surface Roughness File w/ PSD fn", valueType=str, orientation="horizontal")
+
+            file_box = ShadowGui.widgetBox(self.surface_roughness_box, "", addSpace=True, orientation="horizontal", height=25)
+
+            self.le_ms_file_surf_roughness = ShadowGui.lineEdit(file_box, self, "ms_file_surf_roughness", "Surface Roughness File w/ PSD fn", valueType=str, orientation="horizontal")
+
+            pushButton = gui.button(file_box, self, "...")
+            pushButton.clicked.connect(self.selectFileSurfRoughness)
+
             ShadowGui.lineEdit(self.surface_roughness_box, self, "ms_roughness_rms_y", "Roughness RMS in Y (Å)", labelWidth=260, valueType=float, orientation="horizontal")
             ShadowGui.lineEdit(self.surface_roughness_box, self, "ms_roughness_rms_x", "Roughness RMS in X (Å)", labelWidth=260, valueType=float, orientation="horizontal")
 
@@ -1003,8 +1049,19 @@ class OpticalElement(ow_generic_element.GenericElement):
             self.kumakhov_lens_box_1 =  ShadowGui.widgetBox(self.kumakhov_lens_box, box="", addSpace=False, orientation="vertical")
             self.kumakhov_lens_box_2 =  ShadowGui.widgetBox(self.kumakhov_lens_box, box="", addSpace=False, orientation="vertical")
 
-            ShadowGui.lineEdit(self.kumakhov_lens_box_1, self, "ms_file_with_parameters_rz", "File with parameters (r(z))", labelWidth=185, valueType=str, orientation="horizontal")
-            ShadowGui.lineEdit(self.kumakhov_lens_box_2, self, "ms_file_with_parameters_rz2", "File with parameters (r(z)^2)", labelWidth=185, valueType=str, orientation="horizontal")
+            file_box = ShadowGui.widgetBox(self.kumakhov_lens_box_1, "", addSpace=True, orientation="horizontal", height=25)
+
+            self.le_ms_file_with_parameters_rz = ShadowGui.lineEdit(file_box, self, "ms_file_with_parameters_rz", "File with parameters (r(z))", labelWidth=185, valueType=str, orientation="horizontal")
+
+            pushButton = gui.button(file_box, self, "...")
+            pushButton.clicked.connect(self.selectFileWithParametersRz)
+
+            file_box = ShadowGui.widgetBox(self.kumakhov_lens_box_2, "", addSpace=True, orientation="horizontal", height=25)
+
+            self.le_ms_file_with_parameters_rz2 = ShadowGui.lineEdit(file_box, self, "ms_file_with_parameters_rz2", "File with parameters (r(z)^2)", labelWidth=185, valueType=str, orientation="horizontal")
+
+            pushButton = gui.button(file_box, self, "...")
+            pushButton.clicked.connect(self.selectFileWithParametersRz2)
 
             gui.comboBox(self.kumakhov_lens_box, self, "ms_save_intercept_bounces", label="Save intercept and bounces", labelWidth=350,
                          items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
@@ -1017,8 +1074,22 @@ class OpticalElement(ow_generic_element.GenericElement):
             ShadowGui.lineEdit(self.segmented_mirror_box, self, "ms_length_of_segments_x", "Length of segments (X)", labelWidth=260, valueType=float, orientation="horizontal")
             ShadowGui.lineEdit(self.segmented_mirror_box, self, "ms_number_of_segments_y", "Number of segments (Y)", labelWidth=260, valueType=int, orientation="horizontal")
             ShadowGui.lineEdit(self.segmented_mirror_box, self, "ms_length_of_segments_y", "Length of segments (Y)", labelWidth=260, valueType=float, orientation="horizontal")
-            ShadowGui.lineEdit(self.segmented_mirror_box, self, "ms_file_orientations", "File w/ orientations", labelWidth=155, valueType=str, orientation="horizontal")
-            ShadowGui.lineEdit(self.segmented_mirror_box, self, "ms_file_polynomial", "File w/ polynomial", labelWidth=155, valueType=str, orientation="horizontal")
+
+
+            file_box = ShadowGui.widgetBox(self.segmented_mirror_box, "", addSpace=True, orientation="horizontal", height=25)
+
+            self.le_ms_file_orientations = ShadowGui.lineEdit(file_box, self, "ms_file_orientations", "File w/ orientations", labelWidth=155, valueType=str, orientation="horizontal")
+
+            pushButton = gui.button(file_box, self, "...")
+            pushButton.clicked.connect(self.selectFileOrientations)
+
+            file_box = ShadowGui.widgetBox(self.segmented_mirror_box, "", addSpace=True, orientation="horizontal", height=25)
+
+            self.le_ms_file_polynomial = ShadowGui.lineEdit(file_box, self, "ms_file_polynomial", "File w/ polynomial", labelWidth=155, valueType=str, orientation="horizontal")
+
+            pushButton = gui.button(file_box, self, "...")
+            pushButton.clicked.connect(self.selectFilePolynomial)
+
 
             self.set_ModifiedSurface()
 
@@ -1282,6 +1353,60 @@ class OpticalElement(ow_generic_element.GenericElement):
     # USER INPUT MANAGEMENT
     #
     ############################################################
+
+    def selectExternalFileWithCoordinate(self):
+        self.le_external_file_with_coordinate.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Open External File With Coordinate", ".", "*.*"))
+
+    def selectOptConstFileName(self):
+        self.le_opt_const_file_name.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Open Opt. Const. File", ".", "*.*"))
+
+    def selectFilePrerefl(self):
+        self.le_file_prerefl.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select File Prerefl", ".", "*.dat"))
+
+    def selectFilePrereflM(self):
+        self.le_file_prerefl_m.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select File Premlayer", ".", "*.dat"))
+
+    def selectFileCrystalParameters(self):
+        self.le_file_crystal_parameters.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select File With Crystal Parameters", ".", "*.dat"))
+
+    def selectFileDiffractionProfile(self):
+        self.le_file_diffraction_profile.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select File With User Defined Diffraction Profile", ".", "*.*"))
+
+    def selectDefectFileName(self):
+        self.le_ms_defect_file_name.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select Defect File Name", ".", "*.*"))
+
+    def selectFileFacetDescr(self):
+        self.le_ms_file_facet_descr.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select File with Facet Description", ".", "*.*"))
+
+    def selectFileSurfRoughness(self):
+        self.le_ms_file_surf_roughness.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select Surface Roughness File with PSD fn", ".", "*.*"))
+
+    def selectFileWithParametersRz(self):
+        self.le_ms_file_with_parameters_rz.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select File with parameters (r(z))", ".", "*.*"))
+
+    def selectFileWithParametersRz2(self):
+        self.le_ms_file_with_parameters_rz2.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select File with parameters (r(z)^2)", ".", "*.*"))
+
+    def selectFileOrientations(self):
+        self.le_ms_file_orientations.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select File with Orientations", ".", "*.*"))
+
+    def selectFilePolynomial(self):
+        self.le_ms_file_polynomial.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select File with Polynomial", ".", "*.*"))
+
+
 
     def calculate_incidence_angle_mrad(self):
         self.incidence_angle_mrad = round(math.radians(90-self.incidence_angle_deg)*1000, 2)
