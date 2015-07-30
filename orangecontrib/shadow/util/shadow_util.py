@@ -28,8 +28,6 @@ except ImportError:
     print(sys.exc_info()[1])
     pass
 
-
-
 import Shadow.ShadowToolsPrivate as stp
 
 class ConfirmDialog(QMessageBox):
@@ -259,7 +257,10 @@ class ShadowPlot:
                           "EDF Files *.edf",
                           'CSV(, separated) Files *.csv',
                           'CSV(; separated) Files *.csv',
-                          'CSV(tab separated) Files *.csv']
+                          'CSV(tab separated) Files *.csv',
+                          # Added from PlotWindow._getOutputFileName for snapshot
+                          'Widget PNG *.png',
+                          'Widget JPG *.jpg']
             if hasattr(qt, "QStringList"):
                 strlist = qt.QStringList()
             else:
@@ -304,10 +305,23 @@ class ShadowPlot:
                 imageList = [data]
                 labels = ['value']
 
-                # Copied from
-                # PyMca5.PyMcaGui.plotting.MaskImageWidget.saveImageList
+                # Copied from MaskImageWidget.saveImageList
                 filename = self.getOutputFileName()
                 if not len(filename):
+                    return
+
+                # Add PNG and JPG adapted from PlotWindow.defaultSaveAction
+                if 'WIDGET' in self._saveFilter.upper():
+                    fformat = self._saveFilter[-3:].upper()
+                    pixmap = qt.QPixmap.grabWidget(self._imagePlot)
+                    # Use the following instead to grab the image + histograms
+                    # pixmap = qt.QPixmap.grabWidget(self)
+                    if not pixmap.save(filename, fformat):
+                        msg = qt.QMessageBox(self)
+                        msg.setIcon(qt.QMessageBox.Critical)
+                        msg.setInformativeText(str(sys.exc_info()[1]))
+                        msg.setDetailedText(traceback.format_exc())
+                        msg.exec_()
                     return
 
                 if filename.lower().endswith(".edf"):
