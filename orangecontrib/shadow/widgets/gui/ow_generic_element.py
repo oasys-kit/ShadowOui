@@ -1,6 +1,6 @@
 import sys
 
-from orangewidget import gui
+from orangewidget import gui, widget
 from orangewidget.settings import Setting
 
 from PyQt4 import QtGui

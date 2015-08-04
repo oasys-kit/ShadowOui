@@ -6,12 +6,12 @@ from orangewidget.settings import Setting
 from PyQt4 import QtGui
 from PyQt4.QtGui import QApplication, QPalette, QColor, QFont
 
-from orangecontrib.shadow.widgets.gui import ow_generic_element
+from orangecontrib.shadow.widgets.gui import ow_source
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerOut, ShadowBeam, \
     ShadowSource
 from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowPhysics
 
-class GeometricalSource(ow_generic_element.GenericElement):
+class GeometricalSource(ow_source.Source):
 
     name = "Geometrical Source"
     description = "Shadow Source: Geometrical Source"
@@ -128,7 +128,7 @@ class GeometricalSource(ow_generic_element.GenericElement):
     max_number_of_rejected_rays = Setting(10000000)
 
     def __init__(self):
-        super().__init__(show_automatic_box=False)
+        super().__init__()
 
         tabs = ShadowGui.tabWidget(self.controlArea, height=620)
 
@@ -388,7 +388,7 @@ class GeometricalSource(ow_generic_element.GenericElement):
 
         button_box = ShadowGui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
-        button = gui.button(button_box, self, "Run Shadow/trace", callback=self.runShadowSource)
+        button = gui.button(button_box, self, "Run Shadow/Source", callback=self.runShadowSource)
         font = QFont(button.font())
         font.setBold(True)
         button.setFont(font)

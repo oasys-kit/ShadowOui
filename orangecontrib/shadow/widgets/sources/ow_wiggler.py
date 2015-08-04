@@ -5,13 +5,13 @@ from orangewidget.settings import Setting
 from PyQt4 import QtGui
 from PyQt4.QtGui import QApplication, QPalette, QColor, QFont
 
-from orangecontrib.shadow.widgets.gui import ow_generic_element
+from orangecontrib.shadow.widgets.gui import ow_source
 from orangecontrib.shadow.util import srfunc
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerOut, ShadowBeam, \
     ShadowSource
 from orangecontrib.shadow.util.shadow_util import ShadowGui
 
-class Wiggler(ow_generic_element.GenericElement):
+class Wiggler(ow_source.Source):
 
     NONE_SPECIFIED = "NONE SPECIFIED"
 
@@ -71,7 +71,7 @@ class Wiggler(ow_generic_element.GenericElement):
     want_main_area=1
 
     def __init__(self):
-        super().__init__(show_automatic_box=False)
+        super().__init__()
 
         left_box_1 = ShadowGui.widgetBox(self.controlArea, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical", height=320, width=self.CONTROL_AREA_WIDTH)
 
@@ -161,7 +161,7 @@ class Wiggler(ow_generic_element.GenericElement):
 
         button_box = ShadowGui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
-        button = gui.button(button_box, self, "Run Shadow/trace", callback=self.runShadowSource)
+        button = gui.button(button_box, self, "Run Shadow/Source", callback=self.runShadowSource)
         font = QFont(button.font())
         font.setBold(True)
         button.setFont(font)

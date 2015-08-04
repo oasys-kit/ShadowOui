@@ -5,11 +5,11 @@ from orangewidget.settings import Setting
 from PyQt4 import QtGui
 from PyQt4.QtGui import QApplication, QPalette, QColor, QFont
 
-from orangecontrib.shadow.widgets.gui import ow_generic_element
+from orangecontrib.shadow.widgets.gui import ow_source
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerOut, ShadowBeam, ShadowSource
 from orangecontrib.shadow.util.shadow_util import ShadowGui
 
-class BendingMagnet(ow_generic_element.GenericElement):
+class BendingMagnet(ow_source.Source):
 
     name = "Bending Magnet"
     description = "Shadow Source: Bending Magnet"
@@ -58,7 +58,7 @@ class BendingMagnet(ow_generic_element.GenericElement):
     want_main_area=1
 
     def __init__(self):
-        super().__init__(show_automatic_box=False)
+        super().__init__()
 
         left_box_1 = ShadowGui.widgetBox(self.controlArea, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical")
 
@@ -111,7 +111,7 @@ class BendingMagnet(ow_generic_element.GenericElement):
 
         button_box = ShadowGui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
-        button = gui.button(button_box, self, "Run Shadow/trace", callback=self.runShadowSource)
+        button = gui.button(button_box, self, "Run Shadow/Source", callback=self.runShadowSource)
         font = QFont(button.font())
         font.setBold(True)
         button.setFont(font)

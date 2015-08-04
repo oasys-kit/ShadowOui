@@ -8,7 +8,7 @@ import subprocess
 from setuptools import find_packages, setup
 
 NAME = 'ShadowOui'
-VERSION = '1.0'
+VERSION = '1.2.0'
 ISRELEASED = False
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
@@ -44,7 +44,7 @@ INSTALL_REQUIRES = (
     'numpy',
     'scipy',
     'matplotlib',
-    'orange-widget-core>=0.0,<0.1',
+    'orange-widget-core>=0.0.2',
     'oasys>=0.1',
 )
 

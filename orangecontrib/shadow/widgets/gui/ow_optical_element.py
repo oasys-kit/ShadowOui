@@ -1,6 +1,6 @@
 import sys, math, os
 import numpy
-from orangewidget import gui
+from orangewidget import gui, widget
 from orangewidget.settings import Setting
 from PyQt4 import QtGui
 from PyQt4.QtGui import QPalette, QColor, QFont
@@ -313,6 +313,10 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     def __init__(self, graphical_options = GraphicalOptions()):
         super().__init__()
+
+        self.runaction = widget.OWAction("Run Shadow/Trace", self)
+        self.runaction.triggered.connect(self.traceOpticalElement)
+        self.addAction(self.runaction)
 
         self.graphical_options = graphical_options
 
@@ -1167,7 +1171,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
         button_box = ShadowGui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
-        button = gui.button(button_box, self, "Run Shadow/trace", callback=self.traceOpticalElement)
+        button = gui.button(button_box, self, "Run Shadow/Trace", callback=self.traceOpticalElement)
         font = QFont(button.font())
         font.setBold(True)
         button.setFont(font)
@@ -1406,8 +1410,6 @@ class OpticalElement(ow_generic_element.GenericElement):
         self.le_ms_file_polynomial.setText(
             QtGui.QFileDialog.getOpenFileName(self, "Select File with Polynomial", ".", "*.*"))
 
-
-
     def calculate_incidence_angle_mrad(self):
         self.incidence_angle_mrad = round(math.radians(90-self.incidence_angle_deg)*1000, 2)
 
@@ -1631,6 +1633,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                         shadow_oe.oe.F_PHOT_CENT = self.units_in_use
                         shadow_oe.oe.PHOT_CENT = self.photon_energy
                         shadow_oe.oe.R_LAMBDA = self.photon_wavelength
+
                     if self.mosaic_crystal == 1:
                         shadow_oe.oe.F_MOSAIC = 1
                         shadow_oe.oe.MOSAIC_SEED = self.seed_for_mosaic
