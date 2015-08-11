@@ -77,7 +77,7 @@ def adjust_shadow_string(string_to_adjust):
 
             return bytes(temp.rstrip(), 'utf-8')
         else:
-            return bytes(str(string_to_adjust).rstrip(), 'utf-8')
+            return string_to_adjust
 
 class ShadowOEHistoryItem:
 
