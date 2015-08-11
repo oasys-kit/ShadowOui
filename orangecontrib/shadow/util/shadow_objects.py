@@ -66,6 +66,19 @@ class ShadowTriggerIn:
 
         return self
 
+def adjust_shadow_string(string_to_adjust):
+    if string_to_adjust is None:
+        return None
+    else:
+        if len(string_to_adjust) > 1024:
+            temp = str(string_to_adjust[:1023])
+            if (len(temp) == 1026 and temp[0] == "b" and temp[1] == "'" and temp[1025] == "'"):
+                temp = temp[2:1022]
+
+            return bytes(temp.rstrip(), 'utf-8')
+        else:
+            return bytes(str(string_to_adjust).rstrip(), 'utf-8')
+
 class ShadowOEHistoryItem:
 
     def __new__(cls, oe_number=0, shadow_source_start=None, shadow_source_end=None, shadow_oe_start=None, shadow_oe_end=None):
@@ -182,6 +195,8 @@ class ShadowBeam:
 
         self.beam.genSource(shadow_src.src)
 
+        shadow_src.self_repair()
+
         shadow_source_end = shadow_src.duplicate()
 
         self.history.append(ShadowOEHistoryItem(shadow_source_start=shadow_source_start, shadow_source_end=shadow_source_end))
@@ -196,6 +211,8 @@ class ShadowBeam:
         history_shadow_oe_start = shadow_oe.duplicate()
 
         self.beam.traceOE(shadow_oe.oe, self.oe_number)
+
+        shadow_oe.self_repair()
 
         history_shadow_oe_end = shadow_oe.duplicate()
 
@@ -217,6 +234,8 @@ class ShadowBeam:
         self = cls.initializeFromPreviousBeam(input_beam)
 
         history_shadow_oe_start = shadow_oe.duplicate()
+
+        shadow_oe.self_repair()
 
         self.beam.traceCompoundOE(shadow_oe.oe,
                                   from_oe=self.oe_number,
@@ -249,6 +268,8 @@ class ShadowBeam:
 
         self.beam.traceOE(shadow_oe.oe, self.oe_number)
 
+        shadow_oe.self_repair()
+
         return self
 
     def getOEHistory(self, oe_number=None):
@@ -266,14 +287,22 @@ class ShadowSource:
     def set_src(self, src):
         self.src = src
 
+    ####################################################################
+    # FOR WEIRD BUG ON LINUX - STRING NOT PROPERLY RETURNED BY BINDING
+    ####################################################################
+    def self_repair(self):
+        self.src.FILE_TRAJ   = adjust_shadow_string(self.src.FILE_TRAJ)
+        self.src.FILE_SOURCE = adjust_shadow_string(self.src.FILE_SOURCE)
+        self.src.FILE_BOUND  = adjust_shadow_string(self.src.FILE_BOUND)
+
     @classmethod
     def create_src(cls):
         self = cls.__new__(ShadowSource, src=Shadow.Source())
 
         self.src.OE_NUMBER =  0
-        self.src.FILE_TRAJ=b"NONESPECIFIED"
-        self.src.FILE_SOURCE=b"NONESPECIFIED"
-        self.src.FILE_BOUND=b"NONESPECIFIED"
+        self.src.FILE_TRAJ=bytes("NONESPECIFIED", 'utf-8')
+        self.src.FILE_SOURCE=bytes("NONESPECIFIED", 'utf-8')
+        self.src.FILE_BOUND=bytes("NONESPECIFIED", 'utf-8')
 
         return self
 
@@ -283,7 +312,6 @@ class ShadowSource:
         self.src.load(filename)
 
         return self
-
 
     @classmethod
     def create_bm_src(cls):
@@ -469,6 +497,50 @@ class ShadowOpticalElement:
 
     def set_oe(self, oe):
         self.oe = oe
+
+    ####################################################################
+    # FOR WEIRD BUG ON LINUX - STRING NOT PROPERLY RETURNED BY BINDING
+    ####################################################################
+    def self_repair(self):
+        self.oe.FILE_SOURCE      = adjust_shadow_string(self.oe.FILE_SOURCE)
+        self.oe.FILE_RIP         = adjust_shadow_string(self.oe.FILE_RIP)
+        self.oe.FILE_REFL        = adjust_shadow_string(self.oe.FILE_REFL)
+        self.oe.FILE_MIR         = adjust_shadow_string(self.oe.FILE_MIR)
+        self.oe.FILE_ROUGH       = adjust_shadow_string(self.oe.FILE_ROUGH)
+        self.oe.FILE_R_IND_OBJ   = adjust_shadow_string(self.oe.FILE_R_IND_OBJ)
+        self.oe.FILE_R_IND_IMA   = adjust_shadow_string(self.oe.FILE_R_IND_IMA)
+        self.oe.FILE_FAC         = adjust_shadow_string(self.oe.FILE_FAC)
+        self.oe.FILE_SEGMENT     = adjust_shadow_string(self.oe.FILE_SEGMENT)
+        self.oe.FILE_SEGP        = adjust_shadow_string(self.oe.FILE_SEGP)
+        self.oe.FILE_KOMA        = adjust_shadow_string(self.oe.FILE_KOMA)
+        self.oe.FILE_KOMA_CA     = adjust_shadow_string(self.oe.FILE_KOMA_CA)
+
+        FILE_ABS = [adjust_shadow_string(self.oe.FILE_ABS[0]),
+                    adjust_shadow_string(self.oe.FILE_ABS[1]),
+                    adjust_shadow_string(self.oe.FILE_ABS[2]),
+                    adjust_shadow_string(self.oe.FILE_ABS[3]),
+                    adjust_shadow_string(self.oe.FILE_ABS[4]),
+                    adjust_shadow_string(self.oe.FILE_ABS[5]),
+                    adjust_shadow_string(self.oe.FILE_ABS[6]),
+                    adjust_shadow_string(self.oe.FILE_ABS[7]),
+                    adjust_shadow_string(self.oe.FILE_ABS[8]),
+                    adjust_shadow_string(self.oe.FILE_ABS[9])]
+
+        self.oe.FILE_ABS = numpy.array(FILE_ABS)
+
+        FILE_SCR_EXT = [adjust_shadow_string(self.oe.FILE_SCR_EXT[0]),
+                        adjust_shadow_string(self.oe.FILE_SCR_EXT[1]),
+                        adjust_shadow_string(self.oe.FILE_SCR_EXT[2]),
+                        adjust_shadow_string(self.oe.FILE_SCR_EXT[3]),
+                        adjust_shadow_string(self.oe.FILE_SCR_EXT[4]),
+                        adjust_shadow_string(self.oe.FILE_SCR_EXT[5]),
+                        adjust_shadow_string(self.oe.FILE_SCR_EXT[6]),
+                        adjust_shadow_string(self.oe.FILE_SCR_EXT[7]),
+                        adjust_shadow_string(self.oe.FILE_SCR_EXT[8]),
+                        adjust_shadow_string(self.oe.FILE_SCR_EXT[9])]
+
+        self.oe.FILE_SCR_EXT = numpy.array(FILE_SCR_EXT)
+
 
     def duplicate(self):
         new_oe = ShadowOpticalElement.create_empty_oe()
@@ -767,7 +839,7 @@ class ShadowOpticalElement:
 
         self.oe.FMIRR=5
         self.oe.F_CRYSTAL = 1
-        self.oe.FILE_REFL = b''
+        self.oe.FILE_REFL = bytes("", 'utf-8')
         self.oe.F_REFLECT = 0
         self.oe.F_BRAGG_A = 0
         self.oe.A_BRAGG = 0.0
@@ -782,7 +854,7 @@ class ShadowOpticalElement:
 
         self.oe.FMIRR=1
         self.oe.F_CRYSTAL = 1
-        self.oe.FILE_REFL = b''
+        self.oe.FILE_REFL = bytes("", 'utf-8')
         self.oe.F_REFLECT = 0
         self.oe.F_BRAGG_A = 0
         self.oe.A_BRAGG = 0.0
@@ -796,7 +868,7 @@ class ShadowOpticalElement:
 
         self.oe.FMIRR=3
         self.oe.F_CRYSTAL = 1
-        self.oe.FILE_REFL = b''
+        self.oe.FILE_REFL = bytes("", 'utf-8')
         self.oe.F_REFLECT = 0
         self.oe.F_BRAGG_A = 0
         self.oe.A_BRAGG = 0.0
@@ -810,7 +882,7 @@ class ShadowOpticalElement:
 
         self.oe.FMIRR=4
         self.oe.F_CRYSTAL = 1
-        self.oe.FILE_REFL = b''
+        self.oe.FILE_REFL = bytes("", 'utf-8')
         self.oe.F_REFLECT = 0
         self.oe.F_BRAGG_A = 0
         self.oe.A_BRAGG = 0.0
@@ -824,7 +896,7 @@ class ShadowOpticalElement:
 
         self.oe.FMIRR=2
         self.oe.F_CRYSTAL = 1
-        self.oe.FILE_REFL = b''
+        self.oe.FILE_REFL = bytes("", 'utf-8')
         self.oe.F_REFLECT = 0
         self.oe.F_BRAGG_A = 0
         self.oe.A_BRAGG = 0.0
@@ -838,7 +910,7 @@ class ShadowOpticalElement:
 
         self.oe.FMIRR=7
         self.oe.F_CRYSTAL = 1
-        self.oe.FILE_REFL = b''
+        self.oe.FILE_REFL = bytes("", 'utf-8')
         self.oe.F_REFLECT = 0
         self.oe.F_BRAGG_A = 0
         self.oe.A_BRAGG = 0.0
@@ -852,7 +924,7 @@ class ShadowOpticalElement:
 
         self.oe.FMIRR=10
         self.oe.F_CRYSTAL = 1
-        self.oe.FILE_REFL = b''
+        self.oe.FILE_REFL = bytes("", 'utf-8')
         self.oe.F_REFLECT = 0
         self.oe.F_BRAGG_A = 0
         self.oe.A_BRAGG = 0.0
@@ -931,7 +1003,6 @@ class ShadowOpticalElement:
 
         return self
 
-
 class ShadowCompoundOpticalElement:
     def __init__(self, oe=None):
         self.oe = oe
@@ -945,3 +1016,44 @@ class ShadowCompoundOpticalElement:
     @classmethod
     def create_compound_oe(cls):
         return ShadowCompoundOpticalElement(oe=Shadow.CompoundOE())
+
+    def self_repair(self):
+        for index in range(0, self.oe.number_oe()):
+            self.oe.list[index].FILE_SOURCE      = adjust_shadow_string(self.oe.list[index].FILE_SOURCE)
+            self.oe.list[index].FILE_RIP         = adjust_shadow_string(self.oe.list[index].FILE_RIP)
+            self.oe.list[index].FILE_REFL        = adjust_shadow_string(self.oe.list[index].FILE_REFL)
+            self.oe.list[index].FILE_MIR         = adjust_shadow_string(self.oe.list[index].FILE_MIR)
+            self.oe.list[index].FILE_ROUGH       = adjust_shadow_string(self.oe.list[index].FILE_ROUGH)
+            self.oe.list[index].FILE_R_IND_OBJ   = adjust_shadow_string(self.oe.list[index].FILE_R_IND_OBJ)
+            self.oe.list[index].FILE_R_IND_IMA   = adjust_shadow_string(self.oe.list[index].FILE_R_IND_IMA)
+            self.oe.list[index].FILE_FAC         = adjust_shadow_string(self.oe.list[index].FILE_FAC)
+            self.oe.list[index].FILE_SEGMENT     = adjust_shadow_string(self.oe.list[index].FILE_SEGMENT)
+            self.oe.list[index].FILE_SEGP        = adjust_shadow_string(self.oe.list[index].FILE_SEGP)
+            self.oe.list[index].FILE_KOMA        = adjust_shadow_string(self.oe.list[index].FILE_KOMA)
+            self.oe.list[index].FILE_KOMA_CA     = adjust_shadow_string(self.oe.list[index].FILE_KOMA_CA)
+
+            FILE_ABS = [adjust_shadow_string(self.oe.list[index].FILE_ABS[0]),
+                        adjust_shadow_string(self.oe.list[index].FILE_ABS[1]),
+                        adjust_shadow_string(self.oe.list[index].FILE_ABS[2]),
+                        adjust_shadow_string(self.oe.list[index].FILE_ABS[3]),
+                        adjust_shadow_string(self.oe.list[index].FILE_ABS[4]),
+                        adjust_shadow_string(self.oe.list[index].FILE_ABS[5]),
+                        adjust_shadow_string(self.oe.list[index].FILE_ABS[6]),
+                        adjust_shadow_string(self.oe.list[index].FILE_ABS[7]),
+                        adjust_shadow_string(self.oe.list[index].FILE_ABS[8]),
+                        adjust_shadow_string(self.oe.list[index].FILE_ABS[9])]
+
+            self.oe.list[index].FILE_ABS = numpy.array(FILE_ABS)
+
+            FILE_SCR_EXT = [adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[0]),
+                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[1]),
+                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[2]),
+                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[3]),
+                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[4]),
+                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[5]),
+                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[6]),
+                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[7]),
+                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[8]),
+                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[9])]
+
+            self.oe.list[index].FILE_SCR_EXT = numpy.array(FILE_SCR_EXT)
