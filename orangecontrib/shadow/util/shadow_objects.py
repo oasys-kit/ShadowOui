@@ -73,7 +73,7 @@ def adjust_shadow_string(string_to_adjust):
         if len(string_to_adjust) > 1024:
             temp = str(string_to_adjust[:1023])
             if (len(temp) == 1026 and temp[0] == "b" and temp[1] == "'" and temp[1025] == "'"):
-                temp = temp[2:1022]
+                temp = temp[2:1025]
 
             return bytes(temp.rstrip(), 'utf-8')
         else:
