@@ -1,5 +1,5 @@
 
-import os, copy, numpy
+import os, copy, numpy, platform
 from PyQt4 import QtCore
 import Shadow
 from .shadow_util import Properties
@@ -291,9 +291,12 @@ class ShadowSource:
     # FOR WEIRD BUG ON LINUX - STRING NOT PROPERLY RETURNED BY BINDING
     ####################################################################
     def self_repair(self):
-        self.src.FILE_TRAJ   = adjust_shadow_string(self.src.FILE_TRAJ)
-        self.src.FILE_SOURCE = adjust_shadow_string(self.src.FILE_SOURCE)
-        self.src.FILE_BOUND  = adjust_shadow_string(self.src.FILE_BOUND)
+        if platform.system() == 'Linux':
+            distname, version, id = platform.linux_distribution()
+            if distname == 'Ubuntu':
+                self.src.FILE_TRAJ   = adjust_shadow_string(self.src.FILE_TRAJ)
+                self.src.FILE_SOURCE = adjust_shadow_string(self.src.FILE_SOURCE)
+                self.src.FILE_BOUND  = adjust_shadow_string(self.src.FILE_BOUND)
 
     @classmethod
     def create_src(cls):
@@ -502,44 +505,47 @@ class ShadowOpticalElement:
     # FOR WEIRD BUG ON LINUX - STRING NOT PROPERLY RETURNED BY BINDING
     ####################################################################
     def self_repair(self):
-        self.oe.FILE_SOURCE      = adjust_shadow_string(self.oe.FILE_SOURCE)
-        self.oe.FILE_RIP         = adjust_shadow_string(self.oe.FILE_RIP)
-        self.oe.FILE_REFL        = adjust_shadow_string(self.oe.FILE_REFL)
-        self.oe.FILE_MIR         = adjust_shadow_string(self.oe.FILE_MIR)
-        self.oe.FILE_ROUGH       = adjust_shadow_string(self.oe.FILE_ROUGH)
-        self.oe.FILE_R_IND_OBJ   = adjust_shadow_string(self.oe.FILE_R_IND_OBJ)
-        self.oe.FILE_R_IND_IMA   = adjust_shadow_string(self.oe.FILE_R_IND_IMA)
-        self.oe.FILE_FAC         = adjust_shadow_string(self.oe.FILE_FAC)
-        self.oe.FILE_SEGMENT     = adjust_shadow_string(self.oe.FILE_SEGMENT)
-        self.oe.FILE_SEGP        = adjust_shadow_string(self.oe.FILE_SEGP)
-        self.oe.FILE_KOMA        = adjust_shadow_string(self.oe.FILE_KOMA)
-        self.oe.FILE_KOMA_CA     = adjust_shadow_string(self.oe.FILE_KOMA_CA)
+        if platform.system() == 'Linux':
+            distname, version, id = platform.linux_distribution()
+            if distname == 'Ubuntu':
+                self.oe.FILE_SOURCE      = adjust_shadow_string(self.oe.FILE_SOURCE)
+                self.oe.FILE_RIP         = adjust_shadow_string(self.oe.FILE_RIP)
+                self.oe.FILE_REFL        = adjust_shadow_string(self.oe.FILE_REFL)
+                self.oe.FILE_MIR         = adjust_shadow_string(self.oe.FILE_MIR)
+                self.oe.FILE_ROUGH       = adjust_shadow_string(self.oe.FILE_ROUGH)
+                self.oe.FILE_R_IND_OBJ   = adjust_shadow_string(self.oe.FILE_R_IND_OBJ)
+                self.oe.FILE_R_IND_IMA   = adjust_shadow_string(self.oe.FILE_R_IND_IMA)
+                self.oe.FILE_FAC         = adjust_shadow_string(self.oe.FILE_FAC)
+                self.oe.FILE_SEGMENT     = adjust_shadow_string(self.oe.FILE_SEGMENT)
+                self.oe.FILE_SEGP        = adjust_shadow_string(self.oe.FILE_SEGP)
+                self.oe.FILE_KOMA        = adjust_shadow_string(self.oe.FILE_KOMA)
+                self.oe.FILE_KOMA_CA     = adjust_shadow_string(self.oe.FILE_KOMA_CA)
 
-        FILE_ABS = [adjust_shadow_string(self.oe.FILE_ABS[0]),
-                    adjust_shadow_string(self.oe.FILE_ABS[1]),
-                    adjust_shadow_string(self.oe.FILE_ABS[2]),
-                    adjust_shadow_string(self.oe.FILE_ABS[3]),
-                    adjust_shadow_string(self.oe.FILE_ABS[4]),
-                    adjust_shadow_string(self.oe.FILE_ABS[5]),
-                    adjust_shadow_string(self.oe.FILE_ABS[6]),
-                    adjust_shadow_string(self.oe.FILE_ABS[7]),
-                    adjust_shadow_string(self.oe.FILE_ABS[8]),
-                    adjust_shadow_string(self.oe.FILE_ABS[9])]
+                FILE_ABS = [adjust_shadow_string(self.oe.FILE_ABS[0]),
+                            adjust_shadow_string(self.oe.FILE_ABS[1]),
+                            adjust_shadow_string(self.oe.FILE_ABS[2]),
+                            adjust_shadow_string(self.oe.FILE_ABS[3]),
+                            adjust_shadow_string(self.oe.FILE_ABS[4]),
+                            adjust_shadow_string(self.oe.FILE_ABS[5]),
+                            adjust_shadow_string(self.oe.FILE_ABS[6]),
+                            adjust_shadow_string(self.oe.FILE_ABS[7]),
+                            adjust_shadow_string(self.oe.FILE_ABS[8]),
+                            adjust_shadow_string(self.oe.FILE_ABS[9])]
 
-        self.oe.FILE_ABS = numpy.array(FILE_ABS)
+                self.oe.FILE_ABS = numpy.array(FILE_ABS)
 
-        FILE_SCR_EXT = [adjust_shadow_string(self.oe.FILE_SCR_EXT[0]),
-                        adjust_shadow_string(self.oe.FILE_SCR_EXT[1]),
-                        adjust_shadow_string(self.oe.FILE_SCR_EXT[2]),
-                        adjust_shadow_string(self.oe.FILE_SCR_EXT[3]),
-                        adjust_shadow_string(self.oe.FILE_SCR_EXT[4]),
-                        adjust_shadow_string(self.oe.FILE_SCR_EXT[5]),
-                        adjust_shadow_string(self.oe.FILE_SCR_EXT[6]),
-                        adjust_shadow_string(self.oe.FILE_SCR_EXT[7]),
-                        adjust_shadow_string(self.oe.FILE_SCR_EXT[8]),
-                        adjust_shadow_string(self.oe.FILE_SCR_EXT[9])]
+                FILE_SCR_EXT = [adjust_shadow_string(self.oe.FILE_SCR_EXT[0]),
+                                adjust_shadow_string(self.oe.FILE_SCR_EXT[1]),
+                                adjust_shadow_string(self.oe.FILE_SCR_EXT[2]),
+                                adjust_shadow_string(self.oe.FILE_SCR_EXT[3]),
+                                adjust_shadow_string(self.oe.FILE_SCR_EXT[4]),
+                                adjust_shadow_string(self.oe.FILE_SCR_EXT[5]),
+                                adjust_shadow_string(self.oe.FILE_SCR_EXT[6]),
+                                adjust_shadow_string(self.oe.FILE_SCR_EXT[7]),
+                                adjust_shadow_string(self.oe.FILE_SCR_EXT[8]),
+                                adjust_shadow_string(self.oe.FILE_SCR_EXT[9])]
 
-        self.oe.FILE_SCR_EXT = numpy.array(FILE_SCR_EXT)
+                self.oe.FILE_SCR_EXT = numpy.array(FILE_SCR_EXT)
 
 
     def duplicate(self):
@@ -1017,43 +1023,49 @@ class ShadowCompoundOpticalElement:
     def create_compound_oe(cls):
         return ShadowCompoundOpticalElement(oe=Shadow.CompoundOE())
 
+    ####################################################################
+    # FOR WEIRD BUG ON LINUX - STRING NOT PROPERLY RETURNED BY BINDING
+    ####################################################################
     def self_repair(self):
-        for index in range(0, self.oe.number_oe()):
-            self.oe.list[index].FILE_SOURCE      = adjust_shadow_string(self.oe.list[index].FILE_SOURCE)
-            self.oe.list[index].FILE_RIP         = adjust_shadow_string(self.oe.list[index].FILE_RIP)
-            self.oe.list[index].FILE_REFL        = adjust_shadow_string(self.oe.list[index].FILE_REFL)
-            self.oe.list[index].FILE_MIR         = adjust_shadow_string(self.oe.list[index].FILE_MIR)
-            self.oe.list[index].FILE_ROUGH       = adjust_shadow_string(self.oe.list[index].FILE_ROUGH)
-            self.oe.list[index].FILE_R_IND_OBJ   = adjust_shadow_string(self.oe.list[index].FILE_R_IND_OBJ)
-            self.oe.list[index].FILE_R_IND_IMA   = adjust_shadow_string(self.oe.list[index].FILE_R_IND_IMA)
-            self.oe.list[index].FILE_FAC         = adjust_shadow_string(self.oe.list[index].FILE_FAC)
-            self.oe.list[index].FILE_SEGMENT     = adjust_shadow_string(self.oe.list[index].FILE_SEGMENT)
-            self.oe.list[index].FILE_SEGP        = adjust_shadow_string(self.oe.list[index].FILE_SEGP)
-            self.oe.list[index].FILE_KOMA        = adjust_shadow_string(self.oe.list[index].FILE_KOMA)
-            self.oe.list[index].FILE_KOMA_CA     = adjust_shadow_string(self.oe.list[index].FILE_KOMA_CA)
+        if platform.system() == 'Linux':
+            distname, version, id = platform.linux_distribution()
+            if distname == 'Ubuntu':
+                for index in range(0, self.oe.number_oe()):
+                    self.oe.list[index].FILE_SOURCE      = adjust_shadow_string(self.oe.list[index].FILE_SOURCE)
+                    self.oe.list[index].FILE_RIP         = adjust_shadow_string(self.oe.list[index].FILE_RIP)
+                    self.oe.list[index].FILE_REFL        = adjust_shadow_string(self.oe.list[index].FILE_REFL)
+                    self.oe.list[index].FILE_MIR         = adjust_shadow_string(self.oe.list[index].FILE_MIR)
+                    self.oe.list[index].FILE_ROUGH       = adjust_shadow_string(self.oe.list[index].FILE_ROUGH)
+                    self.oe.list[index].FILE_R_IND_OBJ   = adjust_shadow_string(self.oe.list[index].FILE_R_IND_OBJ)
+                    self.oe.list[index].FILE_R_IND_IMA   = adjust_shadow_string(self.oe.list[index].FILE_R_IND_IMA)
+                    self.oe.list[index].FILE_FAC         = adjust_shadow_string(self.oe.list[index].FILE_FAC)
+                    self.oe.list[index].FILE_SEGMENT     = adjust_shadow_string(self.oe.list[index].FILE_SEGMENT)
+                    self.oe.list[index].FILE_SEGP        = adjust_shadow_string(self.oe.list[index].FILE_SEGP)
+                    self.oe.list[index].FILE_KOMA        = adjust_shadow_string(self.oe.list[index].FILE_KOMA)
+                    self.oe.list[index].FILE_KOMA_CA     = adjust_shadow_string(self.oe.list[index].FILE_KOMA_CA)
 
-            FILE_ABS = [adjust_shadow_string(self.oe.list[index].FILE_ABS[0]),
-                        adjust_shadow_string(self.oe.list[index].FILE_ABS[1]),
-                        adjust_shadow_string(self.oe.list[index].FILE_ABS[2]),
-                        adjust_shadow_string(self.oe.list[index].FILE_ABS[3]),
-                        adjust_shadow_string(self.oe.list[index].FILE_ABS[4]),
-                        adjust_shadow_string(self.oe.list[index].FILE_ABS[5]),
-                        adjust_shadow_string(self.oe.list[index].FILE_ABS[6]),
-                        adjust_shadow_string(self.oe.list[index].FILE_ABS[7]),
-                        adjust_shadow_string(self.oe.list[index].FILE_ABS[8]),
-                        adjust_shadow_string(self.oe.list[index].FILE_ABS[9])]
+                    FILE_ABS = [adjust_shadow_string(self.oe.list[index].FILE_ABS[0]),
+                                adjust_shadow_string(self.oe.list[index].FILE_ABS[1]),
+                                adjust_shadow_string(self.oe.list[index].FILE_ABS[2]),
+                                adjust_shadow_string(self.oe.list[index].FILE_ABS[3]),
+                                adjust_shadow_string(self.oe.list[index].FILE_ABS[4]),
+                                adjust_shadow_string(self.oe.list[index].FILE_ABS[5]),
+                                adjust_shadow_string(self.oe.list[index].FILE_ABS[6]),
+                                adjust_shadow_string(self.oe.list[index].FILE_ABS[7]),
+                                adjust_shadow_string(self.oe.list[index].FILE_ABS[8]),
+                                adjust_shadow_string(self.oe.list[index].FILE_ABS[9])]
 
-            self.oe.list[index].FILE_ABS = numpy.array(FILE_ABS)
+                    self.oe.list[index].FILE_ABS = numpy.array(FILE_ABS)
 
-            FILE_SCR_EXT = [adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[0]),
-                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[1]),
-                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[2]),
-                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[3]),
-                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[4]),
-                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[5]),
-                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[6]),
-                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[7]),
-                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[8]),
-                            adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[9])]
+                    FILE_SCR_EXT = [adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[0]),
+                                    adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[1]),
+                                    adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[2]),
+                                    adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[3]),
+                                    adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[4]),
+                                    adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[5]),
+                                    adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[6]),
+                                    adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[7]),
+                                    adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[8]),
+                                    adjust_shadow_string(self.oe.list[index].FILE_SCR_EXT[9])]
 
-            self.oe.list[index].FILE_SCR_EXT = numpy.array(FILE_SCR_EXT)
+                    self.oe.list[index].FILE_SCR_EXT = numpy.array(FILE_SCR_EXT)
