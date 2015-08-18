@@ -2026,7 +2026,10 @@ class OpticalElement(ow_generic_element.GenericElement):
 
         delta_thetas = beam_incident_angles - bragg_angles
 
-        values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/" + self.file_diffraction_profile))
+        if self.file_diffraction_profile.startswith('/'):
+            values = numpy.loadtxt(os.path.abspath(self.file_diffraction_profile))
+        else:
+            values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/" + self.file_diffraction_profile))
 
         crystal_incident_angles = values[:, 0]
         crystal_reflectivities = values[:, 1]

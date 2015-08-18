@@ -139,7 +139,7 @@ class ShadowGui():
         if fileName is None: raise Exception("File '" + fileName + "' not existing")
         if fileName.strip() == "": raise Exception("File '" + fileName + "' not existing")
 
-        if fileName[0] == "/":
+        if fileName.startswith('/'):
             filePath = fileName
         else:
             filePath = os.getcwd() + '/' + fileName
