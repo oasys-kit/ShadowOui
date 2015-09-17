@@ -293,7 +293,7 @@ class ShadowSource:
     def self_repair(self):
         if platform.system() == 'Linux':
             distname, version, id = platform.linux_distribution()
-            if distname == 'Ubuntu':
+            if distname == 'Ubuntu' or distname == 'CentOS Linux':
                 self.src.FILE_TRAJ   = adjust_shadow_string(self.src.FILE_TRAJ)
                 self.src.FILE_SOURCE = adjust_shadow_string(self.src.FILE_SOURCE)
                 self.src.FILE_BOUND  = adjust_shadow_string(self.src.FILE_BOUND)
@@ -507,7 +507,7 @@ class ShadowOpticalElement:
     def self_repair(self):
         if platform.system() == 'Linux':
             distname, version, id = platform.linux_distribution()
-            if distname == 'Ubuntu':
+            if distname == 'Ubuntu' or distname == 'CentOS Linux':
                 self.oe.FILE_SOURCE      = adjust_shadow_string(self.oe.FILE_SOURCE)
                 self.oe.FILE_RIP         = adjust_shadow_string(self.oe.FILE_RIP)
                 self.oe.FILE_REFL        = adjust_shadow_string(self.oe.FILE_REFL)
@@ -1029,7 +1029,7 @@ class ShadowCompoundOpticalElement:
     def self_repair(self):
         if platform.system() == 'Linux':
             distname, version, id = platform.linux_distribution()
-            if distname == 'Ubuntu':
+            if distname == 'Ubuntu' or distname == 'CentOS Linux':
                 for index in range(0, self.oe.number_oe()):
                     self.oe.list[index].FILE_SOURCE      = adjust_shadow_string(self.oe.list[index].FILE_SOURCE)
                     self.oe.list[index].FILE_RIP         = adjust_shadow_string(self.oe.list[index].FILE_RIP)
