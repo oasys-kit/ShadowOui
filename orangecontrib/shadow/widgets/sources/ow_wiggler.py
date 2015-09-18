@@ -280,7 +280,7 @@ class Wiggler(ow_source.Source):
 
                 shadow_src.src.FILE_BOUND = bytes("myslit.dat", 'utf-8')
 
-                f = open(str(shadow_src.src.FILE_BOUND),"w")
+                f = open("myslit.dat", "w")
                 f.write("%e %e %e %e %e "%(self.slit_distance, self.min_x, self.max_x, self.min_z, self.max_z))
                 f.write("\n")
                 f.close()
