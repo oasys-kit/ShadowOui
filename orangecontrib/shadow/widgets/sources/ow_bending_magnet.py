@@ -217,6 +217,7 @@ class BendingMagnet(ow_source.Source):
         self.seed = ShadowGui.checkPositiveNumber(self.seed, "Seed")
         self.e_min = ShadowGui.checkPositiveNumber(self.e_min, "Minimum energy")
         self.e_max = ShadowGui.checkPositiveNumber(self.e_max, "Maximum energy")
+        if self.e_min > self.e_max: raise Exception("Energy min should be <= Energy max")
         self.sigma_x = ShadowGui.checkPositiveNumber(self.sigma_x, "Sigma x")
         self.sigma_z = ShadowGui.checkPositiveNumber(self.sigma_z, "Sigma z")
         self.emittance_x = ShadowGui.checkPositiveNumber(self.emittance_x, "Emittance x")

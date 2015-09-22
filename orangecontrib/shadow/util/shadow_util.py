@@ -134,6 +134,14 @@ class ShadowGui():
         return value
 
     @classmethod
+    def checkEmptyString(cls, string, field_name):
+
+        if string is None: raise Exception(field_name + " should not be an empty string")
+        if string.strip() == "": raise Exception(field_name + " should not be an empty string")
+
+        return string
+
+    @classmethod
     def checkFile(cls, fileName):
 
         if fileName is None: raise Exception("File '" + fileName + "' not existing")
