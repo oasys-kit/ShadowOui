@@ -147,12 +147,12 @@ class Histogram(ow_automatic_element.AutomaticElement):
             raise Exception("Data not plottable: No good rays or bad content")
 
     def plot_histo(self, var_x, title, xtitle, ytitle, xum):
-        beam_to_plot = self.input_beam.beam
+        beam_to_plot = self.input_beam._beam
 
         if self.image_plane == 1:
             new_shadow_beam = self.input_beam.duplicate(history=False)
 
-            historyItem = self.input_beam.getOEHistory(oe_number=self.input_beam.oe_number)
+            historyItem = self.input_beam.getOEHistory(oe_number=self.input_beam._oe_number)
             if historyItem is None: raise Exception("Calculation impossible: Beam has no history")
 
             dist = 0.0
@@ -174,9 +174,9 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
                 dist = self.image_plane_new_position - historyItem.shadow_oe_end.oe.T_IMAGE
 
-            new_shadow_beam.beam.retrace(dist)
+            new_shadow_beam._beam.retrace(dist)
 
-            beam_to_plot = new_shadow_beam.beam
+            beam_to_plot = new_shadow_beam._beam
 
         self.replace_fig(beam_to_plot, var_x, title, xtitle, ytitle, xum)
 
@@ -257,7 +257,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
                     self.input_beam = beam
 
                 if ShadowGui.checkEmptyBeam(self.input_beam):
-                    if (self.input_beam.oe_number == 0):  # IS THE SOURCE
+                    if (self.input_beam._oe_number == 0):  # IS THE SOURCE
                         self.image_plane = 0
                         self.set_ImagePlane()
                         self.image_plane_combo.setEnabled(False)

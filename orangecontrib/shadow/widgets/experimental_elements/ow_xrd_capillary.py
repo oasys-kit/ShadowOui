@@ -861,7 +861,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
             nbins_h = int(numpy.floor(self.area_detector_width / (self.area_detector_pixel_size * 1e-4)))
             nbins_v = int(numpy.floor(self.area_detector_height / (self.area_detector_pixel_size * 1e-4)))
 
-            ticket = self.area_detector_beam.beam.histo2(1, 3, nbins_h=nbins_h, nbins_v=nbins_v)
+            ticket = self.area_detector_beam._beam.histo2(1, 3, nbins_h=nbins_h, nbins_v=nbins_v)
             normalized_data = (ticket['histogram'] / ticket['histogram'].max()) * 100000  # just for the quality of the plot
 
             # inversion of axis for pyMCA
@@ -1071,7 +1071,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     def simulate(self):
         try:
             if self.input_beam is None: raise Exception("No input beam, run the optical simulation first")
-            elif not hasattr(self.input_beam.beam, "rays"): raise Exception("No good rays, modify the optical simulation")
+            elif not hasattr(self.input_beam._beam, "rays"): raise Exception("No good rays, modify the optical simulation")
 
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
@@ -1081,12 +1081,12 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
             self.error(self.error_id)
 
-            go = numpy.where(self.input_beam.beam.rays[:,9] == 1)
+            go = numpy.where(self.input_beam._beam.rays[:,9] == 1)
 
             go_input_beam = ShadowBeam()
-            go_input_beam.beam.rays = copy.deepcopy(self.input_beam.beam.rays[go])
+            go_input_beam._beam.rays = copy.deepcopy(self.input_beam._beam.rays[go])
 
-            number_of_input_rays = len(go_input_beam.beam.rays)
+            number_of_input_rays = len(go_input_beam._beam.rays)
 
             if number_of_input_rays == 0: raise Exception("No good rays, modify the optical simulation")
 
@@ -1258,29 +1258,29 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
             if not self.run_simulation: break
             # costruzione intersezione con capillare (interno ed esterno x assorbimento) + displacement del capillare
 
-            Es_x = go_input_beam.beam.rays[ray_index, 6]
-            Es_y = go_input_beam.beam.rays[ray_index, 7]
-            Es_z = go_input_beam.beam.rays[ray_index, 8]
-            k_mod = go_input_beam.beam.rays[ray_index, 10]
-            Es_phi = go_input_beam.beam.rays[ray_index, 13]
-            Ep_phi = go_input_beam.beam.rays[ray_index, 14]
-            Ep_x = go_input_beam.beam.rays[ray_index, 15]
-            Ep_y = go_input_beam.beam.rays[ray_index, 16]
-            Ep_z = go_input_beam.beam.rays[ray_index, 17]
+            Es_x = go_input_beam._beam.rays[ray_index, 6]
+            Es_y = go_input_beam._beam.rays[ray_index, 7]
+            Es_z = go_input_beam._beam.rays[ray_index, 8]
+            k_mod = go_input_beam._beam.rays[ray_index, 10]
+            Es_phi = go_input_beam._beam.rays[ray_index, 13]
+            Ep_phi = go_input_beam._beam.rays[ray_index, 14]
+            Ep_x = go_input_beam._beam.rays[ray_index, 15]
+            Ep_y = go_input_beam._beam.rays[ray_index, 16]
+            Ep_z = go_input_beam._beam.rays[ray_index, 17]
 
             wrong_numbers = numpy.isnan(Es_x) or numpy.isnan(Es_y) or numpy.isnan(Es_z) or \
                             numpy.isnan(Ep_x) or numpy.isnan(Ep_y) or numpy.isnan(Ep_z) or \
                             numpy.isnan(Es_phi) or numpy.isnan(Ep_phi) or numpy.isnan(k_mod)
 
             if not wrong_numbers:
-                x_0 = go_input_beam.beam.rays[ray_index, 0]
-                y_0 = go_input_beam.beam.rays[ray_index, 1]
-                z_0 = go_input_beam.beam.rays[ray_index, 2]
+                x_0 = go_input_beam._beam.rays[ray_index, 0]
+                y_0 = go_input_beam._beam.rays[ray_index, 1]
+                z_0 = go_input_beam._beam.rays[ray_index, 2]
 
                 if (y_0 ** 2 + z_0 ** 2 < capillary_radius ** 2):
-                    v_0_x = go_input_beam.beam.rays[ray_index, 3]
-                    v_0_y = go_input_beam.beam.rays[ray_index, 4]
-                    v_0_z = go_input_beam.beam.rays[ray_index, 5]
+                    v_0_x = go_input_beam._beam.rays[ray_index, 3]
+                    v_0_y = go_input_beam._beam.rays[ray_index, 4]
+                    v_0_z = go_input_beam._beam.rays[ray_index, 5]
 
                     k_1 = v_0_y / v_0_x
                     k_2 = v_0_z / v_0_x
@@ -1483,9 +1483,9 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                                         diffracted_ray_circle[6] = Es_x * reduction_factor
                                         diffracted_ray_circle[7] = Es_y * reduction_factor
                                         diffracted_ray_circle[8] = Es_z * reduction_factor
-                                        diffracted_ray_circle[9] = go_input_beam.beam.rays[ray_index, 9]  # good/lost
+                                        diffracted_ray_circle[9] = go_input_beam._beam.rays[ray_index, 9]  # good/lost
                                         diffracted_ray_circle[10] = k_mod  # |k|
-                                        diffracted_ray_circle[11] = go_input_beam.beam.rays[ray_index, 11]  # ray index
+                                        diffracted_ray_circle[11] = go_input_beam._beam.rays[ray_index, 11]  # ray index
                                         diffracted_ray_circle[12] = 1  # good only
                                         diffracted_ray_circle[13] = Es_phi
                                         diffracted_ray_circle[14] = Ep_phi
@@ -1545,7 +1545,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         if (number_of_diffracted_rays > 0 and self.run_simulation):
 
-            diffracted_beam.beam.rays = numpy.array(diffracted_rays)
+            diffracted_beam._beam.rays = numpy.array(diffracted_rays)
 
             percentage_fraction = 50 / len(reflections)
 
@@ -1584,15 +1584,15 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                         self.area_detector_beam = ShadowBeam.mergeBeams(self.area_detector_beam, diffracted_beam)
 
                     # Creation of 1D pattern: weighted (with intensity) histogram of twotheta angles
-                    x_coord = self.area_detector_beam.beam.rays[:, 0]
-                    z_coord = self.area_detector_beam.beam.rays[:, 2]
+                    x_coord = self.area_detector_beam._beam.rays[:, 0]
+                    z_coord = self.area_detector_beam._beam.rays[:, 2]
 
                     r_coord = numpy.sqrt(x_coord ** 2 + z_coord ** 2)
 
                     twotheta_angles = numpy.degrees(numpy.arctan(r_coord / self.detector_distance))
 
-                    intensity = self.area_detector_beam.beam.rays[:, 6] ** 2 + self.area_detector_beam.beam.rays[:, 7] ** 2 + self.area_detector_beam.beam.rays[:, 8] ** 2 + \
-                                self.area_detector_beam.beam.rays[:, 15] ** 2 + self.area_detector_beam.beam.rays[:, 16] ** 2 + self.area_detector_beam.beam.rays[:, 17] ** 2
+                    intensity = self.area_detector_beam._beam.rays[:, 6] ** 2 + self.area_detector_beam._beam.rays[:, 7] ** 2 + self.area_detector_beam._beam.rays[:, 8] ** 2 + \
+                                self.area_detector_beam._beam.rays[:, 15] ** 2 + self.area_detector_beam._beam.rays[:, 16] ** 2 + self.area_detector_beam._beam.rays[:, 17] ** 2
 
                     maximum = numpy.max(intensity)
 
@@ -1637,7 +1637,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                             elif self.diffracted_arm_type == 1:
                                 out_beam = self.traceFromAnalyzer(diffracted_beam, angle_index)
 
-                            go_rays = out_beam.beam.rays[numpy.where(out_beam.beam.rays[:,9] == 1)]
+                            go_rays = out_beam._beam.rays[numpy.where(out_beam._beam.rays[:,9] == 1)]
 
                             if (len(go_rays) > 0):
                                 physical_coefficent = 1.0
@@ -2199,7 +2199,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         out_beam = ShadowBeam.traceFromOENoHistory(input_beam, empty_element)
 
-        go_rays = copy.deepcopy(out_beam.beam.rays[numpy.where(out_beam.beam.rays[:, 9] == 1)])
+        go_rays = copy.deepcopy(out_beam._beam.rays[numpy.where(out_beam._beam.rays[:, 9] == 1)])
 
         percentage_fraction = 50 / len(go_rays)
         no_prog = False
@@ -2264,7 +2264,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                 no_prog = False
 
 
-        out_beam.beam.rays = copy.deepcopy(go_rays[numpy.where(go_rays[:, 9] == 1)])
+        out_beam._beam.rays = copy.deepcopy(go_rays[numpy.where(go_rays[:, 9] == 1)])
 
         return out_beam
 

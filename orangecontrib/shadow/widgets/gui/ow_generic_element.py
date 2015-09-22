@@ -90,7 +90,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
             self.plot_canvas[plot_canvas_index] = ShadowPlot.DetailedPlotWidget()
             self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
-        self.plot_canvas[plot_canvas_index].plot_xy(beam_out.beam, var_x, var_y, title, xtitle, ytitle, xum=xum, yum=yum)
+        self.plot_canvas[plot_canvas_index].plot_xy(beam_out._beam, var_x, var_y, title, xtitle, ytitle, xum=xum, yum=yum)
 
         self.progressBarSet(progressBarValue)
 
@@ -102,7 +102,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
             self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
-        ShadowPlot.plotxy_preview(self.plot_canvas[plot_canvas_index], beam_out.beam, var_x, var_y, nolost=1, title=title, xtitle=xtitle, ytitle=ytitle)
+        ShadowPlot.plotxy_preview(self.plot_canvas[plot_canvas_index], beam_out._beam, var_x, var_y, nolost=1, title=title, xtitle=xtitle, ytitle=ytitle)
 
         self.progressBarSet(progressBarValue)
 
@@ -111,7 +111,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
             self.plot_canvas[plot_canvas_index] = ShadowPlot.DetailedHistoWidget()
             self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
-        self.plot_canvas[plot_canvas_index].plot_histo(beam_out.beam, var, 1, None, 23, title, xtitle, ytitle, xum=xum)
+        self.plot_canvas[plot_canvas_index].plot_histo(beam_out._beam, var, 1, None, 23, title, xtitle, ytitle, xum=xum)
 
         self.progressBarSet(progressBarValue)
 
@@ -123,7 +123,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
             self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
-        ShadowPlot.plot_histo_preview(self.plot_canvas[plot_canvas_index], beam_out.beam, var, 1, 23, title, xtitle, ytitle)
+        ShadowPlot.plot_histo_preview(self.plot_canvas[plot_canvas_index], beam_out._beam, var, 1, 23, title, xtitle, ytitle)
 
         self.progressBarSet(progressBarValue)
 

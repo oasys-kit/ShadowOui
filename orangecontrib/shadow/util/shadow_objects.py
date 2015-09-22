@@ -79,30 +79,21 @@ def adjust_shadow_string(string_to_adjust):
         else:
             return string_to_adjust
 
-class ShadowOEHistoryItem:
+class ShadowOEHistoryItem(object):
 
-    def __new__(cls, oe_number=0, shadow_source_start=None, shadow_source_end=None, shadow_oe_start=None, shadow_oe_end=None):
-        self = super().__new__(cls)
-
-        self.shadow_source_start = shadow_source_start
-        self.shadow_source_end = shadow_source_end
-        self.shadow_oe_start = shadow_oe_start
-        self.shadow_oe_end = shadow_oe_end
-        self.oe_number = oe_number
-
-        return self
+    def __init__(self, oe_number=0, shadow_source_start=None, shadow_source_end=None, shadow_oe_start=None, shadow_oe_end=None):
+        self._oe_number = oe_number
+        self._shadow_source_start = shadow_source_start
+        self._shadow_source_end = shadow_source_end
+        self._shadow_oe_start = shadow_oe_start
+        self._shadow_oe_end = shadow_oe_end
 
     def duplicate(self):
-        new_history_item = ShadowOEHistoryItem()
-
-        new_history_item.shadow_source_start = self.shadow_source_start
-        new_history_item.shadow_source_end = self.shadow_source_end
-        new_history_item.shadow_oe_start = self.shadow_oe_start
-        new_history_item.shadow_oe_end = self.shadow_oe_end
-        new_history_item.oe_number = self.oe_number
-
-        return new_history_item
-
+        return ShadowOEHistoryItem(oe_number=self._oe_number,
+                                   shadow_source_start=self._shadow_source_start,
+                                   shadow_source_end=self._shadow_source_end,
+                                   shadow_oe_start=self._shadow_oe_start,
+                                   shadow_oe_end=self._shadow_oe_end)
 
 class ShadowFile:
 
@@ -127,34 +118,34 @@ class ShadowFile:
 class ShadowBeam:
     def __new__(cls, oe_number=0, beam=None, number_of_rays=0):
         self = super().__new__(cls)
-        self.oe_number = oe_number
+        self._oe_number = oe_number
         if (beam is None):
             if number_of_rays > 0:
-                self.beam = Shadow.Beam(number_of_rays)
+                self._beam = Shadow.Beam(number_of_rays)
             else:
-                self.beam = Shadow.Beam()
+                self._beam = Shadow.Beam()
         else:
-            self.beam = beam
+            self._beam = beam
 
         self.history = []
         return self
 
     def setBeam(self, beam):
-        self.beam = beam
+        self._beam = beam
 
     def loadFromFile(self, file_name):
-        if not self.beam is None:
+        if not self._beam is None:
             if os.path.exists(file_name):
-                self.beam.load(file_name)
+                self._beam.load(file_name)
             else:
                 raise Exception("File " + file_name + " not existing")
 
 
     def duplicate(self, copy_rays=True, history=True):
         beam = Shadow.Beam()
-        if copy_rays: beam.rays = copy.deepcopy(self.beam.rays)
+        if copy_rays: beam.rays = copy.deepcopy(self._beam.rays)
 
-        new_shadow_beam = ShadowBeam(self.oe_number, beam)
+        new_shadow_beam = ShadowBeam(self._oe_number, beam)
 
         if history:
             for historyItem in self.history:
@@ -168,22 +159,22 @@ class ShadowBeam:
             rays_1 = None
             rays_2 = None
 
-            if len(getattr(beam_1.beam, "rays", numpy.zeros(0))) > 0:
-                rays_1 = copy.deepcopy(beam_1.beam.rays)
-            if len(getattr(beam_2.beam, "rays", numpy.zeros(0))) > 0:
-                rays_2 = copy.deepcopy(beam_2.beam.rays)
+            if len(getattr(beam_1._beam, "rays", numpy.zeros(0))) > 0:
+                rays_1 = copy.deepcopy(beam_1._beam.rays)
+            if len(getattr(beam_2._beam, "rays", numpy.zeros(0))) > 0:
+                rays_2 = copy.deepcopy(beam_2._beam.rays)
 
             merged_beam = beam_1.duplicate(copy_rays=False, history=True)
 
             if not rays_1 is None and not rays_2 is None:
-                merged_beam.oe_number = beam_2.oe_number
-                merged_beam.beam.rays = numpy.append(rays_1, rays_2, axis=0)
+                merged_beam._oe_number = beam_2._oe_number
+                merged_beam._beam.rays = numpy.append(rays_1, rays_2, axis=0)
             elif not rays_1 is None:
-                merged_beam.beam.rays = rays_1
-                merged_beam.oe_number = beam_2.oe_number
+                merged_beam._beam.rays = rays_1
+                merged_beam._oe_number = beam_2._oe_number
             elif not rays_2 is None:
-                merged_beam.beam.rays = rays_2
-                merged_beam.oe_number = beam_2.oe_number
+                merged_beam._beam.rays = rays_2
+                merged_beam._oe_number = beam_2._oe_number
 
             return merged_beam
 
@@ -193,7 +184,7 @@ class ShadowBeam:
 
         shadow_source_start = shadow_src.duplicate()
 
-        self.beam.genSource(shadow_src.src)
+        self._beam.genSource(shadow_src.src)
 
         shadow_src.self_repair()
 
@@ -210,18 +201,18 @@ class ShadowBeam:
 
         history_shadow_oe_start = shadow_oe.duplicate()
 
-        self.beam.traceOE(shadow_oe.oe, self.oe_number)
+        self._beam.traceOE(shadow_oe.oe, self._oe_number)
 
         shadow_oe.self_repair()
 
         history_shadow_oe_end = shadow_oe.duplicate()
 
         #N.B. history[0] = Source
-        if not self.oe_number == 0:
-            if len(self.history) - 1 < self.oe_number:
-                self.history.append(ShadowOEHistoryItem(oe_number=self.oe_number, shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end))
+        if not self._oe_number == 0:
+            if len(self.history) - 1 < self._oe_number:
+                self.history.append(ShadowOEHistoryItem(oe_number=self._oe_number, shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end))
             else:
-                self.history[self.oe_number]=ShadowOEHistoryItem(oe_number=self.oe_number, shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end)
+                self.history[self._oe_number]=ShadowOEHistoryItem(oe_number=self._oe_number, shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end)
 
         return self
 
@@ -237,8 +228,8 @@ class ShadowBeam:
 
         shadow_oe.self_repair()
 
-        self.beam.traceCompoundOE(shadow_oe.oe,
-                                  from_oe=self.oe_number,
+        self._beam.traceCompoundOE(shadow_oe.oe,
+                                  from_oe=self._oe_number,
                                   write_start_files=0,
                                   write_end_files=0,
                                   write_star_files=write_star_files,
@@ -247,18 +238,18 @@ class ShadowBeam:
         history_shadow_oe_end = shadow_oe.duplicate()
 
         # N.B. history[0] = Source
-        if not self.oe_number == 0:
-            if len(self.history) - 1 < self.oe_number:
-                self.history.append(ShadowOEHistoryItem(oe_number=self.oe_number, shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end))
+        if not self._oe_number == 0:
+            if len(self.history) - 1 < self._oe_number:
+                self.history.append(ShadowOEHistoryItem(oe_number=self._oe_number, shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end))
             else:
-                self.history[self.oe_number] = ShadowOEHistoryItem(oe_number=self.oe_number, shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end)
+                self.history[self._oe_number] = ShadowOEHistoryItem(oe_number=self._oe_number, shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end)
 
         return self
 
     @classmethod
     def initializeFromPreviousBeam(cls, input_beam):
         self = input_beam.duplicate()
-        self.oe_number = input_beam.oe_number + 1
+        self._oe_number = input_beam._oe_number + 1
 
         return self
 
@@ -266,7 +257,7 @@ class ShadowBeam:
     def traceFromOENoHistory(cls, input_beam, shadow_oe):
         self = cls.initializeFromPreviousBeam(input_beam)
 
-        self.beam.traceOE(shadow_oe.oe, self.oe_number)
+        self._beam.traceOE(shadow_oe.oe, self.oe_number)
 
         shadow_oe.self_repair()
 

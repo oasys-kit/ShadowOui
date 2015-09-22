@@ -152,15 +152,15 @@ class ShadowGui():
     @classmethod
     def checkEmptyBeam(cls, input_beam):
         if input_beam is None: return False
-        elif not hasattr(input_beam.beam, "rays"): return False
-        elif len(input_beam.beam.rays) == 0: return False
+        elif not hasattr(input_beam._beam, "rays"): return False
+        elif len(input_beam._beam.rays) == 0: return False
         else: return True
 
     @classmethod
     def checkGoodBeam(cls, input_beam):
-        go = numpy.where(input_beam.beam.rays[:, 9] == 1)
+        go = numpy.where(input_beam._beam.rays[:, 9] == 1)
 
-        if len(input_beam.beam.rays[go]) == 0:
+        if len(input_beam._beam.rays[go]) == 0:
             return False
         else:
             return True

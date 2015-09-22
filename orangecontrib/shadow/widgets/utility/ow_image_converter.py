@@ -253,7 +253,7 @@ class ImageToBeamConverter(widget.OWWidget):
         for index in range(0, number_of_rays):
             point = map[index]
 
-            ray = beam_out.beam.rays[index]
+            ray = beam_out._beam.rays[index]
 
             E_value = numpy.sqrt(point.value*0.5)
 

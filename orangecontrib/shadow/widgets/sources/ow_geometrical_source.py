@@ -582,28 +582,28 @@ class GeometricalSource(ow_source.Source):
                (self.gaussian_maximum - self.gaussian_central_value) / self.gaussian_sigma
 
         distribution = stats.truncnorm(a, b, loc=self.gaussian_central_value, scale=self.gaussian_sigma)
-        sampled_spectrum = distribution.rvs(len(beam_out.beam.rays))
+        sampled_spectrum = distribution.rvs(len(beam_out._beam.rays))
 
-        #sampled_spectrum = numpy.random.normal(loc=self.gaussian_central_value, scale=self.gaussian_sigma, size=len(beam_out.beam.rays))
+        #sampled_spectrum = numpy.random.normal(loc=self.gaussian_central_value, scale=self.gaussian_sigma, size=len(beam_out._beam.rays))
 
-        for index in range(0, len(beam_out.beam.rays)):
+        for index in range(0, len(beam_out._beam.rays)):
             if self.units == 0:
-                beam_out.beam.rays[index, 10] = ShadowPhysics.getShadowKFromEnergy(energy=sampled_spectrum[index])
+                beam_out._beam.rays[index, 10] = ShadowPhysics.getShadowKFromEnergy(energy=sampled_spectrum[index])
             else:
-                beam_out.beam.rays[index, 10] = ShadowPhysics.getShadowKFromWavelength(wavelength=sampled_spectrum[index])
+                beam_out._beam.rays[index, 10] = ShadowPhysics.getShadowKFromWavelength(wavelength=sampled_spectrum[index])
 
     #########################################################################################
 
     def generate_user_defined_spectrum(self, beam_out):
         spectrum = self.extract_spectrum_from_file(self.user_defined_file)
 
-        sampled_spectrum = self.sample_from_spectrum(spectrum, len(beam_out.beam.rays))
+        sampled_spectrum = self.sample_from_spectrum(spectrum, len(beam_out._beam.rays))
 
-        for index in range(0, len(beam_out.beam.rays)):
+        for index in range(0, len(beam_out._beam.rays)):
             if self.units == 0:
-                beam_out.beam.rays[index, 10] = ShadowPhysics.getShadowKFromEnergy(energy=sampled_spectrum[index])
+                beam_out._beam.rays[index, 10] = ShadowPhysics.getShadowKFromEnergy(energy=sampled_spectrum[index])
             else:
-                beam_out.beam.rays[index, 10] = ShadowPhysics.getShadowKFromWavelength(wavelength=sampled_spectrum[index])
+                beam_out._beam.rays[index, 10] = ShadowPhysics.getShadowKFromWavelength(wavelength=sampled_spectrum[index])
 
     def extract_spectrum_from_file(self, spectrum_file_name):
         spectrum = []
@@ -650,10 +650,10 @@ class GeometricalSource(ow_source.Source):
     # WEIRD MEMORY INITIALIZATION BY FORTRAN. JUST A FIX.
     def fix_Intensity(self, beam_out):
         if self.polarization == 0:
-            for index in range(0, len(beam_out.beam.rays)):
-                beam_out.beam.rays[index, 15] = 0
-                beam_out.beam.rays[index, 16] = 0
-                beam_out.beam.rays[index, 17] = 0
+            for index in range(0, len(beam_out._beam.rays)):
+                beam_out._beam.rays[index, 15] = 0
+                beam_out._beam.rays[index, 16] = 0
+                beam_out._beam.rays[index, 17] = 0
 
     def sendNewBeam(self, trigger):
         if trigger and trigger.new_beam == True:

@@ -122,10 +122,10 @@ class AccumulatingLoopPoint(AutomaticElement):
                     proceed = False
 
             if proceed:
-                go = numpy.where(beam.beam.rays[:, 9] == 1)
+                go = numpy.where(beam._beam.rays[:, 9] == 1)
 
-                nr_good = len(beam.beam.rays[go])
-                nr_total = len(beam.beam.rays)
+                nr_good = len(beam._beam.rays[go])
+                nr_total = len(beam._beam.rays)
                 nr_lost = nr_total - nr_good
 
                 self.current_number_of_rays = self.current_number_of_rays + nr_good
@@ -134,7 +134,7 @@ class AccumulatingLoopPoint(AutomaticElement):
 
                 if self.current_number_of_rays <= self.number_of_accumulated_rays:
                     if self.keep_go_rays == 1:
-                        beam.beam.rays = copy.deepcopy(beam.beam.rays[go])
+                        beam._beam.rays = copy.deepcopy(beam._beam.rays[go])
 
                     if not self.input_beam is None:
                         self.input_beam = ShadowBeam.mergeBeams(self.input_beam, beam)

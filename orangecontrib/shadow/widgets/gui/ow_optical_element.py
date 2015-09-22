@@ -2009,9 +2009,9 @@ class OpticalElement(ow_generic_element.GenericElement):
         self.send("Trigger", ShadowTriggerIn(new_beam=True))
 
     def apply_user_diffraction_profile(self, input_beam):
-        str_oe_number = str(input_beam.oe_number)
+        str_oe_number = str(input_beam._oe_number)
 
-        if (input_beam.oe_number < 10): str_oe_number = "0" + str_oe_number
+        if (input_beam._oe_number < 10): str_oe_number = "0" + str_oe_number
 
         values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/angle." + str_oe_number))
 
@@ -2019,10 +2019,10 @@ class OpticalElement(ow_generic_element.GenericElement):
         beam_flags = values[:, 3]
         bragg_angles = []
 
-        for index in range(0, len(input_beam.beam.rays)):
-            wavelength = ShadowPhysics.getWavelengthfromShadowK(input_beam.beam.rays[index, 10])
+        for index in range(0, len(input_beam._beam.rays)):
+            wavelength = ShadowPhysics.getWavelengthfromShadowK(input_beam._beam.rays[index, 10])
             bragg_angles.append(90 - math.degrees(ShadowPhysics.calculateBraggAngle(wavelength, 1, 1, 1, 5.43123)))
-            if beam_flags[index] == -55000.0: input_beam.beam.rays[index, 9] = 1
+            if beam_flags[index] == -55000.0: input_beam._beam.rays[index, 9] = 1
 
         delta_thetas = beam_incident_angles - bragg_angles
 
@@ -2056,13 +2056,13 @@ class OpticalElement(ow_generic_element.GenericElement):
 
         output_beam = input_beam.duplicate()
 
-        for index in range(0, len(output_beam.beam.rays)):
-            output_beam.beam.rays[index, 6] = output_beam.beam.rays[index, 6] * interpolated_weight[index]
-            output_beam.beam.rays[index, 7] = output_beam.beam.rays[index, 7] * interpolated_weight[index]
-            output_beam.beam.rays[index, 8] = output_beam.beam.rays[index, 8] * interpolated_weight[index]
-            output_beam.beam.rays[index, 15] = output_beam.beam.rays[index, 15] * interpolated_weight[index]
-            output_beam.beam.rays[index, 16] = output_beam.beam.rays[index, 16] * interpolated_weight[index]
-            output_beam.beam.rays[index, 17] = output_beam.beam.rays[index, 17] * interpolated_weight[index]
+        for index in range(0, len(output_beam._beam.rays)):
+            output_beam._beam.rays[index, 6] = output_beam._beam.rays[index, 6] * interpolated_weight[index]
+            output_beam._beam.rays[index, 7] = output_beam._beam.rays[index, 7] * interpolated_weight[index]
+            output_beam._beam.rays[index, 8] = output_beam._beam.rays[index, 8] * interpolated_weight[index]
+            output_beam._beam.rays[index, 15] = output_beam._beam.rays[index, 15] * interpolated_weight[index]
+            output_beam._beam.rays[index, 16] = output_beam._beam.rays[index, 16] * interpolated_weight[index]
+            output_beam._beam.rays[index, 17] = output_beam._beam.rays[index, 17] * interpolated_weight[index]
 
         return output_beam
 
@@ -2096,6 +2096,7 @@ class OpticalElement(ow_generic_element.GenericElement):
             self.error_id = self.error_id + 1
             self.error(self.error_id, "Exception occurred: " + str(exception))
 
+            raise exception
         self.progressBarFinished()
 
     def setBeam(self, beam):

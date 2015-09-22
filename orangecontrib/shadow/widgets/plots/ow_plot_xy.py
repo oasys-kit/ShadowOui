@@ -247,12 +247,12 @@ class PlotXY(AutomaticElement):
             raise Exception("Data not plottable: No good rays or bad content")
 
     def plot_xy(self, var_x, var_y, title, xtitle, ytitle, xum, yum):
-        beam_to_plot = self.input_beam.beam
+        beam_to_plot = self.input_beam._beam
 
         if self.image_plane == 1:
             new_shadow_beam = self.input_beam.duplicate(history=False)
 
-            historyItem = self.input_beam.getOEHistory(oe_number=self.input_beam.oe_number)
+            historyItem = self.input_beam.getOEHistory(oe_number=self.input_beam._oe_number)
             if historyItem is None: raise Exception("Calculation impossible: Beam has no history")
 
             dist = 0.0
@@ -260,10 +260,10 @@ class PlotXY(AutomaticElement):
             if self.image_plane_rel_abs_position == 1:  # relative
                 image_plane = 0.0
 
-                if type(historyItem.shadow_oe_end) == ShadowOpticalElement:
-                    image_plane = historyItem.shadow_oe_end.oe.T_IMAGE
-                elif type(historyItem.shadow_oe_end) == ShadowCompoundOpticalElement:
-                    image_plane = historyItem.shadow_oe_end.oe.list[historyItem.shadow_oe_end.oe.number_oe() - 1].T_IMAGE
+                if type(historyItem._shadow_oe_end) == ShadowOpticalElement:
+                    image_plane = historyItem._shadow_oe_end.oe.T_IMAGE
+                elif type(historyItem._shadow_oe_end) == ShadowCompoundOpticalElement:
+                    image_plane = historyItem._shadow_oe_end.oe.list[historyItem._shadow_oe_end.oe.number_oe() - 1].T_IMAGE
 
                 if self.image_plane_new_position < 0 and abs(self.image_plane_new_position) > image_plane:
                     raise Exception("Image plane new position cannot be before the O.E.")
@@ -272,11 +272,11 @@ class PlotXY(AutomaticElement):
             else:  # absolute
                 ShadowGui.checkPositiveNumber(self.image_plane_new_position, "Image Plane new Position")
 
-                dist = self.image_plane_new_position - historyItem.shadow_oe_end.oe.T_IMAGE
+                dist = self.image_plane_new_position - historyItem._shadow_oe_end.oe.T_IMAGE
 
-            new_shadow_beam.beam.retrace(dist)
+            new_shadow_beam._beam.retrace(dist)
 
-            beam_to_plot = new_shadow_beam.beam
+            beam_to_plot = new_shadow_beam._beam
 
         xrange = None
         yrange = None
@@ -447,7 +447,7 @@ class PlotXY(AutomaticElement):
                     self.input_beam = beam
 
                 if ShadowGui.checkEmptyBeam(self.input_beam):
-                    if (self.input_beam.oe_number == 0):  # IS THE SOURCE
+                    if (self.input_beam._oe_number == 0):  # IS THE SOURCE
                         self.image_plane = 0
                         self.set_ImagePlane()
                         self.image_plane_combo.setEnabled(False)
