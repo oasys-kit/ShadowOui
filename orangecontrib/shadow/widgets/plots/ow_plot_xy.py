@@ -261,9 +261,9 @@ class PlotXY(AutomaticElement):
                 image_plane = 0.0
 
                 if type(historyItem._shadow_oe_end) == ShadowOpticalElement:
-                    image_plane = historyItem._shadow_oe_end.oe.T_IMAGE
+                    image_plane = historyItem._shadow_oe_end._oe.T_IMAGE
                 elif type(historyItem._shadow_oe_end) == ShadowCompoundOpticalElement:
-                    image_plane = historyItem._shadow_oe_end.oe.list[historyItem._shadow_oe_end.oe.number_oe() - 1].T_IMAGE
+                    image_plane = historyItem._shadow_oe_end._oe.list[historyItem._shadow_oe_end._oe.number_oe() - 1].T_IMAGE
 
                 if self.image_plane_new_position < 0 and abs(self.image_plane_new_position) > image_plane:
                     raise Exception("Image plane new position cannot be before the O.E.")
@@ -272,7 +272,7 @@ class PlotXY(AutomaticElement):
             else:  # absolute
                 ShadowGui.checkPositiveNumber(self.image_plane_new_position, "Image Plane new Position")
 
-                dist = self.image_plane_new_position - historyItem._shadow_oe_end.oe.T_IMAGE
+                dist = self.image_plane_new_position - historyItem._shadow_oe_end._oe.T_IMAGE
 
             new_shadow_beam._beam.retrace(dist)
 

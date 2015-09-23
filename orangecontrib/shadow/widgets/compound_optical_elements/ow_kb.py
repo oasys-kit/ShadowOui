@@ -384,7 +384,7 @@ class KB(ow_generic_element.GenericElement):
         dimension1_out = self.v_box.get_dimensions()
         dimension2_out = self.h_box.get_dimensions()
 
-        shadow_oe.oe.append_kb(p0=self.p,
+        shadow_oe._oe.append_kb(p0=self.p,
                                q0=self.q,
                                grazing_angles_mrad=self.grazing_angles_mrad,
                                separation=self.separation,

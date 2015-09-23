@@ -258,7 +258,7 @@ class Lens(ow_generic_element.GenericElement):
 
 
     def populateFields(self, shadow_oe):
-        shadow_oe.oe.append_lens(p=self.p,
+        shadow_oe._oe.append_lens(p=self.p,
                                  q=self.q,
                                  surface_shape=self.get_surface_shape(),
                                  convex_to_the_beam=self.convex_to_the_beam,

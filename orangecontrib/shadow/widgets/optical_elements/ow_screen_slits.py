@@ -70,7 +70,7 @@ class ScreenSlits(OpticalElement):
             thick[0] = self.thickness
             file_abs[0] = bytes(self.opt_const_file_name, 'utf-8')
 
-        shadow_oe.oe.set_screens(n_screen,
+        shadow_oe._oe.set_screens(n_screen,
                                 i_screen,
                                 i_abs,
                                 sl_dis,

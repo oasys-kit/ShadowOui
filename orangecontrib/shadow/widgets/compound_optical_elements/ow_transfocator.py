@@ -562,7 +562,7 @@ class Transfocator(ow_generic_element.GenericElement):
             cylinder_angle_out.append(self.crl_box_array[index].get_cylinder_angle())
             prerefl_file_out.append(self.crl_box_array[index].get_prerefl_file())
 
-        shadow_oe.oe.append_transfocator(p0=self.p,
+        shadow_oe._oe.append_transfocator(p0=self.p,
                                          q0=self.q,
                                          nlenses=self.nlenses,
                                          slots_empty=self.slots_empty,

@@ -1997,15 +1997,15 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         empty_element = ShadowOpticalElement.create_empty_oe()
 
-        empty_element.oe.T_SOURCE     = 0.0
-        empty_element.oe.T_IMAGE      = self.analyzer_distance
-        empty_element.oe.T_INCIDENCE  = 0.0
-        empty_element.oe.T_REFLECTION = 180.0-self.twotheta_angles[angle_index]
-        empty_element.oe.ALPHA        = 0.0
+        empty_element._oe.T_SOURCE     = 0.0
+        empty_element._oe.T_IMAGE      = self.analyzer_distance
+        empty_element._oe.T_INCIDENCE  = 0.0
+        empty_element._oe.T_REFLECTION = 180.0-self.twotheta_angles[angle_index]
+        empty_element._oe.ALPHA        = 0.0
 
 
-        empty_element.oe.FWRITE = 3
-        empty_element.oe.F_ANGLE = 0
+        empty_element._oe.FWRITE = 3
+        empty_element._oe.F_ANGLE = 0
 
         n_screen = 1
         i_screen = numpy.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -2029,7 +2029,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         cz_slit[0] = 0.0
 
 
-        empty_element.oe.set_screens(n_screen,
+        empty_element._oe.set_screens(n_screen,
                                     i_screen,
                                     i_abs,
                                     sl_dis,
@@ -2048,38 +2048,38 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         crystal = ShadowOpticalElement.create_plane_crystal()
 
-        crystal.oe.T_SOURCE     = 0
-        crystal.oe.T_IMAGE      = 1
-        crystal.oe.T_INCIDENCE  = 90-self.analyzer_bragg_angle
-        crystal.oe.T_REFLECTION = 90-self.analyzer_bragg_angle
-        crystal.oe.ALPHA        = 180
+        crystal._oe.T_SOURCE     = 0
+        crystal._oe.T_IMAGE      = 1
+        crystal._oe.T_INCIDENCE  = 90-self.analyzer_bragg_angle
+        crystal._oe.T_REFLECTION = 90-self.analyzer_bragg_angle
+        crystal._oe.ALPHA        = 180
 
-        crystal.oe.F_REFLEC = 0
-        crystal.oe.F_CRYSTAL = 1
-        crystal.oe.FILE_REFL = bytes(self.rocking_curve_file, 'utf-8')
-        crystal.oe.F_REFLECT = 0
-        crystal.oe.F_BRAGG_A = 0
-        crystal.oe.A_BRAGG = 0.0
-        crystal.oe.F_REFRACT = 0
+        crystal._oe.F_REFLEC = 0
+        crystal._oe.F_CRYSTAL = 1
+        crystal._oe.FILE_REFL = bytes(self.rocking_curve_file, 'utf-8')
+        crystal._oe.F_REFLECT = 0
+        crystal._oe.F_BRAGG_A = 0
+        crystal._oe.A_BRAGG = 0.0
+        crystal._oe.F_REFRACT = 0
 
 
         if (self.mosaic_angle_spread_fwhm > 0):
-            crystal.oe.F_MOSAIC = 1
-            crystal.oe.MOSAIC_SEED = 4000000 + 1000000*self.random_generator_flat.random()
-            crystal.oe.SPREAD_MOS = self.mosaic_angle_spread_fwhm
-            crystal.oe.THICKNESS = 1.0
+            crystal._oe.F_MOSAIC = 1
+            crystal._oe.MOSAIC_SEED = 4000000 + 1000000*self.random_generator_flat.random()
+            crystal._oe.SPREAD_MOS = self.mosaic_angle_spread_fwhm
+            crystal._oe.THICKNESS = 1.0
 
-        crystal.oe.F_CENTRAL=0
+        crystal._oe.F_CENTRAL=0
 
-        crystal.oe.FHIT_C = 1
-        crystal.oe.FSHAPE = 1
-        crystal.oe.RLEN1  = 2.5
-        crystal.oe.RLEN2  = 2.5
-        crystal.oe.RWIDX1 = 2.5
-        crystal.oe.RWIDX2 = 2.5
+        crystal._oe.FHIT_C = 1
+        crystal._oe.FSHAPE = 1
+        crystal._oe.RLEN1  = 2.5
+        crystal._oe.RLEN2  = 2.5
+        crystal._oe.RWIDX1 = 2.5
+        crystal._oe.RWIDX2 = 2.5
 
-        crystal.oe.FWRITE = 3
-        crystal.oe.F_ANGLE = 0
+        crystal._oe.FWRITE = 3
+        crystal._oe.F_ANGLE = 0
 
         return ShadowBeam.traceFromOENoHistory(out_beam, crystal)
 
@@ -2091,14 +2091,14 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         empty_element = ShadowOpticalElement.create_empty_oe()
 
-        empty_element.oe.T_SOURCE     = 0.0
-        empty_element.oe.T_IMAGE      = self.analyzer_distance
-        empty_element.oe.T_INCIDENCE  = 0.0
-        empty_element.oe.T_REFLECTION = 180.0-self.twotheta_angles[angle_index]
-        empty_element.oe.ALPHA        = 0.0
+        empty_element._oe.T_SOURCE     = 0.0
+        empty_element._oe.T_IMAGE      = self.analyzer_distance
+        empty_element._oe.T_INCIDENCE  = 0.0
+        empty_element._oe.T_REFLECTION = 180.0-self.twotheta_angles[angle_index]
+        empty_element._oe.ALPHA        = 0.0
 
-        empty_element.oe.FWRITE = 3
-        empty_element.oe.F_ANGLE = 0
+        empty_element._oe.FWRITE = 3
+        empty_element._oe.F_ANGLE = 0
 
         n_screen = 2
         i_screen = numpy.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -2127,7 +2127,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         cx_slit[1] = 0.0 + self.slit_2_horizontal_displacement_cm
         cz_slit[1] = 0.0 + self.slit_2_vertical_displacement_cm
 
-        empty_element.oe.set_screens(n_screen,
+        empty_element._oe.set_screens(n_screen,
                                     i_screen,
                                     i_abs,
                                     sl_dis,
@@ -2152,14 +2152,14 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         empty_element = ShadowOpticalElement.create_empty_oe()
 
-        empty_element.oe.T_SOURCE     = 0.0
-        empty_element.oe.T_IMAGE = self.area_detector_distance
-        empty_element.oe.T_INCIDENCE  = 0.0
-        empty_element.oe.T_REFLECTION = 180.0
-        empty_element.oe.ALPHA        = 0.0
+        empty_element._oe.T_SOURCE     = 0.0
+        empty_element._oe.T_IMAGE = self.area_detector_distance
+        empty_element._oe.T_INCIDENCE  = 0.0
+        empty_element._oe.T_REFLECTION = 180.0
+        empty_element._oe.ALPHA        = 0.0
 
-        empty_element.oe.FWRITE = 3
-        empty_element.oe.F_ANGLE = 0
+        empty_element._oe.FWRITE = 3
+        empty_element._oe.F_ANGLE = 0
 
         n_screen = 1
         i_screen = numpy.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -2182,7 +2182,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         cx_slit[0] = 0.0
         cz_slit[0] = 0.0
 
-        empty_element.oe.set_screens(n_screen,
+        empty_element._oe.set_screens(n_screen,
                                      i_screen,
                                      i_abs,
                                      sl_dis,

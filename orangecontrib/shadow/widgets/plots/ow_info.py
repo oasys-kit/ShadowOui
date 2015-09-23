@@ -133,12 +133,12 @@ class Info(widget.OWWidget):
                     if not history_element._shadow_source_start is None:
                         optical_element_list.append(history_element._shadow_source_start.src)
                     elif not history_element._shadow_oe_start is None:
-                        optical_element_list.append(history_element._shadow_oe_start.oe)
+                        optical_element_list.append(history_element._shadow_oe_start._oe)
 
                     if not history_element._shadow_source_end is None:
                         self.sourceInfo.append(history_element._shadow_source_end.src.sourcinfo())
                     elif not history_element._shadow_oe_end is None:
-                        self.mirInfo.append(history_element._shadow_oe_end.oe.mirinfo(title="O.E. #" + str(history_element._oe_number)))
+                        self.mirInfo.append(history_element._shadow_oe_end._oe.mirinfo(title="O.E. #" + str(history_element._oe_number)))
 
                 self.pythonScript.setText(ST.make_python_script_from_list(optical_element_list))
             else:

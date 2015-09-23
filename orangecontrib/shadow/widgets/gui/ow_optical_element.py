@@ -1424,71 +1424,71 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     def populateFields(self, shadow_oe = ShadowOpticalElement.create_empty_oe()):
         if self.graphical_options.is_screen_slit:
-            shadow_oe.oe.T_SOURCE     = self.source_plane_distance
-            shadow_oe.oe.T_IMAGE      = self.image_plane_distance
-            shadow_oe.oe.T_INCIDENCE  = 0.0
-            shadow_oe.oe.T_REFLECTION = 180.0
-            shadow_oe.oe.ALPHA        = 0.0
+            shadow_oe._oe.T_SOURCE     = self.source_plane_distance
+            shadow_oe._oe.T_IMAGE      = self.image_plane_distance
+            shadow_oe._oe.T_INCIDENCE  = 0.0
+            shadow_oe._oe.T_REFLECTION = 180.0
+            shadow_oe._oe.ALPHA        = 0.0
 
             if self.mirror_movement == 1:
-                 shadow_oe.oe.F_MOVE=1
-                 shadow_oe.oe.OFFX=self.mm_mirror_offset_x
-                 shadow_oe.oe.OFFY=self.mm_mirror_offset_y
-                 shadow_oe.oe.OFFZ=self.mm_mirror_offset_z
-                 shadow_oe.oe.X_ROT=self.mm_mirror_rotation_x
-                 shadow_oe.oe.Y_ROT=self.mm_mirror_rotation_y
-                 shadow_oe.oe.Z_ROT=self.mm_mirror_rotation_z
+                 shadow_oe._oe.F_MOVE=1
+                 shadow_oe._oe.OFFX=self.mm_mirror_offset_x
+                 shadow_oe._oe.OFFY=self.mm_mirror_offset_y
+                 shadow_oe._oe.OFFZ=self.mm_mirror_offset_z
+                 shadow_oe._oe.X_ROT=self.mm_mirror_rotation_x
+                 shadow_oe._oe.Y_ROT=self.mm_mirror_rotation_y
+                 shadow_oe._oe.Z_ROT=self.mm_mirror_rotation_z
 
             if self.source_movement == 1:
-                 shadow_oe.oe.FSTAT=1
-                 shadow_oe.oe.RTHETA=self.sm_angle_of_incidence
-                 shadow_oe.oe.RDSOUR=self.sm_distance_from_mirror
-                 shadow_oe.oe.ALPHA_S=self.sm_z_rotation
-                 shadow_oe.oe.OFF_SOUX=self.sm_offset_x_mirr_ref_frame
-                 shadow_oe.oe.OFF_SOUY=self.sm_offset_y_mirr_ref_frame
-                 shadow_oe.oe.OFF_SOUZ=self.sm_offset_z_mirr_ref_frame
-                 shadow_oe.oe.X_SOUR=self.sm_offset_x_source_ref_frame
-                 shadow_oe.oe.Y_SOUR=self.sm_offset_y_source_ref_frame
-                 shadow_oe.oe.Z_SOUR=self.sm_offset_z_source_ref_frame
-                 shadow_oe.oe.X_SOUR_ROT=self.sm_rotation_around_x
-                 shadow_oe.oe.Y_SOUR_ROT=self.sm_rotation_around_y
-                 shadow_oe.oe.Z_SOUR_ROT=self.sm_rotation_around_z
+                 shadow_oe._oe.FSTAT=1
+                 shadow_oe._oe.RTHETA=self.sm_angle_of_incidence
+                 shadow_oe._oe.RDSOUR=self.sm_distance_from_mirror
+                 shadow_oe._oe.ALPHA_S=self.sm_z_rotation
+                 shadow_oe._oe.OFF_SOUX=self.sm_offset_x_mirr_ref_frame
+                 shadow_oe._oe.OFF_SOUY=self.sm_offset_y_mirr_ref_frame
+                 shadow_oe._oe.OFF_SOUZ=self.sm_offset_z_mirr_ref_frame
+                 shadow_oe._oe.X_SOUR=self.sm_offset_x_source_ref_frame
+                 shadow_oe._oe.Y_SOUR=self.sm_offset_y_source_ref_frame
+                 shadow_oe._oe.Z_SOUR=self.sm_offset_z_source_ref_frame
+                 shadow_oe._oe.X_SOUR_ROT=self.sm_rotation_around_x
+                 shadow_oe._oe.Y_SOUR_ROT=self.sm_rotation_around_y
+                 shadow_oe._oe.Z_SOUR_ROT=self.sm_rotation_around_z
         elif self.graphical_options.is_empty:
-            shadow_oe.oe.T_SOURCE     = self.source_plane_distance
-            shadow_oe.oe.T_IMAGE      = self.image_plane_distance
-            shadow_oe.oe.T_INCIDENCE  = self.incidence_angle_deg
-            shadow_oe.oe.T_REFLECTION = self.reflection_angle_deg
-            shadow_oe.oe.ALPHA        = 90*self.mirror_orientation_angle
+            shadow_oe._oe.T_SOURCE     = self.source_plane_distance
+            shadow_oe._oe.T_IMAGE      = self.image_plane_distance
+            shadow_oe._oe.T_INCIDENCE  = self.incidence_angle_deg
+            shadow_oe._oe.T_REFLECTION = self.reflection_angle_deg
+            shadow_oe._oe.ALPHA        = 90*self.mirror_orientation_angle
 
             if self.mirror_movement == 1:
-                 shadow_oe.oe.F_MOVE=1
-                 shadow_oe.oe.OFFX=self.mm_mirror_offset_x
-                 shadow_oe.oe.OFFY=self.mm_mirror_offset_y
-                 shadow_oe.oe.OFFZ=self.mm_mirror_offset_z
-                 shadow_oe.oe.X_ROT=self.mm_mirror_rotation_x
-                 shadow_oe.oe.Y_ROT=self.mm_mirror_rotation_y
-                 shadow_oe.oe.Z_ROT=self.mm_mirror_rotation_z
+                 shadow_oe._oe.F_MOVE=1
+                 shadow_oe._oe.OFFX=self.mm_mirror_offset_x
+                 shadow_oe._oe.OFFY=self.mm_mirror_offset_y
+                 shadow_oe._oe.OFFZ=self.mm_mirror_offset_z
+                 shadow_oe._oe.X_ROT=self.mm_mirror_rotation_x
+                 shadow_oe._oe.Y_ROT=self.mm_mirror_rotation_y
+                 shadow_oe._oe.Z_ROT=self.mm_mirror_rotation_z
 
             if self.source_movement == 1:
-                 shadow_oe.oe.FSTAT=1
-                 shadow_oe.oe.RTHETA=self.sm_angle_of_incidence
-                 shadow_oe.oe.RDSOUR=self.sm_distance_from_mirror
-                 shadow_oe.oe.ALPHA_S=self.sm_z_rotation
-                 shadow_oe.oe.OFF_SOUX=self.sm_offset_x_mirr_ref_frame
-                 shadow_oe.oe.OFF_SOUY=self.sm_offset_y_mirr_ref_frame
-                 shadow_oe.oe.OFF_SOUZ=self.sm_offset_z_mirr_ref_frame
-                 shadow_oe.oe.X_SOUR=self.sm_offset_x_source_ref_frame
-                 shadow_oe.oe.Y_SOUR=self.sm_offset_y_source_ref_frame
-                 shadow_oe.oe.Z_SOUR=self.sm_offset_z_source_ref_frame
-                 shadow_oe.oe.X_SOUR_ROT=self.sm_rotation_around_x
-                 shadow_oe.oe.Y_SOUR_ROT=self.sm_rotation_around_y
-                 shadow_oe.oe.Z_SOUR_ROT=self.sm_rotation_around_z
+                 shadow_oe._oe.FSTAT=1
+                 shadow_oe._oe.RTHETA=self.sm_angle_of_incidence
+                 shadow_oe._oe.RDSOUR=self.sm_distance_from_mirror
+                 shadow_oe._oe.ALPHA_S=self.sm_z_rotation
+                 shadow_oe._oe.OFF_SOUX=self.sm_offset_x_mirr_ref_frame
+                 shadow_oe._oe.OFF_SOUY=self.sm_offset_y_mirr_ref_frame
+                 shadow_oe._oe.OFF_SOUZ=self.sm_offset_z_mirr_ref_frame
+                 shadow_oe._oe.X_SOUR=self.sm_offset_x_source_ref_frame
+                 shadow_oe._oe.Y_SOUR=self.sm_offset_y_source_ref_frame
+                 shadow_oe._oe.Z_SOUR=self.sm_offset_z_source_ref_frame
+                 shadow_oe._oe.X_SOUR_ROT=self.sm_rotation_around_x
+                 shadow_oe._oe.Y_SOUR_ROT=self.sm_rotation_around_y
+                 shadow_oe._oe.Z_SOUR_ROT=self.sm_rotation_around_z
         else:
-            shadow_oe.oe.T_SOURCE     = self.source_plane_distance
-            shadow_oe.oe.T_IMAGE      = self.image_plane_distance
-            shadow_oe.oe.T_INCIDENCE  = self.incidence_angle_deg
-            shadow_oe.oe.T_REFLECTION = self.reflection_angle_deg
-            shadow_oe.oe.ALPHA        = 90*self.mirror_orientation_angle
+            shadow_oe._oe.T_SOURCE     = self.source_plane_distance
+            shadow_oe._oe.T_IMAGE      = self.image_plane_distance
+            shadow_oe._oe.T_INCIDENCE  = self.incidence_angle_deg
+            shadow_oe._oe.T_REFLECTION = self.reflection_angle_deg
+            shadow_oe._oe.ALPHA        = 90*self.mirror_orientation_angle
 
             #####################################
             # BASIC SETTING
@@ -1496,10 +1496,10 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             if self.graphical_options.is_curved:
                 if self.is_cylinder==1:
-                   shadow_oe.oe.FCYL = 1
-                   shadow_oe.oe.CIL_ANG=90*self.cylinder_orientation
+                   shadow_oe._oe.FCYL = 1
+                   shadow_oe._oe.CIL_ANG=90*self.cylinder_orientation
                 else:
-                   shadow_oe.oe.FCYL = 0
+                   shadow_oe._oe.FCYL = 0
 
                 if self.graphical_options.is_conic_coefficients:
                     conic_coefficients = [self.conic_coefficient_0,
@@ -1513,13 +1513,13 @@ class OpticalElement(ow_generic_element.GenericElement):
                                           self.conic_coefficient_8,
                                           self.conic_coefficient_9]
 
-                    shadow_oe.oe.F_EXT = 1
-                    shadow_oe.oe.CCC[:] = conic_coefficients[:]
+                    shadow_oe._oe.F_EXT = 1
+                    shadow_oe._oe.CCC[:] = conic_coefficients[:]
                 else:
                     if self.surface_shape_parameters == 0:
                        if (self.is_cylinder==1 and self.cylinder_orientation==1):
                            if self.graphical_options.is_spheric:
-                               shadow_oe.oe.F_EXT=1
+                               shadow_oe._oe.F_EXT=1
 
                                #IMPLEMENTATION OF THE AUTOMATIC CALCULATION OF THE SAGITTAL FOCUSING FOR SPHERICAL CYLINDERS
                                # RADIUS = (2 F1 F2 sin (theta)) /( F1+F2)
@@ -1528,191 +1528,191 @@ class OpticalElement(ow_generic_element.GenericElement):
                                else:
                                   self.spherical_radius = ((2*self.object_side_focal_distance*self.image_side_focal_distance)/(self.object_side_focal_distance+self.image_side_focal_distance))*math.sin(round(math.radians(90-self.incidence_angle_respect_to_normal), 2))
 
-                               shadow_oe.oe.RMIRR = self.spherical_radius
+                               shadow_oe._oe.RMIRR = self.spherical_radius
                        else:
-                           shadow_oe.oe.F_EXT = 0
+                           shadow_oe._oe.F_EXT = 0
 
                            if self.focii_and_continuation_plane == 0:
-                              shadow_oe.oe.F_DEFAULT=1
+                              shadow_oe._oe.F_DEFAULT=1
                            else:
-                              shadow_oe.oe.F_DEFAULT=0
-                              shadow_oe.oe.SSOUR = self.object_side_focal_distance
-                              shadow_oe.oe.SIMAG = self.image_side_focal_distance
-                              shadow_oe.oe.THETA = self.incidence_angle_respect_to_normal
+                              shadow_oe._oe.F_DEFAULT=0
+                              shadow_oe._oe.SSOUR = self.object_side_focal_distance
+                              shadow_oe._oe.SIMAG = self.image_side_focal_distance
+                              shadow_oe._oe.THETA = self.incidence_angle_respect_to_normal
 
-                           if self.graphical_options.is_paraboloid: shadow_oe.oe.F_SIDE=self.focus_location
+                           if self.graphical_options.is_paraboloid: shadow_oe._oe.F_SIDE=self.focus_location
                     else:
-                       shadow_oe.oe.F_EXT=1
+                       shadow_oe._oe.F_EXT=1
                        if self.graphical_options.is_spheric:
-                           shadow_oe.oe.RMIRR = self.spherical_radius
+                           shadow_oe._oe.RMIRR = self.spherical_radius
                        elif self.graphical_options.is_toroidal:
-                           shadow_oe.oe.R_MAJ=self.torus_major_radius
-                           shadow_oe.oe.R_MIN=self.torus_minor_radius
+                           shadow_oe._oe.R_MAJ=self.torus_major_radius
+                           shadow_oe._oe.R_MIN=self.torus_minor_radius
                        elif self.graphical_options.is_hyperboloid or self.graphical_options.is_ellipsoidal:
-                           shadow_oe.oe.AXMAJ=self.ellipse_hyperbola_semi_major_axis
-                           shadow_oe.oe.AXMIN=self.ellipse_hyperbola_semi_minor_axis
-                           shadow_oe.oe.ELL_THE=self.angle_of_majax_and_pole
+                           shadow_oe._oe.AXMAJ=self.ellipse_hyperbola_semi_major_axis
+                           shadow_oe._oe.AXMIN=self.ellipse_hyperbola_semi_minor_axis
+                           shadow_oe._oe.ELL_THE=self.angle_of_majax_and_pole
                        elif self.graphical_options.is_paraboloid:
-                           shadow_oe.oe.PARAM=self.paraboloid_parameter
+                           shadow_oe._oe.PARAM=self.paraboloid_parameter
 
-                    if self.graphical_options.is_toroidal: shadow_oe.oe.F_TORUS=self.toroidal_mirror_pole_location
+                    if self.graphical_options.is_toroidal: shadow_oe._oe.F_TORUS=self.toroidal_mirror_pole_location
 
                     if self.surface_curvature == 0:
-                       shadow_oe.oe.F_CONVEX=0
+                       shadow_oe._oe.F_CONVEX=0
                     else:
-                       shadow_oe.oe.F_CONVEX=1
+                       shadow_oe._oe.F_CONVEX=1
             else:
-               shadow_oe.oe.FCYL = 0
+               shadow_oe._oe.FCYL = 0
 
             if self.graphical_options.is_mirror:
                 if self.reflectivity_type == 0:
-                   shadow_oe.oe.F_REFLEC = 0
+                   shadow_oe._oe.F_REFLEC = 0
                 elif self.reflectivity_type == 1:
                     if self.source_of_reflectivity == 0:
-                        shadow_oe.oe.F_REFLEC = 1
-                        shadow_oe.oe.F_REFL = 0
-                        shadow_oe.oe.FILE_REFL = bytes(self.file_prerefl, 'utf-8')
-                        shadow_oe.oe.ALFA = 0.0
-                        shadow_oe.oe.GAMMA = 0.0
-                        shadow_oe.oe.F_THICK = 0
+                        shadow_oe._oe.F_REFLEC = 1
+                        shadow_oe._oe.F_REFL = 0
+                        shadow_oe._oe.FILE_REFL = bytes(self.file_prerefl, 'utf-8')
+                        shadow_oe._oe.ALFA = 0.0
+                        shadow_oe._oe.GAMMA = 0.0
+                        shadow_oe._oe.F_THICK = 0
                     elif self.source_of_reflectivity == 1:
-                        shadow_oe.oe.F_REFLEC = 1
-                        shadow_oe.oe.F_REFL = 1
-                        shadow_oe.oe.FILE_REFL = 'GAAS.SHA'
-                        shadow_oe.oe.ALFA = self.alpha
-                        shadow_oe.oe.GAMMA = self.gamma
-                        shadow_oe.oe.F_THICK = 0
+                        shadow_oe._oe.F_REFLEC = 1
+                        shadow_oe._oe.F_REFL = 1
+                        shadow_oe._oe.FILE_REFL = 'GAAS.SHA'
+                        shadow_oe._oe.ALFA = self.alpha
+                        shadow_oe._oe.GAMMA = self.gamma
+                        shadow_oe._oe.F_THICK = 0
                     elif self.source_of_reflectivity == 2:
-                        shadow_oe.oe.F_REFLEC = 1
-                        shadow_oe.oe.F_REFL = 2
-                        shadow_oe.oe.FILE_REFL = bytes(self.file_prerefl_m, 'utf-8')
-                        shadow_oe.oe.ALFA = 0.0
-                        shadow_oe.oe.GAMMA = 0.0
-                        shadow_oe.oe.F_THICK = self.m_layer_tickness
+                        shadow_oe._oe.F_REFLEC = 1
+                        shadow_oe._oe.F_REFL = 2
+                        shadow_oe._oe.FILE_REFL = bytes(self.file_prerefl_m, 'utf-8')
+                        shadow_oe._oe.ALFA = 0.0
+                        shadow_oe._oe.GAMMA = 0.0
+                        shadow_oe._oe.F_THICK = self.m_layer_tickness
                 elif self.reflectivity_type == 2:
                     if self.source_of_reflectivity == 0:
-                        shadow_oe.oe.F_REFLEC = 2
-                        shadow_oe.oe.F_REFL = 0
-                        shadow_oe.oe.FILE_REFL = bytes(self.file_prerefl, 'utf-8')
-                        shadow_oe.oe.ALFA = 0.0
-                        shadow_oe.oe.GAMMA = 0.0
-                        shadow_oe.oe.F_THICK = 0
+                        shadow_oe._oe.F_REFLEC = 2
+                        shadow_oe._oe.F_REFL = 0
+                        shadow_oe._oe.FILE_REFL = bytes(self.file_prerefl, 'utf-8')
+                        shadow_oe._oe.ALFA = 0.0
+                        shadow_oe._oe.GAMMA = 0.0
+                        shadow_oe._oe.F_THICK = 0
                     elif self.source_of_reflectivity == 1:
-                        shadow_oe.oe.F_REFLEC = 2
-                        shadow_oe.oe.F_REFL = 1
-                        shadow_oe.oe.FILE_REFL = 'GAAS.SHA'
-                        shadow_oe.oe.ALFA = self.alpha
-                        shadow_oe.oe.GAMMA = self.gamma
-                        shadow_oe.oe.F_THICK = 0
+                        shadow_oe._oe.F_REFLEC = 2
+                        shadow_oe._oe.F_REFL = 1
+                        shadow_oe._oe.FILE_REFL = 'GAAS.SHA'
+                        shadow_oe._oe.ALFA = self.alpha
+                        shadow_oe._oe.GAMMA = self.gamma
+                        shadow_oe._oe.F_THICK = 0
                     elif self.source_of_reflectivity == 2:
-                        shadow_oe.oe.F_REFLEC = 2
-                        shadow_oe.oe.F_REFL = 2
-                        shadow_oe.oe.FILE_REFL = bytes(self.file_prerefl_m, 'utf-8')
-                        shadow_oe.oe.ALFA = 0.0
-                        shadow_oe.oe.GAMMA = 0.0
-                        shadow_oe.oe.F_THICK = self.m_layer_tickness
+                        shadow_oe._oe.F_REFLEC = 2
+                        shadow_oe._oe.F_REFL = 2
+                        shadow_oe._oe.FILE_REFL = bytes(self.file_prerefl_m, 'utf-8')
+                        shadow_oe._oe.ALFA = 0.0
+                        shadow_oe._oe.GAMMA = 0.0
+                        shadow_oe._oe.F_THICK = self.m_layer_tickness
             elif self.graphical_options.is_crystal:
-                shadow_oe.oe.F_REFLEC = 0
+                shadow_oe._oe.F_REFLEC = 0
 
                 if self.diffraction_calculation == 1:
-                    shadow_oe.oe.F_CRYSTAL = 0  # user defined profile -> simulated as mirror with no reflectivity
+                    shadow_oe._oe.F_CRYSTAL = 0  # user defined profile -> simulated as mirror with no reflectivity
                 else:
-                    shadow_oe.oe.F_CRYSTAL = 1
-                    shadow_oe.oe.FILE_REFL = bytes(self.file_crystal_parameters, 'utf-8')
-                    shadow_oe.oe.F_REFLECT = 0
-                    shadow_oe.oe.F_BRAGG_A = 0
-                    shadow_oe.oe.A_BRAGG = 0.0
-                    shadow_oe.oe.F_REFRACT = 0
+                    shadow_oe._oe.F_CRYSTAL = 1
+                    shadow_oe._oe.FILE_REFL = bytes(self.file_crystal_parameters, 'utf-8')
+                    shadow_oe._oe.F_REFLECT = 0
+                    shadow_oe._oe.F_BRAGG_A = 0
+                    shadow_oe._oe.A_BRAGG = 0.0
+                    shadow_oe._oe.F_REFRACT = 0
 
-                    shadow_oe.oe.F_REFRAC = self.diffraction_geometry
+                    shadow_oe._oe.F_REFRAC = self.diffraction_geometry
 
                     if self.crystal_auto_setting == 0:
-                        shadow_oe.oe.F_CENTRAL = 0
+                        shadow_oe._oe.F_CENTRAL = 0
                     else:
-                        shadow_oe.oe.F_CENTRAL = 1
-                        shadow_oe.oe.F_PHOT_CENT = self.units_in_use
-                        shadow_oe.oe.PHOT_CENT = self.photon_energy
-                        shadow_oe.oe.R_LAMBDA = self.photon_wavelength
+                        shadow_oe._oe.F_CENTRAL = 1
+                        shadow_oe._oe.F_PHOT_CENT = self.units_in_use
+                        shadow_oe._oe.PHOT_CENT = self.photon_energy
+                        shadow_oe._oe.R_LAMBDA = self.photon_wavelength
 
                     if self.mosaic_crystal == 1:
-                        shadow_oe.oe.F_MOSAIC = 1
-                        shadow_oe.oe.MOSAIC_SEED = self.seed_for_mosaic
-                        shadow_oe.oe.SPREAD_MOS = self.angle_spread_FWHM
-                        shadow_oe.oe.THICKNESS = self.thickness
+                        shadow_oe._oe.F_MOSAIC = 1
+                        shadow_oe._oe.MOSAIC_SEED = self.seed_for_mosaic
+                        shadow_oe._oe.SPREAD_MOS = self.angle_spread_FWHM
+                        shadow_oe._oe.THICKNESS = self.thickness
                     else:
                         if self.asymmetric_cut == 1:
-                            shadow_oe.oe.F_BRAGG_A = 1
-                            shadow_oe.oe.A_BRAGG = self.planes_angle
-                            shadow_oe.oe.ORDER = self.below_onto_bragg_planes
-                            shadow_oe.oe.THICKNESS = self.thickness
+                            shadow_oe._oe.F_BRAGG_A = 1
+                            shadow_oe._oe.A_BRAGG = self.planes_angle
+                            shadow_oe._oe.ORDER = self.below_onto_bragg_planes
+                            shadow_oe._oe.THICKNESS = self.thickness
                         if self.johansson_geometry == 1:
-                            shadow_oe.oe.F_JOHANSSON = 1
-                            shadow_oe.oe.F_EXT = 1
-                            shadow_oe.oe.R_JOHANSSON = self.johansson_radius
+                            shadow_oe._oe.F_JOHANSSON = 1
+                            shadow_oe._oe.F_EXT = 1
+                            shadow_oe._oe.R_JOHANSSON = self.johansson_radius
             elif self.graphical_options.is_grating:
-                shadow_oe.oe.F_REFLEC = 0
+                shadow_oe._oe.F_REFLEC = 0
 
                 if self.grating_ruling_type == 0 or self.grating_ruling_type == 1:
-                    shadow_oe.oe.F_GRATING = 1
-                    shadow_oe.oe.F_RULING = self.grating_ruling_type
-                    shadow_oe.oe.RULING = self.grating_ruling_density
+                    shadow_oe._oe.F_GRATING = 1
+                    shadow_oe._oe.F_RULING = self.grating_ruling_type
+                    shadow_oe._oe.RULING = self.grating_ruling_density
                 elif self.grating_ruling_type == 2:
-                    shadow_oe.oe.F_GRATING = 1
-                    shadow_oe.oe.F_RULING = 2
-                    shadow_oe.oe.HOLO_R1  = self.grating_holo_left_distance
-                    shadow_oe.oe.HOLO_R2  = self.grating_holo_right_distance
-                    shadow_oe.oe.HOLO_DEL = self.grating_holo_left_incidence_angle
-                    shadow_oe.oe.HOLO_GAM = self.grating_holo_right_incidence_angle
-                    shadow_oe.oe.HOLO_W   = self.grating_holo_recording_wavelength
-                    shadow_oe.oe.HOLO_RT1 = self.grating_holo_left_azimuth_from_y
-                    shadow_oe.oe.HOLO_RT2 = self.grating_holo_right_azimuth_from_y
-                    shadow_oe.oe.F_PW = self.grating_holo_pattern_type
-                    shadow_oe.oe.F_PW_C = self.grating_holo_cylindrical_source
-                    shadow_oe.oe.F_VIRTUAL = self.grating_holo_source_type
+                    shadow_oe._oe.F_GRATING = 1
+                    shadow_oe._oe.F_RULING = 2
+                    shadow_oe._oe.HOLO_R1  = self.grating_holo_left_distance
+                    shadow_oe._oe.HOLO_R2  = self.grating_holo_right_distance
+                    shadow_oe._oe.HOLO_DEL = self.grating_holo_left_incidence_angle
+                    shadow_oe._oe.HOLO_GAM = self.grating_holo_right_incidence_angle
+                    shadow_oe._oe.HOLO_W   = self.grating_holo_recording_wavelength
+                    shadow_oe._oe.HOLO_RT1 = self.grating_holo_left_azimuth_from_y
+                    shadow_oe._oe.HOLO_RT2 = self.grating_holo_right_azimuth_from_y
+                    shadow_oe._oe.F_PW = self.grating_holo_pattern_type
+                    shadow_oe._oe.F_PW_C = self.grating_holo_cylindrical_source
+                    shadow_oe._oe.F_VIRTUAL = self.grating_holo_source_type
                 elif self.grating_ruling_type == 3:
-                    shadow_oe.oe.F_GRATING = 1
-                    shadow_oe.oe.F_RULING = 3
-                    shadow_oe.oe.AZIM_FAN = self.grating_groove_pole_azimuth_from_y
-                    shadow_oe.oe.DIST_FAN = self.grating_groove_pole_distance
-                    shadow_oe.oe.COMA_FAC = self.grating_coma_correction_factor
+                    shadow_oe._oe.F_GRATING = 1
+                    shadow_oe._oe.F_RULING = 3
+                    shadow_oe._oe.AZIM_FAN = self.grating_groove_pole_azimuth_from_y
+                    shadow_oe._oe.DIST_FAN = self.grating_groove_pole_distance
+                    shadow_oe._oe.COMA_FAC = self.grating_coma_correction_factor
                 elif self.grating_ruling_type == 4:
-                    shadow_oe.oe.F_GRATING = 1
-                    shadow_oe.oe.F_RULING = 5
-                    shadow_oe.oe.F_RUL_ABS = self.grating_poly_signed_absolute
-                    shadow_oe.oe.RULING = self.grating_ruling_density
-                    shadow_oe.oe.RUL_A1 = self.grating_poly_coeff_1
-                    shadow_oe.oe.RUL_A2 = self.grating_poly_coeff_2
-                    shadow_oe.oe.RUL_A3 = self.grating_poly_coeff_3
-                    shadow_oe.oe.RUL_A4 = self.grating_poly_coeff_4
+                    shadow_oe._oe.F_GRATING = 1
+                    shadow_oe._oe.F_RULING = 5
+                    shadow_oe._oe.F_RUL_ABS = self.grating_poly_signed_absolute
+                    shadow_oe._oe.RULING = self.grating_ruling_density
+                    shadow_oe._oe.RUL_A1 = self.grating_poly_coeff_1
+                    shadow_oe._oe.RUL_A2 = self.grating_poly_coeff_2
+                    shadow_oe._oe.RUL_A3 = self.grating_poly_coeff_3
+                    shadow_oe._oe.RUL_A4 = self.grating_poly_coeff_4
                 if self.grating_auto_setting == 0:
-                    shadow_oe.oe.F_CENTRAL=0
+                    shadow_oe._oe.F_CENTRAL=0
                 else:
-                    shadow_oe.oe.F_CENTRAL = 1
-                    shadow_oe.oe.F_PHOT_CENT = self.grating_units_in_use
-                    shadow_oe.oe.PHOT_CENT = self.grating_photon_energy
-                    shadow_oe.oe.R_LAMBDA = self.grating_photon_wavelength
-                    shadow_oe.oe.F_MONO = self.grating_mount_type
+                    shadow_oe._oe.F_CENTRAL = 1
+                    shadow_oe._oe.F_PHOT_CENT = self.grating_units_in_use
+                    shadow_oe._oe.PHOT_CENT = self.grating_photon_energy
+                    shadow_oe._oe.R_LAMBDA = self.grating_photon_wavelength
+                    shadow_oe._oe.F_MONO = self.grating_mount_type
 
                     if self.grating_mount_type != 4:
-                        shadow_oe.oe.F_HUNT = 1
-                        shadow_oe.oe.HUNT_H = 0.0
-                        shadow_oe.oe.HUNT_L = 0.0
-                        shadow_oe.oe.BLAZE = 0.0
+                        shadow_oe._oe.F_HUNT = 1
+                        shadow_oe._oe.HUNT_H = 0.0
+                        shadow_oe._oe.HUNT_L = 0.0
+                        shadow_oe._oe.BLAZE = 0.0
                     else:
-                        shadow_oe.oe.F_HUNT = self.grating_hunter_grating_selected+1
-                        shadow_oe.oe.HUNT_H = self.grating_hunter_distance_between_beams
-                        shadow_oe.oe.HUNT_L = self.grating_hunter_monochromator_length
-                        shadow_oe.oe.BLAZE = self.grating_hunter_blaze_angle
+                        shadow_oe._oe.F_HUNT = self.grating_hunter_grating_selected+1
+                        shadow_oe._oe.HUNT_H = self.grating_hunter_distance_between_beams
+                        shadow_oe._oe.HUNT_L = self.grating_hunter_monochromator_length
+                        shadow_oe._oe.BLAZE = self.grating_hunter_blaze_angle
 
             if self.is_infinite == 0:
-                shadow_oe.oe.FHIT_C = 0
+                shadow_oe._oe.FHIT_C = 0
             else:
-                shadow_oe.oe.FHIT_C = 1
-                shadow_oe.oe.FSHAPE = (self.mirror_shape+1)
-                shadow_oe.oe.RLEN1  = self.dim_y_plus
-                shadow_oe.oe.RLEN2  = self.dim_y_minus
-                shadow_oe.oe.RWIDX1 = self.dim_x_plus
-                shadow_oe.oe.RWIDX2 = self.dim_x_minus
+                shadow_oe._oe.FHIT_C = 1
+                shadow_oe._oe.FSHAPE = (self.mirror_shape+1)
+                shadow_oe._oe.RLEN1  = self.dim_y_plus
+                shadow_oe._oe.RLEN2  = self.dim_y_minus
+                shadow_oe._oe.RWIDX1 = self.dim_x_plus
+                shadow_oe._oe.RWIDX2 = self.dim_x_minus
 
             #####################################
             # ADVANCED SETTING
@@ -1720,90 +1720,90 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             if self.modified_surface == 1:
                  if self.ms_type_of_defect == 0:
-                     shadow_oe.oe.F_RIPPLE = 1
-                     shadow_oe.oe.F_G_S = 0
-                     shadow_oe.oe.X_RIP_AMP = self.ms_ripple_ampli_x
-                     shadow_oe.oe.X_RIP_WAV = self.ms_ripple_wavel_x
-                     shadow_oe.oe.X_PHASE   = self.ms_ripple_phase_x
-                     shadow_oe.oe.Y_RIP_AMP = self.ms_ripple_ampli_y
-                     shadow_oe.oe.Y_RIP_WAV = self.ms_ripple_wavel_y
-                     shadow_oe.oe.Y_PHASE   = self.ms_ripple_phase_y
-                     shadow_oe.oe.FILE_RIP  = b''
+                     shadow_oe._oe.F_RIPPLE = 1
+                     shadow_oe._oe.F_G_S = 0
+                     shadow_oe._oe.X_RIP_AMP = self.ms_ripple_ampli_x
+                     shadow_oe._oe.X_RIP_WAV = self.ms_ripple_wavel_x
+                     shadow_oe._oe.X_PHASE   = self.ms_ripple_phase_x
+                     shadow_oe._oe.Y_RIP_AMP = self.ms_ripple_ampli_y
+                     shadow_oe._oe.Y_RIP_WAV = self.ms_ripple_wavel_y
+                     shadow_oe._oe.Y_PHASE   = self.ms_ripple_phase_y
+                     shadow_oe._oe.FILE_RIP  = b''
                  else:
-                     shadow_oe.oe.F_RIPPLE = 1
-                     shadow_oe.oe.F_G_S = self.ms_type_of_defect
-                     shadow_oe.oe.X_RIP_AMP = 0.0
-                     shadow_oe.oe.X_RIP_WAV = 0.0
-                     shadow_oe.oe.X_PHASE   = 0.0
-                     shadow_oe.oe.Y_RIP_AMP = 0.0
-                     shadow_oe.oe.Y_RIP_WAV = 0.0
-                     shadow_oe.oe.Y_PHASE   = 0.0
-                     shadow_oe.oe.FILE_RIP  = bytes(self.ms_defect_file_name, 'utf-8')
+                     shadow_oe._oe.F_RIPPLE = 1
+                     shadow_oe._oe.F_G_S = self.ms_type_of_defect
+                     shadow_oe._oe.X_RIP_AMP = 0.0
+                     shadow_oe._oe.X_RIP_WAV = 0.0
+                     shadow_oe._oe.X_PHASE   = 0.0
+                     shadow_oe._oe.Y_RIP_AMP = 0.0
+                     shadow_oe._oe.Y_RIP_WAV = 0.0
+                     shadow_oe._oe.Y_PHASE   = 0.0
+                     shadow_oe._oe.FILE_RIP  = bytes(self.ms_defect_file_name, 'utf-8')
 
             elif self.modified_surface == 2:
-                shadow_oe.oe.F_FACET = 1
-                shadow_oe.oe.FILE_FAC=bytes(self.ms_file_facet_descr, 'utf-8')
-                shadow_oe.oe.F_FAC_LATT=self.ms_lattice_type
-                shadow_oe.oe.F_FAC_ORIENT=self.ms_orientation
-                shadow_oe.oe.F_POLSEL=self.ms_lattice_type+1
-                shadow_oe.oe.RFAC_LENX=self.ms_facet_width_x
-                shadow_oe.oe.RFAC_PHAX=self.ms_facet_phase_x
-                shadow_oe.oe.RFAC_DELX1=self.ms_dead_width_x_minus
-                shadow_oe.oe.RFAC_DELX2=self.ms_dead_width_x_plus
-                shadow_oe.oe.RFAC_LENY=self.ms_facet_width_y
-                shadow_oe.oe.RFAC_PHAY=self.ms_facet_phase_y
-                shadow_oe.oe.RFAC_DELY1=self.ms_dead_width_y_minus
-                shadow_oe.oe.RFAC_DELY2=self.ms_dead_width_y_plus
+                shadow_oe._oe.F_FACET = 1
+                shadow_oe._oe.FILE_FAC=bytes(self.ms_file_facet_descr, 'utf-8')
+                shadow_oe._oe.F_FAC_LATT=self.ms_lattice_type
+                shadow_oe._oe.F_FAC_ORIENT=self.ms_orientation
+                shadow_oe._oe.F_POLSEL=self.ms_lattice_type+1
+                shadow_oe._oe.RFAC_LENX=self.ms_facet_width_x
+                shadow_oe._oe.RFAC_PHAX=self.ms_facet_phase_x
+                shadow_oe._oe.RFAC_DELX1=self.ms_dead_width_x_minus
+                shadow_oe._oe.RFAC_DELX2=self.ms_dead_width_x_plus
+                shadow_oe._oe.RFAC_LENY=self.ms_facet_width_y
+                shadow_oe._oe.RFAC_PHAY=self.ms_facet_phase_y
+                shadow_oe._oe.RFAC_DELY1=self.ms_dead_width_y_minus
+                shadow_oe._oe.RFAC_DELY2=self.ms_dead_width_y_plus
             elif self.modified_surface == 3:
-                shadow_oe.oe.F_ROUGHNESS = 1
-                shadow_oe.oe.FILE_ROUGH=bytes(self.ms_file_surf_roughness, 'utf-8')
-                shadow_oe.oe.ROUGH_X=self.ms_roughness_rms_x
-                shadow_oe.oe.ROUGH_Y=self.ms_roughness_rms_y
+                shadow_oe._oe.F_ROUGHNESS = 1
+                shadow_oe._oe.FILE_ROUGH=bytes(self.ms_file_surf_roughness, 'utf-8')
+                shadow_oe._oe.ROUGH_X=self.ms_roughness_rms_x
+                shadow_oe._oe.ROUGH_Y=self.ms_roughness_rms_y
             elif self.modified_surface == 4:
-                shadow_oe.oe.F_KOMA = 1
-                shadow_oe.oe.F_KOMA_CA=self.ms_specify_rz2
-                shadow_oe.oe.FILE_KOMA=bytes(self.ms_file_with_parameters_rz, 'utf-8')
-                shadow_oe.oe.FILE_KOMA_CA=bytes(self.ms_file_with_parameters_rz2, 'utf-8')
-                shadow_oe.oe.F_KOMA_BOUNCE=self.ms_save_intercept_bounces
+                shadow_oe._oe.F_KOMA = 1
+                shadow_oe._oe.F_KOMA_CA=self.ms_specify_rz2
+                shadow_oe._oe.FILE_KOMA=bytes(self.ms_file_with_parameters_rz, 'utf-8')
+                shadow_oe._oe.FILE_KOMA_CA=bytes(self.ms_file_with_parameters_rz2, 'utf-8')
+                shadow_oe._oe.F_KOMA_BOUNCE=self.ms_save_intercept_bounces
             elif self.modified_surface == 5:
-                shadow_oe.oe.F_SEGMENT = 1
-                shadow_oe.oe.ISEG_XNUM=self.ms_number_of_segments_x
-                shadow_oe.oe.ISEG_YNUM=self.ms_number_of_segments_y
-                shadow_oe.oe.SEG_LENX=self.ms_length_of_segments_x
-                shadow_oe.oe.SEG_LENY=self.ms_length_of_segments_y
-                shadow_oe.oe.FILE_SEGMENT=bytes(self.ms_file_orientations, 'utf-8')
-                shadow_oe.oe.FILE_SEGP=bytes(self.ms_file_polynomial, 'utf-8')
+                shadow_oe._oe.F_SEGMENT = 1
+                shadow_oe._oe.ISEG_XNUM=self.ms_number_of_segments_x
+                shadow_oe._oe.ISEG_YNUM=self.ms_number_of_segments_y
+                shadow_oe._oe.SEG_LENX=self.ms_length_of_segments_x
+                shadow_oe._oe.SEG_LENY=self.ms_length_of_segments_y
+                shadow_oe._oe.FILE_SEGMENT=bytes(self.ms_file_orientations, 'utf-8')
+                shadow_oe._oe.FILE_SEGP=bytes(self.ms_file_polynomial, 'utf-8')
 
             if self.mirror_movement == 1:
-                 shadow_oe.oe.F_MOVE=1
-                 shadow_oe.oe.OFFX=self.mm_mirror_offset_x
-                 shadow_oe.oe.OFFY=self.mm_mirror_offset_y
-                 shadow_oe.oe.OFFZ=self.mm_mirror_offset_z
-                 shadow_oe.oe.X_ROT=self.mm_mirror_rotation_x
-                 shadow_oe.oe.Y_ROT=self.mm_mirror_rotation_y
-                 shadow_oe.oe.Z_ROT=self.mm_mirror_rotation_z
+                 shadow_oe._oe.F_MOVE=1
+                 shadow_oe._oe.OFFX=self.mm_mirror_offset_x
+                 shadow_oe._oe.OFFY=self.mm_mirror_offset_y
+                 shadow_oe._oe.OFFZ=self.mm_mirror_offset_z
+                 shadow_oe._oe.X_ROT=self.mm_mirror_rotation_x
+                 shadow_oe._oe.Y_ROT=self.mm_mirror_rotation_y
+                 shadow_oe._oe.Z_ROT=self.mm_mirror_rotation_z
 
             if self.source_movement == 1:
-                 shadow_oe.oe.FSTAT=1
-                 shadow_oe.oe.RTHETA=self.sm_angle_of_incidence
-                 shadow_oe.oe.RDSOUR=self.sm_distance_from_mirror
-                 shadow_oe.oe.ALPHA_S=self.sm_z_rotation
-                 shadow_oe.oe.OFF_SOUX=self.sm_offset_x_mirr_ref_frame
-                 shadow_oe.oe.OFF_SOUY=self.sm_offset_y_mirr_ref_frame
-                 shadow_oe.oe.OFF_SOUZ=self.sm_offset_z_mirr_ref_frame
-                 shadow_oe.oe.X_SOUR=self.sm_offset_x_source_ref_frame
-                 shadow_oe.oe.Y_SOUR=self.sm_offset_y_source_ref_frame
-                 shadow_oe.oe.Z_SOUR=self.sm_offset_z_source_ref_frame
-                 shadow_oe.oe.X_SOUR_ROT=self.sm_rotation_around_x
-                 shadow_oe.oe.Y_SOUR_ROT=self.sm_rotation_around_y
-                 shadow_oe.oe.Z_SOUR_ROT=self.sm_rotation_around_z
+                 shadow_oe._oe.FSTAT=1
+                 shadow_oe._oe.RTHETA=self.sm_angle_of_incidence
+                 shadow_oe._oe.RDSOUR=self.sm_distance_from_mirror
+                 shadow_oe._oe.ALPHA_S=self.sm_z_rotation
+                 shadow_oe._oe.OFF_SOUX=self.sm_offset_x_mirr_ref_frame
+                 shadow_oe._oe.OFF_SOUY=self.sm_offset_y_mirr_ref_frame
+                 shadow_oe._oe.OFF_SOUZ=self.sm_offset_z_mirr_ref_frame
+                 shadow_oe._oe.X_SOUR=self.sm_offset_x_source_ref_frame
+                 shadow_oe._oe.Y_SOUR=self.sm_offset_y_source_ref_frame
+                 shadow_oe._oe.Z_SOUR=self.sm_offset_z_source_ref_frame
+                 shadow_oe._oe.X_SOUR_ROT=self.sm_rotation_around_x
+                 shadow_oe._oe.Y_SOUR_ROT=self.sm_rotation_around_y
+                 shadow_oe._oe.Z_SOUR_ROT=self.sm_rotation_around_z
 
-            shadow_oe.oe.FWRITE=self.file_to_write_out
+            shadow_oe._oe.FWRITE=self.file_to_write_out
 
             if self.graphical_options.is_crystal and self.diffraction_calculation == 1:
-                shadow_oe.oe.F_ANGLE = 1
+                shadow_oe._oe.F_ANGLE = 1
             else:
-                shadow_oe.oe.F_ANGLE = self.write_out_inc_ref_angles
+                shadow_oe._oe.F_ANGLE = self.write_out_inc_ref_angles
 
     def doSpecificSetting(self, shadow_oe):
         pass
@@ -1951,20 +1951,20 @@ class OpticalElement(ow_generic_element.GenericElement):
     def writeCalculatedFields(self, shadow_oe):
         if self.surface_shape_parameters == 0:
             if self.graphical_options.is_spheric:
-                self.spherical_radius = shadow_oe.oe.RMIRR
+                self.spherical_radius = shadow_oe._oe.RMIRR
             elif self.graphical_options.is_toroidal:
-                self.torus_major_radius = shadow_oe.oe.R_MAJ
-                self.torus_minor_radius = shadow_oe.oe.R_MIN
+                self.torus_major_radius = shadow_oe._oe.R_MAJ
+                self.torus_minor_radius = shadow_oe._oe.R_MIN
             elif self.graphical_options.is_hyperboloid or self.graphical_options.is_ellipsoidal:
-                self.ellipse_hyperbola_semi_major_axis = shadow_oe.oe.AXMAJ
-                self.ellipse_hyperbola_semi_minor_axis = shadow_oe.oe.AXMIN
-                self.angle_of_majax_and_pole = shadow_oe.oe.ELL_THE
+                self.ellipse_hyperbola_semi_major_axis = shadow_oe._oe.AXMAJ
+                self.ellipse_hyperbola_semi_minor_axis = shadow_oe._oe.AXMIN
+                self.angle_of_majax_and_pole = shadow_oe._oe.ELL_THE
             elif self.graphical_options.is_paraboloid:
-                self.paraboloid_parameter = shadow_oe.oe.PARAM
+                self.paraboloid_parameter = shadow_oe._oe.PARAM
 
         if self.diffraction_calculation == 0 and self.crystal_auto_setting == 1:
-            self.incidence_angle_mrad = round((math.pi*0.5-shadow_oe.oe.T_INCIDENCE)*1000, 2)
-            self.reflection_angle_mrad = round((math.pi*0.5-shadow_oe.oe.T_REFLECTION)*1000, 2)
+            self.incidence_angle_mrad = round((math.pi*0.5-shadow_oe._oe.T_INCIDENCE)*1000, 2)
+            self.reflection_angle_mrad = round((math.pi*0.5-shadow_oe._oe.T_REFLECTION)*1000, 2)
             self.calculate_incidence_angle_deg()
             self.calculate_reflection_angle_deg()
 

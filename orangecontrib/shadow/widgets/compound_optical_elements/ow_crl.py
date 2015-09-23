@@ -272,7 +272,7 @@ class CRL(ow_generic_element.GenericElement):
 
 
     def populateFields(self, shadow_oe):
-        shadow_oe.oe.append_crl(p0=self.p,
+        shadow_oe._oe.append_crl(p0=self.p,
                                 q0=self.q,
                                 nlenses=self.nlenses,
                                 slots_empty=self.slots_empty,

@@ -237,7 +237,7 @@ class DCM(ow_generic_element.GenericElement):
         dimension1_out = self.crystal_1_box.get_dimensions()
         dimension2_out = self.crystal_2_box.get_dimensions()
 
-        shadow_oe.oe.append_monochromator_double_crystal(p0=self.p,
+        shadow_oe._oe.append_monochromator_double_crystal(p0=self.p,
                                                          q0=self.q,
                                                          photon_energy_ev=self.photon_energy_ev,
                                                          separation=self.separation,
