@@ -37,34 +37,36 @@ class ShadowPreProcessorData:
 
        NONE = "None"
 
-       def __new__(cls, bragg_data_file=NONE, m_layer_data_file_dat=NONE, m_layer_data_file_sha=NONE,
-                   prerefl_data_file=NONE, waviness_data_file=NONE):
-        self = super().__new__(cls)
+       def __init__(self,
+                    bragg_data_file=NONE,
+                    m_layer_data_file_dat=NONE,
+                    m_layer_data_file_sha=NONE,
+                    prerefl_data_file=NONE,
+                    waviness_data_file=NONE,
+                    waviness_x_dim = 0.0,
+                    waviness_y_dim=0.0):
+        super().__init__()
 
         self.bragg_data_file=bragg_data_file
         self.m_layer_data_file_dat=m_layer_data_file_dat
         self.m_layer_data_file_sha=m_layer_data_file_sha
         self.prerefl_data_file=prerefl_data_file
         self.waviness_data_file = waviness_data_file
-
-        return self
+        self.waviness_x_dim = waviness_x_dim
+        self.waviness_y_dim = waviness_y_dim
 
 class ShadowTriggerOut:
-    def __new__(cls, new_beam=False):
-        self = super().__new__(cls)
+    def __init__(self, new_beam=False):
+        super().__init__()
 
         self.new_beam = new_beam
 
-        return self
-
 class ShadowTriggerIn:
-    def __new__(cls, new_beam=False, interrupt=False):
-        self = super().__new__(cls)
+    def __init__(self, new_beam=False, interrupt=False):
+        super().__init__()
 
         self.new_beam = new_beam
         self.interrupt = interrupt
-
-        return self
 
 def adjust_shadow_string(string_to_adjust):
     if string_to_adjust is None:
@@ -167,11 +169,11 @@ class ShadowBeam:
             merged_beam = beam_1.duplicate(copy_rays=False, history=True)
 
             if not rays_1 is None and not rays_2 is None:
-                merged_beam._oe_number = beam_2._oe_number
+                merged_beam._oe_number = beam_1._oe_number
                 merged_beam._beam.rays = numpy.append(rays_1, rays_2, axis=0)
             elif not rays_1 is None:
                 merged_beam._beam.rays = rays_1
-                merged_beam._oe_number = beam_2._oe_number
+                merged_beam._oe_number = beam_1._oe_number
             elif not rays_2 is None:
                 merged_beam._beam.rays = rays_2
                 merged_beam._oe_number = beam_2._oe_number

@@ -1079,7 +1079,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                 grabber = TTYGrabber()
                 grabber.start()
 
-            self.error(self.error_id)
+            #self.error(self.error_id)
 
             go = numpy.where(self.input_beam._beam.rays[:,9] == 1)
 
@@ -1213,8 +1213,8 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                 self.run_simulation=True
                 self.send("Trigger", ShadowTriggerIn(interrupt=True))
         except Exception as exception:
-            self.error_id = self.error_id + 1
-            self.error(self.error_id, "Exception occurred: " + str(exception))
+            #self.error_id = self.error_id + 1
+            #self.error(self.error_id, "Exception occurred: " + str(exception))
 
             QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
                 exception.args[0],

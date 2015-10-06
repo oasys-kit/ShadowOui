@@ -103,7 +103,7 @@ class UndulatorGaussian(ow_source.Source):
            self.magnetic_radius=3.334728*self.energy/self.magnetic_field
 
     def runShadowSource(self):
-        self.error(self.error_id)
+        #self.error(self.error_id)
         self.setStatusMessage("")
         self.progressBarInit()
 
@@ -149,8 +149,8 @@ class UndulatorGaussian(ow_source.Source):
                                        str(exception),
                 QtGui.QMessageBox.Ok)
 
-            self.error_id = self.error_id + 1
-            self.error(self.error_id, "Exception occurred: " + str(exception))
+            #self.error_id = self.error_id + 1
+            #self.error(self.error_id, "Exception occurred: " + str(exception))
 
         self.progressBarFinished()
 

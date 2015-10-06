@@ -1234,10 +1234,13 @@ def wiggler_trajectory(b_from=0, inData="", nPer=12, nTrajPoints=100, \
     if b_from == 1:
         betax = numpy.zeros(nTrajPoints)
         for i in range(1,nTrajPoints):
-            # be carefil [0:i] goes from 0 to i-1!!!!!!
-            betax[i] = numpy.trapz(bz[0:i+1],x=yy[0:i+1])
+            # be careful [0:i] goes from 0 to i-1!!!!!!
             #betax[i] = scipy.integrate.simps(bz[0:i+1],yy[0:i+1])
             #betax[i] = numpy.sum(bz[0:i+1]*mystep[0:i+1])
+
+            #betax[i] = numpy.trapz(bz[0:i+1],x=yy[0:i+1])
+            #srio@esrf.eu changed sign of magnetic field to get the right curvature for ELECTRONS!
+            betax[i] = numpy.trapz(-bz[0:i+1],x=yy[0:i+1])
         yInt = betax[-1]
     else:
         phase0 = numpy.zeros(nTrajPoints) - numpy.pi
@@ -1247,7 +1250,9 @@ def wiggler_trajectory(b_from=0, inData="", nPer=12, nTrajPoints=100, \
         phase = 2.0*numpy.pi*(yy/per)
         for n in range(nharm): 
             bz = bz + bh[n] * numpy.cos(phase*(n+1))
-            tmp = (numpy.sin(phase*(n+1))-numpy.sin(phase0*(n+1)))*(bh[n]/(n+1))
+            #srio@esrf.eu changed sign of magnetic field to get the right curvature for ELECTRONS!
+            #tmp = (numpy.sin(phase*(n+1))-numpy.sin(phase0*(n+1)))*(bh[n]/(n+1))
+            tmp = (numpy.sin(phase*(n+1))-numpy.sin(phase0*(n+1)))*(-bh[n]/(n+1))
             betax = betax + tmp
         betax = betax*(per/2.0/numpy.pi)
 
@@ -1258,7 +1263,7 @@ def wiggler_trajectory(b_from=0, inData="", nPer=12, nTrajPoints=100, \
     betax = -codata_c*1e-9/ener_gev*betax
     betay = numpy.sqrt(beta0*beta0 - betax*betax)
     emc = codata_ec/gamma/codata_me/codata_c
-    curv = -emc*bz/beta0
+    curv = emc*bz/beta0
     #;
     #;    calculates positions as the integral of speeds
     #;
@@ -1273,7 +1278,7 @@ def wiggler_trajectory(b_from=0, inData="", nPer=12, nTrajPoints=100, \
         for n in range(nharm):
             phase = yy * (2.0*numpy.pi/per)
             yx = yx - (numpy.cos(phase*(n+1)) - numpy.cos(phase0*(n+1))) * \
-                      (bh[n]/numpy.power(n+1,2))
+                      (-bh[n]/numpy.power(n+1,2))
 
         yx = yx * (-3.e-1/ener_gev) * numpy.power(per/2.0/numpy.pi,2)
     #;
@@ -1964,16 +1969,16 @@ def srfunc_examples(exN,pltOk=False):
         # normal (sinusoidal) wiggler
         t0,p = wiggler_trajectory(b_from=0, nPer=1, nTrajPoints=100,  \
                                  ener_gev=6.04, per=0.2, kValue=7.75, \
-                                 trajFile="tmp.traj")
+                                 trajFile="tmpS.traj")
 
         # magnetic field from B(s) map
         t1,p = wiggler_trajectory(b_from=1, nPer=1, nTrajPoints=100,  \
-                       ener_gev=6.04, inData=b_t,trajFile="tmp.traj")
+                       ener_gev=6.04, inData=b_t,trajFile="tmpB.traj")
 
         # magnetic field from harmonics
         hh = wiggler_harmonics(b_t,Nh=41,fileOutH="tmp.h")
         t2,p = wiggler_trajectory(b_from=2, nPer=1, nTrajPoints=100,  \
-                       ener_gev=6.04, per=0.2, inData=hh,trajFile="tmp.traj")
+                       ener_gev=6.04, per=0.2, inData=hh,trajFile="tmpH.traj")
 
 
         toptitle = "3-pole ESRF wiggler trajectory"

@@ -647,7 +647,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     self.surface_box_cyl_empty = ShadowGui.widgetBox(surface_box_2, "", addSpace=True, orientation="vertical", width=self.INNER_BOX_WIDTH_L1)
 
                     gui.comboBox(self.surface_box_cyl, self, "cylinder_orientation", label="Cylinder Orientation (deg) [CCW from X axis]", labelWidth=350,
-                                 items=[0, 90, 180, 270],
+                                 items=[0, 90],
                                  valueType=float,
                                  sendSelectedValue=False, orientation="horizontal")
 
@@ -1163,11 +1163,13 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=310,
                          items=["All", "Mirror", "Image", "None"],
-                         sendSelectedValue=False, orientation="horizontal")
+                         sendSelectedValue=False, orientation="horizontal", callback=self.set_Footprint)
 
             gui.comboBox(adv_other_box, self, "write_out_inc_ref_angles", label="Write out Incident/Reflected angles [angle.xx]", labelWidth=350,
                          items=["No", "Yes"],
                          sendSelectedValue=False, orientation="horizontal")
+
+            self.set_Footprint()
 
         button_box = ShadowGui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
@@ -1189,6 +1191,12 @@ class OpticalElement(ow_generic_element.GenericElement):
         button.setPalette(palette) # assign new palette
         button.setFixedHeight(45)
         button.setFixedWidth(100)
+
+    def set_Footprint(self):
+        if self.file_to_write_out == 0 or self.file_to_write_out == 1:
+            self.enableFootprint(True)
+        else:
+            self.enableFootprint(False)
 
     def callResetSettings(self):
         super().callResetSettings()
@@ -1810,32 +1818,32 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     def checkFields(self):
         if self.graphical_options.is_screen_slit:
-            self.source_plane_distance = ShadowGui.checkPositiveNumber(self.source_plane_distance, "Source plane distance")
-            self.image_plane_distance = ShadowGui.checkPositiveNumber(self.image_plane_distance, "Image plane distance")
+            self.source_plane_distance = ShadowGui.checkNumber(self.source_plane_distance, "Source plane distance")
+            self.image_plane_distance = ShadowGui.checkNumber(self.image_plane_distance, "Image plane distance")
 
             if self.source_movement == 1:
-                self.sm_distance_from_mirror = ShadowGui.checkPositiveNumber(self.sm_distance_from_mirror, "Source Movement: Distance from O.E.")
+                self.sm_distance_from_mirror = ShadowGui.checkNumber(self.sm_distance_from_mirror, "Source Movement: Distance from O.E.")
         elif self.graphical_options.is_empty:
-            self.source_plane_distance = ShadowGui.checkPositiveNumber(self.source_plane_distance, "Source plane distance")
-            self.image_plane_distance = ShadowGui.checkPositiveNumber(self.image_plane_distance, "Image plane distance")
+            self.source_plane_distance = ShadowGui.checkNumber(self.source_plane_distance, "Source plane distance")
+            self.image_plane_distance = ShadowGui.checkNumber(self.image_plane_distance, "Image plane distance")
 
             if self.source_movement == 1:
                 self.sm_distance_from_mirror = ShadowGui.checkPositiveNumber(self.sm_distance_from_mirror, "Source Movement: Distance from O.E.")
         else:
-            self.source_plane_distance = ShadowGui.checkPositiveNumber(self.source_plane_distance, "Source plane distance")
-            self.image_plane_distance = ShadowGui.checkPositiveNumber(self.image_plane_distance, "Image plane distance")
+            self.source_plane_distance = ShadowGui.checkNumber(self.source_plane_distance, "Source plane distance")
+            self.image_plane_distance = ShadowGui.checkNumber(self.image_plane_distance, "Image plane distance")
 
             if self.surface_shape_parameters == 0:
-                if (self.is_cylinder==1 and (self.cylinder_orientation==1 or self.cylinder_orientation==3)):
+                if (self.is_cylinder==1 and self.cylinder_orientation==1):
                    if not self.graphical_options.is_spheric:
                        raise Exception("Automatic calculation of the sagittal focus supported only for Spheric O.E.")
                 else:
                    if not self.focii_and_continuation_plane == 0:
-                        self.object_side_focal_distance = ShadowGui.checkPositiveNumber(self.object_side_focal_distance, "Object side focal distance")
-                        self.image_side_focal_distance = ShadowGui.checkPositiveNumber(self.image_side_focal_distance, "Image side focal distance")
+                        self.object_side_focal_distance = ShadowGui.checkNumber(self.object_side_focal_distance, "Object side focal distance")
+                        self.image_side_focal_distance = ShadowGui.checkNumber(self.image_side_focal_distance, "Image side focal distance")
 
                    if self.graphical_options.is_paraboloid:
-                        self.focus_location = ShadowGui.checkPositiveNumber(self.focus_location, "Focus location")
+                        self.focus_location = ShadowGui.checkNumber(self.focus_location, "Focus location")
             else:
                if self.graphical_options.is_spheric:
                    self.spherical_radius = ShadowGui.checkPositiveNumber(self.spherical_radius, "Spherical radius")
@@ -1847,7 +1855,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                    self.ellipse_hyperbola_semi_minor_axis = ShadowGui.checkPositiveNumber(self.ellipse_hyperbola_semi_minor_axis, "Semi minor axis")
                    self.angle_of_majax_and_pole = ShadowGui.checkPositiveNumber(self.angle_of_majax_and_pole, "Angle of MajAx and Pole")
                elif self.graphical_options.is_paraboloid:
-                   self.paraboloid_parameter = ShadowGui.checkPositiveNumber(self.paraboloid_parameter, "Paraboloid parameter")
+                   self.paraboloid_parameter = ShadowGui.checkNumber(self.paraboloid_parameter, "Paraboloid parameter")
 
             if self.graphical_options.is_toroidal:
                 self.toroidal_mirror_pole_location = ShadowGui.checkPositiveNumber(self.toroidal_mirror_pole_location, "Toroidal mirror pole location")
@@ -2068,7 +2076,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     def traceOpticalElement(self):
         try:
-            self.error(self.error_id)
+            #self.error(self.error_id)
             self.setStatusMessage("")
             self.progressBarInit()
 
@@ -2093,10 +2101,10 @@ class OpticalElement(ow_generic_element.GenericElement):
             QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
                                        str(exception), QtGui.QMessageBox.Ok)
 
-            self.error_id = self.error_id + 1
-            self.error(self.error_id, "Exception occurred: " + str(exception))
+            #self.error_id = self.error_id + 1
+            #self.error(self.error_id, "Exception occurred: " + str(exception))
 
-            raise exception
+            #raise exception
         self.progressBarFinished()
 
     def setBeam(self, beam):
@@ -2111,17 +2119,81 @@ class OpticalElement(ow_generic_element.GenericElement):
     def setPreProcessorData(self, data):
         if data is not None:
             if data.bragg_data_file != ShadowPreProcessorData.NONE:
-                self.file_crystal_parameters=data.bragg_data_file
+                if self.graphical_options.is_crystal:
+                    self.file_crystal_parameters=data.bragg_data_file
+                    self.diffraction_calculation = 0
+
+                    self.set_DiffractionCalculation()
+                else:
+                    QtGui.QMessageBox.warning(self, "QMessageBox.warning()",
+                              "This O.E. is not a crystal: bragg parameter will be ignored",
+                              QtGui.QMessageBox.Ok)
 
             if data.prerefl_data_file != ShadowPreProcessorData.NONE:
-                self.file_prerefl=data.prerefl_data_file
+                if self.graphical_options.is_mirror:
+
+                    self.file_prerefl=data.prerefl_data_file
+                    self.reflectivity_type = 1
+                    self.source_of_reflectivity = 0
+
+                    self.set_Refl_Parameters()
+                else:
+                    QtGui.QMessageBox.warning(self, "QMessageBox.warning()",
+                              "This O.E. is not a mirror: prerefl parameter will be ignored",
+                              QtGui.QMessageBox.Ok)
 
             if data.m_layer_data_file_dat != ShadowPreProcessorData.NONE:
-                self.file_prerefl_m=data.m_layer_data_file_dat
-                # TODO: file .sha!
+                if self.graphical_options.is_mirror:
+                    self.file_prerefl_m=data.m_layer_data_file_dat
+
+                    self.reflectivity_type = 1
+                    self.source_of_reflectivity = 2
+
+                    self.set_Refl_Parameters()
+                else:
+                    QtGui.QMessageBox.warning(self, "QMessageBox.warning()",
+                              "This O.E. is not a mirror: prerefl_m parameter will be ignored",
+                              QtGui.QMessageBox.Ok)
 
             if data.waviness_data_file != ShadowPreProcessorData.NONE:
-                self.ms_defect_file_name = data.waviness_data_file
+                if self.graphical_options.is_mirror:
+                    self.ms_defect_file_name = data.waviness_data_file
+                    self.modified_surface = 1
+                    self.ms_type_of_defect = 2
+
+                    if self.is_infinite == 1:
+                        changed = False
+
+                        if self.dim_x_plus > data.waviness_x_dim/2:
+                            self.dim_x_plus = data.waviness_x_dim/2
+                            changed = True
+                        if self.dim_x_minus > data.waviness_x_dim/2:
+                            self.dim_x_minus = data.waviness_x_dim/2
+                            changed = True
+                        if self.dim_y_plus > data.waviness_y_dim/2:
+                            self.dim_y_plus = data.waviness_y_dim/2
+                            changed = True
+                        if self.dim_y_minus > data.waviness_y_dim/2:
+                            self.dim_y_minus = data.waviness_y_dim/2
+                            changed = True
+
+                        if changed == True:
+                            QtGui.QMessageBox.information(self, "QMessageBox.information()",
+                                                          "Dimensions of this mirror were changed in order to ensure congruence with the waviness surface",
+                                                          QtGui.QMessageBox.Ok)
+                    else:
+                        self.is_infinite = 1
+                        self.mirror_shape = 0
+                        self.dim_x_plus = data.waviness_x_dim/2
+                        self.dim_x_minus = data.waviness_x_dim/2
+                        self.dim_y_plus = data.waviness_y_dim/2
+                        self.dim_y_minus = data.waviness_y_dim/2
+
+                        QtGui.QMessageBox.warning(self, "QMessageBox.warning()",
+                                                      "This mirror became rectangular with finite dimensions in order to ensure congruence with the waviness surface",
+                                                      QtGui.QMessageBox.Ok)
+
+                    self.set_Dim_Parameters()
 
     def deserialize(self, shadow_file):
         if self.graphical_options.is_screen_slit:

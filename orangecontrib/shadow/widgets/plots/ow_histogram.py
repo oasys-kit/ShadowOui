@@ -151,28 +151,18 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
         if self.image_plane == 1:
             new_shadow_beam = self.input_beam.duplicate(history=False)
-
-            historyItem = self.input_beam.getOEHistory(oe_number=self.input_beam._oe_number)
-            if historyItem is None: raise Exception("Calculation impossible: Beam has no history")
-
             dist = 0.0
 
             if self.image_plane_rel_abs_position == 1:  # relative
-                image_plane = 0.0
-
-                if type(historyItem.shadow_oe_end) == ShadowOpticalElement:
-                    image_plane = historyItem.shadow_oe_end._oe.T_IMAGE
-                elif type(historyItem.shadow_oe_end) == ShadowCompoundOpticalElement:
-                    image_plane = historyItem.shadow_oe_end._oe.list[historyItem.shadow_oe_end._oe.number_oe() - 1].T_IMAGE
-
-                if self.image_plane_new_position < 0 and abs(self.image_plane_new_position) > image_plane:
-                    raise Exception("Image plane new position cannot be before the O.E.")
-
                 dist = self.image_plane_new_position
             else:  # absolute
-                ShadowGui.checkPositiveNumber(self.image_plane_new_position, "Image Plane new Position")
+                historyItem = self.input_beam.getOEHistory(oe_number=self.input_beam._oe_number)
 
-                dist = self.image_plane_new_position - historyItem.shadow_oe_end._oe.T_IMAGE
+                if historyItem is None: image_plane = 0.0
+                elif self.input_beam._oe_number == 0: image_plane = 0.0
+                else: image_plane = historyItem._shadow_oe_end._oe.T_IMAGE
+
+                dist = self.image_plane_new_position - image_plane
 
             new_shadow_beam._beam.retrace(dist)
 
@@ -181,7 +171,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
         self.replace_fig(beam_to_plot, var_x, title, xtitle, ytitle, xum)
 
     def plot_results(self):
-        self.error(self.error_id)
+        #self.error(self.error_id)
 
         try:
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
@@ -245,8 +235,8 @@ class Histogram(ow_automatic_element.AutomaticElement):
                                        str(exception),
                                        QtGui.QMessageBox.Ok)
 
-            self.error_id = self.error_id + 1
-            self.error(self.error_id, "Exception occurred: " + str(exception))
+            #self.error_id = self.error_id + 1
+            #self.error(self.error_id, "Exception occurred: " + str(exception))
 
     def setBeam(self, beam):
         if ShadowGui.checkEmptyBeam(beam):

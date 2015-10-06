@@ -560,23 +560,38 @@ class ShadowPlot:
 
             self.plot_canvas.toolBar()
 
-        def plot_xy(self, beam, var_x, var_y, title, xtitle, ytitle, xrange=None, yrange=None, nolost=1, nbins=100, xum="", yum=""):
+        def plot_xy(self, beam, var_x, var_y, title, xtitle, ytitle, xrange=None, yrange=None, nolost=1, nbins=100, xum="", yum="", is_footprint=False):
 
             matplotlib.rcParams['axes.formatter.useoffset']='False'
 
             ticket = beam.histo2(var_x, var_y, nbins=nbins, xrange=xrange, yrange=yrange, nolost=nolost)
 
-            factor1=ShadowPlot.get_factor(var_x)
-            factor2=ShadowPlot.get_factor(var_y)
+            if is_footprint:
+                factor1 = 1.0
+                factor2 = 1.0
+            else:
+                factor1=ShadowPlot.get_factor(var_x)
+                factor2=ShadowPlot.get_factor(var_y)
 
             xx = ticket['bin_h_edges']
             yy = ticket['bin_v_edges']
 
+            print(xx)
+
             xmin, xmax = xx.min(), xx.max()
             ymin, ymax = yy.min(), yy.max()
 
+            print("########################")
+            print(xmin, xmax)
+            print(ymin, ymax)
+            print("########################")
+
             origin = (xmin*factor1, ymin*factor2)
             scale = (abs((xmax-xmin)/nbins)*factor1, abs((ymax-ymin)/nbins)*factor2)
+
+            print("########################")
+            print(origin, scale)
+            print("########################")
 
             # PyMCA inverts axis!!!! histogram must be calculated reversed
             data_to_plot = []
@@ -588,6 +603,13 @@ class ShadowPlot:
                 data_to_plot.append(x_values)
 
             self.plot_canvas.setImage(numpy.array(data_to_plot), origin=origin, scale=scale)
+
+            if xtitle is None: xtitle=(stp.getLabel(var_x-1))[0]
+            if ytitle is None: ytitle=(stp.getLabel(var_y-1))[0]
+
+            print("########################")
+            print((stp.getLabel(var_x-1))[0], (stp.getLabel(var_y-1))[0])
+            print("########################")
 
             self.plot_canvas.setGraphXLabel(xtitle)
             self.plot_canvas.setGraphYLabel(ytitle)
@@ -682,15 +704,20 @@ class ShadowPlot:
     #########################################################################################
 
     @classmethod
-    def plotxy_preview(cls, plot_window, beam, var_x, var_y, nolost=0, title='PLOTXY', xtitle=None, ytitle=None):
+    def plotxy_preview(cls, plot_window, beam, var_x, var_y, nolost=0, title='PLOTXY', xtitle=None, ytitle=None, is_footprint=False):
 
         matplotlib.rcParams['axes.formatter.useoffset']='False'
 
         col1 = beam.getshonecol(var_x, nolost=nolost)
         col2 = beam.getshonecol(var_y, nolost=nolost)
 
-        factor1 = ShadowPlot.get_factor(var_x)
-        factor2 = ShadowPlot.get_factor(var_y)
+
+        if is_footprint:
+            factor1 = 1.0
+            factor2 = 1.0
+        else:
+            factor1 = ShadowPlot.get_factor(var_x)
+            factor2 = ShadowPlot.get_factor(var_y)
 
         if xtitle is None: xtitle=(stp.getLabel(var_x-1))[0]
         if ytitle is None: ytitle=(stp.getLabel(var_y-1))[0]

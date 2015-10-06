@@ -300,7 +300,7 @@ class DCM(ow_generic_element.GenericElement):
 
     def traceOpticalElement(self):
         try:
-            self.error(self.error_id)
+            #self.error(self.error_id)
             self.setStatusMessage("")
             self.progressBarInit()
 
@@ -329,8 +329,8 @@ class DCM(ow_generic_element.GenericElement):
                                        str(exception),
                                        QtGui.QMessageBox.Ok)
 
-            self.error_id = self.error_id + 1
-            self.error(self.error_id, "Exception occurred: " + str(exception))
+            #self.error_id = self.error_id + 1
+            #self.error(self.error_id, "Exception occurred: " + str(exception))
 
         self.progressBarFinished()
 

@@ -621,7 +621,8 @@ class OWxsh_waviness(widget.OWWidget):
                                     "Waviness file " + self.waviness_file_name + " written on disk",
                                     QMessageBox.Ok)
 
-            self.send("PreProcessor_Data", ShadowPreProcessorData(waviness_data_file=self.waviness_file_name))
+
+            self.send("PreProcessor_Data", ShadowPreProcessorData(waviness_data_file=self.waviness_file_name, waviness_x_dim=self.dimension_x, waviness_y_dim=self.dimension_y))
 
     def call_reset_settings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):

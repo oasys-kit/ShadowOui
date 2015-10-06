@@ -1,12 +1,13 @@
 import sys
 
-from orangewidget import gui, widget
+from orangewidget import gui
 from orangewidget.settings import Setting
 
 from PyQt4 import QtGui
 from PyQt4.QtGui import QApplication
 
 from orangecontrib.shadow.util.shadow_util import ShadowPlot, ShadowGui
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 from orangecontrib.shadow.widgets.gui import ow_automatic_element
 
 from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
@@ -37,6 +38,8 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
         self.initializeTabs()
 
+        self.enableFootprint(False)
+
         self.shadow_output = QtGui.QTextEdit()
         self.shadow_output.setReadOnly(True)
 
@@ -47,6 +50,8 @@ class GenericElement(ow_automatic_element.AutomaticElement):
         self.shadow_output.setFixedWidth(850)
 
     def initializeTabs(self):
+        enabled = self.isFootprintEnabled()
+
         size = len(self.tab)
         indexes = range(0, size)
         for index in indexes:
@@ -56,16 +61,38 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                     gui.createTabPage(self.tabs, "X',Z'"),
                     gui.createTabPage(self.tabs, "X,X'"),
                     gui.createTabPage(self.tabs, "Z,Z'"),
-                    gui.createTabPage(self.tabs, "Energy")]
+                    gui.createTabPage(self.tabs, "Energy"),
+        ]
 
         for tab in self.tab:
             tab.setFixedHeight(self.IMAGE_HEIGHT)
             tab.setFixedWidth(self.IMAGE_WIDTH)
 
         self.plot_canvas = [None, None, None, None, None]
-        self.plot_upper_canvas = [None, None, None, None, None]
-        self.plot_right_canvas = [None, None, None, None, None]
 
+        self.enableFootprint(enabled)
+
+    def isFootprintEnabled(self):
+        return self.tabs.count() == 6
+
+    def enableFootprint(self, enabled=False):
+        if enabled:
+            if self.tabs.count() == 5:
+                self.tab.append(gui.createTabPage(self.tabs, "Footprint"))
+                self.plot_canvas.append(None)
+        else:
+            if self.tabs.count() == 6:
+                self.tabs.removeTab(5)
+                self.tab = [self.tab[0],
+                            self.tab[1],
+                            self.tab[2],
+                            self.tab[3],
+                            self.tab[4],]
+                self.plot_canvas = [self.plot_canvas[0],
+                                    self.plot_canvas[1],
+                                    self.plot_canvas[2],
+                                    self.plot_canvas[3],
+                                    self.plot_canvas[4],]
 
     def set_PlotQuality(self):
         self.progressBarInit()
@@ -73,6 +100,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
         if not self.plotted_beam==None:
             try:
                 self.initializeTabs()
+
                 self.plot_results(self.plotted_beam, 80)
             except Exception as exception:
                 QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
@@ -85,16 +113,16 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
         self.progressBarFinished()
 
-    def plot_xy(self, beam_out, progressBarValue, var_x, var_y, plot_canvas_index, title, xtitle, ytitle, xum="", yum=""):
+    def plot_xy(self, beam_out, progressBarValue, var_x, var_y, plot_canvas_index, title, xtitle, ytitle, xum="", yum="", is_footprint=False):
         if self.plot_canvas[plot_canvas_index] is None:
             self.plot_canvas[plot_canvas_index] = ShadowPlot.DetailedPlotWidget()
             self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
-        self.plot_canvas[plot_canvas_index].plot_xy(beam_out._beam, var_x, var_y, title, xtitle, ytitle, xum=xum, yum=yum)
+        self.plot_canvas[plot_canvas_index].plot_xy(beam_out._beam, var_x, var_y, title, xtitle, ytitle, xum=xum, yum=yum, is_footprint=is_footprint)
 
         self.progressBarSet(progressBarValue)
 
-    def plot_xy_fast(self, beam_out, progressBarValue, var_x, var_y, plot_canvas_index, title, xtitle, ytitle):
+    def plot_xy_fast(self, beam_out, progressBarValue, var_x, var_y, plot_canvas_index, title, xtitle, ytitle, is_footprint=False):
         if self.plot_canvas[plot_canvas_index] is None:
             self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(False)
@@ -102,7 +130,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
             self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
-        ShadowPlot.plotxy_preview(self.plot_canvas[plot_canvas_index], beam_out._beam, var_x, var_y, nolost=1, title=title, xtitle=xtitle, ytitle=ytitle)
+        ShadowPlot.plotxy_preview(self.plot_canvas[plot_canvas_index], beam_out._beam, var_x, var_y, nolost=1, title=title, xtitle=xtitle, ytitle=ytitle, is_footprint=is_footprint)
 
         self.progressBarSet(progressBarValue)
 
@@ -133,6 +161,13 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                 if ShadowGui.checkGoodBeam(beam_out):
                     self.view_type_combo.setEnabled(False)
 
+                    if self.isFootprintEnabled():
+                        beam_foot_print = ShadowBeam()
+                        if beam_out._oe_number < 10:
+                            beam_foot_print.loadFromFile(file_name="mirr.0" + str(beam_out._oe_number))
+                        else:
+                            beam_foot_print.loadFromFile(file_name="mirr." + str(beam_out._oe_number))
+
                     try:
                         if self.view_type == 1:
                             self.plot_xy_fast(beam_out, progressBarValue + 4, 1, 3, plot_canvas_index=0, title="X,Z", xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]')
@@ -140,6 +175,11 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                             self.plot_xy_fast(beam_out, progressBarValue + 12, 1, 4, plot_canvas_index=2, title="X,X'", xtitle=r'X [$\mu$m]', ytitle="X' [$\mu$rad]")
                             self.plot_xy_fast(beam_out, progressBarValue + 16, 3, 6, plot_canvas_index=3, title="Z,Z'", xtitle=r'Z [$\mu$m]', ytitle="Z' [$\mu$rad]")
                             self.plot_histo_fast(beam_out, progressBarValue + 20, 11, plot_canvas_index=4, title="Energy", xtitle="Energy [eV]", ytitle="Number of Rays")
+
+                            if self.isFootprintEnabled():
+                                self.plot_xy_fast(beam_foot_print, progressBarValue + 20, 3, 1, plot_canvas_index=5, title="Footprint", xtitle=r'Y [cm]', ytitle="X [cm]", is_footprint=True)
+
+
                         elif self.view_type == 0:
                             self.plot_xy(beam_out, progressBarValue + 4, 1, 3, plot_canvas_index=0, title="X,Z", xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]',
                                          xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
@@ -150,6 +190,11 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                             self.plot_xy(beam_out, progressBarValue + 16, 3, 6, plot_canvas_index=3, title="Z,Z'", xtitle=r'Z [$\mu$m]', ytitle="Z' [$\mu$rad]",
                                          xum=("Z [" + u"\u03BC" + "m]"), yum="Z' [" + u"\u03BC" + "rad]")
                             self.plot_histo(beam_out, progressBarValue + 20, 11, plot_canvas_index=4, title="Energy", xtitle="Energy [eV]", ytitle="Number of Rays", xum="[eV]")
+
+                            if self.isFootprintEnabled():
+                                self.plot_xy(beam_out, progressBarValue + 20, 3, 1, plot_canvas_index=5, title="Footprint", xtitle=r'Y [cm]', ytitle=r'X [cm]',
+                                             xum=("Y [cm]"), yum=("X [cm]"), is_footprint=True)
+
                     except Exception:
                         self.view_type_combo.setEnabled(True)
 

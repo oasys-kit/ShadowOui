@@ -209,7 +209,7 @@ class Wiggler(ow_source.Source):
             QtGui.QFileDialog.getOpenFileName(self, "Open File with Harmonics", ".", "*.*"))
 
     def runShadowSource(self):
-        self.error(self.error_id)
+        #self.error(self.error_id)
         self.setStatusMessage("")
         self.progressBarInit()
 
@@ -342,8 +342,8 @@ class Wiggler(ow_source.Source):
                                        str(exception),
                 QtGui.QMessageBox.Ok)
 
-            self.error_id = self.error_id + 1
-            self.error(self.error_id, "Exception occurred: " + str(exception))
+            #self.error_id = self.error_id + 1
+            #self.error(self.error_id, "Exception occurred: " + str(exception))
 
 
         self.progressBarFinished()
