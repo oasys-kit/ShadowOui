@@ -935,8 +935,8 @@ class CRLBox(QtGui.QWidget):
         if self.ri_calculation_mode == 1:
             ShadowGui.checkFile(self.prerefl_file)
         else:
-            ShadowGui.checkStrictlyPositiveNumber(self.refraction_index, "Refraction Index")
-            ShadowGui.checkStrictlyPositiveNumber(self.attenuation_coefficient, "Attenuation Coefficient")
+            ShadowGui.checkPositiveNumber(self.refraction_index, "Refraction Index")
+            ShadowGui.checkPositiveNumber(self.attenuation_coefficient, "Attenuation Coefficient")
 
         ShadowGui.checkStrictlyPositiveNumber(self.radius, "Radius")
         ShadowGui.checkPositiveNumber(self.interthickness, "Lens Thickness")

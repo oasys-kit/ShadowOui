@@ -1,4 +1,3 @@
-
 import os
 
 from oasys.widgets import widget
@@ -7,9 +6,7 @@ from orangewidget.settings import Setting
 from orangecontrib.shadow.util.shadow_util import ShadowGui
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 
-
 from PyQt4 import QtGui
-
 
 class BeamFileReader(widget.OWWidget):
     name = "Shadow File Reader"

@@ -50,6 +50,8 @@ class GenericElement(ow_automatic_element.AutomaticElement):
         self.shadow_output.setFixedWidth(850)
 
     def initializeTabs(self):
+        current_tab = self.tabs.currentIndex()
+
         enabled = self.isFootprintEnabled()
 
         size = len(self.tab)
@@ -71,6 +73,8 @@ class GenericElement(ow_automatic_element.AutomaticElement):
         self.plot_canvas = [None, None, None, None, None]
 
         self.enableFootprint(enabled)
+
+        self.tabs.setCurrentIndex(current_tab)
 
     def isFootprintEnabled(self):
         return self.tabs.count() == 6
