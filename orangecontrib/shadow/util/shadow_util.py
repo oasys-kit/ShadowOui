@@ -576,22 +576,11 @@ class ShadowPlot:
             xx = ticket['bin_h_edges']
             yy = ticket['bin_v_edges']
 
-            print(xx)
-
             xmin, xmax = xx.min(), xx.max()
             ymin, ymax = yy.min(), yy.max()
 
-            print("########################")
-            print(xmin, xmax)
-            print(ymin, ymax)
-            print("########################")
-
             origin = (xmin*factor1, ymin*factor2)
             scale = (abs((xmax-xmin)/nbins)*factor1, abs((ymax-ymin)/nbins)*factor2)
-
-            print("########################")
-            print(origin, scale)
-            print("########################")
 
             # PyMCA inverts axis!!!! histogram must be calculated reversed
             data_to_plot = []
@@ -606,10 +595,6 @@ class ShadowPlot:
 
             if xtitle is None: xtitle=(stp.getLabel(var_x-1))[0]
             if ytitle is None: ytitle=(stp.getLabel(var_y-1))[0]
-
-            print("########################")
-            print((stp.getLabel(var_x-1))[0], (stp.getLabel(var_y-1))[0])
-            print("########################")
 
             self.plot_canvas.setGraphXLabel(xtitle)
             self.plot_canvas.setGraphYLabel(ytitle)
