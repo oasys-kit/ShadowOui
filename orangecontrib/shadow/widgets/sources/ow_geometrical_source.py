@@ -130,7 +130,7 @@ class GeometricalSource(ow_source.Source):
     def __init__(self):
         super().__init__()
 
-        tabs = ShadowGui.tabWidget(self.controlArea, height=620)
+        tabs = ShadowGui.tabWidget(self.controlArea, width=480,  height=620)
 
         tab_montecarlo = ShadowGui.createTabPage(tabs, "Monte Carlo and Sampling")
         tab_geometry = ShadowGui.createTabPage(tabs, "Geometry")

@@ -726,10 +726,10 @@ class ShadowPlot:
 
         if ref != 0 and not ytitle is None:  ytitle = ytitle + ' % ' + (stp.getLabel(ref-1))[0]
 
-        histogram = ticket['histogram']
-        bins = ticket['bins']*factor
+        histogram = ticket['histogram_path']
+        bins = ticket['bin_path']*factor
 
-        plot_window.addCurve(bins[1:], histogram, title, symbol=',', color='blue', replace=True) #'+', '^', ','
+        plot_window.addCurve(bins, histogram, title, symbol='', color='blue', replace=True) #'+', '^', ','
         if not xtitle is None: plot_window.setGraphXLabel(xtitle)
         if not ytitle is None: plot_window.setGraphYLabel(ytitle)
         plot_window.setDrawModeEnabled(True, 'rectangle')
