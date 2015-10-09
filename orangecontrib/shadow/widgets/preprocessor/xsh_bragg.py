@@ -147,7 +147,16 @@ class OWxsh_bragg(widget.OWWidget):
     def compute(self):
         sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
-        tmp = bragg(interactive=False,DESCRIPTOR=self.DESCRIPTOR,H_MILLER_INDEX=self.H_MILLER_INDEX,K_MILLER_INDEX=self.K_MILLER_INDEX,L_MILLER_INDEX=self.L_MILLER_INDEX,TEMPERATURE_FACTOR=self.TEMPERATURE_FACTOR,E_MIN=self.E_MIN,E_MAX=self.E_MAX,E_STEP=self.E_STEP,SHADOW_FILE=self.SHADOW_FILE)
+        tmp = bragg(interactive=False,
+                    DESCRIPTOR=self.DESCRIPTOR,
+                    H_MILLER_INDEX=self.H_MILLER_INDEX,
+                    K_MILLER_INDEX=self.K_MILLER_INDEX,
+                    L_MILLER_INDEX=self.L_MILLER_INDEX,
+                    TEMPERATURE_FACTOR=self.TEMPERATURE_FACTOR,
+                    E_MIN=self.E_MIN,
+                    E_MAX=self.E_MAX,
+                    E_STEP=self.E_STEP,
+                    SHADOW_FILE=ShadowGui.checkFileName(self.SHADOW_FILE))
 
         self.send("PreProcessor_Data", ShadowPreProcessorData(bragg_data_file=self.SHADOW_FILE))
 

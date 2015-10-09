@@ -142,20 +142,34 @@ class ShadowGui():
         return string
 
     @classmethod
-    def checkFile(cls, fileName):
+    def checkFileName(cls, fileName):
+        if not fileName is None:
+            if not fileName.strip() == "":
+                if os.path.isabs(fileName):
+                    filePath = fileName
+                else:
+                    if fileName.startswith('/'):
+                        filePath =  os.getcwd() + fileName
+                    else:
+                        filePath = os.getcwd() + '/' + fileName
 
-        if fileName is None: raise Exception("File '" + fileName + "' not existing")
-        if fileName.strip() == "": raise Exception("File '" + fileName + "' not existing")
-
-        if fileName.startswith('/'):
-            filePath = fileName
+                return filePath
+            else:
+                return fileName
         else:
-            filePath = os.getcwd() + '/' + fileName
+            return fileName
+
+    @classmethod
+    def checkFile(cls, fileName):
+        if fileName is None: raise Exception("File name is Empty")
+        if fileName.strip() == "": raise Exception("File name is Empty")
+
+        filePath = ShadowGui.checkFileName(fileName)
 
         if not os.path.exists(filePath):
             raise Exception("File " + fileName + " not existing")
 
-        return fileName
+        return filePath
 
     @classmethod
     def checkEmptyBeam(cls, input_beam):
@@ -1206,6 +1220,13 @@ class Properties(object):
 
 if __name__ == "__main__":
 
+    print(ShadowGui.checkFileName("pippo.dat"))
+    print(ShadowGui.checkFileName("Files/pippo.dat"))
+    print(ShadowGui.checkFileName("Files/pippo.dat"))
+    print(ShadowGui.checkFileName("/Users/labx/Desktop/pippo.dat"))
+
+
+    '''
     print(ShadowPhysics.A2EV)
 
     print(ShadowPhysics.Chebyshev(4, 21))
@@ -1225,3 +1246,4 @@ if __name__ == "__main__":
     print(ShadowPhysics.ChebyshevBackgroundNoised(coefficients, 18, random_generator=random_generator))
     print(ShadowPhysics.ChebyshevBackgroundNoised(coefficients, 19, random_generator=random_generator))
     print(ShadowPhysics.ChebyshevBackgroundNoised(coefficients, 20, random_generator=random_generator))
+    '''

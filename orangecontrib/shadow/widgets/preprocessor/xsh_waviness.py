@@ -616,13 +616,15 @@ class OWxsh_waviness(widget.OWWidget):
 
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
-            ST.write_shadow_surface(self.zz.T, self.xx, self.yy, outFile=self.waviness_file_name)
+            ST.write_shadow_surface(self.zz.T, self.xx, self.yy, outFile=ShadowGui.checkFileName(self.waviness_file_name))
             QMessageBox.information(self, "QMessageBox.information()",
                                     "Waviness file " + self.waviness_file_name + " written on disk",
                                     QMessageBox.Ok)
 
 
-            self.send("PreProcessor_Data", ShadowPreProcessorData(waviness_data_file=self.waviness_file_name, waviness_x_dim=self.dimension_x, waviness_y_dim=self.dimension_y))
+            self.send("PreProcessor_Data", ShadowPreProcessorData(waviness_data_file=self.waviness_file_name,
+                                                                  waviness_x_dim=self.dimension_x,
+                                                                  waviness_y_dim=self.dimension_y))
 
     def call_reset_settings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):

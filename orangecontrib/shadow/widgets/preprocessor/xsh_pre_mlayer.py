@@ -303,7 +303,7 @@ class OWxsh_pre_mlayer(widget.OWWidget):
         sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
         tmp = pre_mlayer(interactive=False,
-                         FILE=self.FILE,
+                         FILE=ShadowGui.checkFileName(self.FILE),
                          E_MIN=self.E_MIN,
                          E_MAX=self.E_MAX,
                          S_DENSITY=self.S_DENSITY,
@@ -318,11 +318,11 @@ class OWxsh_pre_mlayer(widget.OWWidget):
                          GAMMA=self.GAMMA,
                          ROUGHNESS_EVEN=self.ROUGHNESS_EVEN,
                          ROUGHNESS_ODD=self.ROUGHNESS_ODD,
-                         FILE_DEPTH=self.FILE_DEPTH,
+                         FILE_DEPTH=ShadowGui.checkFileName(self.FILE_DEPTH),
                          GRADE_SURFACE=self.GRADE_SURFACE,
-                         FILE_SHADOW=self.FILE_SHADOW,
-                         FILE_THICKNESS=self.FILE_THICKNESS,
-                         FILE_GAMMA=self.FILE_GAMMA,
+                         FILE_SHADOW=ShadowGui.checkFileName(self.FILE_SHADOW),
+                         FILE_THICKNESS=ShadowGui.checkFileName(self.FILE_THICKNESS),
+                         FILE_GAMMA=ShadowGui.checkFileName(self.FILE_GAMMA),
                          AA0=self.AA0,
                          AA1=self.AA1,
                          AA2=self.AA2)

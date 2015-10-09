@@ -216,7 +216,7 @@ class Wiggler(ow_source.Source):
         try:
             self.checkFields()
 
-            wigFile = bytes("xshwig.sha", 'utf-8')
+            wigFile = bytes(ShadowGui.checkFileName("xshwig.sha"), 'utf-8')
 
             if self.type_combo == 0:
                 inData = bytes("", 'utf-8')
@@ -236,9 +236,13 @@ class Wiggler(ow_source.Source):
             #self.information(0, "Calculate electron trajectory")
             self.setStatusMessage("Calculate electron trajectory")
 
-            (traj,pars) = srfunc.wiggler_trajectory(b_from=self.type_combo, \
-                          inData=inData, nPer=self.number_of_periods, nTrajPoints=501, \
-                          ener_gev=self.energy, per=self.id_period, kValue=self.k_value, trajFile="tmp.traj")
+            (traj, pars) = srfunc.wiggler_trajectory(b_from=self.type_combo,
+                                                     inData=inData,
+                                                     nPer=self.number_of_periods,
+                                                     nTrajPoints=501,
+                                                     ener_gev=self.energy,
+                                                     per=self.id_period,
+                                                     kValue=self.k_value, trajFile=ShadowGui.checkFileName("tmp.traj"))
 
             #
             # calculate cdf and write file for Shadow/Source
@@ -248,7 +252,12 @@ class Wiggler(ow_source.Source):
             #self.information(0, "Calculate cdf and write file for Shadow/Source")
             self.setStatusMessage("Calculate cdf and write file for Shadow/Source")
 
-            srfunc.wiggler_cdf(traj, enerMin=self.e_min,  enerMax=self.e_max, enerPoints=1001, outFile=wigFile, elliptical=False)
+            srfunc.wiggler_cdf(traj,
+                               enerMin=self.e_min,
+                               enerMax=self.e_max,
+                               enerPoints=1001,
+                               outFile=wigFile,
+                               elliptical=False)
 
             #self.information(0, "CDF written to file %s \n"%(wigFile))
             self.setStatusMessage("CDF written to file %s \n"%(wigFile))
@@ -275,12 +284,12 @@ class Wiggler(ow_source.Source):
             shadow_src.src.NTOTALPOINT = self.max_number_of_rejected_rays
 
             if self.optimize_source_combo == 1:
-                shadow_src.src.FILE_BOUND = bytes(self.file_with_phase_space_volume, 'utf-8')
+                shadow_src.src.FILE_BOUND = bytes(ShadowGui.checkFileName(self.file_with_phase_space_volume), 'utf-8')
             elif self.optimize_source_combo == 2:
 
-                shadow_src.src.FILE_BOUND = bytes("myslit.dat", 'utf-8')
+                shadow_src.src.FILE_BOUND = bytes(ShadowGui.checkFileName("myslit.dat"), 'utf-8')
 
-                f = open("myslit.dat", "w")
+                f = open(ShadowGui.checkFileName("myslit.dat"), "w")
                 f.write("%e %e %e %e %e "%(self.slit_distance, self.min_x, self.max_x, self.min_z, self.max_z))
                 f.write("\n")
                 f.close()
@@ -379,6 +388,15 @@ class Wiggler(ow_source.Source):
         self.number_of_periods = ShadowGui.checkPositiveNumber(self.number_of_periods, "Number of periods")
         self.k_value = ShadowGui.checkPositiveNumber(self.k_value, "K value")
         self.id_period = ShadowGui.checkPositiveNumber(self.id_period, "ID period")
+
+        if self.optimize_source_combo == 1:
+            self.file_with_phase_space_volume = ShadowGui.checkFile(self.file_with_phase_space_volume)
+
+        if self.type_combo == 1:
+            self.file_with_b_vs_y = ShadowGui.checkFile(self.file_with_b_vs_y)
+        elif self.type_combo == 2:
+            self.file_with_harmonics = ShadowGui.checkFile(self.file_with_harmonics)
+
 
     def deserialize(self, shadow_file):
         if not shadow_file is None:
