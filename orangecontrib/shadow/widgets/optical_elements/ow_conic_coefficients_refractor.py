@@ -2,23 +2,23 @@ import sys
 from orangewidget import gui
 from PyQt4.QtGui import QApplication
 
-from orangecontrib.shadow.widgets.gui import ow_optical_element
+from orangecontrib.shadow.widgets.gui import ow_conic_coefficients_element, ow_optical_element
 from orangecontrib.shadow.util import ShadowOpticalElement
 
 
-class EmptyElement(ow_optical_element.OpticalElement):
+class ConicCoefficientsRefractor(ow_conic_coefficients_element.ConicCoefficientsElement):
 
-    name = "Empty Element"
-    description = "Shadow OE: Empty Element"
-    icon = "icons/empty_element.png"
+    name = "Refractor Interface"
+    description = "Shadow OE: Refractor Interface"
+    icon = "icons/refractor_interface.png"
     maintainer = "Luca Rebuffi"
     maintainer_email = "luca.rebuffi(@at@)elettra.eu"
-    priority = 24
+    priority = 23
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]
 
     def __init__(self):
-        graphical_Options=ow_optical_element.GraphicalOptions(is_empty=True)
+        graphical_Options=ow_optical_element.GraphicalOptions(is_refractor=True)
 
         super().__init__(graphical_Options)
 
@@ -33,11 +33,11 @@ class EmptyElement(ow_optical_element.OpticalElement):
     ################################################################
 
     def instantiateShadowOE(self):
-        return ShadowOpticalElement.create_empty_oe()
+        return ShadowOpticalElement.create_conic_coefficients_refractor()
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)
-    ow = EmptyElement()
+    ow = ConicCoefficientsRefractor()
     ow.show()
     a.exec_()
     ow.saveSettings()

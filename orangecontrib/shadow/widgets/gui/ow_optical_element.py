@@ -7,8 +7,10 @@ from PyQt4.QtGui import QPalette, QColor, QFont
 
 from orangecontrib.shadow.widgets.gui import ow_generic_element
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerIn, ShadowPreProcessorData, \
-    ShadowOpticalElement, ShadowBeam
-from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowPhysics, ConfirmDialog
+    ShadowOpticalElement, ShadowBeam, ShadowFile
+from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowPhysics
+
+shadow_oe_to_copy = None
 
 class GraphicalOptions:
     is_empty = False
@@ -26,6 +28,7 @@ class GraphicalOptions:
     is_codling_slit=False
     is_polynomial=False
     is_conic_coefficients=False
+    is_refractor=False
 
     def __init__(self,
                  is_empty = False,
@@ -42,7 +45,8 @@ class GraphicalOptions:
                  is_cone=False,
                  is_codling_slit=False,
                  is_polynomial=False,
-                 is_conic_coefficients=False):
+                 is_conic_coefficients=False,
+                 is_refractor=False):
         self.is_empty = is_empty
         self.is_curved = is_curved
         self.is_mirror=is_mirror
@@ -58,7 +62,7 @@ class GraphicalOptions:
         self.is_codling_slit=is_codling_slit
         self.is_polynomial=is_polynomial
         self.is_conic_coefficients=is_conic_coefficients
-
+        self.is_refractor=is_refractor
 
 class OpticalElement(ow_generic_element.GenericElement):
 
@@ -212,6 +216,16 @@ class OpticalElement(ow_generic_element.GenericElement):
     grating_hunter_monochromator_length = Setting(0.0)
     grating_hunter_distance_between_beams = Setting(0.0)
 
+
+    optical_constants_refraction_index = Setting(0)
+    fresnel_zone_plate = Setting(0)
+    refractive_index_in_object_medium = Setting(0.0)
+    attenuation_in_object_medium = Setting(0.0)
+    file_prerefl_for_object_medium = Setting("NONE SPECIFIED")
+    refractive_index_in_image_medium = Setting(0.0)
+    attenuation_in_image_medium = Setting(0.0)
+    file_prerefl_for_image_medium = Setting("NONE SPECIFIED")
+
     ##########################################
     # ADVANCED SETTING
     ##########################################
@@ -313,6 +327,14 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     def __init__(self, graphical_options = GraphicalOptions()):
         super().__init__()
+
+        self.runaction = widget.OWAction("Copy O.E. Parameters", self)
+        self.runaction.triggered.connect(self.copy_oe_parameters)
+        self.addAction(self.runaction)
+
+        self.runaction = widget.OWAction("Paste O.E. Parameters", self)
+        self.runaction.triggered.connect(self.paste_oe_parameters)
+        self.addAction(self.runaction)
 
         self.runaction = widget.OWAction("Run Shadow/Trace", self)
         self.runaction.triggered.connect(self.traceOpticalElement)
@@ -569,6 +591,7 @@ class OpticalElement(ow_generic_element.GenericElement):
             if self.graphical_options.is_mirror: tab_bas_refl = ShadowGui.createTabPage(tabs_basic_setting, "Reflectivity")
             elif self.graphical_options.is_crystal: tab_bas_crystal = ShadowGui.createTabPage(tabs_basic_setting, "Crystal")
             elif self.graphical_options.is_grating: tab_bas_grating = ShadowGui.createTabPage(tabs_basic_setting, "Grating")
+            elif self.graphical_options.is_refractor: tab_bas_refractor = ShadowGui.createTabPage(tabs_basic_setting, "Refractor")
             tab_bas_dim = ShadowGui.createTabPage(tabs_basic_setting, "Dimensions")
 
             ##########################################
@@ -916,6 +939,44 @@ class OpticalElement(ow_generic_element.GenericElement):
                              items=["Absolute", "Signed"], sendSelectedValue=False, orientation="horizontal")
 
                 self.set_GratingRulingType()
+
+            elif self.graphical_options.is_refractor:
+                refractor_box = ShadowGui.widgetBox(tab_bas_refractor, "Optical Constants - Refractive Index", addSpace=False, orientation="vertical", height=300)
+
+                gui.comboBox(refractor_box, self, "fresnel_zone_plate", label="Fresnel Zone Plate", labelWidth=260,
+                             items=["No", "Yes"],
+                             sendSelectedValue=False, orientation="horizontal")
+
+                gui.comboBox(refractor_box, self, "optical_constants_refraction_index", label="optical constants\n/refraction index", labelWidth=120,
+                             items=["constant (in both OBJECT and IMAGE media)",
+                                    "from preprocessor (prerefl) in OBJECT media",
+                                    "from preprocessor (prerefl) in IMAGE media",
+                                    "from preprocessor (prerefl) in both media"],
+                             callback=self.set_refrectorOpticalConstants, sendSelectedValue=False, orientation="horizontal")
+
+                self.refractor_object_box_1 = ShadowGui.widgetBox(refractor_box, "OBJECT side", addSpace=False, orientation="vertical", height=100)
+                ShadowGui.lineEdit(self.refractor_object_box_1, self, "refractive_index_in_object_medium", "refractive index in object medium", labelWidth=260, valueType=float, orientation="horizontal")
+                ShadowGui.lineEdit(self.refractor_object_box_1, self, "attenuation_in_object_medium", "attenuation in object medium [cm-1]", labelWidth=260, valueType=float, orientation="horizontal")
+
+                self.refractor_object_box_2 = ShadowGui.widgetBox(refractor_box, "OBJECT side", addSpace=False, orientation="horizontal", height=100)
+                self.le_file_prerefl_for_object_medium = ShadowGui.lineEdit(self.refractor_object_box_2, self, "file_prerefl_for_object_medium",
+                                                                            "file prerefl for\nobject medium", labelWidth=120, valueType=str, orientation="horizontal")
+
+                pushButton = gui.button(self.refractor_object_box_2, self, "...")
+                pushButton.clicked.connect(self.selectPrereflObjectFileName)
+
+                self.refractor_image_box_1 = ShadowGui.widgetBox(refractor_box, "IMAGE side", addSpace=False, orientation="vertical", height=100)
+                ShadowGui.lineEdit(self.refractor_image_box_1, self, "refractive_index_in_image_medium", "refractive index in image medium", labelWidth=260, valueType=float, orientation="horizontal")
+                ShadowGui.lineEdit(self.refractor_image_box_1, self, "attenuation_in_image_medium", "attenuation in image medium [cm-1]", labelWidth=260, valueType=float, orientation="horizontal")
+
+                self.refractor_image_box_2 = ShadowGui.widgetBox(refractor_box, "IMAGE side", addSpace=False, orientation="horizontal", height=100)
+                self.le_file_prerefl_for_image_medium = ShadowGui.lineEdit(self.refractor_image_box_2, self, "file_prerefl_for_image_medium",
+                                                                           "file prerefl for\nimage medium", labelWidth=120, valueType=str, orientation="horizontal")
+
+                pushButton = gui.button(self.refractor_image_box_2, self, "...")
+                pushButton.clicked.connect(self.selectPrereflImageFileName)
+
+                self.set_refrectorOpticalConstants()
 
             ##########################################
             #
@@ -1315,6 +1376,12 @@ class OpticalElement(ow_generic_element.GenericElement):
     def set_GratingMountType(self):
         self.grating_mount_box_1.setVisible(self.grating_mount_type == 4)
 
+    def set_refrectorOpticalConstants(self):
+        self.refractor_object_box_1.setVisible(self.optical_constants_refraction_index == 0 or self.optical_constants_refraction_index == 2)
+        self.refractor_object_box_2.setVisible(self.optical_constants_refraction_index == 1 or self.optical_constants_refraction_index == 3)
+        self.refractor_image_box_1.setVisible(self.optical_constants_refraction_index == 0 or self.optical_constants_refraction_index == 1)
+        self.refractor_image_box_2.setVisible(self.optical_constants_refraction_index == 2 or self.optical_constants_refraction_index == 3)
+
     # TAB 1.3
 
     def set_Dim_Parameters(self):
@@ -1417,6 +1484,14 @@ class OpticalElement(ow_generic_element.GenericElement):
     def selectFilePolynomial(self):
         self.le_ms_file_polynomial.setText(
             QtGui.QFileDialog.getOpenFileName(self, "Select File with Polynomial", ".", "*.*"))
+
+    def selectPrereflObjectFileName(self):
+        self.le_file_prerefl_for_object_medium.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select File Prerefl for Object Medium", ".", "*.*"))
+
+    def selectPrereflImageFileName(self):
+        self.le_file_prerefl_for_image_medium.setText(
+            QtGui.QFileDialog.getOpenFileName(self, "Select File Prerefl for Image Medium", ".", "*.*"))
 
     def calculate_incidence_angle_mrad(self):
         self.incidence_angle_mrad = round(math.radians(90-self.incidence_angle_deg)*1000, 2)
@@ -1711,6 +1786,30 @@ class OpticalElement(ow_generic_element.GenericElement):
                         shadow_oe._oe.HUNT_H = self.grating_hunter_distance_between_beams
                         shadow_oe._oe.HUNT_L = self.grating_hunter_monochromator_length
                         shadow_oe._oe.BLAZE = self.grating_hunter_blaze_angle
+            elif self.graphical_options.is_refractor:
+                shadow_oe._oe.F_R_IND =  self.optical_constants_refraction_index
+
+                shadow_oe._oe.FZP = self.fresnel_zone_plate
+
+                if self.fresnel_zone_plate == 1:
+                    shadow_oe._oe.F_GRATING = 1
+
+                if self.optical_constants_refraction_index == 0:
+                    shadow_oe._oe.R_IND_OBJ = self.refractive_index_in_object_medium
+                    shadow_oe._oe.R_ATTENUATION_OBJ = self.attenuation_in_object_medium
+                    shadow_oe._oe.R_IND_IMA =self.refractive_index_in_image_medium
+                    shadow_oe._oe.R_ATTENUATION_IMA = self.attenuation_in_image_medium
+                elif self.optical_constants_refraction_index == 1:
+                    shadow_oe._oe.FILE_R_IND_OBJ = self.file_prerefl_for_object_medium
+                    shadow_oe._oe.R_IND_IMA = self.refractive_index_in_image_medium
+                    shadow_oe._oe.R_ATTENUATION_IMA = self.attenuation_in_image_medium
+                elif self.optical_constants_refraction_index == 2:
+                    shadow_oe._oe.R_IND_OBJ = self.refractive_index_in_object_medium
+                    shadow_oe._oe.R_ATTENUATION_OBJ = self.attenuation_in_object_medium
+                    shadow_oe._oe.FILE_R_IND_IMA = self.file_prerefl_for_image_medium
+                elif self.optical_constants_refraction_index == 3:
+                    shadow_oe._oe.FILE_R_IND_OBJ = self.file_prerefl_for_object_medium
+                    shadow_oe._oe.FILE_R_IND_IMA = self.file_prerefl_for_image_medium
 
             if self.is_infinite == 0:
                 shadow_oe._oe.FHIT_C = 0
@@ -1833,32 +1932,33 @@ class OpticalElement(ow_generic_element.GenericElement):
             self.source_plane_distance = ShadowGui.checkNumber(self.source_plane_distance, "Source plane distance")
             self.image_plane_distance = ShadowGui.checkNumber(self.image_plane_distance, "Image plane distance")
 
-            if self.surface_shape_parameters == 0:
-                if (self.is_cylinder==1 and self.cylinder_orientation==1):
-                   if not self.graphical_options.is_spheric:
-                       raise Exception("Automatic calculation of the sagittal focus supported only for Spheric O.E.")
+            if self.graphical_options.is_curved:
+                if self.surface_shape_parameters == 0:
+                    if (self.is_cylinder==1 and self.cylinder_orientation==1):
+                       if not self.graphical_options.is_spheric:
+                           raise Exception("Automatic calculation of the sagittal focus supported only for Spheric O.E.")
+                    else:
+                       if not self.focii_and_continuation_plane == 0:
+                            self.object_side_focal_distance = ShadowGui.checkNumber(self.object_side_focal_distance, "Object side focal distance")
+                            self.image_side_focal_distance = ShadowGui.checkNumber(self.image_side_focal_distance, "Image side focal distance")
+
+                       if self.graphical_options.is_paraboloid:
+                            self.focus_location = ShadowGui.checkNumber(self.focus_location, "Focus location")
                 else:
-                   if not self.focii_and_continuation_plane == 0:
-                        self.object_side_focal_distance = ShadowGui.checkNumber(self.object_side_focal_distance, "Object side focal distance")
-                        self.image_side_focal_distance = ShadowGui.checkNumber(self.image_side_focal_distance, "Image side focal distance")
+                   if self.graphical_options.is_spheric:
+                       self.spherical_radius = ShadowGui.checkPositiveNumber(self.spherical_radius, "Spherical radius")
+                   elif self.graphical_options.is_toroidal:
+                       self.torus_major_radius = ShadowGui.checkPositiveNumber(self.torus_major_radius, "Torus major radius")
+                       self.torus_minor_radius = ShadowGui.checkPositiveNumber(self.torus_minor_radius, "Torus minor radius")
+                   elif self.graphical_options.is_hyperboloid or self.graphical_options.is_ellipsoidal:
+                       self.ellipse_hyperbola_semi_major_axis = ShadowGui.checkPositiveNumber(self.ellipse_hyperbola_semi_major_axis, "Semi major axis")
+                       self.ellipse_hyperbola_semi_minor_axis = ShadowGui.checkPositiveNumber(self.ellipse_hyperbola_semi_minor_axis, "Semi minor axis")
+                       self.angle_of_majax_and_pole = ShadowGui.checkPositiveNumber(self.angle_of_majax_and_pole, "Angle of MajAx and Pole")
+                   elif self.graphical_options.is_paraboloid:
+                       self.paraboloid_parameter = ShadowGui.checkNumber(self.paraboloid_parameter, "Paraboloid parameter")
 
-                   if self.graphical_options.is_paraboloid:
-                        self.focus_location = ShadowGui.checkNumber(self.focus_location, "Focus location")
-            else:
-               if self.graphical_options.is_spheric:
-                   self.spherical_radius = ShadowGui.checkPositiveNumber(self.spherical_radius, "Spherical radius")
-               elif self.graphical_options.is_toroidal:
-                   self.torus_major_radius = ShadowGui.checkPositiveNumber(self.torus_major_radius, "Torus major radius")
-                   self.torus_minor_radius = ShadowGui.checkPositiveNumber(self.torus_minor_radius, "Torus minor radius")
-               elif self.graphical_options.is_hyperboloid or self.graphical_options.is_ellipsoidal:
-                   self.ellipse_hyperbola_semi_major_axis = ShadowGui.checkPositiveNumber(self.ellipse_hyperbola_semi_major_axis, "Semi major axis")
-                   self.ellipse_hyperbola_semi_minor_axis = ShadowGui.checkPositiveNumber(self.ellipse_hyperbola_semi_minor_axis, "Semi minor axis")
-                   self.angle_of_majax_and_pole = ShadowGui.checkPositiveNumber(self.angle_of_majax_and_pole, "Angle of MajAx and Pole")
-               elif self.graphical_options.is_paraboloid:
-                   self.paraboloid_parameter = ShadowGui.checkNumber(self.paraboloid_parameter, "Paraboloid parameter")
-
-            if self.graphical_options.is_toroidal:
-                self.toroidal_mirror_pole_location = ShadowGui.checkPositiveNumber(self.toroidal_mirror_pole_location, "Toroidal mirror pole location")
+                if self.graphical_options.is_toroidal:
+                    self.toroidal_mirror_pole_location = ShadowGui.checkPositiveNumber(self.toroidal_mirror_pole_location, "Toroidal mirror pole location")
 
             if self.graphical_options.is_mirror:
                 if not self.reflectivity_type == 0:
@@ -1908,6 +2008,23 @@ class OpticalElement(ow_generic_element.GenericElement):
                     self.grating_holo_recording_wavelength = ShadowGui.checkPositiveNumber(self.grating_holo_recording_wavelength, "Recording Wavelength")
                 elif self.grating_ruling_type == 4:
                     self.grating_ruling_density = ShadowGui.checkPositiveNumber(self.grating_ruling_density, "Polynomial Line Density coeff.: constant")
+            elif self.graphical_options.is_refractor:
+                if self.optical_constants_refraction_index == 0:
+                    self.refractive_index_in_object_medium = ShadowGui.checkPositiveNumber(self.refractive_index_in_object_medium, "Refractive Index in Object Medium")
+                    self.attenuation_in_object_medium = ShadowGui.checkNumber(self.attenuation_in_object_medium, "Refractive Index in Object Medium")
+                    self.refractive_index_in_image_medium = ShadowGui.checkPositiveNumber(self.refractive_index_in_image_medium, "Refractive Index in Image Medium")
+                    self.attenuation_in_image_medium = ShadowGui.checkNumber(self.attenuation_in_image_medium, "Refractive Index in Image Medium")
+                elif self.optical_constants_refraction_index == 1:
+                    self.file_prerefl_for_object_medium = ShadowGui.checkFile(self.file_prerefl_for_object_medium)
+                    self.refractive_index_in_image_medium = ShadowGui.checkPositiveNumber(self.refractive_index_in_image_medium, "Refractive Index in Image Medium")
+                    self.attenuation_in_image_medium = ShadowGui.checkNumber(self.attenuation_in_image_medium, "Refractive Index in Image Medium")
+                elif self.optical_constants_refraction_index == 2:
+                    self.refractive_index_in_object_medium = ShadowGui.checkPositiveNumber(self.refractive_index_in_object_medium, "Refractive Index in Object Medium")
+                    self.attenuation_in_object_medium = ShadowGui.checkNumber(self.attenuation_in_object_medium, "Refractive Index in Object Medium")
+                    self.file_prerefl_for_image_medium = ShadowGui.checkFile(self.file_prerefl_for_image_medium)
+                elif self.optical_constants_refraction_index == 3:
+                    self.file_prerefl_for_object_medium = ShadowGui.checkFile(self.file_prerefl_for_object_medium)
+                    self.file_prerefl_for_image_medium = ShadowGui.checkFile(self.file_prerefl_for_image_medium)
 
             if not self.is_infinite == 0:
                self.dim_y_plus = ShadowGui.checkPositiveNumber(self.dim_y_plus, "Dimensions: y plus")
@@ -2441,6 +2558,22 @@ class OpticalElement(ow_generic_element.GenericElement):
                 raise BlockingIOError("O.E. failed to load, bad file format: " + exception.args[0])
                 
             self.setupUI()
+
+    def copy_oe_parameters(self):
+        global shadow_oe_to_copy
+        shadow_oe_to_copy = ShadowOpticalElement.create_empty_oe()
+
+        self.populateFields(shadow_oe_to_copy)
+
+    def paste_oe_parameters(self):
+        global shadow_oe_to_copy
+
+        shadow_temp_file = ShadowGui.checkFileName("tmp_oe_buffer.dat")
+        shadow_oe_to_copy._oe.write(shadow_temp_file)
+
+        shadow_file, type = ShadowFile.readShadowFile(shadow_temp_file)
+
+        self.deserialize(shadow_file)
 
 
     def setupUI(self):

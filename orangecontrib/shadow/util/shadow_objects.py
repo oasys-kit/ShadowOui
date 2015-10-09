@@ -771,7 +771,7 @@ class ShadowOpticalElement:
 
         self._oe.FMIRR=5
         self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -781,7 +781,7 @@ class ShadowOpticalElement:
 
         self._oe.FMIRR=1
         self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -791,7 +791,7 @@ class ShadowOpticalElement:
 
         self._oe.FMIRR=3
         self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -801,7 +801,7 @@ class ShadowOpticalElement:
 
         self._oe.FMIRR=4
         self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -811,7 +811,7 @@ class ShadowOpticalElement:
 
         self._oe.FMIRR=2
         self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -821,7 +821,7 @@ class ShadowOpticalElement:
 
         self._oe.FMIRR=7
         self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -831,7 +831,17 @@ class ShadowOpticalElement:
 
         self._oe.FMIRR=10
         self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
+
+        return self
+
+    @classmethod
+    def create_conic_coefficients_refractor(cls):
+        self = ShadowOpticalElement(oe=Shadow.OE())
+
+        self._oe.FMIRR=10
+        self._oe.F_CRYSTAL = 0
+        self._oe.F_REFRAC = 1
 
         return self
 
@@ -846,7 +856,7 @@ class ShadowOpticalElement:
         self._oe.F_BRAGG_A = 0
         self._oe.A_BRAGG = 0.0
 
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -860,7 +870,7 @@ class ShadowOpticalElement:
         self._oe.F_REFLECT = 0
         self._oe.F_BRAGG_A = 0
         self._oe.A_BRAGG = 0.0
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -874,7 +884,7 @@ class ShadowOpticalElement:
         self._oe.F_REFLECT = 0
         self._oe.F_BRAGG_A = 0
         self._oe.A_BRAGG = 0.0
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -888,7 +898,7 @@ class ShadowOpticalElement:
         self._oe.F_REFLECT = 0
         self._oe.F_BRAGG_A = 0
         self._oe.A_BRAGG = 0.0
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -902,7 +912,7 @@ class ShadowOpticalElement:
         self._oe.F_REFLECT = 0
         self._oe.F_BRAGG_A = 0
         self._oe.A_BRAGG = 0.0
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -916,7 +926,7 @@ class ShadowOpticalElement:
         self._oe.F_REFLECT = 0
         self._oe.F_BRAGG_A = 0
         self._oe.A_BRAGG = 0.0
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -930,7 +940,7 @@ class ShadowOpticalElement:
         self._oe.F_REFLECT = 0
         self._oe.F_BRAGG_A = 0
         self._oe.A_BRAGG = 0.0
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -940,7 +950,7 @@ class ShadowOpticalElement:
 
         self._oe.FMIRR=5
         self._oe.F_GRATING = 1
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -950,7 +960,7 @@ class ShadowOpticalElement:
 
         self._oe.FMIRR=1
         self._oe.F_GRATING = 1
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -960,7 +970,7 @@ class ShadowOpticalElement:
 
         self._oe.FMIRR=3
         self._oe.F_GRATING = 1
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -971,7 +981,7 @@ class ShadowOpticalElement:
 
         self._oe.FMIRR=4
         self._oe.F_GRATING = 1
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -981,7 +991,7 @@ class ShadowOpticalElement:
 
         self._oe.FMIRR=2
         self._oe.F_GRATING = 1
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -991,7 +1001,7 @@ class ShadowOpticalElement:
 
         self._oe.FMIRR=7
         self._oe.F_GRATING = 1
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
@@ -1001,7 +1011,7 @@ class ShadowOpticalElement:
 
         self._oe.FMIRR=10
         self._oe.F_GRATING = 1
-        self._oe.F_REFRACT = 0
+        self._oe.F_REFRAC = 0
 
         return self
 
