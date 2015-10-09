@@ -16,7 +16,7 @@ class MonochromatorDistanceCalculator(widget.OWWidget):
     icon = "icons/distance_calculator.png"
     maintainer = "Luca Rebuffi"
     maintainer_email = "luca.rebuffi(@at@)elettra.eu"
-    priority = 4
+    priority = 5
     category = "Utility"
     keywords = ["data", "file", "load", "read"]
 

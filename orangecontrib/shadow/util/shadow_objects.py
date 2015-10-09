@@ -142,6 +142,9 @@ class ShadowBeam:
             else:
                 raise Exception("File " + file_name + " not existing")
 
+    def writeToFile(self, file_name):
+        if not self._beam is None:
+            self._beam.write(file_name)
 
     def duplicate(self, copy_rays=True, history=True):
         beam = Shadow.Beam()
@@ -259,7 +262,7 @@ class ShadowBeam:
     def traceFromOENoHistory(cls, input_beam, shadow_oe):
         self = cls.initializeFromPreviousBeam(input_beam)
 
-        self._beam.traceOE(shadow_oe._oe, self.oe_number)
+        self._beam.traceOE(shadow_oe._oe, self._oe_number)
 
         shadow_oe.self_repair()
 

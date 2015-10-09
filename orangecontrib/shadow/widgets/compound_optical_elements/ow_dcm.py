@@ -410,7 +410,7 @@ class CrystalBox(QtGui.QWidget):
     def get_dimensions(self):
         if self.has_finite_dimensions == 0:
             return [self.mirror_width, self.mirror_length]
-        elif self.has_finite_dimensions == 0:
+        elif self.has_finite_dimensions == 1:
             return [0.0, 0.0]
         else:
             raise ValueError("Dimensions")

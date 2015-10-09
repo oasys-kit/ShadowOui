@@ -16,7 +16,7 @@ class ImageToBeamConverter(widget.OWWidget):
     icon = "icons/image_converter.png"
     maintainer = "Luca Rebuffi"
     maintainer_email = "luca.rebuffi(@at@)elettra.eu"
-    priority = 5
+    priority = 6
     category = "Utility"
     keywords = ["data", "file", "load", "read"]
 

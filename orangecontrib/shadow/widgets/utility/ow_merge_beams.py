@@ -15,7 +15,7 @@ class MergeBeams(widget.OWWidget):
     icon = "icons/merge.png"
     maintainer = "Luca Rebuffi"
     maintainer_email = "luca.rebuffi(@at@)elettra.eu"
-    priority = 3
+    priority = 4
     category = "Data Display Tools"
     keywords = ["data", "file", "load", "read"]
 

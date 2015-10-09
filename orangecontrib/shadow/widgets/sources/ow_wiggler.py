@@ -260,7 +260,7 @@ class Wiggler(ow_source.Source):
                                elliptical=False)
 
             #self.information(0, "CDF written to file %s \n"%(wigFile))
-            self.setStatusMessage("CDF written to file %s \n"%(wigFile))
+            self.setStatusMessage("CDF written to file %s \n"%(str(wigFile)))
 
             self.progressBarSet(40)
 
@@ -286,7 +286,6 @@ class Wiggler(ow_source.Source):
             if self.optimize_source_combo == 1:
                 shadow_src.src.FILE_BOUND = bytes(ShadowGui.checkFileName(self.file_with_phase_space_volume), 'utf-8')
             elif self.optimize_source_combo == 2:
-
                 shadow_src.src.FILE_BOUND = bytes(ShadowGui.checkFileName("myslit.dat"), 'utf-8')
 
                 f = open(ShadowGui.checkFileName("myslit.dat"), "w")
