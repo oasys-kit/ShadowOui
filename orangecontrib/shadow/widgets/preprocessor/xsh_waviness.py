@@ -13,6 +13,12 @@ from matplotlib import cm
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
+
+try:
+    from mpl_toolkits.mplot3d import Axes3D  # necessario per caricare i plot 3D
+except
+    pass
+
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
 from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog
 
