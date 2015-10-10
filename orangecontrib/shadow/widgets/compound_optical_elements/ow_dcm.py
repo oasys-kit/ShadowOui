@@ -1,8 +1,8 @@
-import sys, copy
+import sys
+import copy
 
 from orangewidget import gui
 from orangewidget.settings import Setting
-
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QPalette, QColor, QFont
@@ -134,8 +134,7 @@ class DCM(ow_generic_element.GenericElement):
         button.setFixedWidth(100)
 
     def selectFilePrerefl(self):
-        self.le_reflectivity_file.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select Reflectivity File", ".", "*.dat"))
+        self.le_reflectivity_file.setText(ShadowGui.selectFileFromDialog(self, self.reflectivity_file, "Select Reflectivity File", file_extension_filter="*.dat"))
 
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):

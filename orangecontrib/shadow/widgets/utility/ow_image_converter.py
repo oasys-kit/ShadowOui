@@ -1,5 +1,6 @@
-import numpy, os
+import os
 
+import numpy
 from oasys.widgets import widget
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -112,10 +113,10 @@ class ImageToBeamConverter(widget.OWWidget):
         gui.rubber(self.controlArea)
 
     def selectTxtFile(self):
-        self.le_image_txt_file_name.setText(QtGui.QFileDialog.getOpenFileName(self, "Open Textual Image", ".", "*.txt"))
+        self.le_image_txt_file_name.setText(ShadowGui.selectFileFromDialog(self, self.image_txt_file_name, "Open Textual Image", file_extension_filter="*.txt"))
 
     def selectFile(self):
-        self.le_image_file_name.setText(QtGui.QFileDialog.getOpenFileName(self, "Open Textual Image", ".", "*.png;*.jpg"))
+        self.le_image_file_name.setText(ShadowGui.selectFileFromDialog(self, self.image_file_name, "Open Image", file_extension_filter="*.png;*.jpg"))
         self.loadImage()
 
     def loadImage(self):

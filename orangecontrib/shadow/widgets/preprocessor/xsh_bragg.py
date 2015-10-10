@@ -1,9 +1,11 @@
 import sys
+
 from PyQt4.QtGui import QTextEdit, QTextCursor, QIntValidator, QDoubleValidator, QApplication
 from oasys.widgets import widget
 from orangewidget import gui
 from orangewidget.settings import Setting
 from Shadow.ShadowPreprocessorsXraylib import bragg
+
 
 try:
     from ..tools.xoppy_calc import xoppy_doc
@@ -112,10 +114,19 @@ class OWxsh_bragg(widget.OWWidget):
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 8 
-        idx += 1 
-        ShadowGui.lineEdit(box, self, "SHADOW_FILE",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=200, orientation="horizontal")
+        idx += 1
+        box_2 = ShadowGui.widgetBox(box, "", addSpace=True, orientation="horizontal")
+
+        self.le_SHADOW_FILE = ShadowGui.lineEdit(box_2, self, "SHADOW_FILE",
+                                                 label=self.unitLabels()[idx], addSpace=True, labelWidth=180, orientation="horizontal")
+
+        pushButton = gui.button(box_2, self, "...")
+        pushButton.clicked.connect(self.selectFile)
+
         self.show_at(self.unitFlags()[idx], box)
+
+
+
 
         self.shadow_output = QTextEdit()
         self.shadow_output.setReadOnly(True)
@@ -143,6 +154,8 @@ class OWxsh_bragg(widget.OWWidget):
     def unitFlags(self):
          return ['True','True','True','True','True','True','True','True','True']
 
+    def selectFile(self):
+        self.le_SHADOW_FILE.setText(ShadowGui.selectFileFromDialog(self, self.SHADOW_FILE, "Select Output File", file_extension_filter="*.dat"))
 
     def compute(self):
         sys.stdout = EmittingStream(textWritten=self.writeStdOut)

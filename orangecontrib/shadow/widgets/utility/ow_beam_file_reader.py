@@ -3,10 +3,10 @@ import os
 from oasys.widgets import widget
 from orangewidget import gui
 from orangewidget.settings import Setting
+
 from orangecontrib.shadow.util.shadow_util import ShadowGui
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 
-from PyQt4 import QtGui
 
 class BeamFileReader(widget.OWWidget):
     name = "Shadow File Reader"
@@ -51,8 +51,7 @@ class BeamFileReader(widget.OWWidget):
         gui.rubber(self.controlArea)
 
     def selectFile(self):
-        self.le_beam_file_name.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Open Shadow File", ".", "*.*"))
+        self.le_beam_file_name.setText(ShadowGui.selectFileFromDialog(self, self.beam_file_name, "Open Shadow File"))
 
     def read_file(self):
         self.setStatusMessage("")

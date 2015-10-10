@@ -1,23 +1,26 @@
-import os, sys, scipy, copy, numpy, random, shutil, time
+import os
+import sys
+import copy
+import random
+import shutil
+import time
 
+import scipy
+import numpy
 from orangewidget import gui
 from orangewidget.settings import Setting
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtGui import QApplication, QPalette, QColor, QFont, QDialog
-
 import xraylib
-
 import orangecanvas.resources as resources
-
-from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn
-
-from orangecontrib.shadow.widgets.gui import ow_automatic_element
-from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowMath, ShadowPhysics, ConfirmDialog
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowOpticalElement, EmittingStream, TTYGrabber
-from orangecontrib.shadow.widgets.experimental_elements.random_generator import RandomGenerator
-
 from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
 from PyMca5.PyMcaGui.plotting.MaskImageWidget import MaskImageWidget
+
+from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn
+from orangecontrib.shadow.widgets.gui import ow_automatic_element
+from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowMath, ShadowPhysics, ConfirmDialog
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowOpticalElement, EmittingStream, TTYGrabber, ShadowPreProcessorData
+from orangecontrib.shadow.widgets.experimental_elements.random_generator import RandomGenerator
 
 class XRDCapillary(ow_automatic_element.AutomaticElement):
     name = "XRD Capillary"
@@ -29,7 +32,9 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     category = "Experimental Elements"
     keywords = ["data", "file", "load", "read"]
 
-    inputs = [("Input Beam", ShadowBeam, "setBeam")]
+    inputs = [("Input Beam", ShadowBeam, "setBeam"),
+              ("PreProcessor Data", ShadowPreProcessorData, "setPreProcessorData"),
+              ]
 
     outputs = [{"name":"Trigger",
                 "type": ShadowTriggerIn,
@@ -225,7 +230,13 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         box_simulation = ShadowGui.widgetBox(self.tab_simulation, "Simulation Management", addSpace=True, orientation="vertical")
 
-        ShadowGui.lineEdit(box_simulation, self, "output_file_name", "Output File Name", labelWidth=120, valueType=str, orientation="horizontal")
+        file_box = ShadowGui.widgetBox(box_simulation, "", addSpace=True, orientation="horizontal", height=25)
+
+        self.le_output_file_name = ShadowGui.lineEdit(file_box, self, "output_file_name", "Output File Name", labelWidth=120, valueType=str, orientation="horizontal")
+
+        pushButton = gui.button(file_box, self, "...")
+        pushButton.clicked.connect(self.selectOuputFile)
+
         gui.separator(box_simulation)
 
         gui.checkBox(box_simulation, self, "keep_result", "Keep Result")
@@ -322,7 +333,16 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         ShadowGui.lineEdit(self.box_2theta_arm_2, self, "analyzer_distance", "Crystal Distance from Goniometer Center [cm]", labelWidth=300, valueType=float, orientation="horizontal")
         ShadowGui.lineEdit(self.box_2theta_arm_2, self, "analyzer_bragg_angle", "Analyzer Incidence Angle [deg]", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.box_2theta_arm_2, self, "rocking_curve_file", "File with Crystal parameter",  labelWidth=180, valueType=str, orientation="horizontal")
+
+
+        file_box_2 = ShadowGui.widgetBox(self.box_2theta_arm_2, "", addSpace=True, orientation="horizontal", height=25)
+
+        self.le_rocking_curve_file = ShadowGui.lineEdit(file_box_2, self, "rocking_curve_file", "File with Crystal parameter",  labelWidth=180, valueType=str, orientation="horizontal")
+
+        pushButton = gui.button(file_box_2, self, "...")
+        pushButton.clicked.connect(self.selectRockingCurveFile)
+
+
         ShadowGui.lineEdit(self.box_2theta_arm_2, self, "mosaic_angle_spread_fwhm", "Mosaic Angle Spread FWHM [deg]", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.box_2theta_arm_3 = ShadowGui.widgetBox(box_2theta_arm, "", addSpace=False, orientation="vertical")
@@ -714,6 +734,12 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
             if self.is_automatic_run:
                 self.simulate()
+
+    def setPreProcessorData(self, data):
+        if data is not None:
+            if data.bragg_data_file != ShadowPreProcessorData.NONE:
+                self.rocking_curve_file=data.bragg_data_file
+
 
     ############################################################
     # GUI MANAGEMENT METHODS
@@ -2583,6 +2609,13 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
             raise Exception("Problems reading Materials Configuration file: {0}".format(err))
         except:
             raise Exception("Unexpected error reading Materials Configuration file: ", sys.exc_info()[0])
+
+    def selectOuputFile(self):
+        self.le_output_file_name.setText(ShadowGui.selectFileFromDialog(self, self.output_file_name, "Select Ouput File"))
+
+    def selectRockingCurveFile(self):
+        self.le_rocking_curve_file.setText(ShadowGui.selectFileFromDialog(self, self.rocking_curve_file, "Open File with Crystal Parameters"))
+
 
     def writeStdOut(self, text):
         cursor = self.shadow_output.textCursor()

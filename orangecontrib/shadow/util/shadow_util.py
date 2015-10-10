@@ -1,11 +1,15 @@
 __author__ = 'labx'
 
-import numpy, random, os
+import random
+import os
 import sys
-from PyQt4.QtGui import QMessageBox, QWidget, QFont, QPalette, QColor, QGridLayout, QLabel, QFileDialog, QIcon, QPixmap
+
+import numpy
+from PyQt4.QtGui import QMessageBox, QWidget, QFont, QPalette, QColor, QGridLayout, QLabel, QFileDialog
 from PyQt4.QtCore import Qt
 from scipy import optimize, asarray
 from matplotlib.patches import FancyArrowPatch, ArrowStyle
+
 
 try:
     from orangewidget import gui
@@ -95,6 +99,15 @@ class ShadowGui():
             tab.setFixedWidth(width)
 
         return tab
+
+    @classmethod
+    def selectFileFromDialog(cls, widget, previous_file_path="", message="Select File", start_directory=".", file_extension_filter="*.*"):
+        file_path = QFileDialog.getOpenFileName(widget, message, start_directory, file_extension_filter)
+
+        if not file_path is None and not file_path.strip() == "":
+            return file_path
+        else:
+            return previous_file_path
 
     @classmethod
     def checkNumber(cls, value, field_name):
@@ -574,11 +587,11 @@ class ShadowPlot:
 
             self.plot_canvas.toolBar()
 
-        def plot_xy(self, beam, var_x, var_y, title, xtitle, ytitle, xrange=None, yrange=None, nolost=1, nbins=100, xum="", yum="", is_footprint=False):
+        def plot_xy(self, beam, var_x, var_y, title, xtitle, ytitle, xrange=None, yrange=None, nolost=1, nbins=100, xum="", yum="", ref=23, is_footprint=False):
 
             matplotlib.rcParams['axes.formatter.useoffset']='False'
 
-            ticket = beam.histo2(var_x, var_y, nbins=nbins, xrange=xrange, yrange=yrange, nolost=nolost)
+            ticket = beam.histo2(var_x, var_y, nbins=nbins, xrange=xrange, yrange=yrange, nolost=nolost, ref=ref)
 
             if is_footprint:
                 factor1 = 1.0

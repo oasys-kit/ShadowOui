@@ -1,17 +1,17 @@
-import sys, numpy, copy
+import sys
+import copy
 
-from PyQt4.QtGui import QTextEdit, QTextCursor, QApplication, QFileDialog, QScrollArea, QTableWidget, QTableWidgetItem, QFont, QPalette, QColor, \
+import numpy
+from PyQt4.QtGui import QTextEdit, QTextCursor, QApplication, QScrollArea, QTableWidget, QTableWidgetItem, QFont, QPalette, QColor, \
     QMessageBox, QHeaderView
 from PyQt4.QtCore import QRect, Qt
 from oasys.widgets import widget
 from orangewidget import gui
 from orangewidget.settings import Setting
 from Shadow import ShadowTools as ST
-
 from matplotlib import cm
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-from mpl_toolkits.mplot3d import Axes3D  # necessario per caricare i plot 3D
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
 from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog
@@ -286,14 +286,17 @@ class OWxsh_waviness(widget.OWWidget):
 
         self.output_box = ShadowGui.widgetBox(tab_input, "Outputs", addSpace=True, orientation="vertical", width=470)
 
-        self.select_file_box = ShadowGui.widgetBox(self.output_box, "", addSpace=True, orientation="horizontal")
+        gui.button(self.output_box, self, "Write xsh_waviness input file (optional) ...", callback=self.write_inp_file)
 
         gui.separator(self.output_box)
 
-        gui.button(self.output_box, self, "Write xsh_waviness input file (optional) ...", callback=self.write_inp_file)
+        self.select_file_box = ShadowGui.widgetBox(self.output_box, "", addSpace=True, orientation="horizontal")
 
-        ShadowGui.lineEdit(self.select_file_box, self, "waviness_file_name", "Output File Name", labelWidth=120,
-                           valueType=str, orientation="horizontal")
+        self.le_waviness_file_name = ShadowGui.lineEdit(self.select_file_box, self, "waviness_file_name", "Output File Name",
+                                                        labelWidth=120, valueType=str, orientation="horizontal")
+
+        pushButton = gui.button(self.select_file_box, self, "...")
+        pushButton.clicked.connect(self.selectFile)
 
         self.harmonics_box = ShadowGui.widgetBox(tab_harmonics, "Harmonics", addSpace=True, orientation="vertical",
                                                  width=470, height=690)
@@ -488,7 +491,7 @@ class OWxsh_waviness(widget.OWWidget):
             self.reload_harmonics_table()
 
     def load_inp_file(self):
-        file_name = QFileDialog.getOpenFileName(self, "Select a input file for XSH_WAVINESS", ".", "*.inp")
+        file_name = ShadowGui.selectFileFromDialog(self, None, "Select a input file for XSH_WAVINESS", file_extension_filter="*.inp")
 
         if not file_name is None:
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
@@ -677,6 +680,10 @@ class OWxsh_waviness(widget.OWWidget):
         cursor.insertText(text)
         self.shadow_output.setTextCursor(cursor)
         self.shadow_output.ensureCursorVisible()
+
+    def selectFile(self):
+        self.le_waviness_file_name.setText(ShadowGui.selectFileFromDialog(self, self.waviness_file_name, "Select Output File", file_extension_filter="*.dat"))
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

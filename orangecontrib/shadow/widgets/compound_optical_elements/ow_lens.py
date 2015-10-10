@@ -183,8 +183,7 @@ class Lens(ow_generic_element.GenericElement):
     ############################################################
 
     def selectFilePrerefl(self):
-        self.le_file_prerefl.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select File Prerefl", ".", "*.dat"))
+        self.le_file_prerefl.setText(ShadowGui.selectFileFromDialog(self, self.prerefl_file, "Select File Prerefl", file_extension_filter="*.dat"))
 
     def get_surface_shape(self):
         if self.surface_shape == 0:

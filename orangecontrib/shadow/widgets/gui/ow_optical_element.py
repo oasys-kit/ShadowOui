@@ -1,4 +1,7 @@
-import sys, math, os
+import sys
+import math
+import os
+
 import numpy
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
@@ -9,6 +12,7 @@ from orangecontrib.shadow.widgets.gui import ow_generic_element
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerIn, ShadowPreProcessorData, \
     ShadowOpticalElement, ShadowBeam, ShadowFile
 from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowPhysics
+
 
 shadow_oe_to_copy = None
 
@@ -566,13 +570,19 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             ShadowGui.widgetBox(self.controlArea, "", addSpace=False, orientation="vertical", height=125)
         else:
-            self.calculate_incidence_angle_mrad()
-            self.calculate_reflection_angle_mrad()
 
             self.incidence_angle_deg_le = ShadowGui.lineEdit(upper_box, self, "incidence_angle_deg", "Incident Angle respect to the normal [deg]", labelWidth=300, callback=self.calculate_incidence_angle_mrad, valueType=float, orientation="horizontal")
             self.incidence_angle_rad_le = ShadowGui.lineEdit(upper_box, self, "incidence_angle_mrad", "... or with respect to the surface [mrad]", labelWidth=300, callback=self.calculate_incidence_angle_deg, valueType=float, orientation="horizontal")
             self.reflection_angle_deg_le = ShadowGui.lineEdit(upper_box, self, "reflection_angle_deg", "Reflection Angle respect to the normal [deg]", labelWidth=300, callback=self.calculate_reflection_angle_mrad, valueType=float, orientation="horizontal")
             self.reflection_angle_rad_le = ShadowGui.lineEdit(upper_box, self, "reflection_angle_mrad", "... or with respect to the surface [mrad]", labelWidth=300, callback=self.calculate_reflection_angle_deg, valueType=float, orientation="horizontal")
+
+            self.calculate_incidence_angle_mrad()
+            self.calculate_reflection_angle_mrad()
+
+            if self.graphical_options.is_mirror:
+                self.reflection_angle_deg_le.setEnabled(False)
+                self.reflection_angle_rad_le.setEnabled(False)
+
 
             gui.comboBox(upper_box, self, "mirror_orientation_angle", label="O.E. Orientation Angle [deg]", labelWidth=390,
                          items=[0, 90, 180, 270],
@@ -919,7 +929,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                              items=["Spherical/Spherical", "Plane/Spherical", "Spherical/Plane", "Plane/Plane"], sendSelectedValue=False, orientation="horizontal")
                 gui.comboBox(self.ruling_box_2, self, "grating_holo_source_type", label="Source Type", labelWidth=250,
                              items=["Real/Real", "Real/Virtual", "Virtual/Real", "Real/Real"], sendSelectedValue=False, orientation="horizontal")
-                gui.comboBox(self.ruling_box_2, self, "grating_holo_pattern_type", label="Pattern Type", labelWidth=250,
+                gui.comboBox(self.ruling_box_2, self, "grating_holo_cylindrical_source", label="Cylindrical Source", labelWidth=250,
                              items=["Spherical/Spherical", "Cylindrical/Spherical", "Spherical/Cylindrical", "Cylindrical/Cylindrical"], sendSelectedValue=False, orientation="horizontal")
                 ShadowGui.lineEdit(self.ruling_box_2, self, "grating_holo_recording_wavelength", "Recording wavelength [Å]", labelWidth=300, valueType=float, orientation="horizontal")
 
@@ -952,7 +962,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                                     "from preprocessor (prerefl) in OBJECT media",
                                     "from preprocessor (prerefl) in IMAGE media",
                                     "from preprocessor (prerefl) in both media"],
-                             callback=self.set_refrectorOpticalConstants, sendSelectedValue=False, orientation="horizontal")
+                             callback=self.set_RefrectorOpticalConstants, sendSelectedValue=False, orientation="horizontal")
 
                 self.refractor_object_box_1 = ShadowGui.widgetBox(refractor_box, "OBJECT side", addSpace=False, orientation="vertical", height=100)
                 ShadowGui.lineEdit(self.refractor_object_box_1, self, "refractive_index_in_object_medium", "refractive index in object medium", labelWidth=260, valueType=float, orientation="horizontal")
@@ -976,7 +986,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                 pushButton = gui.button(self.refractor_image_box_2, self, "...")
                 pushButton.clicked.connect(self.selectPrereflImageFileName)
 
-                self.set_refrectorOpticalConstants()
+                self.set_RefrectorOpticalConstants()
 
             ##########################################
             #
@@ -1376,7 +1386,7 @@ class OpticalElement(ow_generic_element.GenericElement):
     def set_GratingMountType(self):
         self.grating_mount_box_1.setVisible(self.grating_mount_type == 4)
 
-    def set_refrectorOpticalConstants(self):
+    def set_RefrectorOpticalConstants(self):
         self.refractor_object_box_1.setVisible(self.optical_constants_refraction_index == 0 or self.optical_constants_refraction_index == 2)
         self.refractor_object_box_2.setVisible(self.optical_constants_refraction_index == 1 or self.optical_constants_refraction_index == 3)
         self.refractor_image_box_1.setVisible(self.optical_constants_refraction_index == 0 or self.optical_constants_refraction_index == 1)
@@ -1434,73 +1444,66 @@ class OpticalElement(ow_generic_element.GenericElement):
     ############################################################
 
     def selectExternalFileWithCoordinate(self):
-        self.le_external_file_with_coordinate.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Open External File With Coordinate", ".", "*.*"))
+        self.le_external_file_with_coordinate.setText(ShadowGui.selectFileFromDialog(self, self.external_file_with_coordinate, "Open External File With Coordinate"))
 
     def selectOptConstFileName(self):
-        self.le_opt_const_file_name.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Open Opt. Const. File", ".", "*.*"))
+        self.le_opt_const_file_name.setText(ShadowGui.selectFileFromDialog(self, self.opt_const_file_name, "Open Opt. Const. File"))
 
     def selectFilePrerefl(self):
-        self.le_file_prerefl.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select File Prerefl", ".", "*.dat"))
+        self.le_file_prerefl.setText(ShadowGui.selectFileFromDialog(self, self.file_prerefl, "Select File Prerefl", file_extension_filter="*.dat"))
 
     def selectFilePrereflM(self):
-        self.le_file_prerefl_m.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select File Premlayer", ".", "*.dat"))
+        self.le_file_prerefl_m.setText(ShadowGui.selectFileFromDialog(self, self.file_prerefl_m, "Select File Premlayer", file_extension_filter="*.dat"))
 
     def selectFileCrystalParameters(self):
-        self.le_file_crystal_parameters.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select File With Crystal Parameters", ".", "*.dat"))
+        self.le_file_crystal_parameters.setText(ShadowGui.selectFileFromDialog(self, self.file_crystal_parameters, "Select File With Crystal Parameters", file_extension_filter="*.dat"))
 
     def selectFileDiffractionProfile(self):
-        self.le_file_diffraction_profile.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select File With User Defined Diffraction Profile", ".", "*.*"))
+        self.le_file_diffraction_profile.setText(ShadowGui.selectFileFromDialog(self, self.file_diffraction_profile, "Select File With User Defined Diffraction Profile"))
 
     def selectDefectFileName(self):
-        self.le_ms_defect_file_name.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select Defect File Name", ".", "*.*"))
+        self.le_ms_defect_file_name.setText(ShadowGui.selectFileFromDialog(self, self.ms_defect_file_name, "Select Defect File Name", file_extension_filter="*.dat; *.sha"))
 
     def selectFileFacetDescr(self):
-        self.le_ms_file_facet_descr.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select File with Facet Description", ".", "*.*"))
+        self.le_ms_file_facet_descr.setText(ShadowGui.selectFileFromDialog(self, self.ms_file_facet_descr, "Select File with Facet Description"))
 
     def selectFileSurfRoughness(self):
-        self.le_ms_file_surf_roughness.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select Surface Roughness File with PSD fn", ".", "*.*"))
+        self.le_ms_file_surf_roughness.setText(ShadowGui.selectFileFromDialog(self, self.ms_file_surf_roughness, "Select Surface Roughness File with PSD fn"))
 
     def selectFileWithParametersRz(self):
-        self.le_ms_file_with_parameters_rz.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select File with parameters (r(z))", ".", "*.*"))
+        self.le_ms_file_with_parameters_rz.setText(ShadowGui.selectFileFromDialog(self, self.ms_file_with_parameters_rz, "Select File with parameters (r(z))"))
 
     def selectFileWithParametersRz2(self):
-        self.le_ms_file_with_parameters_rz2.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select File with parameters (r(z)^2)", ".", "*.*"))
+        self.le_ms_file_with_parameters_rz2.setText(ShadowGui.selectFileFromDialog(self, self.ms_file_with_parameters_rz2, "Select File with parameters (r(z)^2)"))
 
     def selectFileOrientations(self):
-        self.le_ms_file_orientations.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select File with Orientations", ".", "*.*"))
+        self.le_ms_file_orientations.setText(ShadowGui.selectFileFromDialog(self, self.ms_file_orientations, "Select File with Orientations"))
 
     def selectFilePolynomial(self):
-        self.le_ms_file_polynomial.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select File with Polynomial", ".", "*.*"))
+        self.le_ms_file_polynomial.setText(ShadowGui.selectFileFromDialog(self, self.ms_file_polynomial, "Select File with Polynomial"))
 
     def selectPrereflObjectFileName(self):
-        self.le_file_prerefl_for_object_medium.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select File Prerefl for Object Medium", ".", "*.*"))
+        self.le_file_prerefl_for_object_medium.setText(ShadowGui.selectFileFromDialog(self, self.file_prerefl_for_object_medium, "Select File Prerefl for Object Medium"))
 
     def selectPrereflImageFileName(self):
-        self.le_file_prerefl_for_image_medium.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select File Prerefl for Image Medium", ".", "*.*"))
+        self.le_file_prerefl_for_image_medium.setText(ShadowGui.selectFileFromDialog(self, self.file_prerefl_for_image_medium, "Select File Prerefl for Image Medium"))
 
     def calculate_incidence_angle_mrad(self):
         self.incidence_angle_mrad = round(math.radians(90-self.incidence_angle_deg)*1000, 2)
+
+        if self.graphical_options.is_mirror:
+            self.reflection_angle_deg = self.incidence_angle_deg
+            self.reflection_angle_mrad = self.incidence_angle_mrad
 
     def calculate_reflection_angle_mrad(self):
         self.reflection_angle_mrad = round(math.radians(90-self.reflection_angle_deg)*1000, 2)
 
     def calculate_incidence_angle_deg(self):
         self.incidence_angle_deg = round(math.degrees(0.5*math.pi-(self.incidence_angle_mrad/1000)), 3)
+
+        if self.graphical_options.is_mirror:
+            self.reflection_angle_deg = self.incidence_angle_deg
+            self.reflection_angle_mrad = self.incidence_angle_mrad
 
     def calculate_reflection_angle_deg(self):
         self.reflection_angle_deg = round(math.degrees(0.5*math.pi-(self.reflection_angle_mrad/1000)), 3)
@@ -2597,6 +2600,8 @@ class OpticalElement(ow_generic_element.GenericElement):
             elif self.graphical_options.is_grating:
                 self.set_GratingAutosetting()
                 self.set_GratingRulingType()
+            elif self.graphical_options.is_refractor:
+                self.set_RefrectorOpticalConstants()
 
             self.set_Dim_Parameters()
             self.set_ModifiedSurface()

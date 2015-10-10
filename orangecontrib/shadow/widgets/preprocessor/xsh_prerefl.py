@@ -1,9 +1,11 @@
 import sys
+
 from PyQt4.QtGui import QTextEdit, QTextCursor, QDoubleValidator, QApplication
 from oasys.widgets import widget
 from orangewidget import gui
 from orangewidget.settings import Setting
 from Shadow.ShadowPreprocessorsXraylib import prerefl
+
 
 try:
     from ..tools.xoppy_calc import xoppy_doc
@@ -65,9 +67,15 @@ class OWxsh_prerefl(widget.OWWidget):
         
         #widget index 2 
         idx += 1 
-        ShadowGui.lineEdit(box, self, "SHADOW_FILE",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=200, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box) 
+        box_2 = ShadowGui.widgetBox(box, "", addSpace=True, orientation="horizontal")
+
+        self.le_SHADOW_FILE = ShadowGui.lineEdit(box_2, self, "SHADOW_FILE",
+                                                 label=self.unitLabels()[idx], addSpace=True, labelWidth=180, orientation="horizontal")
+
+        pushButton = gui.button(box_2, self, "...")
+        pushButton.clicked.connect(self.selectFile)
+
+        self.show_at(self.unitFlags()[idx], box)
         
         #widget index 3 
         idx += 1 
@@ -113,9 +121,11 @@ class OWxsh_prerefl(widget.OWWidget):
     def unitLabels(self):
          return ['Element/Compound formula','Density [ g/cm3 ]','File for SHADOW (trace):','Minimum energy [eV]','Maximum energy [eV]','Energy step [eV]']
 
-
     def unitFlags(self):
          return ['True','True','True','True','True','True']
+
+    def selectFile(self):
+        self.le_SHADOW_FILE.setText(ShadowGui.selectFileFromDialog(self, self.SHADOW_FILE, "Select Output File", file_extension_filter="*.dat"))
 
     def compute(self):
         sys.stdout = EmittingStream(textWritten=self.writeStdOut)

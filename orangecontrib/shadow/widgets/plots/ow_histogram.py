@@ -1,11 +1,14 @@
-import sys, time
+import sys
+import time
+
 from PyQt4 import QtGui
 from orangewidget import gui
 from orangewidget.settings import Setting
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowOpticalElement, ShadowCompoundOpticalElement, EmittingStream, TTYGrabber
 
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream, TTYGrabber
 from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog, ShadowPlot
 from orangecontrib.shadow.widgets.gui import ow_automatic_element
+
 
 class Histogram(ow_automatic_element.AutomaticElement):
 
@@ -31,7 +34,10 @@ class Histogram(ow_automatic_element.AutomaticElement):
     image_plane_new_position=Setting(10.0)
     image_plane_rel_abs_position=Setting(0)
 
-    x_column_index=Setting(11)
+    x_column_index=Setting(10)
+    weight_column_index = Setting(22)
+    weight_column_index = Setting(22)
+
     number_of_bins=Setting(100)
 
     title=Setting("Energy")
@@ -42,9 +48,9 @@ class Histogram(ow_automatic_element.AutomaticElement):
         super().__init__()
 
         tabs_setting = gui.tabWidget(self.controlArea)
-        tabs_setting.setFixedWidth(450)
+        tabs_setting.setFixedWidth(420)
 
-        gui.button(self.controlArea, self, "Refresh", callback=self.plot_results)
+        gui.button(self.controlArea, self, "Refresh", callback=self.plot_results, height=45)
 
         # graph tab
         tab_gen = ShadowGui.createTabPage(tabs_setting, "Histogram")
@@ -108,6 +114,42 @@ class Histogram(ow_automatic_element.AutomaticElement):
                                      ],
                                      sendSelectedValue=False, orientation="horizontal")
 
+        self.weight_column = gui.comboBox(general_box, self, "weight_column_index", label="Weight", labelWidth=80,
+                                         items=["1: X",
+                                                "2: Y",
+                                                "3: Z",
+                                                "4: X'",
+                                                "5: Y'",
+                                                "6: Z'",
+                                                "7: Es X",
+                                                "8: Es Y",
+                                                "9: Es Z",
+                                                "10: Ray Flag",
+                                                "11: Energy",
+                                                "12: Ray Index",
+                                                "13: Optical Path",
+                                                "14: Phase s",
+                                                "15: Phase p",
+                                                "16: Ep X",
+                                                "17: Ep Y",
+                                                "18: Ep Z",
+                                                "19: Wavelength",
+                                                "20: R = sqrt(X^2 + Y^2 + Z^2)",
+                                                "21: Theta (angle from Y axis)",
+                                                "22: Magnitude = |Es| + |Ep|",
+                                                "23: Total Intensity = |Es|^2 + |Ep|^2",
+                                                "24: S Intensity = |Es|^2",
+                                                "25: P Intensity = |Ep|^2",
+                                                "26: |K|",
+                                                "27: K X",
+                                                "28: K Y",
+                                                "29: K Z",
+                                                "30: S0-stokes = |Es|^2 + |Ep|^2",
+                                                "31: S1-stokes = |Es|^2 - |Ep|^2",
+                                                "32: S2-stokes = 2|Es||Ep|cos(Phase s-Phase p)",
+                                                "33: S3-stokes = 2|Es||Ep|sin(Phase s-Phase p)",
+                                         ],
+                                         sendSelectedValue=False, orientation="horizontal")
 
         histograms_box = ShadowGui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=70)
 
@@ -142,7 +184,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
             self.image_box.layout().addWidget(self.plot_canvas)
 
         try:
-            self.plot_canvas.plot_histo(beam, var, 1, None, 23, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum)
+            self.plot_canvas.plot_histo(beam, var, 1, None, self.weight_column_index+1, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum)
         except Exception:
             raise Exception("Data not plottable: No good rays or bad content")
 

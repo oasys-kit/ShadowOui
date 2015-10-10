@@ -197,16 +197,13 @@ class Wiggler(ow_source.Source):
         self.b_from_harmonics_box.setVisible(self.type_combo == 2)
 
     def selectOptimizeFile(self):
-        self.le_optimize_file_name.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Open Optimize Source Parameters File", ".", "*.*"))
+        self.le_optimize_file_name.setText(ShadowGui.selectFileFromDialog(self, self.file_with_phase_space_volume, "Open Optimize Source Parameters File"))
 
     def selectFileWithBvsY(self):
-        self.le_file_with_b_vs_y.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Open File With B vs Y", ".", "*.*"))
+        self.le_file_with_b_vs_y.setText(ShadowGui.selectFileFromDialog(self, self.file_with_b_vs_y, "Open File With B vs Y"))
 
     def selectFileWithHarmonics(self):
-        self.le_file_with_harmonics.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Open File with Harmonics", ".", "*.*"))
+        self.le_file_with_harmonics.setText(ShadowGui.selectFileFromDialog(self, self.file_with_harmonics, "Open File With Harmonics"))
 
     def runShadowSource(self):
         #self.error(self.error_id)
@@ -405,7 +402,7 @@ class Wiggler(ow_source.Source):
 
                 self.optimize_source_combo = int(shadow_file.getProperty("F_BOUND_SOUR"))
                 if self.optimize_source_combo == 1:
-                    self.optimize_file_name = str(shadow_file.getProperty("FILE_BOUND"))
+                    self.file_with_phase_space_volume = str(shadow_file.getProperty("FILE_BOUND"))
 
                 self.e_min=float(shadow_file.getProperty("PH1"))
                 self.e_max=float(shadow_file.getProperty("PH2"))

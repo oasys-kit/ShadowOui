@@ -3,14 +3,12 @@ import sys
 from PyQt4 import QtGui
 from PyQt4.QtGui import QApplication, QFileDialog
 from PyQt4.QtCore import QRect
-
 from orangewidget import widget, gui
+from Shadow import ShadowTools as ST
 
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream, ShadowCompoundOpticalElement
 from orangecontrib.shadow.util.shadow_util import ShadowGui
 from orangecontrib.shadow.util.python_script import PythonConsole
-
-from Shadow import ShadowTools as ST
 
 class Info(widget.OWWidget):
 
@@ -52,6 +50,7 @@ class Info(widget.OWWidget):
         tab_sys = ShadowGui.createTabPage(tabs_setting, "Sys Info")
         tab_mir = ShadowGui.createTabPage(tabs_setting, "OE Info")
         tab_sou = ShadowGui.createTabPage(tabs_setting, "Source Info")
+        tab_dis = ShadowGui.createTabPage(tabs_setting, "Distances Summary")
         tab_scr = ShadowGui.createTabPage(tabs_setting, "Python Script")
         tab_out = ShadowGui.createTabPage(tabs_setting, "System Output")
 
@@ -64,6 +63,9 @@ class Info(widget.OWWidget):
         self.sourceInfo = QtGui.QTextEdit()
         self.sourceInfo.setReadOnly(True)
         self.sourceInfo.setMaximumHeight(self.WIDGET_HEIGHT-100)
+        self.distancesSummary = QtGui.QTextEdit()
+        self.distancesSummary.setReadOnly(True)
+        self.distancesSummary.setMaximumHeight(self.WIDGET_HEIGHT-100)
         self.pythonScript = QtGui.QTextEdit()
         self.pythonScript.setReadOnly(False)  # asked by Manolo
         self.pythonScript.setMaximumHeight(self.WIDGET_HEIGHT - 300)
@@ -76,6 +78,9 @@ class Info(widget.OWWidget):
 
         source_box = ShadowGui.widgetBox(tab_sou, "", addSpace=True, orientation="horizontal", height = self.WIDGET_HEIGHT-80, width = self.WIDGET_WIDTH-80)
         source_box.layout().addWidget(self.sourceInfo)
+
+        dist_box = ShadowGui.widgetBox(tab_dis, "", addSpace=True, orientation="horizontal", height = self.WIDGET_HEIGHT-80, width = self.WIDGET_WIDTH-80)
+        dist_box.layout().addWidget(self.distancesSummary)
 
         script_box = ShadowGui.widgetBox(tab_scr, "", addSpace=True, orientation="vertical", height=self.WIDGET_HEIGHT - 80, width=self.WIDGET_WIDTH - 80)
         script_box.layout().addWidget(self.pythonScript)
@@ -139,6 +144,12 @@ class Info(widget.OWWidget):
                         self.sourceInfo.append(history_element._shadow_source_end.src.sourcinfo())
                     elif not history_element._shadow_oe_end is None:
                         self.mirInfo.append(history_element._shadow_oe_end._oe.mirinfo(title="O.E. #" + str(history_element._oe_number)))
+
+                coe = ShadowCompoundOpticalElement.create_compound_oe()
+                for oe in optical_element_list:
+                    coe._oe.append(oe)
+
+                self.distancesSummary.setText(coe._oe.info())
 
                 self.pythonScript.setText(ST.make_python_script_from_list(optical_element_list))
             else:

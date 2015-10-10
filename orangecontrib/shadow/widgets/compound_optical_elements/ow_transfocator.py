@@ -1,4 +1,5 @@
-import sys, copy
+import sys
+import copy
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -859,8 +860,7 @@ class CRLBox(QtGui.QWidget):
     ############################################################
 
     def selectFilePrerefl(self):
-        self.le_prerefl_file.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select File Prerefl", ".", "*.dat"))
+        self.le_prerefl_file.setText(ShadowGui.selectFileFromDialog(self, self.prerefl_file, "Select File Prerefl", file_extension_filter="*.dat"))
 
         self.prerefl_file = self.le_prerefl_file.text()
         self.transfocator.dump_prerefl_file()

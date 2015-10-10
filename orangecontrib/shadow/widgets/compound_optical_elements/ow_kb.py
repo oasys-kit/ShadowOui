@@ -1,4 +1,5 @@
-import sys, copy
+import sys
+import copy
 
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -661,15 +662,13 @@ class MirrorBox(QtGui.QWidget):
     ############################################################
 
     def selectFilePrerefl(self):
-        self.le_reflectivity_files.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select Reflectivity File", ".", "*.dat"))
+        self.le_reflectivity_files.setText(ShadowGui.selectFileFromDialog(self, self.reflectivity_files, "Select Reflectivity File", file_extension_filter="*.dat"))
 
         self.reflectivity_files = self.le_reflectivity_files.text()
         self.kb.dump_reflectivity_files()
 
     def selectFileSurfaceError(self):
-        self.le_surface_error_files.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select Surface Error File", ".", "*.dat; *.sha"))
+        self.le_surface_error_files.setText(ShadowGui.selectFileFromDialog(self, self.surface_error_files, "Surface Error File", file_extension_filter="*.dat; *.sha"))
 
         self.surface_error_files = self.le_surface_error_files.text()
         self.kb.dump_surface_error_files()

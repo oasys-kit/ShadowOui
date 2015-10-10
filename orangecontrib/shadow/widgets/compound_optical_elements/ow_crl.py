@@ -2,7 +2,6 @@ import sys
 
 from orangewidget import gui
 from orangewidget.settings import Setting
-
 from PyQt4 import QtGui
 from PyQt4.QtGui import QPalette, QColor, QFont
 
@@ -197,8 +196,7 @@ class CRL(ow_generic_element.GenericElement):
     ############################################################
 
     def selectFilePrerefl(self):
-        self.le_file_prerefl.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Select File Prerefl", ".", "*.dat"))
+        self.le_file_prerefl.setText(ShadowGui.selectFileFromDialog(self, self.prerefl_file, "Select File Prerefl", file_extension_filter="*.dat"))
 
     def get_surface_shape(self):
         if self.surface_shape == 0:
@@ -273,20 +271,20 @@ class CRL(ow_generic_element.GenericElement):
 
     def populateFields(self, shadow_oe):
         shadow_oe._oe.append_crl(p0=self.p,
-                                q0=self.q,
-                                nlenses=self.nlenses,
-                                slots_empty=self.slots_empty,
-                                thickness=self.thickness,
-                                surface_shape=self.get_surface_shape(),
-                                convex_to_the_beam=self.convex_to_the_beam,
-                                diameter=self.get_diameter(),
-                                cylinder_angle=self.get_cylinder_angle(),
-                                prerefl_file=self.get_prerefl_file(),
-                                refraction_index=self.refraction_index,
-                                attenuation_coefficient=self.attenuation_coefficient,
-                                radius=self.radius,
-                                interthickness=self.interthickness,
-                                use_ccc=self.use_ccc)
+                                 q0=self.q,
+                                 nlenses=self.nlenses,
+                                 slots_empty=self.slots_empty,
+                                 thickness=self.thickness,
+                                 surface_shape=self.get_surface_shape(),
+                                 convex_to_the_beam=self.convex_to_the_beam,
+                                 diameter=self.get_diameter(),
+                                 cylinder_angle=self.get_cylinder_angle(),
+                                 prerefl_file=self.get_prerefl_file(),
+                                 refraction_index=self.refraction_index,
+                                 attenuation_coefficient=self.attenuation_coefficient,
+                                 radius=self.radius,
+                                 interthickness=self.interthickness,
+                                 use_ccc=self.use_ccc)
 
     def doSpecificSetting(self, shadow_oe):
         pass

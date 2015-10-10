@@ -1,6 +1,7 @@
-import sys, numpy
-import scipy.stats as stats
+import sys
 
+import numpy
+import scipy.stats as stats
 from orangewidget import gui
 from orangewidget.settings import Setting
 from PyQt4 import QtGui
@@ -10,6 +11,7 @@ from orangecontrib.shadow.widgets.gui import ow_source
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerOut, ShadowBeam, \
     ShadowSource
 from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowPhysics
+
 
 class GeometricalSource(ow_source.Source):
 
@@ -336,7 +338,7 @@ class GeometricalSource(ow_source.Source):
 
         self.ewp_box_7 = ShadowGui.widgetBox(energy_wavelength_box, "User Defined", addSpace=True, orientation="vertical")
 
-        file_box = ShadowGui.widgetBox(self.ewp_box_7, "", addSpace=True, orientation="horizontal", width=510, height=25)
+        file_box = ShadowGui.widgetBox(self.ewp_box_7, "", addSpace=True, orientation="horizontal", height=25)
 
         self.le_user_defined_file = ShadowGui.lineEdit(file_box, self, "user_defined_file", "Spectrum File",
                                                     labelWidth=100, valueType=str, orientation="horizontal")
@@ -504,12 +506,10 @@ class GeometricalSource(ow_source.Source):
         self.ewp_box_8.setVisible(self.polarization==1)
 
     def selectFile(self):
-        self.le_user_defined_file.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Open Spectrum File", ".", "*.dat; *.txt"))
+        self.le_user_defined_file.setText(ShadowGui.selectFileFromDialog(self, self.user_defined_file, "Open Spectrum File", file_extension_filter="*.dat; *.txt"))
 
     def selectOptimizeFile(self):
-        self.le_optimize_file_name.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Open Optimize Source Parameters File", ".", "*.*"))
+        self.le_optimize_file_name.setText(ShadowGui.selectFileFromDialog(self, self.optimize_file_name, "Open Optimize Source Parameters File"))
 
     def runShadowSource(self):
         #self.error(self.error_id)

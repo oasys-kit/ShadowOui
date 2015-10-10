@@ -138,9 +138,7 @@ class BendingMagnet(ow_source.Source):
         self.optimize_file_name_box.setVisible(self.optimize_source != 0)
 
     def selectOptimizeFile(self):
-        self.le_optimize_file_name.setText(
-            QtGui.QFileDialog.getOpenFileName(self, "Open Optimize Source Parameters File", ".", "*.*"))
-
+        self.le_optimize_file_name.setText(ShadowGui.selectFileFromDialog(self, self.optimize_file_name, "Open Optimize Source Parameters File"))
 
     def calculateMagneticField(self):
         self.magnetic_radius=abs(self.magnetic_radius)

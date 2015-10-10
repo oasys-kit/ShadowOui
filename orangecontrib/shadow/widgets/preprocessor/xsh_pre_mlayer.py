@@ -1,9 +1,11 @@
 import sys
+
 from PyQt4.QtGui import QTextEdit, QTextCursor, QIntValidator, QDoubleValidator, QApplication
 from oasys.widgets import widget
 from orangewidget import gui
 from orangewidget.settings import Setting
 from Shadow.ShadowPreprocessorsXraylib import pre_mlayer
+
 
 try:
     from ..tools.xoppy_calc import xoppy_doc
@@ -72,8 +74,15 @@ class OWxsh_pre_mlayer(widget.OWWidget):
         
         #widget index 0 
         idx += 1 
-        ShadowGui.lineEdit(box, self, "FILE",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
+
+        box_file = ShadowGui.widgetBox(box, "", addSpace=True, orientation="horizontal")
+
+        self.le_FILE = ShadowGui.lineEdit(box_file, self, "FILE",
+                       label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
+
+        pushButton = gui.button(box_file, self, "...")
+        pushButton.clicked.connect(self.selectFile)
+
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 1
@@ -174,8 +183,14 @@ class OWxsh_pre_mlayer(widget.OWWidget):
 
         #widget index 15
         idx += 1
-        ShadowGui.lineEdit(box_2, self, "FILE_DEPTH",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=450, orientation="horizontal")
+        box_file_depth = ShadowGui.widgetBox(box_2, "", addSpace=True, orientation="horizontal")
+
+        self.le_FILE_DEPTH = ShadowGui.lineEdit(box_file_depth, self, "FILE_DEPTH",
+                                                 label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
+
+        pushButton = gui.button(box_file_depth, self, "...")
+        pushButton.clicked.connect(self.selectFileDepth)
+
         self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 16
@@ -190,20 +205,38 @@ class OWxsh_pre_mlayer(widget.OWWidget):
 
         #widget index 17
         idx += 1
-        ShadowGui.lineEdit(box_3, self, "FILE_SHADOW",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
+        box_file_shadow = ShadowGui.widgetBox(box_3, "", addSpace=True, orientation="horizontal")
+
+        self.le_FILE_SHADOW = ShadowGui.lineEdit(box_file_shadow, self, "FILE_SHADOW",
+                                                 label=self.unitLabels()[idx], addSpace=True, labelWidth=420, orientation="horizontal")
+
+        pushButton = gui.button(box_file_shadow, self, "...")
+        pushButton.clicked.connect(self.selectFileShadow)
+
         self.show_at(self.unitFlags()[idx], box_3)
 
         #widget index 18
         idx += 1
-        ShadowGui.lineEdit(box_3, self, "FILE_THICKNESS",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
+        box_file_thickness = ShadowGui.widgetBox(box_3, "", addSpace=True, orientation="horizontal")
+
+        self.le_FILE_THICKNESS = ShadowGui.lineEdit(box_file_thickness, self, "FILE_THICKNESS",
+                                                 label=self.unitLabels()[idx], addSpace=True, labelWidth=420, orientation="horizontal")
+
+        pushButton = gui.button(box_file_thickness, self, "...")
+        pushButton.clicked.connect(self.selectFileThickness)
+
         self.show_at(self.unitFlags()[idx], box_3)
 
         #widget index 19
         idx += 1
-        ShadowGui.lineEdit(box_3, self, "FILE_GAMMA",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
+        box_file_gamma = ShadowGui.widgetBox(box_3, "", addSpace=True, orientation="horizontal")
+
+        self.le_FILE_GAMMA = ShadowGui.lineEdit(box_file_gamma, self, "FILE_GAMMA",
+                                                 label=self.unitLabels()[idx], addSpace=True, labelWidth=420, orientation="horizontal")
+
+        pushButton = gui.button(box_file_gamma, self, "...")
+        pushButton.clicked.connect(self.selectFileGamma)
+
         self.show_at(self.unitFlags()[idx], box_3)
 
         box_4 = gui.widgetBox(box, "",orientation="vertical")
@@ -264,7 +297,7 @@ class OWxsh_pre_mlayer(widget.OWWidget):
                  'gamma ratio [t_even/(t_odd+t_even)]',
                  'Roughness even layer [A]',
                  'Roughness odd layer [A]',
-                 'File with list of t_bilayer,gamma,roughness_even,roughness_odd:',
+                 'File with list of t_bilayer,gamma,roughness_even,roughness_odd',
                  'Bilayer thicknesses/gamma graded along the surface? ',
                  'Output binary file (for SHADOW) with splines',
                  'File with bilayer thicknesses versus surface (PRESURFACE format)',
@@ -328,6 +361,22 @@ class OWxsh_pre_mlayer(widget.OWWidget):
                          AA2=self.AA2)
 
         self.send("PreProcessor_Data", ShadowPreProcessorData(m_layer_data_file_dat=self.FILE, m_layer_data_file_sha=self.FILE_SHADOW))
+
+
+    def selectFile(self):
+        self.le_FILE.setText(ShadowGui.selectFileFromDialog(self, self.FILE, "Select Output File", file_extension_filter="*.dat"))
+
+    def selectFileDepth(self):
+        self.le_FILE_DEPTH.setText(ShadowGui.selectFileFromDialog(self, self.FILE_DEPTH, "Open File with list of t_bilayer,gamma,roughness_even,roughness_odd", file_extension_filter="*.dat"))
+
+    def selectFileThickness(self):
+        self.le_FILE_THICKNESS.setText(ShadowGui.selectFileFromDialog(self, self.FILE_THICKNESS, "Open File with bilayer thicknesses versus surface (PRESURFACE format)", file_extension_filter="*.dat"))
+
+    def selectFileShadow(self):
+        self.le_FILE_SHADOW.setText(ShadowGui.selectFileFromDialog(self, self.FILE_SHADOW, "Select Output binary file (for SHADOW) with splines", file_extension_filter="*.dat"))
+
+    def selectFileGamma(self):
+        self.le_FILE_GAMMA.setText(ShadowGui.selectFileFromDialog(self, self.FILE_GAMMA, "Open File with bilayer gamma versus surface (PRESURFACE format)", file_extension_filter="*.dat"))
 
     def defaults(self):
          self.resetSettings()
