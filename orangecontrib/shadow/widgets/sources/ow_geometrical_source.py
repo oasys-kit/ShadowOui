@@ -986,6 +986,19 @@ class GeometricalSource(ow_source.Source):
                     self.horizontal_lim_x_minus = float(shadow_file.getProperty("HDIV2"))
                     self.vertical_lim_z_plus = float(shadow_file.getProperty("VDIV1"))
                     self.vertical_lim_z_minus = float(shadow_file.getProperty("VDIV2"))
+
+                    horiz = self.horizontal_lim_x_plus == 0.0 and self.horizontal_lim_x_minus == 0.0
+                    verti = self.vertical_lim_z_plus == 0.0 and self.vertical_lim_z_minus == 0.0
+
+                    if not horiz and verti:
+                       self.angular_distribution_limits = 1
+                    elif horiz and not verti:
+                       self.angular_distribution_limits = 2
+                    elif not horiz and not verti:
+                        self.angular_distribution_limits = 3
+                    else:
+                        self.angular_distribution_limits = 0
+
                     self.horizontal_sigma_x = float(shadow_file.getProperty("SIGDIX"))
                     self.vertical_sigma_z = float(shadow_file.getProperty("SIGDIZ"))
                 elif self.angular_distribution == 3:

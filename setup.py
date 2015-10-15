@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 
 
 NAME = 'ShadowOui'
-VERSION = '1.2.18'
+VERSION = '1.2.19'
 ISRELEASED = False
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
