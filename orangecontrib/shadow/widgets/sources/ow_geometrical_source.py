@@ -723,19 +723,9 @@ class GeometricalSource(ow_source.Source):
                 if self.angular_distribution_limits != 2:
                     self.horizontal_lim_x_plus = ShadowGui.checkPositiveNumber(self.horizontal_lim_x_plus, "Horizontal Limit X(+)")
                     self.horizontal_lim_x_minus = ShadowGui.checkPositiveNumber(self.horizontal_lim_x_minus, "Horizontal Limit X(-)")
-                    #TODO: remove after Shadow3 emitting error codes and not kill the application
-                    if self.horizontal_lim_x_plus < 1e-5:
-                        raise Exception("Horizontal Limit X(+) cannot be < 1e-5")
-                    if self.horizontal_lim_x_minus < 1e-5:
-                        raise Exception("Horizontal Limit X(-) cannot be < 1e-5")
                 if self.angular_distribution_limits != 1:
                     self.vertical_lim_z_plus = ShadowGui.checkPositiveNumber(self.vertical_lim_z_plus, "Vertical Limit Z(+)")
                     self.vertical_lim_z_minus = ShadowGui.checkPositiveNumber(self.vertical_lim_z_minus, "Vertical Limit Z(-)")
-                    #TODO: remove after Shadow3 emitting error codes and not kill the application
-                    if self.vertical_lim_z_plus < 1e-5:
-                        raise Exception("Horizontal Limit Z(+) cannot be < 1e-5")
-                    if self.vertical_lim_z_minus < 1e-5:
-                        raise Exception("Horizontal Limit Z(-) cannot be < 1e-5")
 
             self.horizontal_sigma_x = ShadowGui.checkPositiveNumber(self.horizontal_sigma_x, "Horizontal Sigma (X)")
             self.vertical_sigma_z = ShadowGui.checkPositiveNumber(self.vertical_sigma_z, "Vertical Sigma (Z)")
@@ -867,10 +857,10 @@ class GeometricalSource(ow_source.Source):
             shadow_src.src.VDIV1 = 0
             shadow_src.src.VDIV2 = 0
 
-            if self.angular_distribution_limits != 0 and self.angular_distribution_limits != 2:
+            if self.angular_distribution_limits == 1 or self.angular_distribution_limits == 3:
                 shadow_src.src.HDIV1 = self.horizontal_lim_x_plus
                 shadow_src.src.HDIV2 = self.horizontal_lim_x_minus
-            if self.angular_distribution_limits != 0 and self.angular_distribution_limits != 1:
+            if self.angular_distribution_limits == 2 or self.angular_distribution_limits == 3:
                 shadow_src.src.VDIV1 = self.vertical_lim_z_plus
                 shadow_src.src.VDIV2 = self.vertical_lim_z_minus
 
