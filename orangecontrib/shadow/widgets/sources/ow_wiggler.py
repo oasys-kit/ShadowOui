@@ -5,7 +5,7 @@ from PyQt4.QtGui import QApplication, QPalette, QColor, QFont
 from orangewidget import gui
 from orangewidget.settings import Setting
 
-from orangecontrib.shadow.util import srfunc
+from srxraylib.sources import srfunc
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerOut, ShadowBeam, \
     ShadowSource
 from orangecontrib.shadow.util.shadow_util import ShadowGui
