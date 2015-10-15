@@ -62,10 +62,12 @@ class GeometricalSource(ow_source.Source):
     vertical_div_z_plus = Setting(5.0e-6)
     vertical_div_z_minus = Setting(5.0e-6)
 
-    horizontal_lim_x_plus = Setting(5.0e-7)
-    horizontal_lim_x_minus = Setting(5.0e-7)
-    vertical_lim_z_plus = Setting(5.0e-6)
-    vertical_lim_z_minus = Setting(5.0e-6)
+    angular_distribution_limits = Setting(0)
+
+    horizontal_lim_x_plus = Setting(1.0e-5)
+    horizontal_lim_x_minus = Setting(1.0e-5)
+    vertical_lim_z_plus = Setting(1.0e-5)
+    vertical_lim_z_minus = Setting(1.0e-5)
     horizontal_sigma_x = Setting(0.001)
     vertical_sigma_z = Setting(0.0001)
 
@@ -213,7 +215,7 @@ class GeometricalSource(ow_source.Source):
 
         self.set_SpatialType()
 
-        angular_distribution_box = ShadowGui.widgetBox(left_box_2, "Angular Distribution", addSpace=True, orientation="vertical", height=230)
+        angular_distribution_box = ShadowGui.widgetBox(left_box_2, "Angular Distribution", addSpace=True, orientation="vertical", height=250)
 
         gui.comboBox(angular_distribution_box, self, "angular_distribution", label="Angular Distribution", labelWidth=355,
                      items=["Flat", "Uniform", "Gaussian", "Conical"], orientation="horizontal", callback=self.set_AngularDistribution)
@@ -229,10 +231,14 @@ class GeometricalSource(ow_source.Source):
 
         self.angular_distribution_box_2 = ShadowGui.widgetBox(angular_distribution_box, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.angular_distribution_box_2, self, "horizontal_lim_x_plus", "Horizontal Limit X(+) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.angular_distribution_box_2, self, "horizontal_lim_x_minus", "Horizontal Limit X(-) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.angular_distribution_box_2, self, "vertical_lim_z_plus", "Vertical Limit Z(+) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.angular_distribution_box_2, self, "vertical_lim_z_minus", "Vertical Limit Z(-) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        gui.comboBox(self.angular_distribution_box_2, self, "angular_distribution_limits", label="Angular Distribution Limits", labelWidth=355,
+                     items=["No Limits", "Horizontal", "Vertical", "Both"], orientation="horizontal", callback=self.set_AngularDistributionLimits)
+
+        self.le_horizontal_lim_x_plus = ShadowGui.lineEdit(self.angular_distribution_box_2, self, "horizontal_lim_x_plus", "Horizontal Limit X(+) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_horizontal_lim_x_minus = ShadowGui.lineEdit(self.angular_distribution_box_2, self, "horizontal_lim_x_minus", "Horizontal Limit X(-) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_vertical_lim_z_plus = ShadowGui.lineEdit(self.angular_distribution_box_2, self, "vertical_lim_z_plus", "Vertical Limit Z(+) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_vertical_lim_z_minus = ShadowGui.lineEdit(self.angular_distribution_box_2, self, "vertical_lim_z_minus", "Vertical Limit Z(-) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+
         ShadowGui.lineEdit(self.angular_distribution_box_2, self, "horizontal_sigma_x", "Horizontal Sigma (X) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
         ShadowGui.lineEdit(self.angular_distribution_box_2, self, "vertical_sigma_z", "Vertical Sigma (Z) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
 
@@ -437,10 +443,19 @@ class GeometricalSource(ow_source.Source):
         self.spatial_type_box_2.setVisible(self.spatial_type == 2)
         self.spatial_type_box_3.setVisible(self.spatial_type == 3)
 
+    def set_AngularDistributionLimits(self):
+        self.le_horizontal_lim_x_plus.setEnabled(self.angular_distribution_limits != 0 and self.angular_distribution_limits != 2)
+        self.le_horizontal_lim_x_minus.setEnabled(self.angular_distribution_limits != 0 and self.angular_distribution_limits != 2)
+        self.le_vertical_lim_z_plus.setEnabled(self.angular_distribution_limits != 0 and self.angular_distribution_limits != 1)
+        self.le_vertical_lim_z_minus.setEnabled(self.angular_distribution_limits != 0 and self.angular_distribution_limits != 1)
+
     def set_AngularDistribution(self):
         self.angular_distribution_box_1.setVisible(self.angular_distribution == 0 or self.angular_distribution == 1)
         self.angular_distribution_box_2.setVisible(self.angular_distribution == 2)
         self.angular_distribution_box_3.setVisible(self.angular_distribution == 3)
+
+        if self.angular_distribution == 2:
+            self.set_AngularDistributionLimits()
 
     def set_Depth(self):
         self.depth_box_1.setVisible(self.depth == 1)
@@ -704,10 +719,24 @@ class GeometricalSource(ow_source.Source):
             self.vertical_div_z_plus = ShadowGui.checkPositiveNumber(self.vertical_div_z_plus, "Vertical Divergence Z(+)")
             self.vertical_div_z_minus = ShadowGui.checkPositiveNumber(self.vertical_div_z_minus, "Vertical Divergence Z(-)")
         elif self.angular_distribution == 2:
-            self.horizontal_lim_x_plus = ShadowGui.checkPositiveNumber(self.horizontal_lim_x_plus, "Horizontal Limit X(+)")
-            self.horizontal_lim_x_minus = ShadowGui.checkPositiveNumber(self.horizontal_lim_x_minus, "Horizontal Limit X(-)")
-            self.vertical_lim_z_plus = ShadowGui.checkPositiveNumber(self.vertical_lim_z_plus, "Vertical Limit Z(+)")
-            self.vertical_lim_z_minus = ShadowGui.checkPositiveNumber(self.vertical_lim_z_minus, "Vertical Limit Z(-)")
+            if self.angular_distribution_limits != 0:
+                if self.angular_distribution_limits != 2:
+                    self.horizontal_lim_x_plus = ShadowGui.checkPositiveNumber(self.horizontal_lim_x_plus, "Horizontal Limit X(+)")
+                    self.horizontal_lim_x_minus = ShadowGui.checkPositiveNumber(self.horizontal_lim_x_minus, "Horizontal Limit X(-)")
+                    #TODO: remove after Shadow3 emitting error codes and not kill the application
+                    if self.horizontal_lim_x_plus < 1e-5:
+                        raise Exception("Horizontal Limit X(+) cannot be < 1e-5")
+                    if self.horizontal_lim_x_minus < 1e-5:
+                        raise Exception("Horizontal Limit X(-) cannot be < 1e-5")
+                if self.angular_distribution_limits != 1:
+                    self.vertical_lim_z_plus = ShadowGui.checkPositiveNumber(self.vertical_lim_z_plus, "Vertical Limit Z(+)")
+                    self.vertical_lim_z_minus = ShadowGui.checkPositiveNumber(self.vertical_lim_z_minus, "Vertical Limit Z(-)")
+                    #TODO: remove after Shadow3 emitting error codes and not kill the application
+                    if self.vertical_lim_z_plus < 1e-5:
+                        raise Exception("Horizontal Limit Z(+) cannot be < 1e-5")
+                    if self.vertical_lim_z_minus < 1e-5:
+                        raise Exception("Horizontal Limit Z(-) cannot be < 1e-5")
+
             self.horizontal_sigma_x = ShadowGui.checkPositiveNumber(self.horizontal_sigma_x, "Horizontal Sigma (X)")
             self.vertical_sigma_z = ShadowGui.checkPositiveNumber(self.vertical_sigma_z, "Vertical Sigma (Z)")
         elif self.angular_distribution == 3:
@@ -856,7 +885,7 @@ class GeometricalSource(ow_source.Source):
         if self.photon_energy_distribution == 0:
             shadow_src.src.PH1 = self.single_line_value
         elif self.photon_energy_distribution == 1:
-            shadow_src.src.N_COLOR = self.number_of_lines
+            shadow_src.src.N_COLOR = self.number_of_lines+1
             shadow_src.src.PH1 = self.line_value_1
             shadow_src.src.PH2 = self.line_value_2
             shadow_src.src.PH3 = self.line_value_3
@@ -871,7 +900,7 @@ class GeometricalSource(ow_source.Source):
             shadow_src.src.PH1 = self.uniform_minimum
             shadow_src.src.PH2 = self.uniform_maximum
         elif self.photon_energy_distribution == 3:
-            shadow_src.src.N_COLOR = self.number_of_lines
+            shadow_src.src.N_COLOR = self.number_of_lines+1
             shadow_src.src.PH1 = self.line_value_1
             shadow_src.src.PH2 = self.line_value_2
             shadow_src.src.PH3 = self.line_value_3
@@ -978,7 +1007,7 @@ class GeometricalSource(ow_source.Source):
                 if self.photon_energy_distribution == 0:
                     self.single_line_value = float(shadow_file.getProperty("PH1"))
                 elif self.photon_energy_distribution == 1:
-                    self.number_of_lines = int(shadow_file.getProperty("N_COLOR"))
+                    self.number_of_lines = int(shadow_file.getProperty("N_COLOR"))-1
                     self.line_value_1 = float(shadow_file.getProperty("PH1"))
                     self.line_value_2 = float(shadow_file.getProperty("PH2"))
                     self.line_value_3 = float(shadow_file.getProperty("PH3"))
@@ -993,7 +1022,7 @@ class GeometricalSource(ow_source.Source):
                     self.uniform_minimum = float(shadow_file.getProperty("PH1"))
                     self.uniform_maximum = float(shadow_file.getProperty("PH2"))
                 elif self.photon_energy_distribution == 3:
-                    self.number_of_lines = int(shadow_file.getProperty("N_COLOR"))
+                    self.number_of_lines = int(shadow_file.getProperty("N_COLOR"))-1
                     self.line_value_1 = float(shadow_file.getProperty("PH1"))
                     self.line_value_2 = float(shadow_file.getProperty("PH2"))
                     self.line_value_3 = float(shadow_file.getProperty("PH3"))
