@@ -861,10 +861,19 @@ class GeometricalSource(ow_source.Source):
             shadow_src.src.VDIV2 = self.vertical_div_z_minus
         elif self.angular_distribution == 2:
             shadow_src.src.FDISTR = 3
-            shadow_src.src.HDIV1 = self.horizontal_lim_x_plus
-            shadow_src.src.HDIV2 = self.horizontal_lim_x_minus
-            shadow_src.src.VDIV1 = self.vertical_lim_z_plus
-            shadow_src.src.VDIV2 = self.vertical_lim_z_minus
+
+            shadow_src.src.HDIV1 = 0
+            shadow_src.src.HDIV2 = 0
+            shadow_src.src.VDIV1 = 0
+            shadow_src.src.VDIV2 = 0
+
+            if self.angular_distribution_limits != 0 and self.angular_distribution_limits != 2:
+                shadow_src.src.HDIV1 = self.horizontal_lim_x_plus
+                shadow_src.src.HDIV2 = self.horizontal_lim_x_minus
+            if self.angular_distribution_limits != 0 and self.angular_distribution_limits != 1:
+                shadow_src.src.VDIV1 = self.vertical_lim_z_plus
+                shadow_src.src.VDIV2 = self.vertical_lim_z_minus
+
             shadow_src.src.SIGDIX = self.horizontal_sigma_x
             shadow_src.src.SIGDIZ = self.vertical_sigma_z
         elif self.angular_distribution == 3:
