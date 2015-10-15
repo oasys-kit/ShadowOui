@@ -850,7 +850,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
             layout = QtGui.QVBoxLayout(self)
             label = QtGui.QLabel("")
 
-            directory_files = resources.package_dirname("orangecontrib.shadow.widgets.experimental_elements")
+            directory_files = resources.package_dirname("orangecontrib.shadow.widgets.experimental_elements") + "/misc"
 
             label.setPixmap(QtGui.QPixmap(directory_files + "/axis.png"))
 
@@ -2474,7 +2474,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         foundMaterialFile = True
         materialIndex = 0
 
-        directory_files = resources.package_dirname("orangecontrib.shadow.widgets.experimental_elements")
+        directory_files = resources.package_dirname("orangecontrib.shadow.widgets.experimental_elements") + "/data"
 
         try:
             while(foundMaterialFile):
@@ -2511,7 +2511,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         foundMaterialFile = True
         materialIndex = 0
 
-        directory_files = resources.package_dirname("orangecontrib.shadow.widgets.experimental_elements")
+        directory_files = resources.package_dirname("orangecontrib.shadow.widgets.experimental_elements") + "/data"
 
         try:
             while(foundMaterialFile):

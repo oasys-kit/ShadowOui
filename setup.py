@@ -49,8 +49,8 @@ INSTALL_REQUIRES = (
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
 
 PACKAGE_DATA = {
-    "orangecontrib.shadow.widgets.optical_elements":["icons/*.png", "icons/*.jpg"],
-    "orangecontrib.shadow.widgets.experimental_elements":["icons/*.png", "icons/*.jpg"],
+    "orangecontrib.shadow.widgets.gui":["misc/*.*"],
+    "orangecontrib.shadow.widgets.experimental_elements":["icons/*.png", "icons/*.jpg", "misc/*.*", "data/*.*"],
     "orangecontrib.shadow.widgets.optical_elements":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.shadow.widgets.compound_optical_elements": ["icons/*.png", "icons/*.jpg"],
     "orangecontrib.shadow.widgets.loop_management":["icons/*.png", "icons/*.jpg"],

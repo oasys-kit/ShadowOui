@@ -7,6 +7,7 @@ from PyQt4 import QtGui
 from PyQt4.QtGui import QPalette, QColor, QFont
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
+import orangecanvas.resources as resources
 
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerIn, ShadowPreProcessorData, \
     ShadowOpticalElement, ShadowBeam, ShadowFile
@@ -311,6 +312,19 @@ class OpticalElement(ow_generic_element.GenericElement):
     write_out_inc_ref_angles = Setting(0)
 
     ##########################################
+    # DCM UTILITY
+    ##########################################
+
+    vertical_quote = Setting(0.0)
+    total_distance = Setting(0.0)
+    twotheta_bragg = Setting(0.0)
+
+    d_1 = 0.0
+    d_2 = 0.0
+
+    image_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/distances.png"
+
+    ##########################################
     # SCREEN/SLIT SETTING
     ##########################################
 
@@ -594,6 +608,9 @@ class OpticalElement(ow_generic_element.GenericElement):
             tab_bas = ShadowGui.createTabPage(tabs_setting, "Basic Setting")
             tab_adv = ShadowGui.createTabPage(tabs_setting, "Advanced Setting")
 
+            if self.graphical_options.is_crystal:
+                tab_dcm = ShadowGui.createTabPage(tabs_setting, "D.C.M. Utility")
+
             tabs_basic_setting = gui.tabWidget(tab_bas)
 
             if self.graphical_options.is_curved: tab_bas_shape = ShadowGui.createTabPage(tabs_basic_setting, "Surface Shape")
@@ -738,6 +755,69 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 self.set_Refl_Parameters()
             elif self.graphical_options.is_crystal:
+
+                dcm_box = ShadowGui.widgetBox(tab_dcm, "Optical Parameters", addSpace=True, orientation="vertical")
+
+                figure_box = ShadowGui.widgetBox(dcm_box, "", addSpace=True, orientation="horizontal")
+
+                label = QtGui.QLabel("")
+                label.setPixmap(QtGui.QPixmap(self.image_path))
+
+                figure_box.layout().addWidget(label)
+
+                ShadowGui.lineEdit(dcm_box, self, "vertical_quote", "H (Vertical Distance) [cm]", labelWidth=260, valueType=float, orientation="horizontal", callback=self.calculate_dcm_distances)
+                ShadowGui.lineEdit(dcm_box, self, "total_distance", "D (First Crystal to Next O.E.) [cm]", labelWidth=260, valueType=float, orientation="horizontal", callback=self.calculate_dcm_distances)
+
+                dcm_box_1 = ShadowGui.widgetBox(dcm_box, "", addSpace=True, orientation="horizontal")
+                ShadowGui.lineEdit(dcm_box_1, self, "twotheta_bragg", "Bragg Angle [deg]",
+                                   labelWidth=190, valueType=float, orientation="horizontal", callback=self.calculate_dcm_distances)
+
+                dcm_button1 = gui.button(dcm_box_1, self, "from O.E.")
+                dcm_button1.clicked.connect(self.grab_dcm_value_from_oe)
+
+                gui.separator(dcm_box_1)
+
+                dcm_box_2 = ShadowGui.widgetBox(dcm_box, "", addSpace=True, orientation="horizontal")
+
+                le = ShadowGui.lineEdit(dcm_box_2, self, "d_1", "d_1 [cm]", labelWidth=100, valueType=float, orientation="horizontal")
+                le.setReadOnly(True)
+                font = QtGui.QFont(le.font())
+                font.setBold(True)
+                le.setFont(font)
+                palette = QtGui.QPalette(le.palette()) # make a copy of the palette
+                palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
+                palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
+                le.setPalette(palette)
+
+                dcm_button2_1 = gui.button(dcm_box_2, self, "set as S.P.")
+                dcm_button2_1.clicked.connect(self.set_d1_as_source_plane)
+
+                dcm_button2_2 = gui.button(dcm_box_2, self, "set as I.P.")
+                dcm_button2_2.clicked.connect(self.set_d1_as_image_plane)
+
+                dcm_box_3 = ShadowGui.widgetBox(dcm_box, "", addSpace=True, orientation="horizontal")
+
+                le = ShadowGui.lineEdit(dcm_box_3, self, "d_2", "d_2 [cm]", labelWidth=100, valueType=float, orientation="horizontal")
+                le.setReadOnly(True)
+                font = QtGui.QFont(le.font())
+                font.setBold(True)
+                le.setFont(font)
+                palette = QtGui.QPalette(le.palette()) # make a copy of the palette
+                palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
+                palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
+                le.setPalette(palette)
+
+                dcm_button3_1 = gui.button(dcm_box_3, self, "set as S.P.")
+                dcm_button3_1.clicked.connect(self.set_d2_as_source_plane)
+
+                dcm_button3_2 = gui.button(dcm_box_3, self, "set as I.P.")
+                dcm_button3_2.clicked.connect(self.set_d2_as_image_plane)
+
+                self.grab_dcm_value_from_oe()
+                self.calculate_dcm_distances()
+
+                ####################################
+
                 tabs_crystal_setting = gui.tabWidget(tab_bas_crystal)
 
                 self.tab_cryst_1 = ShadowGui.createTabPage(tabs_crystal_setting, "Diffraction Settings")
@@ -1487,6 +1567,7 @@ class OpticalElement(ow_generic_element.GenericElement):
     def selectPrereflImageFileName(self):
         self.le_file_prerefl_for_image_medium.setText(ShadowGui.selectFileFromDialog(self, self.file_prerefl_for_image_medium, "Select File Prerefl for Image Medium"))
 
+
     def calculate_incidence_angle_mrad(self):
         self.incidence_angle_mrad = round(math.radians(90-self.incidence_angle_deg)*1000, 2)
 
@@ -1506,6 +1587,32 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     def calculate_reflection_angle_deg(self):
         self.reflection_angle_deg = round(math.degrees(0.5*math.pi-(self.reflection_angle_mrad/1000)), 3)
+
+    def grab_dcm_value_from_oe(self):
+        self.twotheta_bragg = self.incidence_angle_deg
+        self.calculate_dcm_distances()
+
+    def set_d1_as_source_plane(self):
+        self.source_plane_distance = self.d_1
+
+    def set_d1_as_image_plane(self):
+        self.image_plane_distance = self.d_1
+
+    def set_d2_as_source_plane(self):
+        self.source_plane_distance = self.d_2
+
+    def set_d2_as_image_plane(self):
+        self.image_plane_distance = self.d_2
+
+    def calculate_dcm_distances(self):
+        if self.twotheta_bragg >= 45.0:
+            twotheta = numpy.radians(2*(90-self.twotheta_bragg))
+
+            self.d_1 = round(self.vertical_quote/numpy.sin(twotheta), 3)
+            self.d_2 = round(self.total_distance - self.vertical_quote/numpy.tan(twotheta), 3)
+        else:
+            self.d_1 = numpy.nan
+            self.d_2 = numpy.nan
 
     def populateFields(self, shadow_oe = ShadowOpticalElement.create_empty_oe()):
         if self.graphical_options.is_screen_slit:
