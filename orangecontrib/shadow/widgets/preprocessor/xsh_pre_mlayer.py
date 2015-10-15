@@ -1,11 +1,10 @@
 import sys
 
-from PyQt4.QtGui import QTextEdit, QTextCursor, QIntValidator, QDoubleValidator, QApplication
-from oasys.widgets import widget
-from orangewidget import gui
-from orangewidget.settings import Setting
+from PyQt4.QtGui import QTextEdit, QTextCursor, QIntValidator, QDoubleValidator, QApplication, QMessageBox
 from Shadow.ShadowPreprocessorsXraylib import pre_mlayer
-
+from oasys.widgets.widget import OWWidget
+from orangewidget import gui, widget
+from orangewidget.settings import Setting
 
 try:
     from ..tools.xoppy_calc import xoppy_doc
@@ -17,9 +16,9 @@ except SystemError:
     pass
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
-from orangecontrib.shadow.util.shadow_util import ShadowGui
+from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowPhysics
 
-class OWxsh_pre_mlayer(widget.OWWidget):
+class OWxsh_pre_mlayer(OWWidget):
     name = "xsh_pre_mlayer"
     id = "xsh_pre_mlayer"
     description = "xoppy application to compute..."
@@ -65,8 +64,12 @@ class OWxsh_pre_mlayer(widget.OWWidget):
     def __init__(self):
         super().__init__()
 
+        self.runaction = widget.OWAction("Compute", self)
+        self.runaction.triggered.connect(self.compute)
+        self.addAction(self.runaction)
+
         self.setFixedWidth(800)
-        self.setFixedHeight(930)
+        self.setFixedHeight(920)
 
         box = gui.widgetBox(self.controlArea, "Multilayer Parameters",orientation="vertical")
 
@@ -89,50 +92,50 @@ class OWxsh_pre_mlayer(widget.OWWidget):
         idx += 1
         ShadowGui.lineEdit(box, self, "E_MIN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 2
         idx += 1
         ShadowGui.lineEdit(box, self, "E_MAX",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box)
-
-        #widget index 3
-        idx += 1
-        ShadowGui.lineEdit(box, self, "S_DENSITY",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 4
         idx += 1
         ShadowGui.lineEdit(box, self, "S_MATERIAL",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
+                     label=self.unitLabels()[idx], addSpace=True, labelWidth=450, orientation="horizontal", callback=self.set_SDensity)
         self.show_at(self.unitFlags()[idx], box)
 
-        #widget index 5
+        #widget index 3
         idx += 1
-        ShadowGui.lineEdit(box, self, "E_DENSITY",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
+        ShadowGui.lineEdit(box, self, "S_DENSITY",
+                     label=self.unitLabels()[idx], addSpace=True, valueType=float, labelWidth=450, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 6
         idx += 1
         ShadowGui.lineEdit(box, self, "E_MATERIAL",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
+                     label=self.unitLabels()[idx], addSpace=True, labelWidth=450, orientation="horizontal", callback=self.set_EDensity)
         self.show_at(self.unitFlags()[idx], box)
 
-        #widget index 7
+        #widget index 5
         idx += 1
-        ShadowGui.lineEdit(box, self, "O_DENSITY",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
+        ShadowGui.lineEdit(box, self, "E_DENSITY",
+                     label=self.unitLabels()[idx], addSpace=True, valueType=float, labelWidth=450, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 8
         idx += 1
         ShadowGui.lineEdit(box, self, "O_MATERIAL",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
+                     label=self.unitLabels()[idx], addSpace=True, labelWidth=450, orientation="horizontal", callback=self.set_ODensity)
+        self.show_at(self.unitFlags()[idx], box)
+
+        #widget index 7
+        idx += 1
+        ShadowGui.lineEdit(box, self, "O_DENSITY",
+                     label=self.unitLabels()[idx], addSpace=True, valueType=float, labelWidth=450, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 9
@@ -144,54 +147,54 @@ class OWxsh_pre_mlayer(widget.OWWidget):
         self.show_at(self.unitFlags()[idx], box)
 
 
-        box_2 = gui.widgetBox(box, "",orientation="vertical")
+        box_2 = ShadowGui.widgetBox(box, "",orientation="vertical", height=180)
 
         #widget index 10
         idx += 1
         ShadowGui.lineEdit(box_2, self, "N_PAIRS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), labelWidth=350, orientation="horizontal")
+                    valueType=int, validator=QIntValidator(), labelWidth=450, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 11
         idx += 1
         ShadowGui.lineEdit(box_2, self, "THICKNESS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 12
         idx += 1
         ShadowGui.lineEdit(box_2, self, "GAMMA",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 13
         idx += 1
         ShadowGui.lineEdit(box_2, self, "ROUGHNESS_EVEN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 14
         idx += 1
         ShadowGui.lineEdit(box_2, self, "ROUGHNESS_ODD",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 15
         idx += 1
-        box_file_depth = ShadowGui.widgetBox(box_2, "", addSpace=True, orientation="horizontal")
+        box_file_depth = ShadowGui.widgetBox(box, "", addSpace=True, orientation="horizontal", height=180)
 
         self.le_FILE_DEPTH = ShadowGui.lineEdit(box_file_depth, self, "FILE_DEPTH",
-                                                 label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
+                                                 label=self.unitLabels()[idx], addSpace=True, labelWidth=400, orientation="horizontal")
 
         pushButton = gui.button(box_file_depth, self, "...")
         pushButton.clicked.connect(self.selectFileDepth)
 
-        self.show_at(self.unitFlags()[idx], box_2)
+        self.show_at(self.unitFlags()[idx], box_file_depth)
 
         #widget index 16
         idx += 1
@@ -201,7 +204,11 @@ class OWxsh_pre_mlayer(widget.OWWidget):
                      valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
-        box_3 = gui.widgetBox(box, "",orientation="vertical")
+
+        box_3_empty = ShadowGui.widgetBox(box, "", orientation="vertical", height=100)
+        self.show_at("self.GRADE_SURFACE == 0", box_3_empty)
+
+        box_3 = ShadowGui.widgetBox(box, "", orientation="vertical", height=100)
 
         #widget index 17
         idx += 1
@@ -239,27 +246,27 @@ class OWxsh_pre_mlayer(widget.OWWidget):
 
         self.show_at(self.unitFlags()[idx], box_3)
 
-        box_4 = gui.widgetBox(box, "",orientation="vertical")
+        box_4 = ShadowGui.widgetBox(box, "",orientation="vertical", height=100)
 
         #widget index 20
         idx += 1
         ShadowGui.lineEdit(box_4, self, "AA0",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_4)
 
         #widget index 21
         idx += 1
         ShadowGui.lineEdit(box_4, self, "AA1",
                      label=self.unitLabels()[idx], addSpace=True,
-                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+                     valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_4)
 
         #widget index 22
         idx += 1
         ShadowGui.lineEdit(box_4, self, "AA2",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_4)
 
         self.process_showers()
@@ -267,7 +274,7 @@ class OWxsh_pre_mlayer(widget.OWWidget):
         self.shadow_output = QTextEdit()
         self.shadow_output.setReadOnly(True)
 
-        out_box = ShadowGui.widgetBox(self.controlArea, "System Output", addSpace=True, orientation="horizontal", height=150)
+        out_box = ShadowGui.widgetBox(self.controlArea, "System Output", addSpace=True, orientation="horizontal", height=100)
         out_box.layout().addWidget(self.shadow_output)
 
         box0 = gui.widgetBox(self.controlArea, "",orientation="horizontal")
@@ -279,18 +286,17 @@ class OWxsh_pre_mlayer(widget.OWWidget):
         button = gui.button(box0, self, "Help", callback=self.help1)
         button.setFixedHeight(45)
 
-
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
          return ['Output file (for SHADOW/trace): ',
                  'Min Energy [eV]','Max Energy [eV]',
-                 'Density (substrate) [g/cm3]',
                  'Material (substrate) (element or formula)',
-                 'Density (even "bottom" sublayer) [g/cm3]',
+                 'Density (substrate) [g/cm3]',
                  'Material (even sublayer) (element or formula)',
-                 'Density (odd "top" sublayer) [g/cm3]',
+                 'Density (even "bottom" sublayer) [g/cm3]',
                  'Material (odd sublayer) (element or formula)',
+                 'Density (odd "top" sublayer) [g/cm3]',
                  'Bilayer thicknesses graded along the depth? ',
                  'Number of bilayers ',
                  'bilayer thickness t [A]',
@@ -332,36 +338,91 @@ class OWxsh_pre_mlayer(widget.OWWidget):
                  'self.GRADE_SURFACE  ==  2',
                  'self.GRADE_SURFACE  ==  2']
 
+    def set_SDensity(self):
+        if not self.S_MATERIAL is None:
+            if not self.S_MATERIAL.strip() == "":
+                self.S_MATERIAL = self.S_MATERIAL.strip()
+                self.S_DENSITY = ShadowPhysics.getMaterialDensity(self.S_MATERIAL)
+
+    def set_EDensity(self):
+        if not self.E_MATERIAL is None:
+            if not self.E_MATERIAL.strip() == "":
+                self.E_MATERIAL = self.E_MATERIAL.strip()
+                self.E_DENSITY = ShadowPhysics.getMaterialDensity(self.E_MATERIAL)
+                
+    def set_ODensity(self):
+        if not self.O_MATERIAL is None:
+            if not self.O_MATERIAL.strip() == "":
+                self.O_MATERIAL = self.O_MATERIAL.strip()
+                self.O_DENSITY = ShadowPhysics.getMaterialDensity(self.O_MATERIAL)
+
     def compute(self):
-        sys.stdout = EmittingStream(textWritten=self.writeStdOut)
+        try:
+            sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
-        tmp = pre_mlayer(interactive=False,
-                         FILE=ShadowGui.checkFileName(self.FILE),
-                         E_MIN=self.E_MIN,
-                         E_MAX=self.E_MAX,
-                         S_DENSITY=self.S_DENSITY,
-                         S_MATERIAL=self.S_MATERIAL,
-                         E_DENSITY=self.E_DENSITY,
-                         E_MATERIAL=self.E_MATERIAL,
-                         O_DENSITY=self.O_DENSITY,
-                         O_MATERIAL=self.O_MATERIAL,
-                         GRADE_DEPTH=self.GRADE_DEPTH,
-                         N_PAIRS=self.N_PAIRS,
-                         THICKNESS=self.THICKNESS,
-                         GAMMA=self.GAMMA,
-                         ROUGHNESS_EVEN=self.ROUGHNESS_EVEN,
-                         ROUGHNESS_ODD=self.ROUGHNESS_ODD,
-                         FILE_DEPTH=ShadowGui.checkFileName(self.FILE_DEPTH),
-                         GRADE_SURFACE=self.GRADE_SURFACE,
-                         FILE_SHADOW=ShadowGui.checkFileName(self.FILE_SHADOW),
-                         FILE_THICKNESS=ShadowGui.checkFileName(self.FILE_THICKNESS),
-                         FILE_GAMMA=ShadowGui.checkFileName(self.FILE_GAMMA),
-                         AA0=self.AA0,
-                         AA1=self.AA1,
-                         AA2=self.AA2)
+            self.checkFields()
 
-        self.send("PreProcessor_Data", ShadowPreProcessorData(m_layer_data_file_dat=self.FILE, m_layer_data_file_sha=self.FILE_SHADOW))
+            tmp = pre_mlayer(interactive=False,
+                             FILE=self.FILE,
+                             E_MIN=self.E_MIN,
+                             E_MAX=self.E_MAX,
+                             S_DENSITY=self.S_DENSITY,
+                             S_MATERIAL=self.S_MATERIAL,
+                             E_DENSITY=self.E_DENSITY,
+                             E_MATERIAL=self.E_MATERIAL,
+                             O_DENSITY=self.O_DENSITY,
+                             O_MATERIAL=self.O_MATERIAL,
+                             GRADE_DEPTH=self.GRADE_DEPTH,
+                             N_PAIRS=self.N_PAIRS,
+                             THICKNESS=self.THICKNESS,
+                             GAMMA=self.GAMMA,
+                             ROUGHNESS_EVEN=self.ROUGHNESS_EVEN,
+                             ROUGHNESS_ODD=self.ROUGHNESS_ODD,
+                             FILE_DEPTH=self.FILE_DEPTH,
+                             GRADE_SURFACE=self.GRADE_SURFACE,
+                             FILE_SHADOW=self.FILE_SHADOW,
+                             FILE_THICKNESS=self.FILE_THICKNESS,
+                             FILE_GAMMA=self.FILE_GAMMA,
+                             AA0=self.AA0,
+                             AA1=self.AA1,
+                             AA2=self.AA2)
 
+            self.send("PreProcessor_Data", ShadowPreProcessorData(m_layer_data_file_dat=self.FILE, m_layer_data_file_sha=self.FILE_SHADOW))
+        except Exception as exception:
+            QMessageBox.critical(self, "Error",
+                                 str(exception),
+                                 QMessageBox.Ok)
+            raise exception
+
+    def checkFields(self):
+        self.FILE=ShadowGui.checkDir(self.FILE)
+        self.E_MIN  = ShadowGui.checkPositiveNumber(self.E_MIN , "Min Energy")
+        self.E_MAX  = ShadowGui.checkStrictlyPositiveNumber(self.E_MAX , "Max Energy")
+        if self.E_MIN > self.E_MAX: raise Exception("Minimum Energy cannot be bigger than Maximum Energy")
+        self.S_MATERIAL = ShadowPhysics.checkCompoundName(self.S_MATERIAL)
+        self.S_DENSITY = ShadowGui.checkStrictlyPositiveNumber(float(self.S_DENSITY), "Density (substrate)")
+        self.E_MATERIAL = ShadowPhysics.checkCompoundName(self.E_MATERIAL)
+        self.E_DENSITY = ShadowGui.checkStrictlyPositiveNumber(float(self.E_DENSITY), "Density (even sublayer)")
+        self.O_MATERIAL = ShadowPhysics.checkCompoundName(self.O_MATERIAL)
+        self.O_DENSITY = ShadowGui.checkStrictlyPositiveNumber(float(self.O_DENSITY), "Density (odd sublayer)")
+
+        if self.GRADE_DEPTH == 0:
+            self.N_PAIRS = ShadowGui.checkStrictlyPositiveNumber(float(self.N_PAIRS), "Number of bilayers")
+            self.THICKNESS = ShadowGui.checkStrictlyPositiveNumber(float(self.THICKNESS), "bilayer thickness t")
+            self.GAMMA = ShadowGui.checkStrictlyPositiveNumber(float(self.GAMMA), "gamma ratio")
+            self.ROUGHNESS_EVEN = ShadowGui.checkPositiveNumber(float(self.ROUGHNESS_EVEN), "Roughness even layer")
+            self.ROUGHNESS_ODD = ShadowGui.checkPositiveNumber(float(self.ROUGHNESS_ODD), "Roughness odd layer")
+        else:
+            self.FILE_DEPTH=ShadowGui.checkDir(self.FILE_DEPTH)
+
+        if self.GRADE_SURFACE == 1:
+            self.FILE_SHADOW=ShadowGui.checkDir(self.FILE_SHADOW)
+            self.FILE_THICKNESS=ShadowGui.checkDir(self.FILE_THICKNESS)
+            self.FILE_GAMMA=ShadowGui.checkDir(self.FILE_GAMMA)
+        elif self.GRADE_SURFACE == 2:
+            self.AA0 = ShadowGui.checkPositiveNumber(float(self.AA0), "zero-order coefficient")
+            self.AA1 = ShadowGui.checkPositiveNumber(float(self.AA1), "linear coefficient")
+            self.AA2 = ShadowGui.checkPositiveNumber(float(self.AA2), "2nd degree coefficient")
 
     def selectFile(self):
         self.le_FILE.setText(ShadowGui.selectFileFromDialog(self, self.FILE, "Select Output File", file_extension_filter="*.dat"))

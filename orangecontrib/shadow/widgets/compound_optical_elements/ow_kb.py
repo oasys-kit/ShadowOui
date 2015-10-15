@@ -1,16 +1,16 @@
-import sys
 import copy
+import sys
 
-from orangewidget import gui
-from orangewidget.settings import Setting
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QPalette, QColor, QFont
+from orangewidget import gui
+from orangewidget.settings import Setting
 
-from orangecontrib.shadow.widgets.gui import ow_generic_element
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerIn, ShadowPreProcessorData, \
     ShadowCompoundOpticalElement, ShadowBeam
 from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog
+from orangecontrib.shadow.widgets.gui import ow_generic_element
 
 
 class KB(ow_generic_element.GenericElement):
@@ -480,7 +480,7 @@ class KB(ow_generic_element.GenericElement):
                 raise Exception("Empty Input Beam")
 
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+            QtGui.QMessageBox.critical(self, "Error",
                                        str(exception),
                                        QtGui.QMessageBox.Ok)
 

@@ -1,15 +1,20 @@
 __author__ = 'labx'
 
-import os, math
+import math
+import os
 
-from orangecanvas.scheme.link import SchemeLink
-from oasys.menus.menu import OMenu
-
+import xraylib
 from PyQt4 import QtGui
+from oasys.menus.menu import OMenu
+from orangecanvas.scheme.link import SchemeLink
 
+import orangecontrib.shadow.widgets.preprocessor as preprocessor
 from orangecontrib.shadow.util.shadow_objects import ShadowFile
 
+
 class SingleFileImportMenu(OMenu):
+    is_weird_shadow_bug_fixed = False
+
 
     OMIT_WIDGET = "OMIT_WIDGET"
     ABORT_IMPORT = "ABORT_IMPORT"
@@ -21,7 +26,17 @@ class SingleFileImportMenu(OMenu):
 
         self.addSubMenu("Import Shadow File")
         self.addSubMenu("Import Shadow Workspace")
+        self.addSeparator()
+        self.addSubMenu("Execute all the Preprocessor widgets")
 
+    def fixWeirdShadowBug(self):
+        if not self.is_weird_shadow_bug_fixed:
+            try:
+                xraylib.Refractive_Index_Re("LaB6", 10000, 4)
+            except:
+                pass
+
+            self.is_weird_shadow_bug_fixed = True
 
     def executeAction_1(self, action):
         try:
@@ -104,15 +119,41 @@ class SingleFileImportMenu(OMenu):
 
                 for message in messages: total_message = total_message + message + "\n"
 
-                QtGui.QMessageBox.warning(None, "QMessageBox.warning()",
+                QtGui.QMessageBox.warning(None, "Warning",
                     total_message,
                     QtGui.QMessageBox.Ok)
 
         except Exception as exception:
-            QtGui.QMessageBox.critical(None, "QMessageBox.warning()",
+            QtGui.QMessageBox.critical(None, "Error",
                 exception.args[0],
                 QtGui.QMessageBox.Ok)
+            print(exception.args[0])
+            print(exception)
+
+    def executeAction_4(self, action):
+        try:
+            self.fixWeirdShadowBug()
+
+            for node in self.canvas_main_window.current_document().scheme().nodes:
+                widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
+
+                if isinstance(widget, preprocessor.xsh_bragg.OWxsh_bragg):
+                    widget.compute()
+                elif isinstance(widget, preprocessor.xsh_prerefl.OWxsh_prerefl):
+                    widget.compute()
+                elif isinstance(widget, preprocessor.xsh_pre_mlayer.OWxsh_pre_mlayer):
+                    widget.compute()
+                elif isinstance(widget, preprocessor.xsh_waviness.OWxsh_waviness):
+                    widget.calculate_waviness(not_interactive_mode=True)
+                    widget.generate_waviness_file(not_interactive_mode=True)
+
+        except Exception as exception:
+            QtGui.QMessageBox.critical(None, "Error",
+                exception.args[0],
+                QtGui.QMessageBox.Ok)
+
             raise exception
+
 
     ###############################################################
     #
@@ -555,3 +596,4 @@ class ScreenSlit:
         self.external_file_with_coordinate = str(shadow_file.getProperty("FILE_SCR_EXT(" + str(index+1) + ")"))
         self.slit_center_xaxis  = float(shadow_file.getProperty("CX_SLIT(" + str(index+1) + ")"))
         self.slit_center_zaxis  = float(shadow_file.getProperty("CZ_SLIT(" + str(index+1) + ")"))
+

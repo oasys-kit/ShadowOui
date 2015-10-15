@@ -1,5 +1,5 @@
-import sys
 import copy
+import sys
 import time
 
 import numpy
@@ -7,8 +7,8 @@ from PyQt4 import QtGui
 from orangewidget import gui
 from orangewidget.settings import Setting
 
-from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog, ShadowPlot
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream, TTYGrabber
+from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog, ShadowPlot
 from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticElement
 
 
@@ -462,7 +462,7 @@ class PlotXY(AutomaticElement):
 
             time.sleep(0.5)  # prevents a misterious dead lock in the Orange cycle when refreshing the histogram
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+            QtGui.QMessageBox.critical(self, "Error",
                                        str(exception),
                                        QtGui.QMessageBox.Ok)
 
@@ -482,7 +482,7 @@ class PlotXY(AutomaticElement):
                 if self.is_automatic_run:
                     self.plot_results()
             else:
-                QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+                QtGui.QMessageBox.critical(self, "Error",
                                            "Data not displayable: No good rays or bad content",
                                            QtGui.QMessageBox.Ok)
 

@@ -1,16 +1,14 @@
 import sys
 
+from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
+from PyQt4 import QtGui
+from PyQt4.QtGui import QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
 
-from PyQt4 import QtGui
-from PyQt4.QtGui import QApplication
-
-from orangecontrib.shadow.util.shadow_util import ShadowPlot, ShadowGui
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
+from orangecontrib.shadow.util.shadow_util import ShadowPlot, ShadowGui
 from orangecontrib.shadow.widgets.gui import ow_automatic_element
-
-from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
 
 class GenericElement(ow_automatic_element.AutomaticElement):
 
@@ -107,7 +105,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
                 self.plot_results(self.plotted_beam, 80)
             except Exception as exception:
-                QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+                QtGui.QMessageBox.critical(self, "Error",
                                            str(exception),
                     QtGui.QMessageBox.Ok)
 

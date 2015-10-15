@@ -1,15 +1,12 @@
 #! /usr/bin/env python3
 
-import imp
 import os
-import sys
-import subprocess
 
 from setuptools import find_packages, setup
 
 
 NAME = 'ShadowOui'
-VERSION = '1.2.14'
+VERSION = '1.2.15'
 ISRELEASED = False
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'

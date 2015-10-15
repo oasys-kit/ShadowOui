@@ -1,14 +1,15 @@
-import sys, numpy
+import numpy
+import sys
 
-from orangewidget import gui
-from orangewidget.settings import Setting
 from PyQt4 import QtGui
 from PyQt4.QtGui import QApplication, QPalette, QColor, QFont
+from orangewidget import gui
+from orangewidget.settings import Setting
 
-from orangecontrib.shadow.widgets.gui import ow_source
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerOut, ShadowBeam, \
     ShadowSource
 from orangecontrib.shadow.util.shadow_util import ShadowGui
+from orangecontrib.shadow.widgets.gui import ow_source
 
 class UndulatorGaussian(ow_source.Source):
 
@@ -145,7 +146,7 @@ class UndulatorGaussian(ow_source.Source):
 
             self.send("Beam", beam_out)
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+            QtGui.QMessageBox.critical(self, "Error",
                                        str(exception),
                 QtGui.QMessageBox.Ok)
 

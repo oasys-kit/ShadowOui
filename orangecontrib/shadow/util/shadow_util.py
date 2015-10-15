@@ -1,15 +1,15 @@
 __author__ = 'labx'
 
-import random
 import os
+import random
 import sys
 
 import numpy
-from PyQt4.QtGui import QMessageBox, QWidget, QFont, QPalette, QColor, QGridLayout, QLabel, QFileDialog
+import xraylib
 from PyQt4.QtCore import Qt
-from scipy import optimize, asarray
+from PyQt4.QtGui import QMessageBox, QWidget, QFont, QPalette, QColor, QGridLayout, QLabel, QFileDialog
 from matplotlib.patches import FancyArrowPatch, ArrowStyle
-
+from scipy import optimize, asarray
 
 try:
     from orangewidget import gui
@@ -35,16 +35,17 @@ except ImportError:
 import Shadow.ShadowToolsPrivate as stp
 
 class ConfirmDialog(QMessageBox):
-    def __init__(self, parent = None, message=""):
+    def __init__(self, parent, message, title):
         super(ConfirmDialog, self).__init__(parent)
 
         self.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
         self.setIcon(QMessageBox.Question)
         self.setText(message)
+        self.setWindowTitle(title)
 
     @classmethod
-    def confirmed(cls, parent=None, message="Confirm Action?"):
-        return ConfirmDialog(parent, message).exec_() == QMessageBox.Ok
+    def confirmed(cls, parent=None, message="Confirm Action?", title="Confirm Action"):
+        return ConfirmDialog(parent, message, title).exec_() == QMessageBox.Ok
 
 class ShadowGui():
 
@@ -156,28 +157,33 @@ class ShadowGui():
 
     @classmethod
     def checkFileName(cls, fileName):
-        if not fileName is None:
-            if not fileName.strip() == "":
-                if os.path.isabs(fileName):
-                    filePath = fileName
-                else:
-                    if fileName.startswith('/'):
-                        filePath =  os.getcwd() + fileName
-                    else:
-                        filePath = os.getcwd() + '/' + fileName
-
-                return filePath
-            else:
-                return fileName
-        else:
-            return fileName
-
-    @classmethod
-    def checkFile(cls, fileName):
         if fileName is None: raise Exception("File name is Empty")
         if fileName.strip() == "": raise Exception("File name is Empty")
 
+        if os.path.isabs(fileName):
+            filePath = fileName
+        else:
+            if fileName.startswith('/'):
+                filePath =  os.getcwd() + fileName
+            else:
+                filePath = os.getcwd() + '/' + fileName
+
+        return filePath
+
+    @classmethod
+    def checkDir(cls, fileName):
         filePath = ShadowGui.checkFileName(fileName)
+
+        container_dir = os.path.dirname(filePath)
+
+        if not os.path.exists(container_dir):
+            raise Exception("Directory " + container_dir + " not existing")
+
+        return filePath
+
+    @classmethod
+    def checkFile(cls, fileName):
+        filePath = ShadowGui.checkDir(fileName)
 
         if not os.path.exists(filePath):
             raise Exception("File " + fileName + " not existing")
@@ -974,6 +980,34 @@ class ShadowPhysics:
                 theta_bragg = result
 
         return theta_bragg
+
+    @classmethod
+    def checkCompoundName(cls, compound_name):
+        if compound_name is None: raise Exception("Compound Name is Empty")
+        if str(compound_name.strip()) == "": raise Exception("Compound Name is Empty")
+
+        compound_name = compound_name.strip()
+
+        try:
+            xraylib.CompoundParser(compound_name)
+            return compound_name
+        except:
+            raise Exception("Compound Name is not correct")
+
+    @classmethod
+    def getMaterialDensity(cls, material_name):
+        if material_name is None: return 0.0
+        if str(material_name.strip()) == "": return 0.0
+
+        try:
+            compoundData = xraylib.CompoundParser(material_name)
+
+            if compoundData["nElements"] == 1:
+                return xraylib.ElementDensity(compoundData["Elements"][0])
+            else:
+                return 0.0
+        except:
+            return 0.0
 
     @classmethod
     def Chebyshev(cls, n, x):

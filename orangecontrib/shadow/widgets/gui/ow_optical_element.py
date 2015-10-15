@@ -1,18 +1,17 @@
-import sys
 import math
 import os
+import sys
 
 import numpy
-from orangewidget import gui, widget
-from orangewidget.settings import Setting
 from PyQt4 import QtGui
 from PyQt4.QtGui import QPalette, QColor, QFont
+from orangewidget import gui, widget
+from orangewidget.settings import Setting
 
-from orangecontrib.shadow.widgets.gui import ow_generic_element
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerIn, ShadowPreProcessorData, \
     ShadowOpticalElement, ShadowBeam, ShadowFile
 from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowPhysics
-
+from orangecontrib.shadow.widgets.gui import ow_generic_element
 
 shadow_oe_to_copy = None
 
@@ -2218,7 +2217,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                 raise Exception("Empty Input Beam")
 
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+            QtGui.QMessageBox.critical(self, "Error",
                                        str(exception), QtGui.QMessageBox.Ok)
 
             #self.error_id = self.error_id + 1
@@ -2245,7 +2244,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     self.set_DiffractionCalculation()
                 else:
-                    QtGui.QMessageBox.warning(self, "QMessageBox.warning()",
+                    QtGui.QMessageBox.warning(self, "Warning",
                               "This O.E. is not a crystal: bragg parameter will be ignored",
                               QtGui.QMessageBox.Ok)
 
@@ -2258,7 +2257,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     self.set_Refl_Parameters()
                 else:
-                    QtGui.QMessageBox.warning(self, "QMessageBox.warning()",
+                    QtGui.QMessageBox.warning(self, "Warning",
                               "This O.E. is not a mirror: prerefl parameter will be ignored",
                               QtGui.QMessageBox.Ok)
 
@@ -2271,7 +2270,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     self.set_Refl_Parameters()
                 else:
-                    QtGui.QMessageBox.warning(self, "QMessageBox.warning()",
+                    QtGui.QMessageBox.warning(self, "Warning",
                               "This O.E. is not a mirror: prerefl_m parameter will be ignored",
                               QtGui.QMessageBox.Ok)
 
@@ -2309,7 +2308,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                         self.dim_y_plus = data.waviness_y_dim/2
                         self.dim_y_minus = data.waviness_y_dim/2
 
-                        QtGui.QMessageBox.warning(self, "QMessageBox.warning()",
+                        QtGui.QMessageBox.warning(self, "Warning",
                                                       "This mirror became rectangular with finite dimensions in order to ensure congruence with the waviness surface",
                                                       QtGui.QMessageBox.Ok)
 

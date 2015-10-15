@@ -1,12 +1,12 @@
 import os
 
+from PyQt4 import QtGui
 from oasys.widgets import widget
 from orangewidget import gui
 from orangewidget.settings import Setting
-from PyQt4 import QtGui
 
-from orangecontrib.shadow.util.shadow_util import ShadowGui
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
+from orangecontrib.shadow.util.shadow_util import ShadowGui
 
 class BeamFileWriter(widget.OWWidget):
     name = "Shadow File Writer"
@@ -71,7 +71,7 @@ class BeamFileWriter(widget.OWWidget):
                 if self.is_automatic_run:
                     self.write_file()
             else:
-                QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+                QtGui.QMessageBox.critical(self, "Error",
                                            "No good rays or bad content",
                                            QtGui.QMessageBox.Ok)
 

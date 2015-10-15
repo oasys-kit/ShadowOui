@@ -1,14 +1,14 @@
 import sys
 
 from PyQt4 import QtGui
-from PyQt4.QtGui import QApplication, QFileDialog
 from PyQt4.QtCore import QRect
-from orangewidget import widget, gui
+from PyQt4.QtGui import QApplication, QFileDialog
 from Shadow import ShadowTools as ST
+from orangewidget import widget, gui
 
+from orangecontrib.shadow.util.python_script import PythonConsole
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream, ShadowCompoundOpticalElement
 from orangecontrib.shadow.util.shadow_util import ShadowGui
-from orangecontrib.shadow.util.python_script import PythonConsole
 
 class Info(widget.OWWidget):
 
@@ -153,7 +153,7 @@ class Info(widget.OWWidget):
 
                 self.pythonScript.setText(ST.make_python_script_from_list(optical_element_list))
             else:
-                QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+                QtGui.QMessageBox.critical(self, "Error",
                                            "Data not displayable: No good rays or bad content",
                                            QtGui.QMessageBox.Ok)
 

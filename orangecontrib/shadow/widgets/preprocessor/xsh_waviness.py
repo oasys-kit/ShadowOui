@@ -1,18 +1,17 @@
-import sys
 import copy
+import sys
 
 import numpy
+from PyQt4.QtCore import QRect, Qt
 from PyQt4.QtGui import QTextEdit, QTextCursor, QApplication, QScrollArea, QTableWidget, QTableWidgetItem, QFont, QPalette, QColor, \
     QMessageBox, QHeaderView
-from PyQt4.QtCore import QRect, Qt
-from oasys.widgets import widget
-from orangewidget import gui
-from orangewidget.settings import Setting
 from Shadow import ShadowTools as ST
 from matplotlib import cm
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-
+from oasys.widgets.widget import OWWidget
+from orangewidget import gui, widget
+from orangewidget.settings import Setting
 
 try:
     from mpl_toolkits.mplot3d import Axes3D  # necessario per caricare i plot 3D
@@ -22,7 +21,7 @@ except:
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
 from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog
 
-class OWxsh_waviness(widget.OWWidget):
+class OWxsh_waviness(OWWidget):
     name = "xsh_waviness"
     id = "xsh_waviness"
     description = "xoppy application to compute..."
@@ -248,6 +247,14 @@ class OWxsh_waviness(widget.OWWidget):
     def __init__(self):
         super().__init__()
 
+        self.runaction = widget.OWAction("Calculate Waviness", self)
+        self.runaction.triggered.connect(self.calculate_waviness_ni)
+        self.addAction(self.runaction)
+
+        self.runaction = widget.OWAction("Generate Waviness File", self)
+        self.runaction.triggered.connect(self.generate_waviness_file)
+        self.addAction(self.runaction)
+
         geom = QApplication.desktop().availableGeometry()
         self.setGeometry(QRect(round(geom.width() * 0.05),
                                round(geom.height() * 0.05),
@@ -464,7 +471,7 @@ class OWxsh_waviness(widget.OWWidget):
 
             self.data = dict
         except ValueError:
-            QMessageBox.critical(self, "QMessageBox.critical()",
+            QMessageBox.critical(self, "Error",
                                  message + "\nValue is reset to previous value",
                                  QMessageBox.Ok)
 
@@ -474,13 +481,13 @@ class OWxsh_waviness(widget.OWWidget):
             self.table.setCurrentCell(error_row_index, error_column_index)
 
         except Exception as exception:
-            QMessageBox.critical(self, "QMessageBox.critical()",
+            QMessageBox.critical(self, "Error",
                                  exception.args[0],
                                  QMessageBox.Ok)
 
     def set_harmonics(self):
         if self.harmonic_maximum_index < 0:
-            QMessageBox.critical(self, "QMessageBox.critical()",
+            QMessageBox.critical(self, "Error",
                                  "Harmonic Maximum Index should be a positive integer number",
                                  QMessageBox.Ok)
         else:
@@ -526,7 +533,7 @@ class OWxsh_waviness(widget.OWWidget):
 
             self.check_fields()
 
-            file_name = self.waviness_file_name.strip().split(sep=".dat")[0] + ".inp"
+            file_name = self.waviness_file_name.split(sep=".dat")[0] + ".inp"
 
             dict = {}
 
@@ -550,11 +557,14 @@ class OWxsh_waviness(widget.OWWidget):
                                     QMessageBox.Ok)
 
         except Exception as exception:
-            QMessageBox.critical(self, "QMessageBox.critical()",
+            QMessageBox.critical(self, "Error",
                                  exception.args[0],
                                  QMessageBox.Ok)
 
-    def calculate_waviness(self):
+    def calculate_waviness_ni(self):
+        self.calculate_waviness(not_interactive_mode=True)
+
+    def calculate_waviness(self, not_interactive_mode=False):
         try:
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
@@ -603,33 +613,28 @@ class OWxsh_waviness(widget.OWWidget):
             self.axis.set_title(title)
             self.axis.mouse_init()
 
-            self.figure_canvas.draw()
+            if not not_interactive_mode:
+                self.figure_canvas.draw()
 
-            QMessageBox.information(self, "QMessageBox.information()",
-                                    "Waviness calculated: if the result is satisfactory,\nclick \'Generate Waviness File\' to complete the operation ",
-                                    QMessageBox.Ok)
+                QMessageBox.information(self, "QMessageBox.information()",
+                                        "Waviness calculated: if the result is satisfactory,\nclick \'Generate Waviness File\' to complete the operation ",
+                                        QMessageBox.Ok)
         except Exception as exception:
-            QMessageBox.critical(self, "QMessageBox.critical()",
+            QMessageBox.critical(self, "Error",
                                  exception.args[0],
                                  QMessageBox.Ok)
 
-
-    def generate_waviness_file(self):
+    def generate_waviness_file(self, not_interactive_mode=False):
         if not self.zz is None and not self.yy is None and not self.xx is None:
-            if not self.waviness_file_name is None:
-                self.waviness_file_name = self.waviness_file_name.strip()
-
-                if self.waviness_file_name == "": raise Exception("Output File Name missing")
-            else:
-                raise Exception("Output File Name missing")
+            self.waviness_file_name = ShadowGui.checkDir(self.waviness_file_name)
 
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
-            ST.write_shadow_surface(self.zz.T, self.xx, self.yy, outFile=ShadowGui.checkFileName(self.waviness_file_name))
-            QMessageBox.information(self, "QMessageBox.information()",
-                                    "Waviness file " + self.waviness_file_name + " written on disk",
-                                    QMessageBox.Ok)
-
+            ST.write_shadow_surface(self.zz.T, self.xx, self.yy, outFile=self.waviness_file_name)
+            if not not_interactive_mode:
+                QMessageBox.information(self, "QMessageBox.information()",
+                                        "Waviness file " + self.waviness_file_name + " written on disk",
+                                        QMessageBox.Ok)
 
             self.send("PreProcessor_Data", ShadowPreProcessorData(waviness_data_file=self.waviness_file_name,
                                                                   waviness_x_dim=self.dimension_x,
@@ -656,12 +661,7 @@ class OWxsh_waviness(widget.OWWidget):
         self.harmonic_maximum_index = ShadowGui.checkPositiveNumber(self.harmonic_maximum_index,
                                                                     "Harmonic Maximum Index")
 
-        if not self.waviness_file_name is None:
-            self.waviness_file_name = self.waviness_file_name.strip()
-
-            if self.waviness_file_name == "": raise Exception("Output File Name missing")
-        else:
-            raise Exception("Output File Name missing")
+        self.waviness_file_name = ShadowGui.checkDir(self.waviness_file_name)
 
 
     def to_float_array(self, string_array):

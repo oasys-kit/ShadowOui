@@ -1,11 +1,10 @@
 import sys
 
-from PyQt4.QtGui import QTextEdit, QTextCursor, QDoubleValidator, QApplication
-from oasys.widgets import widget
-from orangewidget import gui
-from orangewidget.settings import Setting
+from PyQt4.QtGui import QTextEdit, QTextCursor, QDoubleValidator, QApplication, QMessageBox
 from Shadow.ShadowPreprocessorsXraylib import prerefl
-
+from oasys.widgets.widget import OWWidget
+from orangewidget import gui, widget
+from orangewidget.settings import Setting
 
 try:
     from ..tools.xoppy_calc import xoppy_doc
@@ -16,11 +15,10 @@ except ImportError:
 except SystemError:
     pass
 
-
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
-from orangecontrib.shadow.util.shadow_util import ShadowGui
+from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowPhysics
 
-class OWxsh_prerefl(widget.OWWidget):
+class OWxsh_prerefl(OWWidget):
     name = "xsh_prerefl"
     id = "xsh_prerefl"
     description = "xoppy application to compute..."
@@ -49,6 +47,10 @@ class OWxsh_prerefl(widget.OWWidget):
     def __init__(self):
         super().__init__()
 
+        self.runaction = widget.OWAction("Compute", self)
+        self.runaction.triggered.connect(self.compute)
+        self.addAction(self.runaction)
+
         box = ShadowGui.widgetBox(self.controlArea, "Reflectivity Parameters", orientation="vertical")
         
         idx = -1 
@@ -56,7 +58,7 @@ class OWxsh_prerefl(widget.OWWidget):
         #widget index 0 
         idx += 1 
         ShadowGui.lineEdit(box, self, "SYMBOL",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
+                     label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal", callback=self.set_Density)
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 1 
@@ -127,18 +129,41 @@ class OWxsh_prerefl(widget.OWWidget):
     def selectFile(self):
         self.le_SHADOW_FILE.setText(ShadowGui.selectFileFromDialog(self, self.SHADOW_FILE, "Select Output File", file_extension_filter="*.dat"))
 
+    def set_Density(self):
+        if not self.SYMBOL is None:
+            if not self.SYMBOL.strip() == "":
+                self.SYMBOL = self.SYMBOL.strip()
+                self.DENSITY = ShadowPhysics.getMaterialDensity(self.SYMBOL)
+
+
     def compute(self):
-        sys.stdout = EmittingStream(textWritten=self.writeStdOut)
+        try:
+            sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
-        tmp = prerefl(interactive=False,
-                      SYMBOL=self.SYMBOL,
-                      DENSITY=self.DENSITY,
-                      FILE=ShadowGui.checkFileName(self.SHADOW_FILE),
-                      E_MIN=self.E_MIN,
-                      E_MAX=self.E_MAX,
-                      E_STEP=self.E_STEP)
+            self.checkFields()
 
-        self.send("PreProcessor_Data", ShadowPreProcessorData(prerefl_data_file=self.SHADOW_FILE))
+            tmp = prerefl(interactive=False,
+                          SYMBOL=self.SYMBOL,
+                          DENSITY=self.DENSITY,
+                          FILE=self.SHADOW_FILE,
+                          E_MIN=self.E_MIN,
+                          E_MAX=self.E_MAX,
+                          E_STEP=self.E_STEP)
+
+            self.send("PreProcessor_Data", ShadowPreProcessorData(prerefl_data_file=self.SHADOW_FILE))
+        except Exception as exception:
+            QMessageBox.critical(self, "Error",
+                                 str(exception),
+                                 QMessageBox.Ok)
+
+    def checkFields(self):
+        self.SYMBOL = ShadowPhysics.checkCompoundName(self.SYMBOL)
+        self.DENSITY = ShadowGui.checkStrictlyPositiveNumber(self.DENSITY, "Density")
+        self.E_MIN  = ShadowGui.checkPositiveNumber(self.E_MIN , "Minimum Energy")
+        self.E_MAX  = ShadowGui.checkStrictlyPositiveNumber(self.E_MAX , "Maximum Energy")
+        self.E_STEP = ShadowGui.checkStrictlyPositiveNumber(self.E_STEP, "Energy step")
+        if self.E_MIN > self.E_MAX: raise Exception("Minimum Energy cannot be bigger than Maximum Energy")
+        self.SHADOW_FILE=ShadowGui.checkDir(self.SHADOW_FILE)
 
     def defaults(self):
          self.resetSettings()

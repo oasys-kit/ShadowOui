@@ -1,14 +1,15 @@
-import sys, numpy, copy
-
-from orangewidget import gui
-from orangewidget.settings import Setting
+import copy
+import numpy
+import sys
 
 from PyQt4 import QtGui
 from PyQt4.QtGui import QPalette, QColor, QFont
+from orangewidget import gui
+from orangewidget.settings import Setting
 
-from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticElement
-from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowTriggerIn
+from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog
+from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticElement
 
 class AccumulatingLoopPoint(AutomaticElement):
     name = "Beam Accumulating Point"
@@ -151,7 +152,7 @@ class AccumulatingLoopPoint(AutomaticElement):
                         self.current_number_of_total_rays = 0
                         self.input_beam = None
                     else:
-                        QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+                        QtGui.QMessageBox.critical(self, "Error",
                                                    "Number of Accumulated Rays reached, please push \'Send Signal\' button",
                                                    QtGui.QMessageBox.Ok)
 

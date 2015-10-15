@@ -1,12 +1,12 @@
 from PyQt4 import QtGui
-from PyQt4.QtGui import QApplication
 from PyQt4.QtCore import QRect
+from PyQt4.QtGui import QApplication
 from PyQt4.QtGui import QPalette, QColor, QFont
-
 from orangewidget import widget, gui
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 from orangecontrib.shadow.util.shadow_util import ShadowGui
+
 
 class MergeBeams(widget.OWWidget):
 
@@ -80,7 +80,7 @@ class MergeBeams(widget.OWWidget):
             if ShadowGui.checkGoodBeam(beam):
                 self.input_beam1 = beam
             else:
-                QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+                QtGui.QMessageBox.critical(self, "Error",
                                            "Data #1 not displayable: No good rays or bad content",
                                            QtGui.QMessageBox.Ok)
 
@@ -89,7 +89,7 @@ class MergeBeams(widget.OWWidget):
             if ShadowGui.checkGoodBeam(beam):
                 self.input_beam2 = beam
             else:
-                QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+                QtGui.QMessageBox.critical(self, "Error",
                                            "Data #2 not displayable: No good rays or bad content",
                                            QtGui.QMessageBox.Ok)
 
@@ -98,7 +98,7 @@ class MergeBeams(widget.OWWidget):
             if ShadowGui.checkGoodBeam(beam):
                 self.input_beam3 = beam
             else:
-                QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+                QtGui.QMessageBox.critical(self, "Error",
                                            "Data #3 not displayable: No good rays or bad content",
                                            QtGui.QMessageBox.Ok)
 
@@ -107,7 +107,7 @@ class MergeBeams(widget.OWWidget):
             if ShadowGui.checkGoodBeam(beam):
                 self.input_beam4 = beam
             else:
-                QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+                QtGui.QMessageBox.critical(self, "Error",
                                            "Data #4 not displayable: No good rays or bad content",
                                            QtGui.QMessageBox.Ok)
 
@@ -116,7 +116,7 @@ class MergeBeams(widget.OWWidget):
             if ShadowGui.checkGoodBeam(beam):
                 self.input_beam5 = beam
             else:
-                QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+                QtGui.QMessageBox.critical(self, "Error",
                                            "Data #5 not displayable: No good rays or bad content",
                                            QtGui.QMessageBox.Ok)
 
@@ -125,7 +125,7 @@ class MergeBeams(widget.OWWidget):
             if ShadowGui.checkGoodBeam(beam):
                 self.input_beam6 = beam
             else:
-                QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+                QtGui.QMessageBox.critical(self, "Error",
                                            "Data #6 not displayable: No good rays or bad content",
                                            QtGui.QMessageBox.Ok)
 
@@ -134,7 +134,7 @@ class MergeBeams(widget.OWWidget):
             if ShadowGui.checkGoodBeam(beam):
                 self.input_beam7 = beam
             else:
-                QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+                QtGui.QMessageBox.critical(self, "Error",
                                            "Data #7 not displayable: No good rays or bad content",
                                            QtGui.QMessageBox.Ok)
 
@@ -143,7 +143,7 @@ class MergeBeams(widget.OWWidget):
             if ShadowGui.checkGoodBeam(beam):
                 self.input_beam8 = beam
             else:
-                QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+                QtGui.QMessageBox.critical(self, "Error",
                                            "Data #8 not displayable: No good rays or bad content",
                                            QtGui.QMessageBox.Ok)
 
@@ -152,7 +152,7 @@ class MergeBeams(widget.OWWidget):
             if ShadowGui.checkGoodBeam(beam):
                 self.input_beam9 = beam
             else:
-                QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+                QtGui.QMessageBox.critical(self, "Error",
                                            "Data #9 not displayable: No good rays or bad content",
                                            QtGui.QMessageBox.Ok)
 
@@ -161,7 +161,7 @@ class MergeBeams(widget.OWWidget):
             if ShadowGui.checkGoodBeam(beam):
                 self.input_beam10 = beam
             else:
-                QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+                QtGui.QMessageBox.critical(self, "Error",
                                            "Data #10 not displayable: No good rays or bad content",
                                            QtGui.QMessageBox.Ok)
 

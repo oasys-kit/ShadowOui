@@ -273,7 +273,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
             time.sleep(0.5)  # prevents a misterious dead lock in the Orange cycle when refreshing the histogram
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+            QtGui.QMessageBox.critical(self, "Error",
                                        str(exception),
                                        QtGui.QMessageBox.Ok)
 
@@ -297,7 +297,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
                 if self.is_automatic_run:
                     self.plot_results()
             else:
-                QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
+                QtGui.QMessageBox.critical(self, "Error",
                                            "Data not displayable: No good rays or bad content",
                                            QtGui.QMessageBox.Ok)
 

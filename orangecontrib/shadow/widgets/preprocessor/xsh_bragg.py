@@ -1,10 +1,10 @@
 import sys
 
-from PyQt4.QtGui import QTextEdit, QTextCursor, QIntValidator, QDoubleValidator, QApplication
-from oasys.widgets import widget
-from orangewidget import gui
-from orangewidget.settings import Setting
+from PyQt4.QtGui import QTextEdit, QTextCursor, QIntValidator, QDoubleValidator, QApplication, QMessageBox
 from Shadow.ShadowPreprocessorsXraylib import bragg
+from oasys.widgets.widget import OWWidget
+from orangewidget import gui, widget
+from orangewidget.settings import Setting
 
 
 try:
@@ -17,9 +17,9 @@ except SystemError:
     pass
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
-from orangecontrib.shadow.util.shadow_util import ShadowGui
+from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowPhysics
 
-class OWxsh_bragg(widget.OWWidget):
+class OWxsh_bragg(OWWidget):
     name = "xsh_bragg"
     id = "xsh_bragg"
     description = "xoppy application to compute..."
@@ -49,6 +49,10 @@ class OWxsh_bragg(widget.OWWidget):
 
     def __init__(self):
         super().__init__()
+
+        self.runaction = widget.OWAction("Compute", self)
+        self.runaction.triggered.connect(self.compute)
+        self.addAction(self.runaction)
 
         self.setFixedWidth(600)
         self.setFixedHeight(510)
@@ -125,9 +129,6 @@ class OWxsh_bragg(widget.OWWidget):
 
         self.show_at(self.unitFlags()[idx], box)
 
-
-
-
         self.shadow_output = QTextEdit()
         self.shadow_output.setReadOnly(True)
 
@@ -148,7 +149,7 @@ class OWxsh_bragg(widget.OWWidget):
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['Crystal descriptor','H miller index','K miller index','L miller index','Temperature factor','From Energy [eV]','To Energy to [eV]','Energy step [eV]','File name (for SHADOW)']
+         return ['Crystal descriptor','H miller index','K miller index','L miller index','Temperature factor','From Energy [eV]','To Energy [eV]','Energy step [eV]','File name (for SHADOW)']
 
 
     def unitFlags(self):
@@ -158,20 +159,39 @@ class OWxsh_bragg(widget.OWWidget):
         self.le_SHADOW_FILE.setText(ShadowGui.selectFileFromDialog(self, self.SHADOW_FILE, "Select Output File", file_extension_filter="*.dat"))
 
     def compute(self):
-        sys.stdout = EmittingStream(textWritten=self.writeStdOut)
+        try:
+            sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
-        tmp = bragg(interactive=False,
-                    DESCRIPTOR=self.DESCRIPTOR,
-                    H_MILLER_INDEX=self.H_MILLER_INDEX,
-                    K_MILLER_INDEX=self.K_MILLER_INDEX,
-                    L_MILLER_INDEX=self.L_MILLER_INDEX,
-                    TEMPERATURE_FACTOR=self.TEMPERATURE_FACTOR,
-                    E_MIN=self.E_MIN,
-                    E_MAX=self.E_MAX,
-                    E_STEP=self.E_STEP,
-                    SHADOW_FILE=ShadowGui.checkFileName(self.SHADOW_FILE))
+            self.checkFields()
 
-        self.send("PreProcessor_Data", ShadowPreProcessorData(bragg_data_file=self.SHADOW_FILE))
+            tmp = bragg(interactive=False,
+                        DESCRIPTOR=self.DESCRIPTOR,
+                        H_MILLER_INDEX=self.H_MILLER_INDEX,
+                        K_MILLER_INDEX=self.K_MILLER_INDEX,
+                        L_MILLER_INDEX=self.L_MILLER_INDEX,
+                        TEMPERATURE_FACTOR=self.TEMPERATURE_FACTOR,
+                        E_MIN=self.E_MIN,
+                        E_MAX=self.E_MAX,
+                        E_STEP=self.E_STEP,
+                        SHADOW_FILE=self.SHADOW_FILE)
+
+            self.send("PreProcessor_Data", ShadowPreProcessorData(bragg_data_file=self.SHADOW_FILE))
+        except Exception as exception:
+            QMessageBox.critical(self, "Error",
+                                 str(exception),
+                                 QMessageBox.Ok)
+
+    def checkFields(self):
+        self.DESCRIPTOR = ShadowPhysics.checkCompoundName(self.DESCRIPTOR)
+        self.H_MILLER_INDEX = ShadowGui.checkNumber(self.H_MILLER_INDEX, "H miller index")
+        self.K_MILLER_INDEX = ShadowGui.checkNumber(self.K_MILLER_INDEX, "K miller index")
+        self.L_MILLER_INDEX = ShadowGui.checkNumber(self.L_MILLER_INDEX, "L miller index")
+        self.TEMPERATURE_FACTOR = ShadowGui.checkNumber(self.TEMPERATURE_FACTOR, "Temperature factor")
+        self.E_MIN  = ShadowGui.checkPositiveNumber(self.E_MIN , "From Energy")
+        self.E_MAX  = ShadowGui.checkStrictlyPositiveNumber(self.E_MAX , "To Energy")
+        self.E_STEP = ShadowGui.checkStrictlyPositiveNumber(self.E_STEP, "Energy step")
+        if self.E_MIN > self.E_MAX: raise Exception("From Energy cannot be bigger than To Energy")
+        self.SHADOW_FILE=ShadowGui.checkDir(self.SHADOW_FILE)
 
     def defaults(self):
          self.resetSettings()

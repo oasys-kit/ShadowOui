@@ -1,26 +1,27 @@
-import os
-import sys
 import copy
+import os
 import random
 import shutil
+import sys
 import time
 
-import scipy
 import numpy
-from orangewidget import gui
-from orangewidget.settings import Setting
+import orangecanvas.resources as resources
+import scipy
+import xraylib
+from PyMca5.PyMcaGui.plotting.MaskImageWidget import MaskImageWidget
+from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtGui import QApplication, QPalette, QColor, QFont, QDialog
-import xraylib
-import orangecanvas.resources as resources
-from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
-from PyMca5.PyMcaGui.plotting.MaskImageWidget import MaskImageWidget
+from orangewidget import gui, widget
+from orangewidget.settings import Setting
 
-from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn
-from orangecontrib.shadow.widgets.gui import ow_automatic_element
-from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowMath, ShadowPhysics, ConfirmDialog
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowOpticalElement, EmittingStream, TTYGrabber, ShadowPreProcessorData
+from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn
+from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowMath, ShadowPhysics, ConfirmDialog
 from orangecontrib.shadow.widgets.experimental_elements.random_generator import RandomGenerator
+from orangecontrib.shadow.widgets.gui import ow_automatic_element
+
 
 class XRDCapillary(ow_automatic_element.AutomaticElement):
     name = "XRD Capillary"
@@ -204,6 +205,10 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
     def __init__(self):
         super().__init__()
+
+        self.runaction = widget.OWAction("Run Simulation", self)
+        self.runaction.triggered.connect(self.simulate)
+        self.addAction(self.runaction)
 
         self.readCapillaryMaterialConfigurationFiles()
         self.readMaterialConfigurationFiles()
@@ -1015,6 +1020,8 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         if self.incremental == 1:
             self.number_of_executions = ShadowGui.checkStrictlyPositiveNumber(self.number_of_executions, "Number of Executions")
 
+        self.output_file_name = ShadowGui.checkDir(self.output_file_name)
+
         self.degrees_around_peak = ShadowGui.checkStrictlyPositiveNumber(self.degrees_around_peak, "Degrees around Peak")
 
         if self.beam_units_in_use == 0:
@@ -1242,9 +1249,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))
 
-            QtGui.QMessageBox.critical(self, "QMessageBox.critical()",
-                exception.args[0],
-                QtGui.QMessageBox.Ok)
+            QtGui.QMessageBox.critical(self, "Error", str(exception.args[0]), QtGui.QMessageBox.Ok)
             #raise exception
 
     #######################################################
@@ -1269,12 +1274,6 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     ############################################################
 
     def generateDiffractedRays(self, bar_value, capillary_radius, displacement_h, displacement_v, go_input_beam, input_rays, percentage_fraction, reflections):
-
-        #self.out_file = open("diff.dat", "w")
-        #self.out_file_2 = open("diff2.dat", "w")
-        # self.out_file_3 = open("entry.dat", "w")
-        # self.out_file_4 = open("exit_cap.dat", "w")
-        # self.out_file_5 = open("origin.dat", "w")
 
         diffracted_rays = []
 
@@ -1410,20 +1409,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                                 # k_diffracted = k * cos(2th) + (asse_rot x k) * sin(2th) + asse_rot*(asse_rot . k)(1 - cos(2th))
                                 #
 
-                                # v_out_temp_1 = ShadowMath.vector_multiply(v_in, numpy.cos(twotheta_reflection))
-                                # v_out_temp_2 = ShadowMath.vector_multiply(ShadowMath.vectorial_product(rotation_axis_diffraction, v_in),
-                                #                                           numpy.sin(twotheta_reflection))
-                                # v_out_temp_3 = ShadowMath.vector_multiply(rotation_axis_diffraction,
-                                #                                           ShadowMath.scalar_product(rotation_axis_diffraction, v_in) * (1 - numpy.cos(twotheta_reflection)))
-                                #
-                                # v_out_temp = ShadowMath.vector_sum(v_out_temp_1,
-                                #                                    ShadowMath.vector_sum(v_out_temp_2, v_out_temp_3))
-
                                 v_out_temp = ShadowMath.vector_rotate(rotation_axis_diffraction, twotheta_reflection, v_in)
-
-                                # self.out_file.write(str(origin_point[0] + v_out_temp[0]*self.detector_distance) + " " + \
-                                #                    str(origin_point[1] + v_out_temp[1]*self.detector_distance) + " " + \
-                                #                    str(origin_point[2] + v_out_temp[2]*self.detector_distance) + "\n")
 
                                 # intersezione raggi con sfera di raggio distanza con il detector. le intersezioni con Z < 0 vengono rigettate
                                 #
@@ -1466,23 +1452,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                                         # asse rot = v_in
                                         #
 
-                                        # v_out_1 = ShadowMath.vector_multiply(v_out_temp, numpy.cos(delta_angle))
-                                        # v_out_2 = ShadowMath.vector_multiply(
-                                        #     ShadowMath.vectorial_product(rotation_axis_debye_circle, v_out_temp),
-                                        #     numpy.sin(delta_angle))
-                                        # v_out_3 = ShadowMath.vector_multiply(rotation_axis_debye_circle,
-                                        #                                      ShadowMath.scalar_product(
-                                        #                                          rotation_axis_debye_circle,
-                                        #                                          v_out_temp) * (
-                                        #                                          1 - numpy.cos(delta_angle)))
-                                        #
-                                        # v_out = ShadowMath.vector_sum(v_out_1, ShadowMath.vector_sum(v_out_2, v_out_3))
-
                                         v_out = ShadowMath.vector_rotate(rotation_axis_debye_circle, delta_angle, v_out_temp)
-
-                                        # self.out_file_2.write(str(origin_point[0] + v_out[0]*self.detector_distance) + " " + \
-                                        #                      str(origin_point[1] + v_out[1]*self.detector_distance) + " " + \
-                                        #                      str(origin_point[2] + v_out[2]*self.detector_distance) + "\n")
 
                                         reduction_factor = reflection.relative_intensity
 
@@ -1529,12 +1499,6 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                         no_prog = True
                 else:
                     no_prog = False
-
-        #self.out_file.close()
-        #self.out_file_2.close()
-        # self.out_file_3.close()
-        # self.out_file_4.close()
-        # self.out_file_5.close()
 
         return bar_value, diffracted_rays
 
@@ -1690,11 +1654,10 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                                                   go_rays[ray_index, 15]**2 + go_rays[ray_index, 16]**2 + go_rays[ray_index, 17]**2
 
                                     if not numpy.isnan(physical_coefficent*intensity_i):
-                                        self.current_counts[angle_index] = self.current_counts[
-                                                                               angle_index] + physical_coefficent * intensity_i * statistic_factor
-
-                                        self.squared_counts[angle_index] = self.squared_counts[angle_index] + (
-                                                                                                              physical_coefficent * intensity_i * statistic_factor) **2
+                                        self.current_counts[angle_index] = self.current_counts[angle_index] + \
+                                                                           physical_coefficent * intensity_i * statistic_factor
+                                        self.squared_counts[angle_index] = self.squared_counts[angle_index] + \
+                                                                           (physical_coefficent * intensity_i * statistic_factor) **2
                                         self.points_per_bin[angle_index] = self.points_per_bin[angle_index] + 1
 
                             bar_value = bar_value + percentage_fraction_2
@@ -1856,7 +1819,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         absorption = 0
 
         #
-        # calcolo intersezione con superficie interna ed esterna del capillare:
+        # calcolo intersezione del raggio con superficie interna ed esterna del capillare:
         #
         # x = xo + x' t
         # y = yo + y' t
@@ -2350,15 +2313,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     ############################################################
 
     def writeOutFile(self):
-
-        directory_out = os.getcwd() + '/Output'
-
-        if not os.path.exists(directory_out): os.mkdir(directory_out)
-
-        output_file_name = str(self.output_file_name).strip()
-        if output_file_name == "":  output_file_name =  "XRD_Profile.xy"
-
-        out_file = open(directory_out + '/' + output_file_name,"w")
+        out_file = open(self.output_file_name, "w")
         out_file.write("tth counts error\n")
 
         for angle_index in range(0, len(self.twotheta_angles)):
@@ -2370,7 +2325,9 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         out_file.close()
 
-        caglioti_1_out_file = open(directory_out + '/' + os.path.splitext(output_file_name)[0] + "_InstrumentalBroadening.dat","w")
+        base_name = os.path.dirname(self.output_file_name) + "/" + os.path.splitext(os.path.basename(self.output_file_name))[0]
+
+        caglioti_1_out_file = open(base_name + "_InstrumentalBroadening.dat","w")
         caglioti_1_out_file.write("tth fwhm\n")
 
         for angle_index in range(0, len(self.caglioti_angles)):
@@ -2380,7 +2337,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         caglioti_1_out_file.close()
 
-        caglioti_2_out_file = open(directory_out + '/' + os.path.splitext(output_file_name)[0] + "_InstrumentalPeakShift.dat","w")
+        caglioti_2_out_file = open(base_name + "_InstrumentalPeakShift.dat","w")
         caglioti_2_out_file.write("tth peak_shift\n")
 
         for angle_index in range(0, len(self.caglioti_angles)):
@@ -2663,7 +2620,6 @@ class Material:
         self.lattice_parameter=self.xraylib_crystal['a']
         self.debye_waller_B=debye_waller_B
         self.reflections=[]
-
 
 class Reflection:
     h=0
