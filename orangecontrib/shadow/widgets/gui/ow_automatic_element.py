@@ -8,7 +8,7 @@ from orangewidget.settings import Setting
 from PyQt4.QtGui import QApplication
 from PyQt4.QtCore import QRect
 
-from orangecontrib.shadow.util.shadow_util import ConfirmDialog
+from oasys.widgets.gui import ConfirmDialog
 
 import xraylib
 

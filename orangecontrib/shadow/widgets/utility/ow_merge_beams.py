@@ -2,11 +2,12 @@ from PyQt4 import QtGui
 from PyQt4.QtCore import QRect
 from PyQt4.QtGui import QApplication
 from PyQt4.QtGui import QPalette, QColor, QFont
+
 from orangewidget import widget, gui
+from oasys.widgets import gui as oasysgui
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
-from orangecontrib.shadow.util.shadow_util import ShadowGui
-
+from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
 class MergeBeams(widget.OWWidget):
 
@@ -64,7 +65,7 @@ class MergeBeams(widget.OWWidget):
 
         gen_box = gui.widgetBox(self.controlArea, "Merge Shadow Beams", addSpace=True, orientation="horizontal")
 
-        button_box = ShadowGui.widgetBox(gen_box, "", addSpace=False, orientation="horizontal")
+        button_box = oasysgui.widgetBox(gen_box, "", addSpace=False, orientation="horizontal")
 
         button = gui.button(button_box, self, "Merge Beams and Send", callback=self.merge_beams)
         font = QFont(button.font())
@@ -76,8 +77,8 @@ class MergeBeams(widget.OWWidget):
         button.setFixedHeight(45)
 
     def setBeam1(self, beam):
-        if ShadowGui.checkEmptyBeam(beam):
-            if ShadowGui.checkGoodBeam(beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
+            if ShadowCongruence.checkGoodBeam(beam):
                 self.input_beam1 = beam
             else:
                 QtGui.QMessageBox.critical(self, "Error",
@@ -85,8 +86,8 @@ class MergeBeams(widget.OWWidget):
                                            QtGui.QMessageBox.Ok)
 
     def setBeam2(self, beam):
-        if ShadowGui.checkEmptyBeam(beam):
-            if ShadowGui.checkGoodBeam(beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
+            if ShadowCongruence.checkGoodBeam(beam):
                 self.input_beam2 = beam
             else:
                 QtGui.QMessageBox.critical(self, "Error",
@@ -94,8 +95,8 @@ class MergeBeams(widget.OWWidget):
                                            QtGui.QMessageBox.Ok)
 
     def setBeam3(self, beam):
-        if ShadowGui.checkEmptyBeam(beam):
-            if ShadowGui.checkGoodBeam(beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
+            if ShadowCongruence.checkGoodBeam(beam):
                 self.input_beam3 = beam
             else:
                 QtGui.QMessageBox.critical(self, "Error",
@@ -103,8 +104,8 @@ class MergeBeams(widget.OWWidget):
                                            QtGui.QMessageBox.Ok)
 
     def setBeam4(self, beam):
-        if ShadowGui.checkEmptyBeam(beam):
-            if ShadowGui.checkGoodBeam(beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
+            if ShadowCongruence.checkGoodBeam(beam):
                 self.input_beam4 = beam
             else:
                 QtGui.QMessageBox.critical(self, "Error",
@@ -112,8 +113,8 @@ class MergeBeams(widget.OWWidget):
                                            QtGui.QMessageBox.Ok)
 
     def setBeam5(self, beam):
-        if ShadowGui.checkEmptyBeam(beam):
-            if ShadowGui.checkGoodBeam(beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
+            if ShadowCongruence.checkGoodBeam(beam):
                 self.input_beam5 = beam
             else:
                 QtGui.QMessageBox.critical(self, "Error",
@@ -121,8 +122,8 @@ class MergeBeams(widget.OWWidget):
                                            QtGui.QMessageBox.Ok)
 
     def setBeam6(self, beam):
-        if ShadowGui.checkEmptyBeam(beam):
-            if ShadowGui.checkGoodBeam(beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
+            if ShadowCongruence.checkGoodBeam(beam):
                 self.input_beam6 = beam
             else:
                 QtGui.QMessageBox.critical(self, "Error",
@@ -130,8 +131,8 @@ class MergeBeams(widget.OWWidget):
                                            QtGui.QMessageBox.Ok)
 
     def setBeam7(self, beam):
-        if ShadowGui.checkEmptyBeam(beam):
-            if ShadowGui.checkGoodBeam(beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
+            if ShadowCongruence.checkGoodBeam(beam):
                 self.input_beam7 = beam
             else:
                 QtGui.QMessageBox.critical(self, "Error",
@@ -139,8 +140,8 @@ class MergeBeams(widget.OWWidget):
                                            QtGui.QMessageBox.Ok)
 
     def setBeam8(self, beam):
-        if ShadowGui.checkEmptyBeam(beam):
-            if ShadowGui.checkGoodBeam(beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
+            if ShadowCongruence.checkGoodBeam(beam):
                 self.input_beam8 = beam
             else:
                 QtGui.QMessageBox.critical(self, "Error",
@@ -148,8 +149,8 @@ class MergeBeams(widget.OWWidget):
                                            QtGui.QMessageBox.Ok)
 
     def setBeam9(self, beam):
-        if ShadowGui.checkEmptyBeam(beam):
-            if ShadowGui.checkGoodBeam(beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
+            if ShadowCongruence.checkGoodBeam(beam):
                 self.input_beam9 = beam
             else:
                 QtGui.QMessageBox.critical(self, "Error",
@@ -157,8 +158,8 @@ class MergeBeams(widget.OWWidget):
                                            QtGui.QMessageBox.Ok)
 
     def setBeam10(self, beam):
-        if ShadowGui.checkEmptyBeam(beam):
-            if ShadowGui.checkGoodBeam(beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
+            if ShadowCongruence.checkGoodBeam(beam):
                 self.input_beam10 = beam
             else:
                 QtGui.QMessageBox.critical(self, "Error",

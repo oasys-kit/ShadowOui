@@ -4,12 +4,17 @@ import sys
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QPalette, QColor, QFont
+
+from oasys.widgets import gui as oasysgui
+from oasys.widgets import congruence
+from oasys.widgets.gui import ConfirmDialog
+
 from orangewidget import gui
 from orangewidget.settings import Setting
 
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerIn, ShadowPreProcessorData, \
     ShadowCompoundOpticalElement, ShadowBeam
-from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog
+from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 from orangecontrib.shadow.widgets.gui import ow_generic_element
 
 
@@ -70,21 +75,21 @@ class DCM(ow_generic_element.GenericElement):
         tabs_setting.setFixedWidth(495)
         tabs_setting.setFixedHeight(750)
 
-        tab_bas = ShadowGui.createTabPage(tabs_setting, "Basic Setting")
-        tab_adv = ShadowGui.createTabPage(tabs_setting, "Advanced Setting")
+        tab_bas = oasysgui.createTabPage(tabs_setting, "Basic Setting")
+        tab_adv = oasysgui.createTabPage(tabs_setting, "Advanced Setting")
 
-        ShadowGui.lineEdit(tab_bas, self, "p", "Distance Source - DCM center (P) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(tab_bas, self, "q", "Distance DCM center - Image plane (Q) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(tab_bas, self, "p", "Distance Source - DCM center (P) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(tab_bas, self, "q", "Distance DCM center - Image plane (Q) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
 
-        ShadowGui.lineEdit(tab_bas, self, "separation", "Separation between the Crystals [cm]\n(from center of 1st C. to center of 2nd C.) ", labelWidth=350, valueType=float,
+        oasysgui.lineEdit(tab_bas, self, "separation", "Separation between the Crystals [cm]\n(from center of 1st C. to center of 2nd C.) ", labelWidth=350, valueType=float,
                            orientation="horizontal")
 
-        ShadowGui.lineEdit(tab_bas, self, "photon_energy_ev", "Photon Eneergy [eV]", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(tab_bas, self, "photon_energy_ev", "Photon Eneergy [eV]", labelWidth=350, valueType=float, orientation="horizontal")
 
 
-        file_box = ShadowGui.widgetBox(tab_bas, "", addSpace=True, orientation="horizontal", height=25)
+        file_box = oasysgui.widgetBox(tab_bas, "", addSpace=True, orientation="horizontal", height=25)
 
-        self.le_reflectivity_file = ShadowGui.lineEdit(file_box, self, "reflectivity_file", "Reflectivity File", labelWidth=150, valueType=str, orientation="horizontal")
+        self.le_reflectivity_file = oasysgui.lineEdit(file_box, self, "reflectivity_file", "Reflectivity File", labelWidth=150, valueType=str, orientation="horizontal")
 
         pushButton = gui.button(file_box, self, "...")
         pushButton.clicked.connect(self.selectFilePrerefl)
@@ -93,8 +98,8 @@ class DCM(ow_generic_element.GenericElement):
 
         self.tab_crystals = gui.tabWidget(tab_bas)
 
-        tab_first_crystal = ShadowGui.createTabPage(self.tab_crystals, "First Crystal")
-        tab_second_crystal = ShadowGui.createTabPage(self.tab_crystals, "Second Crystal")
+        tab_first_crystal = oasysgui.createTabPage(self.tab_crystals, "First Crystal")
+        tab_second_crystal = oasysgui.createTabPage(self.tab_crystals, "Second Crystal")
 
         self.crystal_1_box = CrystalBox(dcm=self,
                                         parent=tab_first_crystal,
@@ -106,13 +111,13 @@ class DCM(ow_generic_element.GenericElement):
                                         has_finite_dimensions=self.has_finite_dimensions[1],
                                         dimensions=self.dimensions[1])
 
-        adv_other_box = ShadowGui.widgetBox(tab_adv, "Optional file output", addSpace=False, orientation="vertical")
+        adv_other_box = oasysgui.widgetBox(tab_adv, "Optional file output", addSpace=False, orientation="vertical")
 
         gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=310,
                      items=["All", "Mirror", "Image", "None"],
                      sendSelectedValue=False, orientation="horizontal")
 
-        button_box = ShadowGui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
+        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
         button = gui.button(button_box, self, "Run Shadow/trace", callback=self.traceOpticalElement)
         font = QFont(button.font())
@@ -134,7 +139,7 @@ class DCM(ow_generic_element.GenericElement):
         button.setFixedWidth(100)
 
     def selectFilePrerefl(self):
-        self.le_reflectivity_file.setText(ShadowGui.selectFileFromDialog(self, self.reflectivity_file, "Select Reflectivity File", file_extension_filter="*.dat"))
+        self.le_reflectivity_file.setText(oasysgui.selectFileFromDialog(self, self.reflectivity_file, "Select Reflectivity File", file_extension_filter="*.dat"))
 
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):
@@ -143,8 +148,8 @@ class DCM(ow_generic_element.GenericElement):
             while self.tab_crystals.count() > 0:
                 self.tab_crystals.removeTab(0)
 
-            tab_first_crystal = ShadowGui.widgetBox(self.tab_crystals, addToLayout=0, margin=4)
-            tab_second_crystal = ShadowGui.widgetBox(self.tab_crystals, addToLayout=0, margin=4)
+            tab_first_crystal = oasysgui.widgetBox(self.tab_crystals, addToLayout=0, margin=4)
+            tab_second_crystal = oasysgui.widgetBox(self.tab_crystals, addToLayout=0, margin=4)
 
             self.crystal_1_box = CrystalBox(dcm=self,
                                             parent=tab_first_crystal,
@@ -248,13 +253,13 @@ class DCM(ow_generic_element.GenericElement):
         pass
 
     def checkFields(self):
-        ShadowGui.checkPositiveNumber(self.p, "Distance Source - KB center")
-        ShadowGui.checkPositiveNumber(self.q, "Distance KB center - Image plane")
+        congruence.checkPositiveNumber(self.p, "Distance Source - KB center")
+        congruence.checkPositiveNumber(self.q, "Distance KB center - Image plane")
 
-        ShadowGui.checkPositiveNumber(self.separation, "Separation between the Mirrors")
-        ShadowGui.checkStrictlyPositiveNumber(self.photon_energy_ev, "Photon Energy")
+        congruence.checkPositiveNumber(self.separation, "Separation between the Mirrors")
+        congruence.checkStrictlyPositiveNumber(self.photon_energy_ev, "Photon Energy")
 
-        ShadowGui.checkFile(self.reflectivity_file)
+        congruence.checkFile(self.reflectivity_file)
 
         self.crystal_1_box.checkFields()
         self.crystal_2_box.checkFields()
@@ -303,8 +308,8 @@ class DCM(ow_generic_element.GenericElement):
             self.setStatusMessage("")
             self.progressBarInit()
 
-            if ShadowGui.checkEmptyBeam(self.input_beam):
-                if ShadowGui.checkGoodBeam(self.input_beam):
+            if ShadowCongruence.checkEmptyBeam(self.input_beam):
+                if ShadowCongruence.checkGoodBeam(self.input_beam):
                     sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
                     self.checkFields()
@@ -336,7 +341,7 @@ class DCM(ow_generic_element.GenericElement):
     def setBeam(self, beam):
         self.onReceivingInput()
 
-        if ShadowGui.checkEmptyBeam(beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
             self.input_beam = beam
 
             if self.is_automatic_run:
@@ -382,18 +387,18 @@ class CrystalBox(QtGui.QWidget):
         self.mirror_width = dimensions[0]
         self.mirror_length = dimensions[1]
 
-        mirror_box = ShadowGui.widgetBox(self, "Crystal Input Parameters", addSpace=False, orientation="vertical", height=330, width=460)
+        mirror_box = oasysgui.widgetBox(self, "Crystal Input Parameters", addSpace=False, orientation="vertical", height=330, width=460)
 
         gui.comboBox(mirror_box, self, "has_finite_dimensions", label="Dimensions", labelWidth=350,
                      items=["Finite", "Infinite"], sendSelectedValue=False, orientation="horizontal", callback=self.set_dimensions)
 
-        self.dimension_box = ShadowGui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=50)
-        self.dimension_box_empty = ShadowGui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=50)
+        self.dimension_box = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=50)
+        self.dimension_box_empty = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=50)
 
-        ShadowGui.lineEdit(self.dimension_box, self, "mirror_width", "Crystal Width [cm]", labelWidth=350, valueType=float, orientation="horizontal",
+        oasysgui.lineEdit(self.dimension_box, self, "mirror_width", "Crystal Width [cm]", labelWidth=350, valueType=float, orientation="horizontal",
                            callback=self.dcm.dump_dimensions_0)
 
-        ShadowGui.lineEdit(self.dimension_box, self, "mirror_length", "Crystal Length [cm]", labelWidth=350, valueType=float, orientation="horizontal",
+        oasysgui.lineEdit(self.dimension_box, self, "mirror_length", "Crystal Length [cm]", labelWidth=350, valueType=float, orientation="horizontal",
                            callback=self.dcm.dump_dimensions_1)
 
         self.set_dimensions()
@@ -422,8 +427,8 @@ class CrystalBox(QtGui.QWidget):
 
     def checkFields(self):
         if self.has_finite_dimensions == 0:
-            ShadowGui.checkStrictlyPositiveNumber(self.mirror_width, "Mirror Width")
-            ShadowGui.checkStrictlyPositiveNumber(self.mirror_length, "Mirror Length")
+            congruence.checkStrictlyPositiveNumber(self.mirror_width, "Mirror Width")
+            congruence.checkStrictlyPositiveNumber(self.mirror_length, "Mirror Length")
 
     def setupUI(self):
         self.set_dimensions()

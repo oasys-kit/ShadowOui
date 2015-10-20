@@ -13,13 +13,17 @@ from oasys.widgets.widget import OWWidget
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
 
+from oasys.widgets import gui as oasysgui
+from oasys.widgets import congruence
+from oasys.widgets.gui import ConfirmDialog
+
 try:
     from mpl_toolkits.mplot3d import Axes3D  # necessario per caricare i plot 3D
 except:
     pass
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
-from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog
+from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
 class OWxsh_waviness(OWWidget):
     name = "xsh_waviness"
@@ -261,60 +265,60 @@ class OWxsh_waviness(OWWidget):
                                round(min(geom.width() * 0.98, self.WIDGET_WIDTH)),
                                round(min(geom.height() * 0.95, self.WIDGET_HEIGHT))))
 
-        gen_box = ShadowGui.widgetBox(self.controlArea, "Waviness Parameters", addSpace=True, orientation="horizontal",
+        gen_box = oasysgui.widgetBox(self.controlArea, "Waviness Parameters", addSpace=True, orientation="horizontal",
                                       width=500)
 
         tabs_setting = gui.tabWidget(gen_box)
 
-        tab_input = ShadowGui.createTabPage(tabs_setting, "Input Parameter")
-        tab_harmonics = ShadowGui.createTabPage(tabs_setting, "Harmonics")
-        tab_out = ShadowGui.createTabPage(tabs_setting, "Output")
+        tab_input = oasysgui.createTabPage(tabs_setting, "Input Parameter")
+        tab_harmonics = oasysgui.createTabPage(tabs_setting, "Harmonics")
+        tab_out = oasysgui.createTabPage(tabs_setting, "Output")
 
-        self.input_box = ShadowGui.widgetBox(tab_input, "Inputs", addSpace=True, orientation="vertical", width=470)
+        self.input_box = oasysgui.widgetBox(tab_input, "Inputs", addSpace=True, orientation="vertical", width=470)
 
         gui.button(self.input_box, self, "Load xsh_waviness input file ...", callback=self.load_inp_file)
 
         gui.separator(self.input_box)
 
-        ShadowGui.lineEdit(self.input_box, self, "number_of_points_x", "Number of Points (<201)           X (width)",
+        oasysgui.lineEdit(self.input_box, self, "number_of_points_x", "Number of Points (<201)           X (width)",
                            labelWidth=300, valueType=int, orientation="horizontal")
-        ShadowGui.lineEdit(self.input_box, self, "number_of_points_y",
+        oasysgui.lineEdit(self.input_box, self, "number_of_points_y",
                            "                                                 Y (length)", labelWidth=300, valueType=int,
                            orientation="horizontal")
 
         gui.separator(self.input_box)
 
-        ShadowGui.lineEdit(self.input_box, self, "dimension_x", "Dimensions [cm]                        X (width)",
+        oasysgui.lineEdit(self.input_box, self, "dimension_x", "Dimensions [cm]                        X (width)",
                            labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.input_box, self, "dimension_y",
+        oasysgui.lineEdit(self.input_box, self, "dimension_y",
                            "                                                 Y (length)", labelWidth=300,
                            valueType=float, orientation="horizontal")
 
         gui.separator(self.input_box)
 
-        ShadowGui.lineEdit(self.input_box, self, "estimated_slope_error", "Estimated slope error [arcsec]",
+        oasysgui.lineEdit(self.input_box, self, "estimated_slope_error", "Estimated slope error [arcsec]",
                            labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.input_box, self, "montecarlo_seed", "Monte Carlo initial seed", labelWidth=300,
+        oasysgui.lineEdit(self.input_box, self, "montecarlo_seed", "Monte Carlo initial seed", labelWidth=300,
                            valueType=int, orientation="horizontal")
 
-        self.output_box = ShadowGui.widgetBox(tab_input, "Outputs", addSpace=True, orientation="vertical", width=470)
+        self.output_box = oasysgui.widgetBox(tab_input, "Outputs", addSpace=True, orientation="vertical", width=470)
 
         gui.button(self.output_box, self, "Write xsh_waviness input file (optional) ...", callback=self.write_inp_file)
 
         gui.separator(self.output_box)
 
-        self.select_file_box = ShadowGui.widgetBox(self.output_box, "", addSpace=True, orientation="horizontal")
+        self.select_file_box = oasysgui.widgetBox(self.output_box, "", addSpace=True, orientation="horizontal")
 
-        self.le_waviness_file_name = ShadowGui.lineEdit(self.select_file_box, self, "waviness_file_name", "Output File Name",
+        self.le_waviness_file_name = oasysgui.lineEdit(self.select_file_box, self, "waviness_file_name", "Output File Name",
                                                         labelWidth=120, valueType=str, orientation="horizontal")
 
         pushButton = gui.button(self.select_file_box, self, "...")
         pushButton.clicked.connect(self.selectFile)
 
-        self.harmonics_box = ShadowGui.widgetBox(tab_harmonics, "Harmonics", addSpace=True, orientation="vertical",
+        self.harmonics_box = oasysgui.widgetBox(tab_harmonics, "Harmonics", addSpace=True, orientation="vertical",
                                                  width=470, height=690)
 
-        ShadowGui.lineEdit(self.harmonics_box, self, "harmonic_maximum_index", "Harmonic Maximum Index", labelWidth=300,
+        oasysgui.lineEdit(self.harmonics_box, self, "harmonic_maximum_index", "Harmonic Maximum Index", labelWidth=300,
                            valueType=int, orientation="horizontal", callback=self.set_harmonics)
 
         gui.separator(self.harmonics_box)
@@ -327,10 +331,10 @@ class OWxsh_waviness(OWWidget):
         self.shadow_output = QTextEdit()
         self.shadow_output.setReadOnly(True)
 
-        out_box = ShadowGui.widgetBox(tab_out, "System Output", addSpace=True, orientation="horizontal", height=600)
+        out_box = oasysgui.widgetBox(tab_out, "System Output", addSpace=True, orientation="horizontal", height=600)
         out_box.layout().addWidget(self.shadow_output)
 
-        button_box = ShadowGui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
+        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
         button = gui.button(button_box, self, "Calculate Waviness", callback=self.calculate_waviness)
         button.setFixedHeight(45)
@@ -504,7 +508,7 @@ class OWxsh_waviness(OWWidget):
             self.reload_harmonics_table()
 
     def load_inp_file(self):
-        file_name = ShadowGui.selectFileFromDialog(self, None, "Select a input file for XSH_WAVINESS", file_extension_filter="*.inp")
+        file_name = oasysgui.selectFileFromDialog(self, None, "Select a input file for XSH_WAVINESS", file_extension_filter="*.inp")
 
         if not file_name is None:
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
@@ -626,7 +630,7 @@ class OWxsh_waviness(OWWidget):
 
     def generate_waviness_file(self, not_interactive_mode=False):
         if not self.zz is None and not self.yy is None and not self.xx is None:
-            self.waviness_file_name = ShadowGui.checkDir(self.waviness_file_name)
+            self.waviness_file_name = congruence.checkDir(self.waviness_file_name)
 
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
@@ -649,19 +653,19 @@ class OWxsh_waviness(OWWidget):
                 pass
 
     def check_fields(self):
-        self.number_of_points_x = ShadowGui.checkStrictlyPositiveNumber(self.number_of_points_x, "Number of Points X")
-        self.number_of_points_y = ShadowGui.checkStrictlyPositiveNumber(self.number_of_points_y, "Number of Points Y")
+        self.number_of_points_x = congruence.checkStrictlyPositiveNumber(self.number_of_points_x, "Number of Points X")
+        self.number_of_points_y = congruence.checkStrictlyPositiveNumber(self.number_of_points_y, "Number of Points Y")
 
-        self.dimension_x = ShadowGui.checkStrictlyPositiveNumber(self.dimension_x, "Dimension X")
-        self.dimension_y = ShadowGui.checkStrictlyPositiveNumber(self.dimension_y, "Dimension Y")
+        self.dimension_x = congruence.checkStrictlyPositiveNumber(self.dimension_x, "Dimension X")
+        self.dimension_y = congruence.checkStrictlyPositiveNumber(self.dimension_y, "Dimension Y")
 
-        self.estimated_slope_error = ShadowGui.checkPositiveNumber(self.estimated_slope_error, "Estimated slope error")
-        self.montecarlo_seed = ShadowGui.checkPositiveNumber(self.montecarlo_seed, "Monte Carlo initial seed")
+        self.estimated_slope_error = congruence.checkPositiveNumber(self.estimated_slope_error, "Estimated slope error")
+        self.montecarlo_seed = congruence.checkPositiveNumber(self.montecarlo_seed, "Monte Carlo initial seed")
 
-        self.harmonic_maximum_index = ShadowGui.checkPositiveNumber(self.harmonic_maximum_index,
+        self.harmonic_maximum_index = congruence.checkPositiveNumber(self.harmonic_maximum_index,
                                                                     "Harmonic Maximum Index")
 
-        self.waviness_file_name = ShadowGui.checkDir(self.waviness_file_name)
+        self.waviness_file_name = congruence.checkDir(self.waviness_file_name)
 
 
     def to_float_array(self, string_array):
@@ -688,7 +692,7 @@ class OWxsh_waviness(OWWidget):
         self.shadow_output.ensureCursorVisible()
 
     def selectFile(self):
-        self.le_waviness_file_name.setText(ShadowGui.selectFileFromDialog(self, self.waviness_file_name, "Select Output File", file_extension_filter="*.dat"))
+        self.le_waviness_file_name.setText(oasysgui.selectFileFromDialog(self, self.waviness_file_name, "Select Output File", file_extension_filter="*.dat"))
 
 
 if __name__ == "__main__":

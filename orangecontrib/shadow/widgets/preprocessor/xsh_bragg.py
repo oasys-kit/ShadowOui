@@ -5,7 +5,8 @@ from Shadow.ShadowPreprocessorsXraylib import bragg
 from oasys.widgets.widget import OWWidget
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
-
+from oasys.widgets import gui as oasysgui
+from oasys.widgets import congruence
 
 try:
     from ..tools.xoppy_calc import xoppy_doc
@@ -17,7 +18,7 @@ except SystemError:
     pass
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
-from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowPhysics
+from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics
 
 class OWxsh_bragg(OWWidget):
     name = "xsh_bragg"
@@ -61,28 +62,28 @@ class OWxsh_bragg(OWWidget):
         
         #widget index 0 
         idx += 1 
-        box = ShadowGui.widgetBox(self.controlArea, "Crystal Parameters", orientation="vertical")
-        ShadowGui.lineEdit(box, self, "DESCRIPTOR",
+        box = oasysgui.widgetBox(self.controlArea, "Crystal Parameters", orientation="vertical")
+        oasysgui.lineEdit(box, self, "DESCRIPTOR",
                      label=self.unitLabels()[idx], addSpace=True, labelWidth=450, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 1 
         idx += 1 
-        box_miller = ShadowGui.widgetBox(box, "", orientation = "horizontal")
-        ShadowGui.lineEdit(box_miller, self, "H_MILLER_INDEX",
+        box_miller = oasysgui.widgetBox(box, "", orientation = "horizontal")
+        oasysgui.lineEdit(box_miller, self, "H_MILLER_INDEX",
                      label="Miller Indices [h k l]", addSpace=True,
                     valueType=int, validator=QIntValidator(), labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_miller)
         
         #widget index 2 
         idx += 1 
-        ShadowGui.lineEdit(box_miller, self, "K_MILLER_INDEX", addSpace=True,
+        oasysgui.lineEdit(box_miller, self, "K_MILLER_INDEX", addSpace=True,
                     valueType=int, validator=QIntValidator())
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 3 
         idx += 1 
-        ShadowGui.lineEdit(box_miller, self, "L_MILLER_INDEX",
+        oasysgui.lineEdit(box_miller, self, "L_MILLER_INDEX",
                      addSpace=True,
                     valueType=int, validator=QIntValidator(), orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box) 
@@ -91,37 +92,37 @@ class OWxsh_bragg(OWWidget):
 
         #widget index 4 
         idx += 1 
-        ShadowGui.lineEdit(box, self, "TEMPERATURE_FACTOR",
+        oasysgui.lineEdit(box, self, "TEMPERATURE_FACTOR",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 5 
         idx += 1 
-        ShadowGui.lineEdit(box, self, "E_MIN",
+        oasysgui.lineEdit(box, self, "E_MIN",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 6 
         idx += 1 
-        ShadowGui.lineEdit(box, self, "E_MAX",
+        oasysgui.lineEdit(box, self, "E_MAX",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 7 
         idx += 1 
-        ShadowGui.lineEdit(box, self, "E_STEP",
+        oasysgui.lineEdit(box, self, "E_STEP",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 8 
         idx += 1
-        box_2 = ShadowGui.widgetBox(box, "", addSpace=True, orientation="horizontal")
+        box_2 = oasysgui.widgetBox(box, "", addSpace=True, orientation="horizontal")
 
-        self.le_SHADOW_FILE = ShadowGui.lineEdit(box_2, self, "SHADOW_FILE",
+        self.le_SHADOW_FILE = oasysgui.lineEdit(box_2, self, "SHADOW_FILE",
                                                  label=self.unitLabels()[idx], addSpace=True, labelWidth=180, orientation="horizontal")
 
         pushButton = gui.button(box_2, self, "...")
@@ -132,12 +133,12 @@ class OWxsh_bragg(OWWidget):
         self.shadow_output = QTextEdit()
         self.shadow_output.setReadOnly(True)
 
-        out_box = ShadowGui.widgetBox(self.controlArea, "System Output", addSpace=True, orientation="horizontal", height=150)
+        out_box = oasysgui.widgetBox(self.controlArea, "System Output", addSpace=True, orientation="horizontal", height=150)
         out_box.layout().addWidget(self.shadow_output)
 
         self.process_showers()
 
-        box0 = ShadowGui.widgetBox(self.controlArea, "",orientation="horizontal")
+        box0 = oasysgui.widgetBox(self.controlArea, "",orientation="horizontal")
         #widget buttons: compute, set defaults, help
         button = gui.button(box0, self, "Compute", callback=self.compute)
         button.setFixedHeight(45)
@@ -156,7 +157,7 @@ class OWxsh_bragg(OWWidget):
          return ['True','True','True','True','True','True','True','True','True']
 
     def selectFile(self):
-        self.le_SHADOW_FILE.setText(ShadowGui.selectFileFromDialog(self, self.SHADOW_FILE, "Select Output File", file_extension_filter="*.dat"))
+        self.le_SHADOW_FILE.setText(oasysgui.selectFileFromDialog(self, self.SHADOW_FILE, "Select Output File", file_extension_filter="*.dat"))
 
     def compute(self):
         try:
@@ -183,15 +184,15 @@ class OWxsh_bragg(OWWidget):
 
     def checkFields(self):
         self.DESCRIPTOR = ShadowPhysics.checkCompoundName(self.DESCRIPTOR)
-        self.H_MILLER_INDEX = ShadowGui.checkNumber(self.H_MILLER_INDEX, "H miller index")
-        self.K_MILLER_INDEX = ShadowGui.checkNumber(self.K_MILLER_INDEX, "K miller index")
-        self.L_MILLER_INDEX = ShadowGui.checkNumber(self.L_MILLER_INDEX, "L miller index")
-        self.TEMPERATURE_FACTOR = ShadowGui.checkNumber(self.TEMPERATURE_FACTOR, "Temperature factor")
-        self.E_MIN  = ShadowGui.checkPositiveNumber(self.E_MIN , "From Energy")
-        self.E_MAX  = ShadowGui.checkStrictlyPositiveNumber(self.E_MAX , "To Energy")
-        self.E_STEP = ShadowGui.checkStrictlyPositiveNumber(self.E_STEP, "Energy step")
+        self.H_MILLER_INDEX = congruence.checkNumber(self.H_MILLER_INDEX, "H miller index")
+        self.K_MILLER_INDEX = congruence.checkNumber(self.K_MILLER_INDEX, "K miller index")
+        self.L_MILLER_INDEX = congruence.checkNumber(self.L_MILLER_INDEX, "L miller index")
+        self.TEMPERATURE_FACTOR = congruence.checkNumber(self.TEMPERATURE_FACTOR, "Temperature factor")
+        self.E_MIN  = congruence.checkPositiveNumber(self.E_MIN , "From Energy")
+        self.E_MAX  = congruence.checkStrictlyPositiveNumber(self.E_MAX , "To Energy")
+        self.E_STEP = congruence.checkStrictlyPositiveNumber(self.E_STEP, "Energy step")
         if self.E_MIN > self.E_MAX: raise Exception("From Energy cannot be bigger than To Energy")
-        self.SHADOW_FILE=ShadowGui.checkDir(self.SHADOW_FILE)
+        self.SHADOW_FILE=congruence.checkDir(self.SHADOW_FILE)
 
     def defaults(self):
          self.resetSettings()

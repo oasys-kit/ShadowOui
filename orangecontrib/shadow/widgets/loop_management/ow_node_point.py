@@ -1,11 +1,12 @@
 import sys
 
 from oasys.widgets import widget
+from oasys.widgets import gui as oasysgui
+from oasys.widgets.gui import ConfirmDialog
 
 from orangewidget import gui
 from PyQt4 import QtGui
 from orangewidget.settings import Setting
-from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog
 from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn, ShadowTriggerOut
 
 class LoopPoint(widget.OWWidget):
@@ -39,11 +40,11 @@ class LoopPoint(widget.OWWidget):
         self.setFixedWidth(400)
         self.setFixedHeight(220)
 
-        left_box_1 = ShadowGui.widgetBox(self.controlArea, "Loop Management", addSpace=True, orientation="vertical", width=370, height=100)
+        left_box_1 = oasysgui.widgetBox(self.controlArea, "Loop Management", addSpace=True, orientation="vertical", width=370, height=100)
 
-        ShadowGui.lineEdit(left_box_1, self, "number_of_new_beams", "Number of new Beams", labelWidth=250, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "number_of_new_beams", "Number of new Beams", labelWidth=250, valueType=int, orientation="horizontal")
 
-        self.le_current_new_beam = ShadowGui.lineEdit(left_box_1, self, "current_new_beam", "Current New Beam", labelWidth=250, valueType=int, orientation="horizontal")
+        self.le_current_new_beam = oasysgui.lineEdit(left_box_1, self, "current_new_beam", "Current New Beam", labelWidth=250, valueType=int, orientation="horizontal")
         self.le_current_new_beam.setReadOnly(True)
         font = QtGui.QFont(self.le_current_new_beam.font())
         font.setBold(True)

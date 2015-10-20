@@ -6,10 +6,12 @@ from PyQt4 import QtGui
 from PyQt4.QtGui import QApplication, QPalette, QColor, QFont
 from orangewidget import gui
 from orangewidget.settings import Setting
+from oasys.widgets import gui as oasysgui
+from oasys.widgets import congruence
 
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerOut, ShadowBeam, \
     ShadowSource
-from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowPhysics
+from orangecontrib.shadow.util.shadow_util import ShadowPhysics
 from orangecontrib.shadow.widgets.gui import ow_source
 
 
@@ -134,16 +136,16 @@ class GeometricalSource(ow_source.Source):
     def __init__(self):
         super().__init__()
 
-        tabs = ShadowGui.tabWidget(self.controlArea, width=480,  height=620)
+        tabs = oasysgui.tabWidget(self.controlArea, width=480,  height=620)
 
-        tab_montecarlo = ShadowGui.createTabPage(tabs, "Monte Carlo and Sampling")
-        tab_geometry = ShadowGui.createTabPage(tabs, "Geometry")
-        tab_energy = ShadowGui.createTabPage(tabs, "Energy and Polarization")
+        tab_montecarlo = oasysgui.createTabPage(tabs, "Monte Carlo and Sampling")
+        tab_geometry = oasysgui.createTabPage(tabs, "Geometry")
+        tab_energy = oasysgui.createTabPage(tabs, "Energy and Polarization")
 
         ##############################
         # MONTECARLO
 
-        left_box_1 = ShadowGui.widgetBox(tab_montecarlo, "Options", addSpace=True, orientation="vertical", height=280)
+        left_box_1 = oasysgui.widgetBox(tab_montecarlo, "Options", addSpace=True, orientation="vertical", height=280)
 
         gui.separator(left_box_1)
 
@@ -159,123 +161,123 @@ class GeometricalSource(ow_source.Source):
 
         gui.separator(left_box_1)
 
-        self.sample_box_1 = ShadowGui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
+        self.sample_box_1 = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.sample_box_1, self, "number_of_rays", "Number of Random Rays", labelWidth=300, valueType=int, orientation="horizontal")
-        ShadowGui.lineEdit(self.sample_box_1, self, "seed", "Seed", labelWidth=300, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.sample_box_1, self, "number_of_rays", "Number of Random Rays", labelWidth=300, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.sample_box_1, self, "seed", "Seed", labelWidth=300, valueType=int, orientation="horizontal")
 
-        self.sample_box_2 = ShadowGui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
+        self.sample_box_2 = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.sample_box_2, self, "grid_points_in_xfirst", "Grid Points in X'", labelWidth=300, valueType=int, orientation="horizontal")
-        ShadowGui.lineEdit(self.sample_box_2, self, "grid_points_in_zfirst", "Grid Points in Z'",  labelWidth=300, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.sample_box_2, self, "grid_points_in_xfirst", "Grid Points in X'", labelWidth=300, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.sample_box_2, self, "grid_points_in_zfirst", "Grid Points in Z'",  labelWidth=300, valueType=int, orientation="horizontal")
 
-        self.sample_box_3 = ShadowGui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
+        self.sample_box_3 = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.sample_box_3, self, "grid_points_in_x", "Grid Points in X", labelWidth=300, valueType=int, orientation="horizontal")
-        ShadowGui.lineEdit(self.sample_box_3, self, "grid_points_in_y", "Grid Points in Y", labelWidth=300, valueType=int, orientation="horizontal")
-        ShadowGui.lineEdit(self.sample_box_3, self, "grid_points_in_z", "Grid Points in Z",  labelWidth=300, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.sample_box_3, self, "grid_points_in_x", "Grid Points in X", labelWidth=300, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.sample_box_3, self, "grid_points_in_y", "Grid Points in Y", labelWidth=300, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.sample_box_3, self, "grid_points_in_z", "Grid Points in Z",  labelWidth=300, valueType=int, orientation="horizontal")
 
-        #self.sample_box_4 = ShadowGui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
+        #self.sample_box_4 = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
 
-        #ShadowGui.lineEdit(self.sample_box_4, self, "radial_grid_points", "Radial Grid Points", labelWidth=300, valueType=int, orientation="horizontal")
-        #ShadowGui.lineEdit(self.sample_box_4, self, "concentrical_grid_points", "Concentrical Grid Points",  labelWidth=300, valueType=int, orientation="horizontal")
+        #oasysgui.lineEdit(self.sample_box_4, self, "radial_grid_points", "Radial Grid Points", labelWidth=300, valueType=int, orientation="horizontal")
+        #oasysgui.lineEdit(self.sample_box_4, self, "concentrical_grid_points", "Concentrical Grid Points",  labelWidth=300, valueType=int, orientation="horizontal")
 
         self.set_Sampling()
 
         ##############################
         # GEOMETRY
 
-        left_box_2 = ShadowGui.widgetBox(tab_geometry, "", addSpace=True, orientation="vertical", height=550)
+        left_box_2 = oasysgui.widgetBox(tab_geometry, "", addSpace=True, orientation="vertical", height=550)
 
         gui.separator(left_box_2)
 
         ######
 
-        spatial_type_box = ShadowGui.widgetBox(left_box_2, "Spatial Type", addSpace=True, orientation="vertical", height=120)
+        spatial_type_box = oasysgui.widgetBox(left_box_2, "Spatial Type", addSpace=True, orientation="vertical", height=120)
 
         gui.comboBox(spatial_type_box, self, "spatial_type", label="Spatial Type", labelWidth=355,
                      items=["Point", "Rectangle", "Ellipse", "Gaussian"], orientation="horizontal", callback=self.set_SpatialType)
 
         gui.separator(spatial_type_box)
 
-        self.spatial_type_box_1 = ShadowGui.widgetBox(spatial_type_box, "", addSpace=False, orientation="vertical")
+        self.spatial_type_box_1 = oasysgui.widgetBox(spatial_type_box, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.spatial_type_box_1, self, "rect_width", "Width [cm]", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.spatial_type_box_1, self, "rect_height", "Height [cm]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.spatial_type_box_1, self, "rect_width", "Width [cm]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.spatial_type_box_1, self, "rect_height", "Height [cm]", labelWidth=300, valueType=float, orientation="horizontal")
 
-        self.spatial_type_box_2 = ShadowGui.widgetBox(spatial_type_box, "", addSpace=False, orientation="vertical")
+        self.spatial_type_box_2 = oasysgui.widgetBox(spatial_type_box, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.spatial_type_box_2, self, "ell_semiaxis_x", "Semi-Axis X [cm]", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.spatial_type_box_2, self, "ell_semiaxis_z", "Semi-Axis Z [cm]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.spatial_type_box_2, self, "ell_semiaxis_x", "Semi-Axis X [cm]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.spatial_type_box_2, self, "ell_semiaxis_z", "Semi-Axis Z [cm]", labelWidth=300, valueType=float, orientation="horizontal")
 
-        self.spatial_type_box_3 = ShadowGui.widgetBox(spatial_type_box, "", addSpace=False, orientation="vertical")
+        self.spatial_type_box_3 = oasysgui.widgetBox(spatial_type_box, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.spatial_type_box_3, self, "gauss_sigma_x", "Sigma X [cm]", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.spatial_type_box_3, self, "gauss_sigma_z", "Sigma Z [cm]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.spatial_type_box_3, self, "gauss_sigma_x", "Sigma X [cm]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.spatial_type_box_3, self, "gauss_sigma_z", "Sigma Z [cm]", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.set_SpatialType()
 
-        angular_distribution_box = ShadowGui.widgetBox(left_box_2, "Angular Distribution", addSpace=True, orientation="vertical", height=250)
+        angular_distribution_box = oasysgui.widgetBox(left_box_2, "Angular Distribution", addSpace=True, orientation="vertical", height=250)
 
         gui.comboBox(angular_distribution_box, self, "angular_distribution", label="Angular Distribution", labelWidth=355,
                      items=["Flat", "Uniform", "Gaussian", "Conical"], orientation="horizontal", callback=self.set_AngularDistribution)
 
         gui.separator(angular_distribution_box)
 
-        self.angular_distribution_box_1 = ShadowGui.widgetBox(angular_distribution_box, "", addSpace=False, orientation="vertical")
+        self.angular_distribution_box_1 = oasysgui.widgetBox(angular_distribution_box, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.angular_distribution_box_1, self, "horizontal_div_x_plus", "Horizontal Divergence X(+) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.angular_distribution_box_1, self, "horizontal_div_x_minus", "Horizontal Divergence X(-) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.angular_distribution_box_1, self, "vertical_div_z_plus", "Vertical Divergence Z(+) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.angular_distribution_box_1, self, "vertical_div_z_minus", "Vertical Divergence Z(-) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.angular_distribution_box_1, self, "horizontal_div_x_plus", "Horizontal Divergence X(+) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.angular_distribution_box_1, self, "horizontal_div_x_minus", "Horizontal Divergence X(-) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.angular_distribution_box_1, self, "vertical_div_z_plus", "Vertical Divergence Z(+) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.angular_distribution_box_1, self, "vertical_div_z_minus", "Vertical Divergence Z(-) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
 
-        self.angular_distribution_box_2 = ShadowGui.widgetBox(angular_distribution_box, "", addSpace=False, orientation="vertical")
+        self.angular_distribution_box_2 = oasysgui.widgetBox(angular_distribution_box, "", addSpace=False, orientation="vertical")
 
         gui.comboBox(self.angular_distribution_box_2, self, "angular_distribution_limits", label="Angular Distribution Limits", labelWidth=355,
                      items=["No Limits", "Horizontal", "Vertical", "Both"], orientation="horizontal", callback=self.set_AngularDistributionLimits)
 
-        self.le_horizontal_lim_x_plus = ShadowGui.lineEdit(self.angular_distribution_box_2, self, "horizontal_lim_x_plus", "Horizontal Limit X(+) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        self.le_horizontal_lim_x_minus = ShadowGui.lineEdit(self.angular_distribution_box_2, self, "horizontal_lim_x_minus", "Horizontal Limit X(-) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        self.le_vertical_lim_z_plus = ShadowGui.lineEdit(self.angular_distribution_box_2, self, "vertical_lim_z_plus", "Vertical Limit Z(+) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        self.le_vertical_lim_z_minus = ShadowGui.lineEdit(self.angular_distribution_box_2, self, "vertical_lim_z_minus", "Vertical Limit Z(-) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_horizontal_lim_x_plus = oasysgui.lineEdit(self.angular_distribution_box_2, self, "horizontal_lim_x_plus", "Horizontal Limit X(+) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_horizontal_lim_x_minus = oasysgui.lineEdit(self.angular_distribution_box_2, self, "horizontal_lim_x_minus", "Horizontal Limit X(-) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_vertical_lim_z_plus = oasysgui.lineEdit(self.angular_distribution_box_2, self, "vertical_lim_z_plus", "Vertical Limit Z(+) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_vertical_lim_z_minus = oasysgui.lineEdit(self.angular_distribution_box_2, self, "vertical_lim_z_minus", "Vertical Limit Z(-) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
 
-        ShadowGui.lineEdit(self.angular_distribution_box_2, self, "horizontal_sigma_x", "Horizontal Sigma (X) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.angular_distribution_box_2, self, "vertical_sigma_z", "Vertical Sigma (Z) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.angular_distribution_box_2, self, "horizontal_sigma_x", "Horizontal Sigma (X) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.angular_distribution_box_2, self, "vertical_sigma_z", "Vertical Sigma (Z) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
 
-        self.angular_distribution_box_3 = ShadowGui.widgetBox(angular_distribution_box, "", addSpace=False, orientation="vertical")
+        self.angular_distribution_box_3 = oasysgui.widgetBox(angular_distribution_box, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.angular_distribution_box_3, self, "cone_internal_half_aperture", "Cone Internal Half-Aperture [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.angular_distribution_box_3, self, "cone_external_half_aperture", "Cone External Half-Aperture [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.angular_distribution_box_3, self, "cone_internal_half_aperture", "Cone Internal Half-Aperture [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.angular_distribution_box_3, self, "cone_external_half_aperture", "Cone External Half-Aperture [rad]", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.set_AngularDistribution()
 
-        depth_box = ShadowGui.widgetBox(left_box_2, "Depth", addSpace=True, orientation="vertical", height=100)
+        depth_box = oasysgui.widgetBox(left_box_2, "Depth", addSpace=True, orientation="vertical", height=100)
 
         gui.comboBox(depth_box, self, "depth", label="Depth", labelWidth=355,
                      items=["Off", "Uniform", "Gaussian"], orientation="horizontal", callback=self.set_Depth)
 
         gui.separator(depth_box, 1)
 
-        self.depth_box_1 = ShadowGui.widgetBox(depth_box, "", addSpace=False, orientation="vertical")
+        self.depth_box_1 = oasysgui.widgetBox(depth_box, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.depth_box_1, self, "source_depth_y", "Source Depth (Y) [cm]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.depth_box_1, self, "source_depth_y", "Source Depth (Y) [cm]", labelWidth=300, valueType=float, orientation="horizontal")
 
-        self.depth_box_2 = ShadowGui.widgetBox(depth_box, "", addSpace=False, orientation="vertical")
+        self.depth_box_2 = oasysgui.widgetBox(depth_box, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.depth_box_2, self, "sigma_y", "Sigma Y [cm]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.depth_box_2, self, "sigma_y", "Sigma Y [cm]", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.set_Depth()
 
         ##############################
         # ENERGY
 
-        left_box_3 = ShadowGui.widgetBox(tab_energy, "", addSpace=True, orientation="vertical", height=640)
+        left_box_3 = oasysgui.widgetBox(tab_energy, "", addSpace=True, orientation="vertical", height=640)
 
         gui.separator(left_box_3)
 
         ######
 
-        energy_wavelength_box = ShadowGui.widgetBox(left_box_3, "Energy/Wavelength", addSpace=True, orientation="vertical", height=420)
+        energy_wavelength_box = oasysgui.widgetBox(left_box_3, "Energy/Wavelength", addSpace=True, orientation="vertical", height=420)
 
         gui.comboBox(energy_wavelength_box, self, "photon_energy_distribution", label="Photon Energy Distribution", labelWidth=300,
                      items=["Single Line", "Several Lines", "Uniform", "Relative Intensities", "Gaussian", "User Defined"], orientation="horizontal", callback=self.set_PhotonEnergyDistribution)
@@ -287,66 +289,66 @@ class GeometricalSource(ow_source.Source):
 
         gui.separator(energy_wavelength_box)
 
-        self.ewp_box_5 = ShadowGui.widgetBox(energy_wavelength_box, "", addSpace=False, orientation="vertical")
+        self.ewp_box_5 = oasysgui.widgetBox(energy_wavelength_box, "", addSpace=False, orientation="vertical")
 
         gui.comboBox(self.ewp_box_5, self, "number_of_lines", label="Number of Lines", labelWidth=350,
                      items=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], orientation="horizontal", callback=self.set_NumberOfLines)
 
-        container =  ShadowGui.widgetBox(energy_wavelength_box, "", addSpace=False, orientation="horizontal")
-        self.container_left =  ShadowGui.widgetBox(container, "", addSpace=False, orientation="vertical")
-        self.container_right =  ShadowGui.widgetBox(container, "", addSpace=False, orientation="vertical")
+        container =  oasysgui.widgetBox(energy_wavelength_box, "", addSpace=False, orientation="horizontal")
+        self.container_left =  oasysgui.widgetBox(container, "", addSpace=False, orientation="vertical")
+        self.container_right =  oasysgui.widgetBox(container, "", addSpace=False, orientation="vertical")
 
-        self.ewp_box_1 = ShadowGui.widgetBox(self.container_left, "", addSpace=False, orientation="vertical")
+        self.ewp_box_1 = oasysgui.widgetBox(self.container_left, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.ewp_box_1, self, "single_line_value", "Value", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_1, self, "single_line_value", "Value", labelWidth=300, valueType=float, orientation="horizontal")
 
-        self.ewp_box_2 = ShadowGui.widgetBox(self.container_left, "Values", addSpace=True, orientation="vertical")
+        self.ewp_box_2 = oasysgui.widgetBox(self.container_left, "Values", addSpace=True, orientation="vertical")
 
-        self.le_line_value_1 = ShadowGui.lineEdit(self.ewp_box_2, self, "line_value_1", "Line 1", valueType=float, orientation="horizontal")
-        self.le_line_value_2 = ShadowGui.lineEdit(self.ewp_box_2, self, "line_value_2", "Line 2", valueType=float, orientation="horizontal")
-        self.le_line_value_3 = ShadowGui.lineEdit(self.ewp_box_2, self, "line_value_3", "Line 3", valueType=float, orientation="horizontal")
-        self.le_line_value_4 = ShadowGui.lineEdit(self.ewp_box_2, self, "line_value_4", "Line 4", valueType=float, orientation="horizontal")
-        self.le_line_value_5 = ShadowGui.lineEdit(self.ewp_box_2, self, "line_value_5", "Line 5", valueType=float, orientation="horizontal")
-        self.le_line_value_6 = ShadowGui.lineEdit(self.ewp_box_2, self, "line_value_6", "Line 6", valueType=float, orientation="horizontal")
-        self.le_line_value_7 = ShadowGui.lineEdit(self.ewp_box_2, self, "line_value_7", "Line 7", valueType=float, orientation="horizontal")
-        self.le_line_value_8 = ShadowGui.lineEdit(self.ewp_box_2, self, "line_value_8", "Line 8", valueType=float, orientation="horizontal")
-        self.le_line_value_9 = ShadowGui.lineEdit(self.ewp_box_2, self, "line_value_9", "Line 9", valueType=float, orientation="horizontal")
-        self.le_line_value_10 = ShadowGui.lineEdit(self.ewp_box_2, self, "line_value_10", "Line 10", valueType=float, orientation="horizontal")
+        self.le_line_value_1 = oasysgui.lineEdit(self.ewp_box_2, self, "line_value_1", "Line 1", valueType=float, orientation="horizontal")
+        self.le_line_value_2 = oasysgui.lineEdit(self.ewp_box_2, self, "line_value_2", "Line 2", valueType=float, orientation="horizontal")
+        self.le_line_value_3 = oasysgui.lineEdit(self.ewp_box_2, self, "line_value_3", "Line 3", valueType=float, orientation="horizontal")
+        self.le_line_value_4 = oasysgui.lineEdit(self.ewp_box_2, self, "line_value_4", "Line 4", valueType=float, orientation="horizontal")
+        self.le_line_value_5 = oasysgui.lineEdit(self.ewp_box_2, self, "line_value_5", "Line 5", valueType=float, orientation="horizontal")
+        self.le_line_value_6 = oasysgui.lineEdit(self.ewp_box_2, self, "line_value_6", "Line 6", valueType=float, orientation="horizontal")
+        self.le_line_value_7 = oasysgui.lineEdit(self.ewp_box_2, self, "line_value_7", "Line 7", valueType=float, orientation="horizontal")
+        self.le_line_value_8 = oasysgui.lineEdit(self.ewp_box_2, self, "line_value_8", "Line 8", valueType=float, orientation="horizontal")
+        self.le_line_value_9 = oasysgui.lineEdit(self.ewp_box_2, self, "line_value_9", "Line 9", valueType=float, orientation="horizontal")
+        self.le_line_value_10 = oasysgui.lineEdit(self.ewp_box_2, self, "line_value_10", "Line 10", valueType=float, orientation="horizontal")
 
-        self.ewp_box_3 = ShadowGui.widgetBox(self.container_left, "", addSpace=False, orientation="vertical")
+        self.ewp_box_3 = oasysgui.widgetBox(self.container_left, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.ewp_box_3, self, "uniform_minimum", "Minimum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.ewp_box_3, self, "uniform_maximum", "Maximum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_3, self, "uniform_minimum", "Minimum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_3, self, "uniform_maximum", "Maximum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
 
-        self.ewp_box_4 = ShadowGui.widgetBox(self.container_right, "Relative Intensities", addSpace=True, orientation="vertical")
+        self.ewp_box_4 = oasysgui.widgetBox(self.container_right, "Relative Intensities", addSpace=True, orientation="vertical")
         
-        self.le_line_int_1 = ShadowGui.lineEdit(self.ewp_box_4, self, "line_int_1", "Int 1", labelWidth=100, valueType=float, orientation="horizontal")
-        self.le_line_int_2 = ShadowGui.lineEdit(self.ewp_box_4, self, "line_int_2", "Int 2", labelWidth=100, valueType=float, orientation="horizontal")
-        self.le_line_int_3 = ShadowGui.lineEdit(self.ewp_box_4, self, "line_int_3", "Int 3", labelWidth=100, valueType=float, orientation="horizontal")
-        self.le_line_int_4 = ShadowGui.lineEdit(self.ewp_box_4, self, "line_int_4", "Int 4", labelWidth=100, valueType=float, orientation="horizontal")
-        self.le_line_int_5 = ShadowGui.lineEdit(self.ewp_box_4, self, "line_int_5", "Int 5", labelWidth=100, valueType=float, orientation="horizontal")
-        self.le_line_int_6 = ShadowGui.lineEdit(self.ewp_box_4, self, "line_int_6", "Int 6", labelWidth=100, valueType=float, orientation="horizontal")
-        self.le_line_int_7 = ShadowGui.lineEdit(self.ewp_box_4, self, "line_int_7", "Int 7", labelWidth=100, valueType=float, orientation="horizontal")
-        self.le_line_int_8 = ShadowGui.lineEdit(self.ewp_box_4, self, "line_int_8", "Int 8", labelWidth=100, valueType=float, orientation="horizontal")
-        self.le_line_int_9 = ShadowGui.lineEdit(self.ewp_box_4, self, "line_int_9", "Int 9", labelWidth=100, valueType=float, orientation="horizontal")
-        self.le_line_int_10 = ShadowGui.lineEdit(self.ewp_box_4, self, "line_int_10", "Int 10", labelWidth=100, valueType=float, orientation="horizontal")
+        self.le_line_int_1 = oasysgui.lineEdit(self.ewp_box_4, self, "line_int_1", "Int 1", labelWidth=100, valueType=float, orientation="horizontal")
+        self.le_line_int_2 = oasysgui.lineEdit(self.ewp_box_4, self, "line_int_2", "Int 2", labelWidth=100, valueType=float, orientation="horizontal")
+        self.le_line_int_3 = oasysgui.lineEdit(self.ewp_box_4, self, "line_int_3", "Int 3", labelWidth=100, valueType=float, orientation="horizontal")
+        self.le_line_int_4 = oasysgui.lineEdit(self.ewp_box_4, self, "line_int_4", "Int 4", labelWidth=100, valueType=float, orientation="horizontal")
+        self.le_line_int_5 = oasysgui.lineEdit(self.ewp_box_4, self, "line_int_5", "Int 5", labelWidth=100, valueType=float, orientation="horizontal")
+        self.le_line_int_6 = oasysgui.lineEdit(self.ewp_box_4, self, "line_int_6", "Int 6", labelWidth=100, valueType=float, orientation="horizontal")
+        self.le_line_int_7 = oasysgui.lineEdit(self.ewp_box_4, self, "line_int_7", "Int 7", labelWidth=100, valueType=float, orientation="horizontal")
+        self.le_line_int_8 = oasysgui.lineEdit(self.ewp_box_4, self, "line_int_8", "Int 8", labelWidth=100, valueType=float, orientation="horizontal")
+        self.le_line_int_9 = oasysgui.lineEdit(self.ewp_box_4, self, "line_int_9", "Int 9", labelWidth=100, valueType=float, orientation="horizontal")
+        self.le_line_int_10 = oasysgui.lineEdit(self.ewp_box_4, self, "line_int_10", "Int 10", labelWidth=100, valueType=float, orientation="horizontal")
 
 
-        self.ewp_box_6 = ShadowGui.widgetBox(energy_wavelength_box, "Gaussian", addSpace=True, orientation="vertical")
+        self.ewp_box_6 = oasysgui.widgetBox(energy_wavelength_box, "Gaussian", addSpace=True, orientation="vertical")
 
-        ShadowGui.lineEdit(self.ewp_box_6, self, "gaussian_central_value", "Central Value", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.ewp_box_6, self, "gaussian_sigma", "Sigma", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_6, self, "gaussian_central_value", "Central Value", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_6, self, "gaussian_sigma", "Sigma", labelWidth=300, valueType=float, orientation="horizontal")
 
         gui.separator(self.ewp_box_6)
 
-        ShadowGui.lineEdit(self.ewp_box_6, self, "gaussian_minimum", "Minimum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.ewp_box_6, self, "gaussian_maximum", "Maximum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_6, self, "gaussian_minimum", "Minimum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_6, self, "gaussian_maximum", "Maximum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
 
-        self.ewp_box_7 = ShadowGui.widgetBox(energy_wavelength_box, "User Defined", addSpace=True, orientation="vertical")
+        self.ewp_box_7 = oasysgui.widgetBox(energy_wavelength_box, "User Defined", addSpace=True, orientation="vertical")
 
-        file_box = ShadowGui.widgetBox(self.ewp_box_7, "", addSpace=True, orientation="horizontal", height=25)
+        file_box = oasysgui.widgetBox(self.ewp_box_7, "", addSpace=True, orientation="horizontal", height=25)
 
-        self.le_user_defined_file = ShadowGui.lineEdit(file_box, self, "user_defined_file", "Spectrum File",
+        self.le_user_defined_file = oasysgui.lineEdit(file_box, self, "user_defined_file", "Spectrum File",
                                                     labelWidth=100, valueType=str, orientation="horizontal")
 
         pushButton = gui.button(file_box, self, "...")
@@ -354,47 +356,47 @@ class GeometricalSource(ow_source.Source):
 
         gui.separator(self.ewp_box_7)
 
-        ShadowGui.lineEdit(self.ewp_box_7, self, "user_defined_minimum", "Minimum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.ewp_box_7, self, "user_defined_maximum", "Maximum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_7, self, "user_defined_minimum", "Minimum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_7, self, "user_defined_maximum", "Maximum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.set_PhotonEnergyDistribution()
 
-        polarization_box = ShadowGui.widgetBox(left_box_3, "Polarization", addSpace=True, orientation="vertical", height=145)
+        polarization_box = oasysgui.widgetBox(left_box_3, "Polarization", addSpace=True, orientation="vertical", height=145)
 
         gui.comboBox(polarization_box, self, "polarization", label="Polarization", labelWidth=475,
                      items=["No", "Yes"], orientation="horizontal", callback=self.set_Polarization)
 
-        self.ewp_box_8 = ShadowGui.widgetBox(polarization_box, "", addSpace=True, orientation="vertical")
+        self.ewp_box_8 = oasysgui.widgetBox(polarization_box, "", addSpace=True, orientation="vertical")
 
         gui.comboBox(self.ewp_box_8, self, "coherent_beam", label="Coherent Beam", labelWidth=475,
                      items=["No", "Yes"], orientation="horizontal")
 
-        ShadowGui.lineEdit(self.ewp_box_8, self, "phase_diff", "Phase Difference [deg,0=linear,+90=ell/right]", labelWidth=330, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.ewp_box_8, self, "polarization_degree", "Polarization Degree [cos_s/(cos_s+sin_s)]", labelWidth=330, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_8, self, "phase_diff", "Phase Difference [deg,0=linear,+90=ell/right]", labelWidth=330, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_8, self, "polarization_degree", "Polarization Degree [cos_s/(cos_s+sin_s)]", labelWidth=330, valueType=float, orientation="horizontal")
 
         self.set_Polarization()
 
         ##############################
 
-        left_box_4 = ShadowGui.widgetBox(self.controlArea, "Reject Rays", addSpace=True, orientation="vertical")
+        left_box_4 = oasysgui.widgetBox(self.controlArea, "Reject Rays", addSpace=True, orientation="vertical")
         left_box_4.setFixedHeight(110)
 
         gui.comboBox(left_box_4, self, "optimize_source", label="Optimize Source", items=["No", "Using file with phase/space volume)", "Using file with slit/acceptance"], labelWidth=200,
                      callback=self.set_OptimizeSource, orientation="horizontal")
-        self.optimize_file_name_box = ShadowGui.widgetBox(left_box_4, "", addSpace=False, orientation="vertical")
+        self.optimize_file_name_box = oasysgui.widgetBox(left_box_4, "", addSpace=False, orientation="vertical")
 
-        file_box = ShadowGui.widgetBox(self.optimize_file_name_box, "", addSpace=True, orientation="horizontal", height=25)
+        file_box = oasysgui.widgetBox(self.optimize_file_name_box, "", addSpace=True, orientation="horizontal", height=25)
 
-        self.le_optimize_file_name = ShadowGui.lineEdit(file_box, self, "optimize_file_name", "File Name", labelWidth=150,  valueType=str, orientation="horizontal")
+        self.le_optimize_file_name = oasysgui.lineEdit(file_box, self, "optimize_file_name", "File Name", labelWidth=150,  valueType=str, orientation="horizontal")
 
         pushButton = gui.button(file_box, self, "...")
         pushButton.clicked.connect(self.selectOptimizeFile)
 
-        ShadowGui.lineEdit(self.optimize_file_name_box, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=300,  valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.optimize_file_name_box, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=300,  valueType=int, orientation="horizontal")
 
         self.set_OptimizeSource()
 
-        button_box = ShadowGui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
+        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
         button = gui.button(button_box, self, "Run Shadow/Source", callback=self.runShadowSource)
         font = QFont(button.font())
@@ -521,10 +523,10 @@ class GeometricalSource(ow_source.Source):
         self.ewp_box_8.setVisible(self.polarization==1)
 
     def selectFile(self):
-        self.le_user_defined_file.setText(ShadowGui.selectFileFromDialog(self, self.user_defined_file, "Open Spectrum File", file_extension_filter="*.dat; *.txt"))
+        self.le_user_defined_file.setText(oasysgui.selectFileFromDialog(self, self.user_defined_file, "Open Spectrum File", file_extension_filter="*.dat; *.txt"))
 
     def selectOptimizeFile(self):
-        self.le_optimize_file_name.setText(ShadowGui.selectFileFromDialog(self, self.optimize_file_name, "Open Optimize Source Parameters File"))
+        self.le_optimize_file_name.setText(oasysgui.selectFileFromDialog(self, self.optimize_file_name, "Open Optimize Source Parameters File"))
 
     def runShadowSource(self):
         #self.error(self.error_id)
@@ -686,134 +688,134 @@ class GeometricalSource(ow_source.Source):
     def checkFields(self):
 
         if self.sampling != 1:
-            self.number_of_rays = ShadowGui.checkPositiveNumber(self.number_of_rays, "Number of Random rays")
-            self.seed = ShadowGui.checkPositiveNumber(self.seed, "Seed")
+            self.number_of_rays = congruence.checkPositiveNumber(self.number_of_rays, "Number of Random rays")
+            self.seed = congruence.checkPositiveNumber(self.seed, "Seed")
 
         if self.sampling == 1:
-            self.grid_points_in_xfirst = ShadowGui.checkPositiveNumber(self.grid_points_in_xfirst, "Grid Points in X'")
-            self.grid_points_in_zfirst = ShadowGui.checkPositiveNumber(self.grid_points_in_zfirst, "Grid Points in Z'")
-            self.grid_points_in_x = ShadowGui.checkPositiveNumber(self.grid_points_in_x, "Grid Points in X")
-            self.grid_points_in_y = ShadowGui.checkPositiveNumber(self.grid_points_in_y, "Grid Points in Y")
-            self.grid_points_in_z = ShadowGui.checkPositiveNumber(self.grid_points_in_z, "Grid Points in Z")
+            self.grid_points_in_xfirst = congruence.checkPositiveNumber(self.grid_points_in_xfirst, "Grid Points in X'")
+            self.grid_points_in_zfirst = congruence.checkPositiveNumber(self.grid_points_in_zfirst, "Grid Points in Z'")
+            self.grid_points_in_x = congruence.checkPositiveNumber(self.grid_points_in_x, "Grid Points in X")
+            self.grid_points_in_y = congruence.checkPositiveNumber(self.grid_points_in_y, "Grid Points in Y")
+            self.grid_points_in_z = congruence.checkPositiveNumber(self.grid_points_in_z, "Grid Points in Z")
         elif self.sampling == 2:
-            self.grid_points_in_x = ShadowGui.checkPositiveNumber(self.grid_points_in_x, "Grid Points in X")
-            self.grid_points_in_y = ShadowGui.checkPositiveNumber(self.grid_points_in_y, "Grid Points in Y")
-            self.grid_points_in_z = ShadowGui.checkPositiveNumber(self.grid_points_in_z, "Grid Points in Z")
+            self.grid_points_in_x = congruence.checkPositiveNumber(self.grid_points_in_x, "Grid Points in X")
+            self.grid_points_in_y = congruence.checkPositiveNumber(self.grid_points_in_y, "Grid Points in Y")
+            self.grid_points_in_z = congruence.checkPositiveNumber(self.grid_points_in_z, "Grid Points in Z")
         elif self.sampling == 3:
-            self.grid_points_in_xfirst = ShadowGui.checkPositiveNumber(self.grid_points_in_xfirst, "Grid Points in X'")
-            self.grid_points_in_zfirst = ShadowGui.checkPositiveNumber(self.grid_points_in_zfirst, "Grid Points in Z'")
+            self.grid_points_in_xfirst = congruence.checkPositiveNumber(self.grid_points_in_xfirst, "Grid Points in X'")
+            self.grid_points_in_zfirst = congruence.checkPositiveNumber(self.grid_points_in_zfirst, "Grid Points in Z'")
 
         if self.spatial_type == 1:
-            self.rect_width = ShadowGui.checkPositiveNumber(self.rect_width, "Width")
-            self.rect_height = ShadowGui.checkPositiveNumber(self.rect_height, "Height")
+            self.rect_width = congruence.checkPositiveNumber(self.rect_width, "Width")
+            self.rect_height = congruence.checkPositiveNumber(self.rect_height, "Height")
         elif self.spatial_type == 2:
-            self.ell_semiaxis_x = ShadowGui.checkPositiveNumber(self.ell_semiaxis_x, "Semi-Axis X")
-            self.ell_semiaxis_z = ShadowGui.checkPositiveNumber(self.ell_semiaxis_z, "Semi-Axis Z")
+            self.ell_semiaxis_x = congruence.checkPositiveNumber(self.ell_semiaxis_x, "Semi-Axis X")
+            self.ell_semiaxis_z = congruence.checkPositiveNumber(self.ell_semiaxis_z, "Semi-Axis Z")
         elif self.spatial_type == 3:
-            self.gauss_sigma_x = ShadowGui.checkPositiveNumber(self.gauss_sigma_x, "Sigma X")
-            self.gauss_sigma_z = ShadowGui.checkPositiveNumber(self.gauss_sigma_z, "Sigma Z")
+            self.gauss_sigma_x = congruence.checkPositiveNumber(self.gauss_sigma_x, "Sigma X")
+            self.gauss_sigma_z = congruence.checkPositiveNumber(self.gauss_sigma_z, "Sigma Z")
 
         if self.angular_distribution == 0 or self.angular_distribution == 1:
-            self.horizontal_div_x_plus = ShadowGui.checkPositiveNumber(self.horizontal_div_x_plus, "Horizontal Divergence X(+)")
-            self.horizontal_div_x_minus = ShadowGui.checkPositiveNumber(self.horizontal_div_x_minus, "Horizontal Divergence X(-)")
-            self.vertical_div_z_plus = ShadowGui.checkPositiveNumber(self.vertical_div_z_plus, "Vertical Divergence Z(+)")
-            self.vertical_div_z_minus = ShadowGui.checkPositiveNumber(self.vertical_div_z_minus, "Vertical Divergence Z(-)")
+            self.horizontal_div_x_plus = congruence.checkPositiveNumber(self.horizontal_div_x_plus, "Horizontal Divergence X(+)")
+            self.horizontal_div_x_minus = congruence.checkPositiveNumber(self.horizontal_div_x_minus, "Horizontal Divergence X(-)")
+            self.vertical_div_z_plus = congruence.checkPositiveNumber(self.vertical_div_z_plus, "Vertical Divergence Z(+)")
+            self.vertical_div_z_minus = congruence.checkPositiveNumber(self.vertical_div_z_minus, "Vertical Divergence Z(-)")
         elif self.angular_distribution == 2:
             if self.angular_distribution_limits != 0:
                 if self.angular_distribution_limits != 2:
-                    self.horizontal_lim_x_plus = ShadowGui.checkPositiveNumber(self.horizontal_lim_x_plus, "Horizontal Limit X(+)")
-                    self.horizontal_lim_x_minus = ShadowGui.checkPositiveNumber(self.horizontal_lim_x_minus, "Horizontal Limit X(-)")
+                    self.horizontal_lim_x_plus = congruence.checkPositiveNumber(self.horizontal_lim_x_plus, "Horizontal Limit X(+)")
+                    self.horizontal_lim_x_minus = congruence.checkPositiveNumber(self.horizontal_lim_x_minus, "Horizontal Limit X(-)")
                 if self.angular_distribution_limits != 1:
-                    self.vertical_lim_z_plus = ShadowGui.checkPositiveNumber(self.vertical_lim_z_plus, "Vertical Limit Z(+)")
-                    self.vertical_lim_z_minus = ShadowGui.checkPositiveNumber(self.vertical_lim_z_minus, "Vertical Limit Z(-)")
+                    self.vertical_lim_z_plus = congruence.checkPositiveNumber(self.vertical_lim_z_plus, "Vertical Limit Z(+)")
+                    self.vertical_lim_z_minus = congruence.checkPositiveNumber(self.vertical_lim_z_minus, "Vertical Limit Z(-)")
 
-            self.horizontal_sigma_x = ShadowGui.checkPositiveNumber(self.horizontal_sigma_x, "Horizontal Sigma (X)")
-            self.vertical_sigma_z = ShadowGui.checkPositiveNumber(self.vertical_sigma_z, "Vertical Sigma (Z)")
+            self.horizontal_sigma_x = congruence.checkPositiveNumber(self.horizontal_sigma_x, "Horizontal Sigma (X)")
+            self.vertical_sigma_z = congruence.checkPositiveNumber(self.vertical_sigma_z, "Vertical Sigma (Z)")
         elif self.angular_distribution == 3:
-            self.cone_internal_half_aperture = ShadowGui.checkPositiveNumber(self.cone_internal_half_aperture, "Cone Internal Half-Aperture")
-            self.cone_external_half_aperture = ShadowGui.checkPositiveNumber(self.cone_external_half_aperture, "Cone External Half-Aperture")
+            self.cone_internal_half_aperture = congruence.checkPositiveNumber(self.cone_internal_half_aperture, "Cone Internal Half-Aperture")
+            self.cone_external_half_aperture = congruence.checkPositiveNumber(self.cone_external_half_aperture, "Cone External Half-Aperture")
 
         if self.depth == 1:
-            self.source_depth_y = ShadowGui.checkPositiveNumber(self.source_depth_y, "Source Depth (Y)")
+            self.source_depth_y = congruence.checkPositiveNumber(self.source_depth_y, "Source Depth (Y)")
         elif self.depth == 2:
-            self.sigma_y = ShadowGui.checkPositiveNumber(self.sigma_y, "Sigma Y")
+            self.sigma_y = congruence.checkPositiveNumber(self.sigma_y, "Sigma Y")
 
         if self.photon_energy_distribution == 0:
-            self.single_line_value = ShadowGui.checkPositiveNumber(self.single_line_value, "Single Line Value")
+            self.single_line_value = congruence.checkPositiveNumber(self.single_line_value, "Single Line Value")
         elif self.photon_energy_distribution == 1:
             if self.number_of_lines >= 1:
-                self.line_value_1 = ShadowGui.checkPositiveNumber(self.line_value_1, "Line 1")
+                self.line_value_1 = congruence.checkPositiveNumber(self.line_value_1, "Line 1")
             if self.number_of_lines >= 2:
-                self.line_value_2 = ShadowGui.checkPositiveNumber(self.line_value_2, "Line 2")
+                self.line_value_2 = congruence.checkPositiveNumber(self.line_value_2, "Line 2")
             if self.number_of_lines >= 3:
-                self.line_value_3 = ShadowGui.checkPositiveNumber(self.line_value_3, "Line 3")
+                self.line_value_3 = congruence.checkPositiveNumber(self.line_value_3, "Line 3")
             if self.number_of_lines >= 4:
-                self.line_value_4 = ShadowGui.checkPositiveNumber(self.line_value_4, "Line 4")
+                self.line_value_4 = congruence.checkPositiveNumber(self.line_value_4, "Line 4")
             if self.number_of_lines >= 5:
-                self.line_value_5 = ShadowGui.checkPositiveNumber(self.line_value_5, "Line 5")
+                self.line_value_5 = congruence.checkPositiveNumber(self.line_value_5, "Line 5")
             if self.number_of_lines >= 6:
-                self.line_value_6 = ShadowGui.checkPositiveNumber(self.line_value_6, "Line 6")
+                self.line_value_6 = congruence.checkPositiveNumber(self.line_value_6, "Line 6")
             if self.number_of_lines >= 7:
-                self.line_value_7 = ShadowGui.checkPositiveNumber(self.line_value_7, "Line 7")
+                self.line_value_7 = congruence.checkPositiveNumber(self.line_value_7, "Line 7")
             if self.number_of_lines >= 8:
-                self.line_value_8 = ShadowGui.checkPositiveNumber(self.line_value_8, "Line 8")
+                self.line_value_8 = congruence.checkPositiveNumber(self.line_value_8, "Line 8")
             if self.number_of_lines >= 9:
-                self.line_value_9 = ShadowGui.checkPositiveNumber(self.line_value_9, "Line 9")
+                self.line_value_9 = congruence.checkPositiveNumber(self.line_value_9, "Line 9")
             if self.number_of_lines == 10:
-                self.line_value_10 = ShadowGui.checkPositiveNumber(self.line_value_10, "Line 10")
+                self.line_value_10 = congruence.checkPositiveNumber(self.line_value_10, "Line 10")
         elif self.photon_energy_distribution == 2:
-            self.uniform_minimum = ShadowGui.checkPositiveNumber(self.uniform_minimum, "Minimum Energy/Wavelength")
-            self.uniform_maximum = ShadowGui.checkStrictlyPositiveNumber(self.uniform_maximum, "Maximum Energy/Wavelength")
+            self.uniform_minimum = congruence.checkPositiveNumber(self.uniform_minimum, "Minimum Energy/Wavelength")
+            self.uniform_maximum = congruence.checkStrictlyPositiveNumber(self.uniform_maximum, "Maximum Energy/Wavelength")
 
             if self.uniform_minimum >= self.uniform_maximum: raise Exception("Minimum Energy/Wavelength should be less than Maximum Energy/Wavelength")
         elif self.photon_energy_distribution == 3:
             if self.number_of_lines >= 1:
-                self.line_value_1 = ShadowGui.checkPositiveNumber(self.line_value_1, "Line 1")
-                self.line_int_1 = ShadowGui.checkPositiveNumber(self.line_int_1, "Int 1")
+                self.line_value_1 = congruence.checkPositiveNumber(self.line_value_1, "Line 1")
+                self.line_int_1 = congruence.checkPositiveNumber(self.line_int_1, "Int 1")
             if self.number_of_lines >= 2:
-                self.line_value_2 = ShadowGui.checkPositiveNumber(self.line_value_2, "Line 2")
-                self.line_int_2 = ShadowGui.checkPositiveNumber(self.line_int_1, "Int 2")
+                self.line_value_2 = congruence.checkPositiveNumber(self.line_value_2, "Line 2")
+                self.line_int_2 = congruence.checkPositiveNumber(self.line_int_1, "Int 2")
             if self.number_of_lines >= 3:
-                self.line_value_3 = ShadowGui.checkPositiveNumber(self.line_value_3, "Line 3")
-                self.line_int_3 = ShadowGui.checkPositiveNumber(self.line_int_1, "Int 3")
+                self.line_value_3 = congruence.checkPositiveNumber(self.line_value_3, "Line 3")
+                self.line_int_3 = congruence.checkPositiveNumber(self.line_int_1, "Int 3")
             if self.number_of_lines >= 4:
-                self.line_value_4 = ShadowGui.checkPositiveNumber(self.line_value_4, "Line 4")
-                self.line_int_4 = ShadowGui.checkPositiveNumber(self.line_int_1, "Int 4")
+                self.line_value_4 = congruence.checkPositiveNumber(self.line_value_4, "Line 4")
+                self.line_int_4 = congruence.checkPositiveNumber(self.line_int_1, "Int 4")
             if self.number_of_lines >= 5:
-                self.line_value_5 = ShadowGui.checkPositiveNumber(self.line_value_5, "Line 5")
-                self.line_int_5 = ShadowGui.checkPositiveNumber(self.line_int_1, "Int 5")
+                self.line_value_5 = congruence.checkPositiveNumber(self.line_value_5, "Line 5")
+                self.line_int_5 = congruence.checkPositiveNumber(self.line_int_1, "Int 5")
             if self.number_of_lines >= 6:
-                self.line_value_6 = ShadowGui.checkPositiveNumber(self.line_value_6, "Line 6")
-                self.line_int_6 = ShadowGui.checkPositiveNumber(self.line_int_1, "Int 6")
+                self.line_value_6 = congruence.checkPositiveNumber(self.line_value_6, "Line 6")
+                self.line_int_6 = congruence.checkPositiveNumber(self.line_int_1, "Int 6")
             if self.number_of_lines >= 7:
-                self.line_value_7 = ShadowGui.checkPositiveNumber(self.line_value_7, "Line 7")
-                self.line_int_7 = ShadowGui.checkPositiveNumber(self.line_int_1, "Int 7")
+                self.line_value_7 = congruence.checkPositiveNumber(self.line_value_7, "Line 7")
+                self.line_int_7 = congruence.checkPositiveNumber(self.line_int_1, "Int 7")
             if self.number_of_lines >= 8:
-                self.line_value_8 = ShadowGui.checkPositiveNumber(self.line_value_8, "Line 8")
-                self.line_int_8 = ShadowGui.checkPositiveNumber(self.line_int_1, "Int 8")
+                self.line_value_8 = congruence.checkPositiveNumber(self.line_value_8, "Line 8")
+                self.line_int_8 = congruence.checkPositiveNumber(self.line_int_1, "Int 8")
             if self.number_of_lines >= 9:
-                self.line_value_9 = ShadowGui.checkPositiveNumber(self.line_value_9, "Line 9")
-                self.line_int_9 = ShadowGui.checkPositiveNumber(self.line_int_1, "Int 9")
+                self.line_value_9 = congruence.checkPositiveNumber(self.line_value_9, "Line 9")
+                self.line_int_9 = congruence.checkPositiveNumber(self.line_int_1, "Int 9")
             if self.number_of_lines == 10:
-                self.line_value_10 = ShadowGui.checkPositiveNumber(self.line_value_10, "Line 10")
-                self.line_int_10 = ShadowGui.checkPositiveNumber(self.line_int_1, "Int 10")
+                self.line_value_10 = congruence.checkPositiveNumber(self.line_value_10, "Line 10")
+                self.line_int_10 = congruence.checkPositiveNumber(self.line_int_1, "Int 10")
         elif self.photon_energy_distribution == 4:
-            self.gaussian_central_value = ShadowGui.checkStrictlyPositiveNumber(self.gaussian_central_value, "Central Value")
-            self.gaussian_sigma = ShadowGui.checkStrictlyPositiveNumber(self.gaussian_sigma, "Sigma")
-            self.gaussian_minimum = ShadowGui.checkPositiveNumber(self.gaussian_minimum, "Minimum Energy/Wavelength")
-            self.gaussian_maximum = ShadowGui.checkStrictlyPositiveNumber(self.gaussian_maximum, "Maximum Energy/Wavelength")
+            self.gaussian_central_value = congruence.checkStrictlyPositiveNumber(self.gaussian_central_value, "Central Value")
+            self.gaussian_sigma = congruence.checkStrictlyPositiveNumber(self.gaussian_sigma, "Sigma")
+            self.gaussian_minimum = congruence.checkPositiveNumber(self.gaussian_minimum, "Minimum Energy/Wavelength")
+            self.gaussian_maximum = congruence.checkStrictlyPositiveNumber(self.gaussian_maximum, "Maximum Energy/Wavelength")
 
             if self.gaussian_minimum >= self.gaussian_maximum: raise Exception("Minimum Energy/Wavelength should be less than Maximum Energy/Wavelength")
 
         elif self.photon_energy_distribution == 5:
-            self.user_defined_file = ShadowGui.checkFile(self.user_defined_file)
-            self.user_defined_minimum = ShadowGui.checkPositiveNumber(self.user_defined_minimum, "Minimum Energy/Wavelength")
-            self.user_defined_maximum = ShadowGui.checkStrictlyPositiveNumber(self.user_defined_maximum, "Maximum Energy/Wavelength")
+            self.user_defined_file = congruence.checkFile(self.user_defined_file)
+            self.user_defined_minimum = congruence.checkPositiveNumber(self.user_defined_minimum, "Minimum Energy/Wavelength")
+            self.user_defined_maximum = congruence.checkStrictlyPositiveNumber(self.user_defined_maximum, "Maximum Energy/Wavelength")
 
         if self.optimize_source > 0:
-            self.max_number_of_rejected_rays = ShadowGui.checkPositiveNumber(self.max_number_of_rejected_rays,
+            self.max_number_of_rejected_rays = congruence.checkPositiveNumber(self.max_number_of_rejected_rays,
                                                                              "Max number of rejected rays")
-            self.optimize_file_name = ShadowGui.checkFile(self.optimize_file_name)
+            self.optimize_file_name = congruence.checkFile(self.optimize_file_name)
 
     def populateFields(self, shadow_src):
         if self.sampling != 1:

@@ -5,10 +5,11 @@ from PyQt4 import QtGui
 from PyQt4.QtGui import QApplication, QPalette, QColor, QFont
 from orangewidget import gui
 from orangewidget.settings import Setting
+from oasys.widgets import gui as oasysgui
+from oasys.widgets import congruence
 
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerOut, ShadowBeam, \
     ShadowSource
-from orangecontrib.shadow.util.shadow_util import ShadowGui
 from orangecontrib.shadow.widgets.gui import ow_source
 
 class UndulatorGaussian(ow_source.Source):
@@ -47,28 +48,28 @@ class UndulatorGaussian(ow_source.Source):
     def __init__(self):
         super().__init__()
 
-        left_box_1 = ShadowGui.widgetBox(self.controlArea, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical")
+        left_box_1 = oasysgui.widgetBox(self.controlArea, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical")
 
-        ShadowGui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=300, valueType=int, orientation="horizontal")
-        ShadowGui.lineEdit(left_box_1, self, "seed", "Seed", tooltip="Seed", labelWidth=300, valueType=int, orientation="horizontal")
-        ShadowGui.lineEdit(left_box_1, self, "energy", "Set undulator to energy [eV]", tooltip="Set undulator to energy [eV]", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(left_box_1, self, "delta_e", "Delta Energy [eV]", tooltip="Delta Energy [eV]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=300, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "seed", "Seed", tooltip="Seed", labelWidth=300, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "energy", "Set undulator to energy [eV]", tooltip="Set undulator to energy [eV]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "delta_e", "Delta Energy [eV]", tooltip="Delta Energy [eV]", labelWidth=300, valueType=float, orientation="horizontal")
 
-        left_box_2 = ShadowGui.widgetBox(self.controlArea, "Machine Parameters", addSpace=True, orientation="vertical")
+        left_box_2 = oasysgui.widgetBox(self.controlArea, "Machine Parameters", addSpace=True, orientation="vertical")
 
-        ShadowGui.lineEdit(left_box_2, self, "sigma_x", "Size RMS H [cm]", labelWidth=300, tooltip="Size RMS H [cm]", valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(left_box_2, self, "sigma_z", "Size RMS V [cm]", labelWidth=300, tooltip="Size RMS V [cm]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_2, self, "sigma_x", "Size RMS H [cm]", labelWidth=300, tooltip="Size RMS H [cm]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_2, self, "sigma_z", "Size RMS V [cm]", labelWidth=300, tooltip="Size RMS V [cm]", valueType=float, orientation="horizontal")
 
-        ShadowGui.lineEdit(left_box_2, self, "sigma_divergence_x", "Divergence RMS H [rad]", labelWidth=300, tooltip="Divergence RMS H [rad]", valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(left_box_2, self, "sigma_divergence_z", "Divergence RMS V [rad]", labelWidth=300, tooltip="Divergence RMS V [rad]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_2, self, "sigma_divergence_x", "Divergence RMS H [rad]", labelWidth=300, tooltip="Divergence RMS H [rad]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_2, self, "sigma_divergence_z", "Divergence RMS V [rad]", labelWidth=300, tooltip="Divergence RMS V [rad]", valueType=float, orientation="horizontal")
 
-        left_box_3 = ShadowGui.widgetBox(self.controlArea, "Undulator Parameters", addSpace=True, orientation="vertical")
+        left_box_3 = oasysgui.widgetBox(self.controlArea, "Undulator Parameters", addSpace=True, orientation="vertical")
 
-        ShadowGui.lineEdit(left_box_3, self, "undulator_length", "Undulator Length [m]", labelWidth=300, tooltip="Undulator Length [m]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_3, self, "undulator_length", "Undulator Length [m]", labelWidth=300, tooltip="Undulator Length [m]", valueType=float, orientation="horizontal")
 
         gui.separator(self.controlArea, height=345)
 
-        button_box = ShadowGui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
+        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
         button = gui.button(button_box, self, "Run Shadow/Source", callback=self.runShadowSource)
         font = QFont(button.font())
@@ -160,15 +161,15 @@ class UndulatorGaussian(ow_source.Source):
             self.runShadowSource()
 
     def checkFields(self):
-        self.number_of_rays = ShadowGui.checkPositiveNumber(self.number_of_rays, "Number of rays")
-        self.seed = ShadowGui.checkPositiveNumber(self.seed, "Seed")
-        self.energy = ShadowGui.checkPositiveNumber(self.energy, "Energy")
-        self.delta_e = ShadowGui.checkPositiveNumber(self.delta_e, "Delta Energy")
-        self.sigma_x = ShadowGui.checkPositiveNumber(self.sigma_x, "Size RMS H")
-        self.sigma_z = ShadowGui.checkPositiveNumber(self.sigma_z, "Size RMS V")
-        self.sigma_divergence_x = ShadowGui.checkPositiveNumber(self.sigma_divergence_x, "Divergence RMS H")
-        self.sigma_divergence_z = ShadowGui.checkPositiveNumber(self.sigma_divergence_z, "Divergence RMS V")
-        self.undulator_length = ShadowGui.checkPositiveNumber(self.undulator_length, "Undulator Length")
+        self.number_of_rays = congruence.checkPositiveNumber(self.number_of_rays, "Number of rays")
+        self.seed = congruence.checkPositiveNumber(self.seed, "Seed")
+        self.energy = congruence.checkPositiveNumber(self.energy, "Energy")
+        self.delta_e = congruence.checkPositiveNumber(self.delta_e, "Delta Energy")
+        self.sigma_x = congruence.checkPositiveNumber(self.sigma_x, "Size RMS H")
+        self.sigma_z = congruence.checkPositiveNumber(self.sigma_z, "Size RMS V")
+        self.sigma_divergence_x = congruence.checkPositiveNumber(self.sigma_divergence_x, "Divergence RMS H")
+        self.sigma_divergence_z = congruence.checkPositiveNumber(self.sigma_divergence_z, "Divergence RMS V")
+        self.undulator_length = congruence.checkPositiveNumber(self.undulator_length, "Undulator Length")
 
     def populateFields(self, shadow_src):
         shadow_src.src.NPOINT = self.number_of_rays

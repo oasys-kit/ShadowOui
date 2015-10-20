@@ -4,11 +4,13 @@ from PyQt4 import QtGui
 from PyQt4.QtGui import QApplication, QPalette, QColor, QFont
 from orangewidget import gui
 from orangewidget.settings import Setting
+from oasys.widgets import gui as oasysgui
+from oasys.widgets import congruence
 
 from srxraylib.sources import srfunc
+
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerOut, ShadowBeam, \
     ShadowSource
-from orangecontrib.shadow.util.shadow_util import ShadowGui
 from orangecontrib.shadow.widgets.gui import ow_source
 
 class Wiggler(ow_source.Source):
@@ -73,83 +75,83 @@ class Wiggler(ow_source.Source):
     def __init__(self):
         super().__init__()
 
-        left_box_1 = ShadowGui.widgetBox(self.controlArea, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical", height=320, width=self.CONTROL_AREA_WIDTH)
+        left_box_1 = oasysgui.widgetBox(self.controlArea, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical", height=320, width=self.CONTROL_AREA_WIDTH)
 
-        ShadowGui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=300, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=300, valueType=int, orientation="horizontal")
 
-        ShadowGui.lineEdit(left_box_1, self, "seed", "Seed", tooltip="Seed", labelWidth=300, valueType=int, orientation="horizontal")
-        ShadowGui.lineEdit(left_box_1, self, "e_min", "Minimum Photon Energy (eV)", tooltip="Minimum Energy (eV)", labelWidth=300, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(left_box_1, self, "e_max", "Maximum Photon Energy (eV)", tooltip="Maximum Energy (eV)", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "seed", "Seed", tooltip="Seed", labelWidth=300, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "e_min", "Minimum Photon Energy (eV)", tooltip="Minimum Energy (eV)", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "e_max", "Maximum Photon Energy (eV)", tooltip="Maximum Energy (eV)", labelWidth=300, valueType=float, orientation="horizontal")
 
         gui.comboBox(left_box_1, self, "optimize_source_combo", label="Optimize Source? (reject rays)", items=["No", "Using file with phase space volume", "Using slit/acceptance"], callback=self.set_OptimizeSource, labelWidth=280, orientation="horizontal")
 
-        self.box_using_file_with_phase_space_volume = ShadowGui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
+        self.box_using_file_with_phase_space_volume = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.box_using_file_with_phase_space_volume, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=300, tooltip="Max number of rejected rays", valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.box_using_file_with_phase_space_volume, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=300, tooltip="Max number of rejected rays", valueType=int, orientation="horizontal")
 
 
-        file_box = ShadowGui.widgetBox(self.box_using_file_with_phase_space_volume, "", addSpace=True, orientation="horizontal", height=25)
+        file_box = oasysgui.widgetBox(self.box_using_file_with_phase_space_volume, "", addSpace=True, orientation="horizontal", height=25)
 
-        self.le_optimize_file_name = ShadowGui.lineEdit(file_box, self, "file_with_phase_space_volume", "File with phase space volume", labelWidth=190, tooltip="File with phase space volume", valueType=str, orientation="horizontal")
+        self.le_optimize_file_name = oasysgui.lineEdit(file_box, self, "file_with_phase_space_volume", "File with phase space volume", labelWidth=190, tooltip="File with phase space volume", valueType=str, orientation="horizontal")
 
         pushButton = gui.button(file_box, self, "...")
         pushButton.clicked.connect(self.selectOptimizeFile)
 
-        self.box_using_slit_acceptance = ShadowGui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
+        self.box_using_slit_acceptance = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.box_using_slit_acceptance, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=300, tooltip="Max number of rejected rays", valueType=int, orientation="horizontal")
-        ShadowGui.lineEdit(self.box_using_slit_acceptance, self, "slit_distance", "Slit Distance [cm] (set 0 for angular acceptance)", labelWidth=300, tooltip="Slit Distance [cm]", valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.box_using_slit_acceptance, self, "min_x", "Min X [cm]/Min Xp [rad]", labelWidth=300, tooltip="Min X/Min Xp", valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.box_using_slit_acceptance, self, "max_x", "Max X [cm]/Max Xp [rad]", labelWidth=300, tooltip="Max X/Max Xp", valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.box_using_slit_acceptance, self, "min_z", "Min Z [cm]/Min Zp [rad]", labelWidth=300, tooltip="Min Z/Min Zp", valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.box_using_slit_acceptance, self, "max_z", "Max Z [cm]/Max Zp [rad]", labelWidth=300, tooltip="Max Z/Max Zp", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_using_slit_acceptance, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=300, tooltip="Max number of rejected rays", valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.box_using_slit_acceptance, self, "slit_distance", "Slit Distance [cm] (set 0 for angular acceptance)", labelWidth=300, tooltip="Slit Distance [cm]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_using_slit_acceptance, self, "min_x", "Min X [cm]/Min Xp [rad]", labelWidth=300, tooltip="Min X/Min Xp", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_using_slit_acceptance, self, "max_x", "Max X [cm]/Max Xp [rad]", labelWidth=300, tooltip="Max X/Max Xp", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_using_slit_acceptance, self, "min_z", "Min Z [cm]/Min Zp [rad]", labelWidth=300, tooltip="Min Z/Min Zp", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_using_slit_acceptance, self, "max_z", "Max Z [cm]/Max Zp [rad]", labelWidth=300, tooltip="Max Z/Max Zp", valueType=float, orientation="horizontal")
 
         self.set_OptimizeSource()
 
-        left_box_2 = ShadowGui.widgetBox(self.controlArea, "Machine Parameters", addSpace=True, orientation="vertical", height=240)
+        left_box_2 = oasysgui.widgetBox(self.controlArea, "Machine Parameters", addSpace=True, orientation="vertical", height=240)
 
-        ShadowGui.lineEdit(left_box_2, self, "energy", "Electron Energy [GeV]", tooltip="Energy [GeV]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_2, self, "energy", "Electron Energy [GeV]", tooltip="Energy [GeV]", labelWidth=300, valueType=float, orientation="horizontal")
 
         gui.comboBox(left_box_2, self, "use_emittances_combo", label="Use Emittances?", items=["No", "Yes"], callback=self.set_UseEmittances, labelWidth=300, orientation="horizontal")
 
-        self.box_use_emittances = ShadowGui.widgetBox(left_box_2, "", addSpace=True, orientation="vertical")
+        self.box_use_emittances = oasysgui.widgetBox(left_box_2, "", addSpace=True, orientation="vertical")
 
-        ShadowGui.lineEdit(self.box_use_emittances, self, "sigma_x", "Sigma X [cm]", labelWidth=300, tooltip="Sigma X [cm]", valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.box_use_emittances, self, "sigma_z", "Sigma Z [cm]", labelWidth=300, tooltip="Sigma Z [cm]", valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.box_use_emittances, self, "emittance_x", "Emittance X [rad.cm]", labelWidth=300, tooltip="Emittance X [rad.cm]", valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.box_use_emittances, self, "emittance_z", "Emittance Z [rad.cm]", labelWidth=300, tooltip="Emittance Z [rad.cm]", valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.box_use_emittances, self, "distance_from_waist_x", "Distance from Waist X [cm]", labelWidth=300, tooltip="Distance from Waist X [cm]", valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.box_use_emittances, self, "distance_from_waist_z", "Distance from Waist Z [cm]", labelWidth=300, tooltip="Distance from Waist Z [cm]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_use_emittances, self, "sigma_x", "Sigma X [cm]", labelWidth=300, tooltip="Sigma X [cm]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_use_emittances, self, "sigma_z", "Sigma Z [cm]", labelWidth=300, tooltip="Sigma Z [cm]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_use_emittances, self, "emittance_x", "Emittance X [rad.cm]", labelWidth=300, tooltip="Emittance X [rad.cm]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_use_emittances, self, "emittance_z", "Emittance Z [rad.cm]", labelWidth=300, tooltip="Emittance Z [rad.cm]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_use_emittances, self, "distance_from_waist_x", "Distance from Waist X [cm]", labelWidth=300, tooltip="Distance from Waist X [cm]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_use_emittances, self, "distance_from_waist_z", "Distance from Waist Z [cm]", labelWidth=300, tooltip="Distance from Waist Z [cm]", valueType=float, orientation="horizontal")
 
         self.set_UseEmittances()
 
-        left_box_3 = ShadowGui.widgetBox(self.controlArea, "Wiggler Parameters", addSpace=True, orientation="vertical", height=140)
+        left_box_3 = oasysgui.widgetBox(self.controlArea, "Wiggler Parameters", addSpace=True, orientation="vertical", height=140)
 
         gui.comboBox(left_box_3, self, "type_combo", label="Type", items=["conventional/sinusoidal", "B from file", "B from harmonics"], callback=self.set_Type, labelWidth=300, orientation="horizontal")
 
-        ShadowGui.lineEdit(left_box_3, self, "number_of_periods", "Number of Periods", labelWidth=300, tooltip="Number of Periods", valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_3, self, "number_of_periods", "Number of Periods", labelWidth=300, tooltip="Number of Periods", valueType=int, orientation="horizontal")
 
-        self.conventional_sinusoidal_box = ShadowGui.widgetBox(left_box_3, "", addSpace=False, orientation="vertical")
+        self.conventional_sinusoidal_box = oasysgui.widgetBox(left_box_3, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.conventional_sinusoidal_box, self, "k_value", "K value", labelWidth=300, tooltip="K value", valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.conventional_sinusoidal_box, self, "id_period", "ID period [m]", labelWidth=300, tooltip="ID period [m]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.conventional_sinusoidal_box, self, "k_value", "K value", labelWidth=300, tooltip="K value", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.conventional_sinusoidal_box, self, "id_period", "ID period [m]", labelWidth=300, tooltip="ID period [m]", valueType=float, orientation="horizontal")
 
-        self.b_from_file_box = ShadowGui.widgetBox(left_box_3, "", addSpace=False, orientation="vertical")
+        self.b_from_file_box = oasysgui.widgetBox(left_box_3, "", addSpace=False, orientation="vertical")
 
-        file_box = ShadowGui.widgetBox(self.b_from_file_box, "", addSpace=True, orientation="horizontal", height=25)
+        file_box = oasysgui.widgetBox(self.b_from_file_box, "", addSpace=True, orientation="horizontal", height=25)
 
-        self.le_file_with_b_vs_y = ShadowGui.lineEdit(file_box, self, "file_with_b_vs_y", "File with B vs Y", labelWidth=150, tooltip="File with B vs Y", valueType=str, orientation="horizontal")
+        self.le_file_with_b_vs_y = oasysgui.lineEdit(file_box, self, "file_with_b_vs_y", "File with B vs Y", labelWidth=150, tooltip="File with B vs Y", valueType=str, orientation="horizontal")
 
         pushButton = gui.button(file_box, self, "...")
         pushButton.clicked.connect(self.selectFileWithBvsY)
 
-        self.b_from_harmonics_box = ShadowGui.widgetBox(left_box_3, "", addSpace=False, orientation="vertical")
+        self.b_from_harmonics_box = oasysgui.widgetBox(left_box_3, "", addSpace=False, orientation="vertical")
 
-        ShadowGui.lineEdit(self.b_from_harmonics_box, self, "id_period", "ID period [m]", labelWidth=300, tooltip="ID period [m]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.b_from_harmonics_box, self, "id_period", "ID period [m]", labelWidth=300, tooltip="ID period [m]", valueType=float, orientation="horizontal")
 
-        file_box = ShadowGui.widgetBox(self.b_from_harmonics_box, "", addSpace=True, orientation="horizontal", height=25)
+        file_box = oasysgui.widgetBox(self.b_from_harmonics_box, "", addSpace=True, orientation="horizontal", height=25)
 
-        self.le_file_with_harmonics = ShadowGui.lineEdit(file_box, self, "file_with_harmonics", "File with harmonics", labelWidth=150, tooltip="File with harmonics", valueType=str, orientation="horizontal")
+        self.le_file_with_harmonics = oasysgui.lineEdit(file_box, self, "file_with_harmonics", "File with harmonics", labelWidth=150, tooltip="File with harmonics", valueType=str, orientation="horizontal")
 
         pushButton = gui.button(file_box, self, "...")
         pushButton.clicked.connect(self.selectFileWithHarmonics)
@@ -159,7 +161,7 @@ class Wiggler(ow_source.Source):
 
         gui.separator(self.controlArea, height=10)
 
-        button_box = ShadowGui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
+        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
         button = gui.button(button_box, self, "Run Shadow/Source", callback=self.runShadowSource)
         font = QFont(button.font())
@@ -197,13 +199,13 @@ class Wiggler(ow_source.Source):
         self.b_from_harmonics_box.setVisible(self.type_combo == 2)
 
     def selectOptimizeFile(self):
-        self.le_optimize_file_name.setText(ShadowGui.selectFileFromDialog(self, self.file_with_phase_space_volume, "Open Optimize Source Parameters File"))
+        self.le_optimize_file_name.setText(oasysgui.selectFileFromDialog(self, self.file_with_phase_space_volume, "Open Optimize Source Parameters File"))
 
     def selectFileWithBvsY(self):
-        self.le_file_with_b_vs_y.setText(ShadowGui.selectFileFromDialog(self, self.file_with_b_vs_y, "Open File With B vs Y"))
+        self.le_file_with_b_vs_y.setText(oasysgui.selectFileFromDialog(self, self.file_with_b_vs_y, "Open File With B vs Y"))
 
     def selectFileWithHarmonics(self):
-        self.le_file_with_harmonics.setText(ShadowGui.selectFileFromDialog(self, self.file_with_harmonics, "Open File With Harmonics"))
+        self.le_file_with_harmonics.setText(oasysgui.selectFileFromDialog(self, self.file_with_harmonics, "Open File With Harmonics"))
 
     def runShadowSource(self):
         #self.error(self.error_id)
@@ -213,7 +215,7 @@ class Wiggler(ow_source.Source):
         try:
             self.checkFields()
 
-            wigFile = bytes(ShadowGui.checkFileName("xshwig.sha"), 'utf-8')
+            wigFile = bytes(congruence.checkFileName("xshwig.sha"), 'utf-8')
 
             if self.type_combo == 0:
                 inData = bytes("", 'utf-8')
@@ -239,7 +241,7 @@ class Wiggler(ow_source.Source):
                                                      nTrajPoints=501,
                                                      ener_gev=self.energy,
                                                      per=self.id_period,
-                                                     kValue=self.k_value, trajFile=ShadowGui.checkFileName("tmp.traj"))
+                                                     kValue=self.k_value, trajFile=congruence.checkFileName("tmp.traj"))
 
             #
             # calculate cdf and write file for Shadow/Source
@@ -281,11 +283,11 @@ class Wiggler(ow_source.Source):
             shadow_src.src.NTOTALPOINT = self.max_number_of_rejected_rays
 
             if self.optimize_source_combo == 1:
-                shadow_src.src.FILE_BOUND = bytes(ShadowGui.checkFileName(self.file_with_phase_space_volume), 'utf-8')
+                shadow_src.src.FILE_BOUND = bytes(congruence.checkFileName(self.file_with_phase_space_volume), 'utf-8')
             elif self.optimize_source_combo == 2:
-                shadow_src.src.FILE_BOUND = bytes(ShadowGui.checkFileName("myslit.dat"), 'utf-8')
+                shadow_src.src.FILE_BOUND = bytes(congruence.checkFileName("myslit.dat"), 'utf-8')
 
-                f = open(ShadowGui.checkFileName("myslit.dat"), "w")
+                f = open(congruence.checkFileName("myslit.dat"), "w")
                 f.write("%e %e %e %e %e "%(self.slit_distance, self.min_x, self.max_x, self.min_z, self.max_z))
                 f.write("\n")
                 f.close()
@@ -363,35 +365,35 @@ class Wiggler(ow_source.Source):
         self.set_Type()
 
     def checkFields(self):
-        self.number_of_rays = ShadowGui.checkPositiveNumber(self.number_of_rays, "Number of rays")
-        self.seed = ShadowGui.checkPositiveNumber(self.seed, "Seed")
-        self.e_min = ShadowGui.checkPositiveNumber(self.e_min, "Minimum energy")
-        self.e_max = ShadowGui.checkPositiveNumber(self.e_max, "Maximum energy")
-        self.max_number_of_rejected_rays = ShadowGui.checkPositiveNumber(self.max_number_of_rejected_rays,
+        self.number_of_rays = congruence.checkPositiveNumber(self.number_of_rays, "Number of rays")
+        self.seed = congruence.checkPositiveNumber(self.seed, "Seed")
+        self.e_min = congruence.checkPositiveNumber(self.e_min, "Minimum energy")
+        self.e_max = congruence.checkPositiveNumber(self.e_max, "Maximum energy")
+        self.max_number_of_rejected_rays = congruence.checkPositiveNumber(self.max_number_of_rejected_rays,
                                                                          "Max Number of Rejected Rays")
-        self.slit_distance = ShadowGui.checkPositiveNumber(self.slit_distance, "Horizontal half-divergence from [+]")
-        self.min_x = ShadowGui.checkNumber(self.min_x, "Min X/Min Xp")
-        self.max_x = ShadowGui.checkNumber(self.max_x, "Max X/Max Xp")
-        self.min_z = ShadowGui.checkNumber(self.min_z, "Min X/Min Xp")
-        self.max_z = ShadowGui.checkNumber(self.max_z, "Max X/Max Xp")
-        self.energy = ShadowGui.checkPositiveNumber(self.energy, "Energy")
-        self.sigma_x = ShadowGui.checkPositiveNumber(self.sigma_x, "Sigma x")
-        self.sigma_z = ShadowGui.checkPositiveNumber(self.sigma_z, "Sigma z")
-        self.emittance_x = ShadowGui.checkPositiveNumber(self.emittance_x, "Emittance x")
-        self.emittance_z = ShadowGui.checkPositiveNumber(self.emittance_z, "Emittance z")
-        self.distance_from_waist_x = ShadowGui.checkNumber(self.distance_from_waist_x, "Distance from waist x")
-        self.distance_from_waist_z = ShadowGui.checkNumber(self.distance_from_waist_z, "Distance from waist z")
-        self.number_of_periods = ShadowGui.checkPositiveNumber(self.number_of_periods, "Number of periods")
-        self.k_value = ShadowGui.checkPositiveNumber(self.k_value, "K value")
-        self.id_period = ShadowGui.checkPositiveNumber(self.id_period, "ID period")
+        self.slit_distance = congruence.checkPositiveNumber(self.slit_distance, "Horizontal half-divergence from [+]")
+        self.min_x = congruence.checkNumber(self.min_x, "Min X/Min Xp")
+        self.max_x = congruence.checkNumber(self.max_x, "Max X/Max Xp")
+        self.min_z = congruence.checkNumber(self.min_z, "Min X/Min Xp")
+        self.max_z = congruence.checkNumber(self.max_z, "Max X/Max Xp")
+        self.energy = congruence.checkPositiveNumber(self.energy, "Energy")
+        self.sigma_x = congruence.checkPositiveNumber(self.sigma_x, "Sigma x")
+        self.sigma_z = congruence.checkPositiveNumber(self.sigma_z, "Sigma z")
+        self.emittance_x = congruence.checkPositiveNumber(self.emittance_x, "Emittance x")
+        self.emittance_z = congruence.checkPositiveNumber(self.emittance_z, "Emittance z")
+        self.distance_from_waist_x = congruence.checkNumber(self.distance_from_waist_x, "Distance from waist x")
+        self.distance_from_waist_z = congruence.checkNumber(self.distance_from_waist_z, "Distance from waist z")
+        self.number_of_periods = congruence.checkPositiveNumber(self.number_of_periods, "Number of periods")
+        self.k_value = congruence.checkPositiveNumber(self.k_value, "K value")
+        self.id_period = congruence.checkPositiveNumber(self.id_period, "ID period")
 
         if self.optimize_source_combo == 1:
-            self.file_with_phase_space_volume = ShadowGui.checkFile(self.file_with_phase_space_volume)
+            self.file_with_phase_space_volume = congruence.checkFile(self.file_with_phase_space_volume)
 
         if self.type_combo == 1:
-            self.file_with_b_vs_y = ShadowGui.checkFile(self.file_with_b_vs_y)
+            self.file_with_b_vs_y = congruence.checkFile(self.file_with_b_vs_y)
         elif self.type_combo == 2:
-            self.file_with_harmonics = ShadowGui.checkFile(self.file_with_harmonics)
+            self.file_with_harmonics = congruence.checkFile(self.file_with_harmonics)
 
 
     def deserialize(self, shadow_file):

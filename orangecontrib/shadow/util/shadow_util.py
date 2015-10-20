@@ -3,26 +3,26 @@ __author__ = 'labx'
 import os
 import random
 import sys
+import traceback
 
 import numpy
 import xraylib
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QMessageBox, QWidget, QFont, QPalette, QColor, QGridLayout, QLabel, QFileDialog
+from PyQt4.QtGui import QWidget, QFont, QPalette, QColor, QGridLayout, QLabel
 from matplotlib.patches import FancyArrowPatch, ArrowStyle
 from scipy import optimize, asarray
 
+from oasys.widgets import gui
+from oasys.widgets import congruence
+
+import PyMca5.PyMcaGui.plotting.PlotWindow as PlotWindow
+
+from PyMca5.PyMcaGui import PyMcaQt as qt
+from PyMca5.PyMcaCore import PyMcaDirs
+from PyMca5.PyMcaIO import ArraySave
+from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
+from PyMca5.PyMcaGui.plotting.ImageView import ImageView
+
 try:
-    from orangewidget import gui
-
-    import PyMca5.PyMcaGui.plotting.PlotWindow as PlotWindow
-    import PyMca5.PyMcaGui.plotting.PlotWidget as PlotWidget
-
-    from PyMca5.PyMcaGui import PyMcaQt as qt
-    from PyMca5.PyMcaCore import PyMcaDirs
-    from PyMca5.PyMcaIO import ArraySave
-    from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
-    from PyMca5.PyMcaGui.plotting.ImageView import ImageView
-
     import matplotlib
     import matplotlib.pyplot as plt
     from matplotlib import cm
@@ -34,161 +34,8 @@ except ImportError:
 
 import Shadow.ShadowToolsPrivate as stp
 
-class ConfirmDialog(QMessageBox):
-    def __init__(self, parent, message, title):
-        super(ConfirmDialog, self).__init__(parent)
 
-        self.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-        self.setIcon(QMessageBox.Question)
-        self.setText(message)
-        self.setWindowTitle(title)
-
-    @classmethod
-    def confirmed(cls, parent=None, message="Confirm Action?", title="Confirm Action"):
-        return ConfirmDialog(parent, message, title).exec_() == QMessageBox.Ok
-
-class ShadowGui():
-
-    @classmethod
-    def lineEdit(cls, widget, master, value, label=None, labelWidth=None,
-             orientation='vertical', box=None, callback=None,
-             valueType=str, validator=None, controlWidth=None,
-             callbackOnType=False, focusInCallback=None,
-             enterPlaceholder=False, **misc):
-
-        lEdit = gui.lineEdit(widget, master, value, label, labelWidth, orientation, box, callback, valueType, validator, controlWidth, callbackOnType, focusInCallback, enterPlaceholder, **misc)
-
-        if value:
-            if (valueType != str):
-                lEdit.setAlignment(Qt.AlignRight)
-
-        return lEdit
-
-    @classmethod
-    def widgetBox(cls, widget, box=None, orientation='vertical', margin=None, spacing=4, height=None, width=None, **misc):
-
-        box = gui.widgetBox(widget, box, orientation, margin, spacing, **misc)
-        box.layout().setAlignment(Qt.AlignTop)
-
-        if not height is None:
-            box.setFixedHeight(height)
-        if not width is None:
-            box.setFixedWidth(width)
-
-        return box
-
-    @classmethod
-    def tabWidget(cls, widget, height=None, width=None):
-        tabWidget = gui.tabWidget(widget)
-
-        if not height is None:
-            tabWidget.setFixedHeight(height)
-        if not width is None:
-            tabWidget.setFixedWidth(width)
-
-        return tabWidget
-
-    @classmethod
-    def createTabPage(cls, tabWidget, name, widgetToAdd=None, canScroll=False, height=None, width=None):
-
-        tab = gui.createTabPage(tabWidget, name, widgetToAdd, canScroll)
-        tab.layout().setAlignment(Qt.AlignTop)
-
-        if not height is None:
-            tab.setFixedHeight(height)
-        if not width is None:
-            tab.setFixedWidth(width)
-
-        return tab
-
-    @classmethod
-    def selectFileFromDialog(cls, widget, previous_file_path="", message="Select File", start_directory=".", file_extension_filter="*.*"):
-        file_path = QFileDialog.getOpenFileName(widget, message, start_directory, file_extension_filter)
-
-        if not file_path is None and not file_path.strip() == "":
-            return file_path
-        else:
-            return previous_file_path
-
-    @classmethod
-    def checkNumber(cls, value, field_name):
-        try:
-            float(value)
-        except ValueError:
-            raise Exception(str(field_name) + " is not a number")
-
-        return value
-
-    @classmethod
-    def checkPositiveNumber(cls, value, field_name):
-        value = ShadowGui.checkNumber(value, field_name)
-        if (value < 0): raise Exception(field_name + " should be >= 0")
-
-        return value
-
-    @classmethod
-    def checkStrictlyPositiveNumber(cls, value, field_name):
-        value = ShadowGui.checkNumber(value, field_name)
-        if (value <= 0): raise Exception(field_name + " should be > 0")
-
-        return value
-
-    @classmethod
-    def checkStrictlyPositiveAngle(cls, value, field_name):
-        value = ShadowGui.checkNumber(value, field_name)
-        if value <= 0 or value >= 360: raise Exception(field_name + " should be > 0 and < 360 deg")
-
-        return value
-
-    @classmethod
-    def checkPositiveAngle(cls, value, field_name):
-        value = ShadowGui.checkNumber(value, field_name)
-        if value < 0 or value > 360: raise Exception(field_name + " should be >= 0 and <= 360 deg")
-
-        return value
-
-    @classmethod
-    def checkEmptyString(cls, string, field_name):
-
-        if string is None: raise Exception(field_name + " should not be an empty string")
-        if string.strip() == "": raise Exception(field_name + " should not be an empty string")
-
-        return string
-
-    @classmethod
-    def checkFileName(cls, fileName):
-        if fileName is None: raise Exception("File name is Empty")
-        if fileName.strip() == "": raise Exception("File name is Empty")
-
-        if os.path.isabs(fileName):
-            filePath = fileName
-        else:
-            if fileName.startswith('/'):
-                filePath =  os.getcwd() + fileName
-            else:
-                filePath = os.getcwd() + '/' + fileName
-
-        return filePath
-
-    @classmethod
-    def checkDir(cls, fileName):
-        filePath = ShadowGui.checkFileName(fileName)
-
-        container_dir = os.path.dirname(filePath)
-
-        if not os.path.exists(container_dir):
-            raise Exception("Directory " + container_dir + " not existing")
-
-        return filePath
-
-    @classmethod
-    def checkFile(cls, fileName):
-        filePath = ShadowGui.checkDir(fileName)
-
-        if not os.path.exists(filePath):
-            raise Exception("File " + fileName + " not existing")
-
-        return filePath
+class ShadowCongruence():
 
     @classmethod
     def checkEmptyBeam(cls, input_beam):
@@ -399,16 +246,16 @@ class ShadowPlot:
         def __init__(self, x_scale_factor = 1.0, y_scale_factor = 1.0, is_2d=True):
             super(ShadowPlot.InfoBoxWidget, self).__init__()
 
-            info_box_inner=ShadowGui.widgetBox(self, "Info")
+            info_box_inner=gui.widgetBox(self, "Info")
             info_box_inner.setFixedHeight(180*y_scale_factor)
             info_box_inner.setFixedWidth(250*x_scale_factor)
 
-            self.intensity = ShadowGui.lineEdit(info_box_inner, self, "intensity_field", "Intensity", tooltip="Intensity", labelWidth=110, valueType=str, orientation="horizontal")
-            self.total_rays = ShadowGui.lineEdit(info_box_inner, self, "total_rays_field", "Total Rays", tooltip="Total Rays", labelWidth=110, valueType=str, orientation="horizontal")
-            self.total_good_rays = ShadowGui.lineEdit(info_box_inner, self, "total_good_rays_field", "Total Good Rays", tooltip="Total Good Rays", labelWidth=110, valueType=str, orientation="horizontal")
-            self.total_lost_rays = ShadowGui.lineEdit(info_box_inner, self, "total_lost_rays_field", "Total Lost Rays", tooltip="Total Lost Rays", labelWidth=110, valueType=str, orientation="horizontal")
+            self.intensity = gui.lineEdit(info_box_inner, self, "intensity_field", "Intensity", tooltip="Intensity", labelWidth=110, valueType=str, orientation="horizontal")
+            self.total_rays = gui.lineEdit(info_box_inner, self, "total_rays_field", "Total Rays", tooltip="Total Rays", labelWidth=110, valueType=str, orientation="horizontal")
+            self.total_good_rays = gui.lineEdit(info_box_inner, self, "total_good_rays_field", "Total Good Rays", tooltip="Total Good Rays", labelWidth=110, valueType=str, orientation="horizontal")
+            self.total_lost_rays = gui.lineEdit(info_box_inner, self, "total_lost_rays_field", "Total Lost Rays", tooltip="Total Lost Rays", labelWidth=110, valueType=str, orientation="horizontal")
 
-            label_box_1 = ShadowGui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+            label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
 
             self.label_h = QLabel("FWHM ")
             self.label_h.setFixedWidth(110)
@@ -416,10 +263,10 @@ class ShadowPlot:
             palette.setColor(QPalette.Foreground, QColor('blue'))
             self.label_h.setPalette(palette)
             label_box_1.layout().addWidget(self.label_h)
-            self.fwhm_h = ShadowGui.lineEdit(label_box_1, self, "fwhm_h_field", "", tooltip="FWHM", labelWidth=110, valueType=str, orientation="horizontal")
+            self.fwhm_h = gui.lineEdit(label_box_1, self, "fwhm_h_field", "", tooltip="FWHM", labelWidth=110, valueType=str, orientation="horizontal")
 
             if is_2d:
-                label_box_2 = ShadowGui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+                label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
 
                 self.label_v = QLabel("FWHM ")
                 self.label_v.setFixedWidth(110)
@@ -427,7 +274,7 @@ class ShadowPlot:
                 palette.setColor(QPalette.Foreground, QColor('red'))
                 self.label_v.setPalette(palette)
                 label_box_2.layout().addWidget(self.label_v)
-                self.fwhm_v = ShadowGui.lineEdit(label_box_2, self, "fwhm_v_field", "", tooltip="FWHM", labelWidth=110, valueType=str, orientation="horizontal")
+                self.fwhm_v = gui.lineEdit(label_box_2, self, "fwhm_v_field", "", tooltip="FWHM", labelWidth=110, valueType=str, orientation="horizontal")
 
             self.intensity.setReadOnly(True)
             font = QFont(self.intensity.font())
@@ -1267,10 +1114,10 @@ class Properties(object):
 
 if __name__ == "__main__":
 
-    print(ShadowGui.checkFileName("pippo.dat"))
-    print(ShadowGui.checkFileName("Files/pippo.dat"))
-    print(ShadowGui.checkFileName("Files/pippo.dat"))
-    print(ShadowGui.checkFileName("/Users/labx/Desktop/pippo.dat"))
+    print(congruence.checkFileName("pippo.dat"))
+    print(congruence.checkFileName("Files/pippo.dat"))
+    print(congruence.checkFileName("Files/pippo.dat"))
+    print(congruence.checkFileName("/Users/labx/Desktop/pippo.dat"))
 
 
     '''

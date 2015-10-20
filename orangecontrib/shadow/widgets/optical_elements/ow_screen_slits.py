@@ -1,12 +1,9 @@
 import sys
 from numpy import array, zeros
 
-from orangewidget import widget, gui
-from orangewidget.settings import Setting
+from orangewidget import gui
 from PyQt4.QtGui import QApplication
 
-import Shadow
-from orangecontrib.shadow.util.shadow_util import ShadowGui
 from orangecontrib.shadow.widgets.gui.ow_optical_element import OpticalElement, GraphicalOptions
 from orangecontrib.shadow.util import ShadowOpticalElement
 

@@ -2,13 +2,15 @@ import os
 
 import numpy
 from oasys.widgets import widget
+from oasys.widgets import gui as oasysgui
+
 from orangewidget import gui
 from orangewidget.settings import Setting
+
 from PyQt4 import QtGui
 from PyQt4.QtGui import QColor
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
-from orangecontrib.shadow.util.shadow_util import ShadowGui
 
 class ImageToBeamConverter(widget.OWWidget):
 
@@ -43,39 +45,39 @@ class ImageToBeamConverter(widget.OWWidget):
         self.setFixedWidth(590)
         self.setFixedHeight(550)
 
-        left_box_1 = ShadowGui.widgetBox(self.controlArea, "CCD Image", addSpace=True, orientation="vertical")
+        left_box_1 = oasysgui.widgetBox(self.controlArea, "CCD Image", addSpace=True, orientation="vertical")
 
         gui.comboBox(left_box_1, self, "is_textual", label="Image Type", labelWidth=250, items=["JPEG/PNG", "Textual"], sendSelectedValue=False, orientation="horizontal", callback=self.setTextual)
 
         ########################################
 
-        self.select_file_box_1 = ShadowGui.widgetBox(left_box_1, "Textual Image Parameters", addSpace=True, orientation="horizontal", height=250)
+        self.select_file_box_1 = oasysgui.widgetBox(left_box_1, "Textual Image Parameters", addSpace=True, orientation="horizontal", height=250)
 
-        self.le_image_txt_file_name = ShadowGui.lineEdit(self.select_file_box_1, self, "image_file_name", "Image File Name", labelWidth=120, valueType=str, orientation="horizontal")
+        self.le_image_txt_file_name = oasysgui.lineEdit(self.select_file_box_1, self, "image_file_name", "Image File Name", labelWidth=120, valueType=str, orientation="horizontal")
         self.le_image_txt_file_name.setFixedWidth(300)
 
         pushButton = gui.button(self.select_file_box_1, self, "...")
         pushButton.clicked.connect(self.selectTxtFile)
 
 
-        self.select_file_box_2 = ShadowGui.widgetBox(left_box_1, "Image Parameters", addSpace=True, orientation="vertical", height=250)
+        self.select_file_box_2 = oasysgui.widgetBox(left_box_1, "Image Parameters", addSpace=True, orientation="vertical", height=250)
 
-        select_file_box_2_int = ShadowGui.widgetBox(self.select_file_box_2, "", addSpace=True, orientation="horizontal")
+        select_file_box_2_int = oasysgui.widgetBox(self.select_file_box_2, "", addSpace=True, orientation="horizontal")
 
-        self.le_image_file_name = ShadowGui.lineEdit(select_file_box_2_int, self, "image_file_name", "Image File Name", labelWidth=120, valueType=str, orientation="horizontal")
+        self.le_image_file_name = oasysgui.lineEdit(select_file_box_2_int, self, "image_file_name", "Image File Name", labelWidth=120, valueType=str, orientation="horizontal")
         self.le_image_file_name.setFixedWidth(300)
 
         pushButton = gui.button(select_file_box_2_int, self, "...")
         pushButton.clicked.connect(self.selectFile)
 
-        figure_box = ShadowGui.widgetBox(self.select_file_box_2, "Preview", addSpace=True, orientation="vertical", width=350, height=180)
+        figure_box = oasysgui.widgetBox(self.select_file_box_2, "Preview", addSpace=True, orientation="vertical", width=350, height=180)
 
         self.preview_box = QtGui.QLabel("")
         self.preview_box.setFixedHeight(100)
 
         figure_box.layout().addWidget(self.preview_box)
 
-        le = ShadowGui.lineEdit(figure_box, self, "number_of_x_pixels", "Number of x Pixels", labelWidth=200, valueType=int, orientation="horizontal")
+        le = oasysgui.lineEdit(figure_box, self, "number_of_x_pixels", "Number of x Pixels", labelWidth=200, valueType=int, orientation="horizontal")
         le.setReadOnly(True)
         font = QtGui.QFont(le.font())
         font.setBold(True)
@@ -84,7 +86,7 @@ class ImageToBeamConverter(widget.OWWidget):
         palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
         palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
         le.setPalette(palette)
-        le = ShadowGui.lineEdit(figure_box, self, "number_of_z_pixels", "Number of z Pixels", labelWidth=200, valueType=int, orientation="horizontal")
+        le = oasysgui.lineEdit(figure_box, self, "number_of_z_pixels", "Number of z Pixels", labelWidth=200, valueType=int, orientation="horizontal")
         le.setReadOnly(True)
         font = QtGui.QFont(le.font())
         font.setBold(True)
@@ -99,9 +101,9 @@ class ImageToBeamConverter(widget.OWWidget):
         self.setTextual()
         self.loadImage()
 
-        ShadowGui.lineEdit(left_box_1, self, "pixel_size", "Pixel Size [um]", labelWidth=200, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(left_box_1, self, "number_of_x_bins", "Number of Bin per Pixel [x]", labelWidth=200, valueType=int, orientation="horizontal")
-        ShadowGui.lineEdit(left_box_1, self, "number_of_z_bins", "Number of Bin per Pixel [z]", labelWidth=200, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "pixel_size", "Pixel Size [um]", labelWidth=200, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "number_of_x_bins", "Number of Bin per Pixel [x]", labelWidth=200, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "number_of_z_bins", "Number of Bin per Pixel [z]", labelWidth=200, valueType=int, orientation="horizontal")
         gui.checkBox(left_box_1, self, "flip_vertically", "Flip Vertically")
         gui.checkBox(left_box_1, self, "flip_horizontally", "Flip Horizontally")
 
@@ -113,10 +115,10 @@ class ImageToBeamConverter(widget.OWWidget):
         gui.rubber(self.controlArea)
 
     def selectTxtFile(self):
-        self.le_image_txt_file_name.setText(ShadowGui.selectFileFromDialog(self, self.image_txt_file_name, "Open Textual Image", file_extension_filter="*.txt"))
+        self.le_image_txt_file_name.setText(oasysgui.selectFileFromDialog(self, self.image_txt_file_name, "Open Textual Image", file_extension_filter="*.txt"))
 
     def selectFile(self):
-        self.le_image_file_name.setText(ShadowGui.selectFileFromDialog(self, self.image_file_name, "Open Image", file_extension_filter="*.png;*.jpg"))
+        self.le_image_file_name.setText(oasysgui.selectFileFromDialog(self, self.image_file_name, "Open Image", file_extension_filter="*.png;*.jpg"))
         self.loadImage()
 
     def loadImage(self):

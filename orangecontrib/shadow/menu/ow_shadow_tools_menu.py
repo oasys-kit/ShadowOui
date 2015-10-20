@@ -8,11 +8,19 @@ from PyQt4 import QtGui
 from oasys.menus.menu import OMenu
 from orangecanvas.scheme.link import SchemeLink
 
-import orangecontrib.shadow.widgets.preprocessor as preprocessor
+import orangecontrib.shadow.widgets.preprocessor.xsh_bragg as xsh_bragg
+import orangecontrib.shadow.widgets.preprocessor.xsh_pre_mlayer as xsh_pre_mlayer
+import orangecontrib.shadow.widgets.preprocessor.xsh_prerefl as xsh_prerefl
+import orangecontrib.shadow.widgets.preprocessor.xsh_waviness as xsh_waviness
+
+import orangecontrib.shadow.widgets.plots.ow_plot_xy as ow_plot_xy
+import orangecontrib.shadow.widgets.plots.ow_histogram as ow_histogram
+import orangecontrib.shadow.widgets.plots.ow_info as ow_info
+
 from orangecontrib.shadow.util.shadow_objects import ShadowFile
 
 
-class SingleFileImportMenu(OMenu):
+class ShadowToolsMenu(OMenu):
     is_weird_shadow_bug_fixed = False
 
 
@@ -28,6 +36,9 @@ class SingleFileImportMenu(OMenu):
         self.addSubMenu("Import Shadow Workspace")
         self.addSeparator()
         self.addSubMenu("Execute all the Preprocessor widgets")
+        self.addSeparator()
+        self.addSubMenu("Enable all the Plotting widgets")
+        self.addSubMenu("Disable all the Plotting widgets")
 
     def fixWeirdShadowBug(self):
         if not self.is_weird_shadow_bug_fixed:
@@ -97,7 +108,7 @@ class SingleFileImportMenu(OMenu):
                         messages = messages + tmp_messages
 
                         for node in tmp_nodes:
-                            if not (isinstance(node, str) and node == SingleFileImportMenu.ABORT_IMPORT):
+                            if not (isinstance(node, str) and node == ShadowToolsMenu.ABORT_IMPORT):
                                 nodes.append(node)
                             else:
                                 abort_import = True
@@ -109,7 +120,7 @@ class SingleFileImportMenu(OMenu):
 
                         if ret == QtGui.QMessageBox.No: break
                         else:
-                            nodes.append(SingleFileImportMenu.OMIT_WIDGET)
+                            nodes.append(ShadowToolsMenu.OMIT_WIDGET)
                             messages.append("File " + str(filename).strip() + " doesn't exist")
 
                 self.createLinks(nodes)
@@ -137,13 +148,13 @@ class SingleFileImportMenu(OMenu):
             for node in self.canvas_main_window.current_document().scheme().nodes:
                 widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
 
-                if isinstance(widget, preprocessor.xsh_bragg.OWxsh_bragg):
+                if isinstance(widget, xsh_bragg.OWxsh_bragg):
                     widget.compute()
-                elif isinstance(widget, preprocessor.xsh_prerefl.OWxsh_prerefl):
+                elif isinstance(widget, xsh_prerefl.OWxsh_prerefl):
                     widget.compute()
-                elif isinstance(widget, preprocessor.xsh_pre_mlayer.OWxsh_pre_mlayer):
+                elif isinstance(widget, xsh_pre_mlayer.OWxsh_pre_mlayer):
                     widget.compute()
-                elif isinstance(widget, preprocessor.xsh_waviness.OWxsh_waviness):
+                elif isinstance(widget, xsh_waviness.OWxsh_waviness):
                     widget.calculate_waviness(not_interactive_mode=True)
                     widget.generate_waviness_file(not_interactive_mode=True)
 
@@ -154,6 +165,40 @@ class SingleFileImportMenu(OMenu):
 
             raise exception
 
+    #ENABLE PLOTS
+    def executeAction_6(self, action):
+        try:
+            for link in self.canvas_main_window.current_document().scheme().links:
+                if not link.enabled:
+                    widget = self.canvas_main_window.current_document().scheme().widget_for_node(link.sink_node)
+
+                    if isinstance(widget, ow_plot_xy.PlotXY) or \
+                       isinstance(widget, ow_histogram.Histogram) or \
+                       isinstance(widget, ow_info.Info):
+                        link.set_enabled(True)
+        except Exception as exception:
+            QtGui.QMessageBox.critical(None, "Error",
+                exception.args[0],
+                QtGui.QMessageBox.Ok)
+
+            raise exception
+
+    def executeAction_7(self, action):
+        try:
+            for link in self.canvas_main_window.current_document().scheme().links:
+                if link.enabled:
+                    widget = self.canvas_main_window.current_document().scheme().widget_for_node(link.sink_node)
+
+                    if isinstance(widget, ow_plot_xy.PlotXY) or \
+                       isinstance(widget, ow_histogram.Histogram) or \
+                       isinstance(widget, ow_info.Info):
+                        link.set_enabled(False)
+        except Exception as exception:
+            QtGui.QMessageBox.critical(None, "Error",
+                exception.args[0],
+                QtGui.QMessageBox.Ok)
+
+            raise exception
 
     ###############################################################
     #
@@ -287,8 +332,8 @@ class SingleFileImportMenu(OMenu):
         except Exception as exception:
             ret = self.showConfirmMessage(exception.args[0])
 
-            if ret == QtGui.QMessageBox.No: widget_name = SingleFileImportMenu.ABORT_IMPORT
-            else: widget_name = SingleFileImportMenu.OMIT_WIDGET
+            if ret == QtGui.QMessageBox.No: widget_name = ShadowToolsMenu.ABORT_IMPORT
+            else: widget_name = ShadowToolsMenu.OMIT_WIDGET
 
         return widget_name, messages
 
@@ -329,15 +374,15 @@ class SingleFileImportMenu(OMenu):
     def createLinks(self, nodes):
         previous_node = None
         for node in nodes:
-            if not (isinstance(node, str) and node == SingleFileImportMenu.OMIT_WIDGET):
+            if not (isinstance(node, str) and node == ShadowToolsMenu.OMIT_WIDGET):
                 if not previous_node is None :
-                    if not (isinstance(previous_node, str) and previous_node == SingleFileImportMenu.OMIT_WIDGET):
+                    if not (isinstance(previous_node, str) and previous_node == ShadowToolsMenu.OMIT_WIDGET):
                         link = SchemeLink(source_node=previous_node, source_channel="Beam", sink_node=node, sink_channel="Input Beam")
                         self.canvas_main_window.current_document().addLink(link=link)
             previous_node = node
 
     def getWidgetDesc(self, widget_name):
-        if widget_name == SingleFileImportMenu.OMIT_WIDGET or widget_name == SingleFileImportMenu.ABORT_IMPORT:
+        if widget_name == ShadowToolsMenu.OMIT_WIDGET or widget_name == ShadowToolsMenu.ABORT_IMPORT:
             return widget_name
         else:
             return self.canvas_main_window.widget_registry.widget(widget_name)

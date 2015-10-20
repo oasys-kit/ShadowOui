@@ -6,9 +6,11 @@ from PyQt4 import QtGui
 from PyQt4.QtGui import QPalette, QColor, QFont
 from orangewidget import gui
 from orangewidget.settings import Setting
+from oasys.widgets import gui as oasysgui
+from oasys.widgets.gui import ConfirmDialog
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowTriggerIn
-from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog
+from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticElement
 
 class AccumulatingLoopPoint(AutomaticElement):
@@ -54,16 +56,16 @@ class AccumulatingLoopPoint(AutomaticElement):
         self.setFixedWidth(500)
         self.setFixedHeight(350)
 
-        left_box_1 = ShadowGui.widgetBox(self.controlArea, "Accumulating Loop Management", addSpace=True, orientation="vertical", height=200)
+        left_box_1 = oasysgui.widgetBox(self.controlArea, "Accumulating Loop Management", addSpace=True, orientation="vertical", height=200)
 
-        ShadowGui.lineEdit(left_box_1, self, "number_of_accumulated_rays", "Number of accumulated good rays\n(before sending signal)", labelWidth=350, valueType=int,
+        oasysgui.lineEdit(left_box_1, self, "number_of_accumulated_rays", "Number of accumulated good rays\n(before sending signal)", labelWidth=350, valueType=int,
                            orientation="horizontal")
 
         gui.comboBox(left_box_1, self, "keep_go_rays", label="Remove lost rays from beam", labelWidth=350, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
         gui.separator(left_box_1)
 
-        le = ShadowGui.lineEdit(left_box_1, self, "current_number_of_rays", "Current number of good rays", labelWidth=350, valueType=int, orientation="horizontal")
+        le = oasysgui.lineEdit(left_box_1, self, "current_number_of_rays", "Current number of good rays", labelWidth=350, valueType=int, orientation="horizontal")
         le.setReadOnly(True)
         font = QtGui.QFont(le.font())
         font.setBold(True)
@@ -73,14 +75,14 @@ class AccumulatingLoopPoint(AutomaticElement):
         palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
         le.setPalette(palette)
 
-        le = ShadowGui.lineEdit(left_box_1, self, "current_number_of_lost_rays", "Current number of lost rays", labelWidth=350, valueType=int, orientation="horizontal")
+        le = oasysgui.lineEdit(left_box_1, self, "current_number_of_lost_rays", "Current number of lost rays", labelWidth=350, valueType=int, orientation="horizontal")
         le.setReadOnly(True)
         palette = QtGui.QPalette(le.palette())  # make a copy of the palette
         palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark red'))
         palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
         le.setPalette(palette)
 
-        le = ShadowGui.lineEdit(left_box_1, self, "current_number_of_total_rays", "Current number of total rays", labelWidth=350, valueType=int, orientation="horizontal")
+        le = oasysgui.lineEdit(left_box_1, self, "current_number_of_total_rays", "Current number of total rays", labelWidth=350, valueType=int, orientation="horizontal")
         le.setReadOnly(True)
         palette = QtGui.QPalette(le.palette())  # make a copy of the palette
         palette.setColor(QtGui.QPalette.Text, QtGui.QColor('black'))
@@ -115,10 +117,10 @@ class AccumulatingLoopPoint(AutomaticElement):
             self.input_beam = None
 
     def setBeam(self, beam):
-        if ShadowGui.checkEmptyBeam(beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
             proceed = True
 
-            if not ShadowGui.checkGoodBeam(beam):
+            if not ShadowCongruence.checkGoodBeam(beam):
                 if not ConfirmDialog.confirmed(parent=self, message="Beam contains bad values, skip it?"):
                     proceed = False
 

@@ -5,6 +5,8 @@ from Shadow.ShadowPreprocessorsXraylib import prerefl
 from oasys.widgets.widget import OWWidget
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
+from oasys.widgets import gui as oasysgui
+from oasys.widgets import congruence
 
 try:
     from ..tools.xoppy_calc import xoppy_doc
@@ -16,7 +18,7 @@ except SystemError:
     pass
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
-from orangecontrib.shadow.util.shadow_util import ShadowGui, ShadowPhysics
+from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics
 
 class OWxsh_prerefl(OWWidget):
     name = "xsh_prerefl"
@@ -51,27 +53,27 @@ class OWxsh_prerefl(OWWidget):
         self.runaction.triggered.connect(self.compute)
         self.addAction(self.runaction)
 
-        box = ShadowGui.widgetBox(self.controlArea, "Reflectivity Parameters", orientation="vertical")
+        box = oasysgui.widgetBox(self.controlArea, "Reflectivity Parameters", orientation="vertical")
         
         idx = -1 
         
         #widget index 0 
         idx += 1 
-        ShadowGui.lineEdit(box, self, "SYMBOL",
+        oasysgui.lineEdit(box, self, "SYMBOL",
                      label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal", callback=self.set_Density)
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 1 
         idx += 1 
-        ShadowGui.lineEdit(box, self, "DENSITY",
+        oasysgui.lineEdit(box, self, "DENSITY",
                      label=self.unitLabels()[idx], addSpace=True, valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 2 
         idx += 1 
-        box_2 = ShadowGui.widgetBox(box, "", addSpace=True, orientation="horizontal")
+        box_2 = oasysgui.widgetBox(box, "", addSpace=True, orientation="horizontal")
 
-        self.le_SHADOW_FILE = ShadowGui.lineEdit(box_2, self, "SHADOW_FILE",
+        self.le_SHADOW_FILE = oasysgui.lineEdit(box_2, self, "SHADOW_FILE",
                                                  label=self.unitLabels()[idx], addSpace=True, labelWidth=180, orientation="horizontal")
 
         pushButton = gui.button(box_2, self, "...")
@@ -81,21 +83,21 @@ class OWxsh_prerefl(OWWidget):
         
         #widget index 3 
         idx += 1 
-        ShadowGui.lineEdit(box, self, "E_MIN",
+        oasysgui.lineEdit(box, self, "E_MIN",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 4 
         idx += 1 
-        ShadowGui.lineEdit(box, self, "E_MAX",
+        oasysgui.lineEdit(box, self, "E_MAX",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 5 
         idx += 1 
-        ShadowGui.lineEdit(box, self, "E_STEP",
+        oasysgui.lineEdit(box, self, "E_STEP",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
@@ -105,7 +107,7 @@ class OWxsh_prerefl(OWWidget):
         self.shadow_output = QTextEdit()
         self.shadow_output.setReadOnly(True)
 
-        out_box = ShadowGui.widgetBox(self.controlArea, "System Output", addSpace=True, orientation="horizontal", height=150)
+        out_box = oasysgui.widgetBox(self.controlArea, "System Output", addSpace=True, orientation="horizontal", height=150)
         out_box.layout().addWidget(self.shadow_output)
 
         box0 = gui.widgetBox(self.controlArea, "",orientation="horizontal") 
@@ -127,7 +129,7 @@ class OWxsh_prerefl(OWWidget):
          return ['True','True','True','True','True','True']
 
     def selectFile(self):
-        self.le_SHADOW_FILE.setText(ShadowGui.selectFileFromDialog(self, self.SHADOW_FILE, "Select Output File", file_extension_filter="*.dat"))
+        self.le_SHADOW_FILE.setText(oasysgui.selectFileFromDialog(self, self.SHADOW_FILE, "Select Output File", file_extension_filter="*.dat"))
 
     def set_Density(self):
         if not self.SYMBOL is None:
@@ -158,12 +160,12 @@ class OWxsh_prerefl(OWWidget):
 
     def checkFields(self):
         self.SYMBOL = ShadowPhysics.checkCompoundName(self.SYMBOL)
-        self.DENSITY = ShadowGui.checkStrictlyPositiveNumber(self.DENSITY, "Density")
-        self.E_MIN  = ShadowGui.checkPositiveNumber(self.E_MIN , "Minimum Energy")
-        self.E_MAX  = ShadowGui.checkStrictlyPositiveNumber(self.E_MAX , "Maximum Energy")
-        self.E_STEP = ShadowGui.checkStrictlyPositiveNumber(self.E_STEP, "Energy step")
+        self.DENSITY = congruence.checkStrictlyPositiveNumber(self.DENSITY, "Density")
+        self.E_MIN  = congruence.checkPositiveNumber(self.E_MIN , "Minimum Energy")
+        self.E_MAX  = congruence.checkStrictlyPositiveNumber(self.E_MAX , "Maximum Energy")
+        self.E_STEP = congruence.checkStrictlyPositiveNumber(self.E_STEP, "Energy step")
         if self.E_MIN > self.E_MAX: raise Exception("Minimum Energy cannot be bigger than Maximum Energy")
-        self.SHADOW_FILE=ShadowGui.checkDir(self.SHADOW_FILE)
+        self.SHADOW_FILE=congruence.checkDir(self.SHADOW_FILE)
 
     def defaults(self):
          self.resetSettings()

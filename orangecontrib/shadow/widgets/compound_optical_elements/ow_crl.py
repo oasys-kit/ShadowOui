@@ -3,11 +3,13 @@ import sys
 from PyQt4 import QtGui
 from PyQt4.QtGui import QPalette, QColor, QFont
 from orangewidget import gui
+from oasys.widgets import gui as oasysgui
+from oasys.widgets import congruence
 from orangewidget.settings import Setting
 
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerIn, ShadowPreProcessorData, \
     ShadowCompoundOpticalElement, ShadowBeam
-from orangecontrib.shadow.util.shadow_util import ShadowGui
+from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 from orangecontrib.shadow.widgets.gui import ow_generic_element
 
 class CRL(ow_generic_element.GenericElement):
@@ -75,29 +77,29 @@ class CRL(ow_generic_element.GenericElement):
 
         tabs_setting = gui.tabWidget(self.controlArea)
 
-        tab_bas = ShadowGui.createTabPage(tabs_setting, "Basic Setting")
-        tab_adv = ShadowGui.createTabPage(tabs_setting, "Advanced Setting")
+        tab_bas = oasysgui.createTabPage(tabs_setting, "Basic Setting")
+        tab_adv = oasysgui.createTabPage(tabs_setting, "Advanced Setting")
 
-        crl_box = ShadowGui.widgetBox(tab_bas, "C.R.L. Input Parameters", addSpace=False, orientation="vertical", height=100, width=450)
+        crl_box = oasysgui.widgetBox(tab_bas, "C.R.L. Input Parameters", addSpace=False, orientation="vertical", height=100, width=450)
 
-        ShadowGui.lineEdit(crl_box, self, "nlenses", "Number of lenses", labelWidth=350, valueType=int, orientation="horizontal")
-        ShadowGui.lineEdit(crl_box, self, "slots_empty", "Number of empty slots", labelWidth=350, valueType=int, orientation="horizontal")
-        ShadowGui.lineEdit(crl_box, self, "thickness", "Piling thickness [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(crl_box, self, "nlenses", "Number of lenses", labelWidth=350, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(crl_box, self, "slots_empty", "Number of empty slots", labelWidth=350, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(crl_box, self, "thickness", "Piling thickness [cm]", labelWidth=350, valueType=float, orientation="horizontal")
 
-        lens_box = ShadowGui.widgetBox(tab_bas, "Single Lens Input Parameters", addSpace=False, orientation="vertical", height=500, width=450)
+        lens_box = oasysgui.widgetBox(tab_bas, "Single Lens Input Parameters", addSpace=False, orientation="vertical", height=500, width=450)
 
-        ShadowGui.lineEdit(lens_box, self, "p", "Distance Source-First lens interface (P) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(lens_box, self, "q", "Distance Last lens interface-Image plane (Q) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(lens_box, self, "p", "Distance Source-First lens interface (P) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(lens_box, self, "q", "Distance Last lens interface-Image plane (Q) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
 
         gui.separator(lens_box)
 
         gui.comboBox(lens_box, self, "has_finite_diameter", label="Lens Diameter", labelWidth=350,
                      items=["Finite", "Infinite"], callback=self.set_diameter, sendSelectedValue=False, orientation="horizontal")
 
-        self.diameter_box = ShadowGui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
-        self.diameter_box_empty = ShadowGui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
+        self.diameter_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
+        self.diameter_box_empty = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
 
-        ShadowGui.lineEdit(self.diameter_box, self, "diameter", "Lens Diameter Value [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.diameter_box, self, "diameter", "Lens Diameter Value [cm]", labelWidth=350, valueType=float, orientation="horizontal")
 
         self.set_diameter()
 
@@ -106,14 +108,14 @@ class CRL(ow_generic_element.GenericElement):
         gui.comboBox(lens_box, self, "surface_shape", label="Surface Shape", labelWidth=350,
                      items=["Sphere", "Paraboloid", "Plane"], callback=self.set_surface_shape, sendSelectedValue=False, orientation="horizontal")
 
-        self.surface_shape_box = ShadowGui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
-        self.surface_shape_box_empty = ShadowGui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
+        self.surface_shape_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
+        self.surface_shape_box_empty = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
 
-        ShadowGui.lineEdit(self.surface_shape_box, self, "radius", "Curvature Radius [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.surface_shape_box, self, "radius", "Curvature Radius [cm]", labelWidth=350, valueType=float, orientation="horizontal")
 
         self.set_surface_shape()
 
-        ShadowGui.lineEdit(lens_box, self, "interthickness", "Lens Thickness [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(lens_box, self, "interthickness", "Lens Thickness [cm]", labelWidth=350, valueType=float, orientation="horizontal")
 
         gui.comboBox(lens_box, self, "use_ccc", label="Use C.C.C.", labelWidth=350,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
@@ -128,8 +130,8 @@ class CRL(ow_generic_element.GenericElement):
         gui.comboBox(lens_box, self, "is_cylinder", label="Cylindrical", labelWidth=350,
                      items=["No", "Yes"], callback=self.set_cylindrical, sendSelectedValue=False, orientation="horizontal")
 
-        self.box_cyl = ShadowGui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=25)
-        self.box_cyl_empty = ShadowGui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=25)
+        self.box_cyl = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=25)
+        self.box_cyl_empty = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=25)
 
         gui.comboBox(self.box_cyl, self, "cylinder_angle", label="Cylinder Angle (deg)", labelWidth=350,
                      items=["0 (Meridional)", "90 (Sagittal)"], sendSelectedValue=False, orientation="horizontal")
@@ -141,22 +143,22 @@ class CRL(ow_generic_element.GenericElement):
         gui.comboBox(lens_box, self, "ri_calculation_mode", label="Refraction Index calculation mode", labelWidth=350,
                      items=["User Parameters", "Prerefl File"], callback=self.set_ri_calculation_mode, sendSelectedValue=False, orientation="horizontal")
 
-        self.calculation_mode_1 = ShadowGui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=50)
-        ShadowGui.lineEdit(self.calculation_mode_1, self, "refraction_index", "Refraction index", labelWidth=350, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.calculation_mode_1, self, "attenuation_coefficient", "Attenuation coefficient [cm-1]", labelWidth=350, valueType=float, orientation="horizontal")
+        self.calculation_mode_1 = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=50)
+        oasysgui.lineEdit(self.calculation_mode_1, self, "refraction_index", "Refraction index", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.calculation_mode_1, self, "attenuation_coefficient", "Attenuation coefficient [cm-1]", labelWidth=350, valueType=float, orientation="horizontal")
 
-        self.calculation_mode_2 = ShadowGui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=50)
+        self.calculation_mode_2 = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=50)
 
-        file_box = ShadowGui.widgetBox(self.calculation_mode_2, "", addSpace=True, orientation="horizontal", height=25)
+        file_box = oasysgui.widgetBox(self.calculation_mode_2, "", addSpace=True, orientation="horizontal", height=25)
 
-        self.le_file_prerefl = ShadowGui.lineEdit(file_box, self, "prerefl_file", "File Prerefl", labelWidth=100, valueType=str, orientation="horizontal")
+        self.le_file_prerefl = oasysgui.lineEdit(file_box, self, "prerefl_file", "File Prerefl", labelWidth=100, valueType=str, orientation="horizontal")
 
         pushButton = gui.button(file_box, self, "...")
         pushButton.clicked.connect(self.selectFilePrerefl)
 
         self.set_ri_calculation_mode()
 
-        adv_other_box = ShadowGui.widgetBox(tab_adv, "Optional file output", addSpace=False, orientation="vertical")
+        adv_other_box = oasysgui.widgetBox(tab_adv, "Optional file output", addSpace=False, orientation="vertical")
 
         gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=310,
                      items=["All", "Mirror", "Image", "None"],
@@ -164,7 +166,7 @@ class CRL(ow_generic_element.GenericElement):
 
         gui.separator(self.controlArea, height=80)
 
-        button_box = ShadowGui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
+        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
         button = gui.button(button_box, self, "Run Shadow/trace", callback=self.traceOpticalElement)
         font = QFont(button.font())
@@ -196,7 +198,7 @@ class CRL(ow_generic_element.GenericElement):
     ############################################################
 
     def selectFilePrerefl(self):
-        self.le_file_prerefl.setText(ShadowGui.selectFileFromDialog(self, self.prerefl_file, "Select File Prerefl", file_extension_filter="*.dat"))
+        self.le_file_prerefl.setText(oasysgui.selectFileFromDialog(self, self.prerefl_file, "Select File Prerefl", file_extension_filter="*.dat"))
 
     def get_surface_shape(self):
         if self.surface_shape == 0:
@@ -290,24 +292,24 @@ class CRL(ow_generic_element.GenericElement):
         pass
 
     def checkFields(self):
-        ShadowGui.checkPositiveNumber(self.nlenses, "Number of lenses")
-        ShadowGui.checkPositiveNumber(self.slots_empty, "Number of empty slots")
-        ShadowGui.checkPositiveNumber(self.thickness, "Piling thickness")
+        congruence.checkPositiveNumber(self.nlenses, "Number of lenses")
+        congruence.checkPositiveNumber(self.slots_empty, "Number of empty slots")
+        congruence.checkPositiveNumber(self.thickness, "Piling thickness")
 
-        ShadowGui.checkPositiveNumber(self.p, "P")
-        ShadowGui.checkPositiveNumber(self.q, "Q")
+        congruence.checkPositiveNumber(self.p, "P")
+        congruence.checkPositiveNumber(self.q, "Q")
 
         if self.has_finite_diameter:
-            ShadowGui.checkStrictlyPositiveNumber(self.diameter, "Diameter")
+            congruence.checkStrictlyPositiveNumber(self.diameter, "Diameter")
 
         if self.ri_calculation_mode == 1:
-            ShadowGui.checkFile(self.prerefl_file)
+            congruence.checkFile(self.prerefl_file)
         else:
-            ShadowGui.checkStrictlyPositiveNumber(self.refraction_index, "Refraction Index")
-            ShadowGui.checkStrictlyPositiveNumber(self.attenuation_coefficient, "Attenuation Coefficient")
+            congruence.checkStrictlyPositiveNumber(self.refraction_index, "Refraction Index")
+            congruence.checkStrictlyPositiveNumber(self.attenuation_coefficient, "Attenuation Coefficient")
 
-        ShadowGui.checkStrictlyPositiveNumber(self.radius, "Radius")
-        ShadowGui.checkPositiveNumber(self.interthickness, "Lens Thickness")
+        congruence.checkStrictlyPositiveNumber(self.radius, "Radius")
+        congruence.checkPositiveNumber(self.interthickness, "Lens Thickness")
 
     def completeOperations(self, shadow_oe=None):
         self.setStatusMessage("Running SHADOW")
@@ -353,8 +355,8 @@ class CRL(ow_generic_element.GenericElement):
             self.setStatusMessage("")
             self.progressBarInit()
 
-            if ShadowGui.checkEmptyBeam(self.input_beam):
-                if ShadowGui.checkGoodBeam(self.input_beam):
+            if ShadowCongruence.checkEmptyBeam(self.input_beam):
+                if ShadowCongruence.checkGoodBeam(self.input_beam):
                     sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
                     self.checkFields()
@@ -385,7 +387,7 @@ class CRL(ow_generic_element.GenericElement):
     def setBeam(self, beam):
         self.onReceivingInput()
 
-        if ShadowGui.checkEmptyBeam(beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
             self.input_beam = beam
 
             if self.is_automatic_run:

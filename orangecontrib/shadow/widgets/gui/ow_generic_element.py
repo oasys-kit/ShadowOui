@@ -5,9 +5,10 @@ from PyQt4 import QtGui
 from PyQt4.QtGui import QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
+from oasys.widgets import gui as oasysgui
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
-from orangecontrib.shadow.util.shadow_util import ShadowPlot, ShadowGui
+from orangecontrib.shadow.util.shadow_util import ShadowPlot, ShadowCongruence
 from orangecontrib.shadow.widgets.gui import ow_automatic_element
 
 class GenericElement(ow_automatic_element.AutomaticElement):
@@ -24,8 +25,8 @@ class GenericElement(ow_automatic_element.AutomaticElement):
     def __init__(self, show_automatic_box=True):
         super().__init__(show_automatic_box)
 
-        view_box = ShadowGui.widgetBox(self.mainArea, "Plotting Style", addSpace=False, orientation="horizontal")
-        view_box_1 = ShadowGui.widgetBox(view_box, "", addSpace=False, orientation="vertical", width=350)
+        view_box = oasysgui.widgetBox(self.mainArea, "Plotting Style", addSpace=False, orientation="horizontal")
+        view_box_1 = oasysgui.widgetBox(view_box, "", addSpace=False, orientation="vertical", width=350)
 
         self.view_type_combo = gui.comboBox(view_box_1, self, "view_type", label="Select level of Plotting",
                                             labelWidth=220,
@@ -159,8 +160,8 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
     def plot_results(self, beam_out, progressBarValue=80):
         if not self.view_type == 2:
-            if ShadowGui.checkEmptyBeam(beam_out):
-                if ShadowGui.checkGoodBeam(beam_out):
+            if ShadowCongruence.checkEmptyBeam(beam_out):
+                if ShadowCongruence.checkGoodBeam(beam_out):
                     self.view_type_combo.setEnabled(False)
 
                     if self.isFootprintEnabled():

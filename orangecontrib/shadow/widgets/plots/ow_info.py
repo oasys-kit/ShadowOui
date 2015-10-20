@@ -5,10 +5,11 @@ from PyQt4.QtCore import QRect
 from PyQt4.QtGui import QApplication, QFileDialog
 from Shadow import ShadowTools as ST
 from orangewidget import widget, gui
+from oasys.widgets import gui as oasysgui
 
 from orangecontrib.shadow.util.python_script import PythonConsole
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream, ShadowCompoundOpticalElement
-from orangecontrib.shadow.util.shadow_util import ShadowGui
+from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
 class Info(widget.OWWidget):
 
@@ -47,12 +48,12 @@ class Info(widget.OWWidget):
         tabs_setting.setFixedHeight(self.WIDGET_HEIGHT-60)
         tabs_setting.setFixedWidth(self.WIDGET_WIDTH-60)
 
-        tab_sys = ShadowGui.createTabPage(tabs_setting, "Sys Info")
-        tab_mir = ShadowGui.createTabPage(tabs_setting, "OE Info")
-        tab_sou = ShadowGui.createTabPage(tabs_setting, "Source Info")
-        tab_dis = ShadowGui.createTabPage(tabs_setting, "Distances Summary")
-        tab_scr = ShadowGui.createTabPage(tabs_setting, "Python Script")
-        tab_out = ShadowGui.createTabPage(tabs_setting, "System Output")
+        tab_sys = oasysgui.createTabPage(tabs_setting, "Sys Info")
+        tab_mir = oasysgui.createTabPage(tabs_setting, "OE Info")
+        tab_sou = oasysgui.createTabPage(tabs_setting, "Source Info")
+        tab_dis = oasysgui.createTabPage(tabs_setting, "Distances Summary")
+        tab_scr = oasysgui.createTabPage(tabs_setting, "Python Script")
+        tab_out = oasysgui.createTabPage(tabs_setting, "System Output")
 
         self.sysInfo = QtGui.QTextEdit()
         self.sysInfo.setReadOnly(True)
@@ -70,22 +71,22 @@ class Info(widget.OWWidget):
         self.pythonScript.setReadOnly(False)  # asked by Manolo
         self.pythonScript.setMaximumHeight(self.WIDGET_HEIGHT - 300)
 
-        sys_box = ShadowGui.widgetBox(tab_sys, "", addSpace=True, orientation="horizontal", height = self.WIDGET_HEIGHT-80, width = self.WIDGET_WIDTH-80)
+        sys_box = oasysgui.widgetBox(tab_sys, "", addSpace=True, orientation="horizontal", height = self.WIDGET_HEIGHT-80, width = self.WIDGET_WIDTH-80)
         sys_box.layout().addWidget(self.sysInfo)
 
-        mir_box = ShadowGui.widgetBox(tab_mir, "", addSpace=True, orientation="horizontal", height = self.WIDGET_HEIGHT-80, width = self.WIDGET_WIDTH-80)
+        mir_box = oasysgui.widgetBox(tab_mir, "", addSpace=True, orientation="horizontal", height = self.WIDGET_HEIGHT-80, width = self.WIDGET_WIDTH-80)
         mir_box.layout().addWidget(self.mirInfo)
 
-        source_box = ShadowGui.widgetBox(tab_sou, "", addSpace=True, orientation="horizontal", height = self.WIDGET_HEIGHT-80, width = self.WIDGET_WIDTH-80)
+        source_box = oasysgui.widgetBox(tab_sou, "", addSpace=True, orientation="horizontal", height = self.WIDGET_HEIGHT-80, width = self.WIDGET_WIDTH-80)
         source_box.layout().addWidget(self.sourceInfo)
 
-        dist_box = ShadowGui.widgetBox(tab_dis, "", addSpace=True, orientation="horizontal", height = self.WIDGET_HEIGHT-80, width = self.WIDGET_WIDTH-80)
+        dist_box = oasysgui.widgetBox(tab_dis, "", addSpace=True, orientation="horizontal", height = self.WIDGET_HEIGHT-80, width = self.WIDGET_WIDTH-80)
         dist_box.layout().addWidget(self.distancesSummary)
 
-        script_box = ShadowGui.widgetBox(tab_scr, "", addSpace=True, orientation="vertical", height=self.WIDGET_HEIGHT - 80, width=self.WIDGET_WIDTH - 80)
+        script_box = oasysgui.widgetBox(tab_scr, "", addSpace=True, orientation="vertical", height=self.WIDGET_HEIGHT - 80, width=self.WIDGET_WIDTH - 80)
         script_box.layout().addWidget(self.pythonScript)
 
-        console_box = ShadowGui.widgetBox(script_box, "", addSpace=True, orientation="vertical",
+        console_box = oasysgui.widgetBox(script_box, "", addSpace=True, orientation="vertical",
                                           height=150, width=self.WIDGET_WIDTH - 80)
 
         self.console = PythonConsole(self.__dict__, self)
@@ -94,12 +95,12 @@ class Info(widget.OWWidget):
         self.shadow_output = QtGui.QTextEdit()
         self.shadow_output.setReadOnly(True)
 
-        out_box = ShadowGui.widgetBox(tab_out, "System Output", addSpace=True, orientation="horizontal", height=self.WIDGET_HEIGHT - 80)
+        out_box = oasysgui.widgetBox(tab_out, "System Output", addSpace=True, orientation="horizontal", height=self.WIDGET_HEIGHT - 80)
         out_box.layout().addWidget(self.shadow_output)
 
         #############################
 
-        button_box = ShadowGui.widgetBox(tab_scr, "", addSpace=True, orientation="horizontal")
+        button_box = oasysgui.widgetBox(tab_scr, "", addSpace=True, orientation="horizontal")
 
         gui.button(button_box, self, "Run Script", callback=self.execute_script, height=40)
         gui.button(button_box, self, "Save Script to File", callback=self.save_script, height=40)
@@ -124,8 +125,8 @@ class Info(widget.OWWidget):
                                               QtGui.QMessageBox.Ok)
 
     def setBeam(self, beam):
-        if ShadowGui.checkEmptyBeam(beam):
-            if ShadowGui.checkGoodBeam(beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
+            if ShadowCongruence.checkGoodBeam(beam):
                 sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
                 self.input_beam = beam

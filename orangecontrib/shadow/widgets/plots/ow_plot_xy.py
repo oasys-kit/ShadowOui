@@ -6,9 +6,12 @@ import numpy
 from PyQt4 import QtGui
 from orangewidget import gui
 from orangewidget.settings import Setting
+from oasys.widgets import gui as oasysgui
+from oasys.widgets import congruence
+from oasys.widgets.gui import ConfirmDialog
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream, TTYGrabber
-from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog, ShadowPlot
+from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
 from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticElement
 
 
@@ -66,33 +69,33 @@ class PlotXY(AutomaticElement):
         gui.button(self.controlArea, self, "Refresh", callback=self.plot_results, height=45)
 
         # graph tab
-        tab_gen = ShadowGui.createTabPage(tabs_setting, "General")
+        tab_gen = oasysgui.createTabPage(tabs_setting, "General")
         # FOR FUTURE DEVELOPMENTS
-        #tab_his = ShadowGui.createTabPage(tabs_setting, "Histograms")
-        #tab_col = ShadowGui.createTabPage(tabs_setting, "Color")
+        #tab_his = oasysgui.createTabPage(tabs_setting, "Histograms")
+        #tab_col = oasysgui.createTabPage(tabs_setting, "Color")
 
-        incremental_box = ShadowGui.widgetBox(tab_gen, "Incremental Result", addSpace=True, orientation="horizontal", height=80)
+        incremental_box = oasysgui.widgetBox(tab_gen, "Incremental Result", addSpace=True, orientation="horizontal", height=80)
 
         gui.checkBox(incremental_box, self, "keep_result", "Keep Result")
         gui.button(incremental_box, self, "Clear", callback=self.clearResults)
 
-        screen_box = ShadowGui.widgetBox(tab_gen, "Screen Position Settings", addSpace=True, orientation="vertical", height=140)
+        screen_box = oasysgui.widgetBox(tab_gen, "Screen Position Settings", addSpace=True, orientation="vertical", height=140)
 
         self.image_plane_combo = gui.comboBox(screen_box, self, "image_plane", label="Position of the Image",
                                             items=["On Image Plane", "Retraced"],
                                             callback=self.set_ImagePlane, sendSelectedValue=False, orientation="horizontal")
 
-        self.image_plane_box = ShadowGui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", width=350, height=110)
-        self.image_plane_box_empty = ShadowGui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", width=350, height=110)
+        self.image_plane_box = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", width=350, height=110)
+        self.image_plane_box_empty = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", width=350, height=110)
 
-        ShadowGui.lineEdit(self.image_plane_box, self, "image_plane_new_position", "Image Plane new Position", labelWidth=220, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.image_plane_box, self, "image_plane_new_position", "Image Plane new Position", labelWidth=220, valueType=float, orientation="horizontal")
 
         gui.comboBox(self.image_plane_box, self, "image_plane_rel_abs_position", label="Position Type", labelWidth=250,
                      items=["Absolute", "Relative"], sendSelectedValue=False, orientation="horizontal")
 
         self.set_ImagePlane()
 
-        general_box = ShadowGui.widgetBox(tab_gen, "General Settings", addSpace=True, orientation="vertical", height=350)
+        general_box = oasysgui.widgetBox(tab_gen, "General Settings", addSpace=True, orientation="vertical", height=350)
 
         self.x_column = gui.comboBox(general_box, self, "x_column_index", label="X Column",labelWidth=80,
                                      items=["1: X",
@@ -136,11 +139,11 @@ class PlotXY(AutomaticElement):
                                             "Set.."],
                                      callback=self.set_XRange, sendSelectedValue=False, orientation="horizontal")
 
-        self.xrange_box = ShadowGui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=420, height=100)
-        self.xrange_box_empty = ShadowGui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=420, height=100)
+        self.xrange_box = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=420, height=100)
+        self.xrange_box_empty = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=420, height=100)
 
-        ShadowGui.lineEdit(self.xrange_box, self, "x_range_min", "X min", labelWidth=220, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.xrange_box, self, "x_range_max", "X max", labelWidth=220, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.xrange_box, self, "x_range_min", "X min", labelWidth=220, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.xrange_box, self, "x_range_max", "X max", labelWidth=220, valueType=float, orientation="horizontal")
 
         self.set_XRange()
 
@@ -187,11 +190,11 @@ class PlotXY(AutomaticElement):
                                             "Set.."],
                                      callback=self.set_YRange, sendSelectedValue=False, orientation="horizontal")
 
-        self.yrange_box = ShadowGui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=420, height=100)
-        self.yrange_box_empty = ShadowGui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=420, height=100)
+        self.yrange_box = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=420, height=100)
+        self.yrange_box_empty = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=420, height=100)
 
-        ShadowGui.lineEdit(self.yrange_box, self, "y_range_min", "Y min", labelWidth=220, valueType=float, orientation="horizontal")
-        ShadowGui.lineEdit(self.yrange_box, self, "y_range_max", "Y max", labelWidth=220, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.yrange_box, self, "y_range_min", "Y min", labelWidth=220, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.yrange_box, self, "y_range_max", "Y max", labelWidth=220, valueType=float, orientation="horizontal")
 
         self.set_YRange()
 
@@ -244,9 +247,9 @@ class PlotXY(AutomaticElement):
                                      sendSelectedValue=False, orientation="horizontal")
 
 
-        histograms_box = ShadowGui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=70)
+        histograms_box = oasysgui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=70)
 
-        ShadowGui.lineEdit(histograms_box, self, "number_of_bins", "Number of Bins", labelWidth=250, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(histograms_box, self, "number_of_bins", "Number of Bins", labelWidth=250, valueType=int, orientation="horizontal")
 
         self.image_box = gui.widgetBox(self.mainArea, "Plot Result", addSpace=True, orientation="vertical")
         self.image_box.setFixedHeight(self.IMAGE_HEIGHT)
@@ -375,8 +378,8 @@ class PlotXY(AutomaticElement):
                 grabber = TTYGrabber()
                 grabber.start()
 
-            if ShadowGui.checkEmptyBeam(self.input_beam):
-                self.number_of_bins = ShadowGui.checkPositiveNumber(self.number_of_bins, "Number of Bins")
+            if ShadowCongruence.checkEmptyBeam(self.input_beam):
+                self.number_of_bins = congruence.checkPositiveNumber(self.number_of_bins, "Number of Bins")
 
                 auto_x_title = self.x_column.currentText().split(":", 2)[1]
                 auto_y_title = self.y_column.currentText().split(":", 2)[1]
@@ -472,8 +475,8 @@ class PlotXY(AutomaticElement):
 
 
     def setBeam(self, beam):
-        if ShadowGui.checkEmptyBeam(beam):
-            if ShadowGui.checkGoodBeam(beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
+            if ShadowCongruence.checkGoodBeam(beam):
                 if self.keep_result == 1 and not self.input_beam is None:
                     self.input_beam = ShadowBeam.mergeBeams(self.input_beam, beam)
                 else:

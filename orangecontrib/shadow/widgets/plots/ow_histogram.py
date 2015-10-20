@@ -4,9 +4,13 @@ import time
 from PyQt4 import QtGui
 from orangewidget import gui
 from orangewidget.settings import Setting
+from oasys.widgets import gui as oasysgui
+from oasys.widgets import congruence
+from oasys.widgets.gui import ConfirmDialog
+
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream, TTYGrabber
-from orangecontrib.shadow.util.shadow_util import ShadowGui, ConfirmDialog, ShadowPlot
+from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
 from orangecontrib.shadow.widgets.gui import ow_automatic_element
 
 
@@ -53,24 +57,24 @@ class Histogram(ow_automatic_element.AutomaticElement):
         gui.button(self.controlArea, self, "Refresh", callback=self.plot_results, height=45)
 
         # graph tab
-        tab_gen = ShadowGui.createTabPage(tabs_setting, "Histogram")
+        tab_gen = oasysgui.createTabPage(tabs_setting, "Histogram")
 
-        incremental_box = ShadowGui.widgetBox(tab_gen, "Incremental Result", addSpace=True, orientation="horizontal", height=80)
+        incremental_box = oasysgui.widgetBox(tab_gen, "Incremental Result", addSpace=True, orientation="horizontal", height=80)
 
         gui.checkBox(incremental_box, self, "keep_result", "Keep Result")
         gui.button(incremental_box, self, "Clear", callback=self.clearResults)
 
-        general_box = ShadowGui.widgetBox(tab_gen, "General Settings", addSpace=True, orientation="vertical", height=250)
+        general_box = oasysgui.widgetBox(tab_gen, "General Settings", addSpace=True, orientation="vertical", height=250)
 
         self.image_plane_combo = gui.comboBox(general_box, self, "image_plane", label="Position of the Image",
                                               items=["On Image Plane", "Retraced"],
                                               callback=self.set_ImagePlane, sendSelectedValue=False, orientation="horizontal")
 
 
-        self.image_plane_box = ShadowGui.widgetBox(general_box, "", addSpace=True, orientation="vertical", height=110)
-        self.image_plane_box_empty = ShadowGui.widgetBox(general_box, "", addSpace=True, orientation="vertical", height=110)
+        self.image_plane_box = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", height=110)
+        self.image_plane_box_empty = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", height=110)
 
-        ShadowGui.lineEdit(self.image_plane_box, self, "image_plane_new_position", "Image Plane new Position", labelWidth=220, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.image_plane_box, self, "image_plane_new_position", "Image Plane new Position", labelWidth=220, valueType=float, orientation="horizontal")
 
         gui.comboBox(self.image_plane_box, self, "image_plane_rel_abs_position", label="Position Type", labelWidth=250,
                      items=["Absolute", "Relative"], sendSelectedValue=False, orientation="horizontal")
@@ -151,9 +155,9 @@ class Histogram(ow_automatic_element.AutomaticElement):
                                          ],
                                          sendSelectedValue=False, orientation="horizontal")
 
-        histograms_box = ShadowGui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=70)
+        histograms_box = oasysgui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=70)
 
-        ShadowGui.lineEdit(histograms_box, self, "number_of_bins", "Number of Bins", labelWidth=250, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(histograms_box, self, "number_of_bins", "Number of Bins", labelWidth=250, valueType=int, orientation="horizontal")
 
         self.image_box = gui.widgetBox(self.mainArea, "Plot Result", addSpace=True, orientation="vertical")
         self.image_box.setFixedHeight(self.IMAGE_HEIGHT)
@@ -222,8 +226,8 @@ class Histogram(ow_automatic_element.AutomaticElement):
                 grabber = TTYGrabber()
                 grabber.start()
 
-            if ShadowGui.checkEmptyBeam(self.input_beam):
-                self.number_of_bins = ShadowGui.checkPositiveNumber(self.number_of_bins, "Number of Bins")
+            if ShadowCongruence.checkEmptyBeam(self.input_beam):
+                self.number_of_bins = congruence.checkPositiveNumber(self.number_of_bins, "Number of Bins")
 
                 auto_title = self.x_column.currentText().split(":", 2)[1]
                 xum = auto_title + " "
@@ -281,14 +285,14 @@ class Histogram(ow_automatic_element.AutomaticElement):
             #self.error(self.error_id, "Exception occurred: " + str(exception))
 
     def setBeam(self, beam):
-        if ShadowGui.checkEmptyBeam(beam):
-            if ShadowGui.checkGoodBeam(beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
+            if ShadowCongruence.checkGoodBeam(beam):
                 if self.keep_result == 1 and not self.input_beam is None:
                     self.input_beam = ShadowBeam.mergeBeams(self.input_beam, beam)
                 else:
                     self.input_beam = beam
 
-                if ShadowGui.checkEmptyBeam(self.input_beam):
+                if ShadowCongruence.checkEmptyBeam(self.input_beam):
                     if (self.input_beam._oe_number == 0):  # IS THE SOURCE
                         self.image_plane = 0
                         self.set_ImagePlane()
