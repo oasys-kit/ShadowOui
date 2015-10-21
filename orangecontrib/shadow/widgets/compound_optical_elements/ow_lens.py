@@ -127,8 +127,11 @@ class Lens(ow_generic_element.GenericElement):
 
         gui.separator(lens_box)
 
-        gui.comboBox(lens_box, self, "ri_calculation_mode", label="Refraction Index calculation mode", labelWidth=350,
-                     items=["User Parameters", "Prerefl File"], callback=self.set_ri_calculation_mode, sendSelectedValue=False, orientation="horizontal")
+        self.ri_calculation_mode_combo = gui.comboBox(lens_box, self, "ri_calculation_mode",
+                                                      label="Refraction Index calculation mode", labelWidth=350,
+                                                      items=["User Parameters", "Prerefl File"],
+                                                      callback=self.set_ri_calculation_mode,
+                                                      sendSelectedValue=False, orientation="horizontal")
 
         self.calculation_mode_1 = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=50)
         oasysgui.lineEdit(self.calculation_mode_1, self, "refraction_index", "Refraction index", labelWidth=350, valueType=float, orientation="horizontal")
@@ -216,7 +219,7 @@ class Lens(ow_generic_element.GenericElement):
 
     def get_prerefl_file(self):
         if self.ri_calculation_mode == 1:
-            return self.prerefl_file
+            return congruence.checkFileName(self.prerefl_file)
         else:
             return None
 
@@ -377,6 +380,13 @@ class Lens(ow_generic_element.GenericElement):
         if data is not None:
             if data.prerefl_data_file != ShadowPreProcessorData.NONE:
                 self.prerefl_file = data.prerefl_data_file
+                self.ri_calculation_mode = 1
+
+                self.set_ri_calculation_mode()
+            else:
+                QtGui.QMessageBox.warning(self, "Warning",
+                          "Incompatible Preprocessor Data",
+                          QtGui.QMessageBox.Ok)
 
     def setupUI(self):
         self.set_surface_shape()

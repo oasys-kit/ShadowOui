@@ -612,7 +612,7 @@ class GeometricalSource(ow_source.Source):
     #########################################################################################
 
     def generate_user_defined_spectrum(self, beam_out):
-        spectrum = self.extract_spectrum_from_file(self.user_defined_file)
+        spectrum = self.extract_spectrum_from_file(congruence.checkFileName(self.user_defined_file))
 
         sampled_spectrum = self.sample_from_spectrum(spectrum, len(beam_out._beam.rays))
 
@@ -808,14 +808,14 @@ class GeometricalSource(ow_source.Source):
             if self.gaussian_minimum >= self.gaussian_maximum: raise Exception("Minimum Energy/Wavelength should be less than Maximum Energy/Wavelength")
 
         elif self.photon_energy_distribution == 5:
-            self.user_defined_file = congruence.checkFile(self.user_defined_file)
+            congruence.checkFile(self.user_defined_file)
             self.user_defined_minimum = congruence.checkPositiveNumber(self.user_defined_minimum, "Minimum Energy/Wavelength")
             self.user_defined_maximum = congruence.checkStrictlyPositiveNumber(self.user_defined_maximum, "Maximum Energy/Wavelength")
 
         if self.optimize_source > 0:
             self.max_number_of_rejected_rays = congruence.checkPositiveNumber(self.max_number_of_rejected_rays,
                                                                              "Max number of rejected rays")
-            self.optimize_file_name = congruence.checkFile(self.optimize_file_name)
+            congruence.checkFile(self.optimize_file_name)
 
     def populateFields(self, shadow_src):
         if self.sampling != 1:
@@ -830,8 +830,6 @@ class GeometricalSource(ow_source.Source):
             shadow_src.src.IDO_X_S = self.grid_points_in_x
             shadow_src.src.IDO_Y_S = self.grid_points_in_y
             shadow_src.src.IDO_Z_S = self.grid_points_in_z
-            #shadow_src.src.N_CIRCLE = self.radial_grid_points
-            #shadow_src.src.N_CONE = self.concentrical_grid_points
 
         shadow_src.src.FSOUR = self.spatial_type
 
@@ -934,7 +932,8 @@ class GeometricalSource(ow_source.Source):
 
         shadow_src.src.F_OPD = self.store_optical_paths
         shadow_src.src.F_BOUND_SOUR = self.optimize_source
-        shadow_src.src.FILE_BOUND = bytes(self.optimize_file_name, 'utf-8')
+        if self.optimize_source == 1:
+            shadow_src.src.FILE_BOUND = bytes(congruence.checkFileName(self.optimize_file_name), 'utf-8')
         shadow_src.src.NTOTALPOINT = self.max_number_of_rejected_rays
 
     def deserialize(self, shadow_file):

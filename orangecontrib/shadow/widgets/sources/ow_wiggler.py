@@ -220,9 +220,9 @@ class Wiggler(ow_source.Source):
             if self.type_combo == 0:
                 inData = bytes("", 'utf-8')
             elif self.type_combo == 1:
-                inData = bytes(self.file_with_b_vs_y, 'utf-8')
+                inData = bytes(congruence.checkFileName(self.file_with_b_vs_y), 'utf-8')
             elif self.type_combo == 2:
-                inData = bytes(self.file_with_harmonics, 'utf-8')
+                inData = bytes(congruence.checkFileName(self.file_with_harmonics), 'utf-8')
 
             m_to_user_unit = 1.0
 
@@ -241,7 +241,8 @@ class Wiggler(ow_source.Source):
                                                      nTrajPoints=501,
                                                      ener_gev=self.energy,
                                                      per=self.id_period,
-                                                     kValue=self.k_value, trajFile=congruence.checkFileName("tmp.traj"))
+                                                     kValue=self.k_value,
+                                                     trajFile=congruence.checkFileName("tmp.traj"))
 
             #
             # calculate cdf and write file for Shadow/Source
@@ -388,12 +389,12 @@ class Wiggler(ow_source.Source):
         self.id_period = congruence.checkPositiveNumber(self.id_period, "ID period")
 
         if self.optimize_source_combo == 1:
-            self.file_with_phase_space_volume = congruence.checkFile(self.file_with_phase_space_volume)
+            congruence.checkFile(self.file_with_phase_space_volume)
 
         if self.type_combo == 1:
-            self.file_with_b_vs_y = congruence.checkFile(self.file_with_b_vs_y)
+            congruence.checkFile(self.file_with_b_vs_y)
         elif self.type_combo == 2:
-            self.file_with_harmonics = congruence.checkFile(self.file_with_harmonics)
+            congruence.checkFile(self.file_with_harmonics)
 
 
     def deserialize(self, shadow_file):

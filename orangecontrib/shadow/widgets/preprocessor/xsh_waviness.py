@@ -537,7 +537,7 @@ class OWxsh_waviness(OWWidget):
 
             self.check_fields()
 
-            file_name = self.waviness_file_name.split(sep=".dat")[0] + ".inp"
+            file_name = congruence.checkFileName(self.waviness_file_name.split(sep=".dat")[0] + ".inp")
 
             dict = {}
 
@@ -630,19 +630,24 @@ class OWxsh_waviness(OWWidget):
 
     def generate_waviness_file(self, not_interactive_mode=False):
         if not self.zz is None and not self.yy is None and not self.xx is None:
-            self.waviness_file_name = congruence.checkDir(self.waviness_file_name)
+            try:
+                congruence.checkDir(self.waviness_file_name)
 
-            sys.stdout = EmittingStream(textWritten=self.writeStdOut)
+                sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
-            ST.write_shadow_surface(self.zz.T, self.xx, self.yy, outFile=self.waviness_file_name)
-            if not not_interactive_mode:
-                QMessageBox.information(self, "QMessageBox.information()",
-                                        "Waviness file " + self.waviness_file_name + " written on disk",
-                                        QMessageBox.Ok)
+                ST.write_shadow_surface(self.zz.T, self.xx, self.yy, outFile=congruence.checkFileName(self.waviness_file_name))
+                if not not_interactive_mode:
+                    QMessageBox.information(self, "QMessageBox.information()",
+                                            "Waviness file " + self.waviness_file_name + " written on disk",
+                                            QMessageBox.Ok)
 
-            self.send("PreProcessor_Data", ShadowPreProcessorData(waviness_data_file=self.waviness_file_name,
-                                                                  waviness_x_dim=self.dimension_x,
-                                                                  waviness_y_dim=self.dimension_y))
+                self.send("PreProcessor_Data", ShadowPreProcessorData(waviness_data_file=self.waviness_file_name,
+                                                                      waviness_x_dim=self.dimension_x,
+                                                                      waviness_y_dim=self.dimension_y))
+            except Exception as exception:
+                QMessageBox.critical(self, "Error",
+                                     exception.args[0],
+                                     QMessageBox.Ok)
 
     def call_reset_settings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):
@@ -665,8 +670,7 @@ class OWxsh_waviness(OWWidget):
         self.harmonic_maximum_index = congruence.checkPositiveNumber(self.harmonic_maximum_index,
                                                                     "Harmonic Maximum Index")
 
-        self.waviness_file_name = congruence.checkDir(self.waviness_file_name)
-
+        congruence.checkDir(self.waviness_file_name)
 
     def to_float_array(self, string_array):
         float_array = []

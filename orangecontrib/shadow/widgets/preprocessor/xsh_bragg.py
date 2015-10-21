@@ -174,7 +174,7 @@ class OWxsh_bragg(OWWidget):
                         E_MIN=self.E_MIN,
                         E_MAX=self.E_MAX,
                         E_STEP=self.E_STEP,
-                        SHADOW_FILE=self.SHADOW_FILE)
+                        SHADOW_FILE=congruence.checkFileName(self.SHADOW_FILE))
 
             self.send("PreProcessor_Data", ShadowPreProcessorData(bragg_data_file=self.SHADOW_FILE))
         except Exception as exception:
@@ -192,7 +192,7 @@ class OWxsh_bragg(OWWidget):
         self.E_MAX  = congruence.checkStrictlyPositiveNumber(self.E_MAX , "To Energy")
         self.E_STEP = congruence.checkStrictlyPositiveNumber(self.E_STEP, "Energy step")
         if self.E_MIN > self.E_MAX: raise Exception("From Energy cannot be bigger than To Energy")
-        self.SHADOW_FILE=congruence.checkDir(self.SHADOW_FILE)
+        congruence.checkDir(self.SHADOW_FILE)
 
     def defaults(self):
          self.resetSettings()

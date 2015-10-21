@@ -681,6 +681,14 @@ class Transfocator(ow_generic_element.GenericElement):
                 for index in range(len(self.crl_box_array)):
                     self.crl_box_array[index].prerefl_file = data.prerefl_data_file
                     self.crl_box_array[index].le_prerefl_file.setText(data.prerefl_data_file)
+                    self.crl_box_array[index].ri_calculation_mode = 1
+                    self.crl_box_array[index].ri_calculation_mode_combo.setCurrentIndex(1)
+
+                    self.crl_box_array[index].set_ri_calculation_mode()
+            else:
+                QtGui.QMessageBox.warning(self, "Warning",
+                          "Incompatible Preprocessor Data",
+                          QtGui.QMessageBox.Ok)
 
                 self.dump_prerefl_file()
 
@@ -833,8 +841,11 @@ class CRLBox(QtGui.QWidget):
 
         gui.separator(lens_box)
 
-        gui.comboBox(lens_box, self, "ri_calculation_mode", label="Refraction Index calculation mode", labelWidth=350,
-                     items=["User Parameters", "Prerefl File"], sendSelectedValue=False, orientation="horizontal", callback=self.set_ri_calculation_mode)
+        self.ri_calculation_mode_combo = gui.comboBox(lens_box, self, "ri_calculation_mode",
+                                                      label="Refraction Index calculation mode", labelWidth=350,
+                                                      items=["User Parameters", "Prerefl File"],
+                                                      sendSelectedValue=False, orientation="horizontal",
+                                                      callback=self.set_ri_calculation_mode)
 
         self.calculation_mode_1 = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=50)
 
@@ -898,7 +909,7 @@ class CRLBox(QtGui.QWidget):
 
     def get_prerefl_file(self):
         if self.ri_calculation_mode == 1:
-            return self.prerefl_file
+            return congruence.checkFileName(self.prerefl_file)
         else:
             return None
 

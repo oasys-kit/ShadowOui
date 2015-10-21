@@ -381,12 +381,16 @@ class KB(ow_generic_element.GenericElement):
         shape_out.append(self.v_box.get_shape())
         shape_out.append(self.h_box.get_shape())
 
+        dimension1_out = self.v_box.get_dimensions()
+        dimension2_out = self.h_box.get_dimensions()
+
+        reflectivity_files_out = []
+        reflectivity_files_out.append(self.v_box.get_reflectivity_files())
+        reflectivity_files_out.append(self.h_box.get_reflectivity_files())
+
         surface_error_files_out = []
         surface_error_files_out.append(self.v_box.get_surface_error_files())
         surface_error_files_out.append(self.h_box.get_surface_error_files())
-
-        dimension1_out = self.v_box.get_dimensions()
-        dimension2_out = self.h_box.get_dimensions()
 
         shadow_oe._oe.append_kb(p0=self.p,
                                q0=self.q,
@@ -398,7 +402,7 @@ class KB(ow_generic_element.GenericElement):
                                dimensions1=dimension1_out,
                                dimensions2=dimension2_out,
                                reflectivity_kind=self.reflectivity_kind,
-                               reflectivity_files=self.reflectivity_files,
+                               reflectivity_files=reflectivity_files_out,
                                surface_error_files=surface_error_files_out)
 
     def doSpecificSetting(self, shadow_oe):
@@ -506,36 +510,65 @@ class KB(ow_generic_element.GenericElement):
             if data.prerefl_data_file != ShadowPreProcessorData.NONE:
                 self.v_box.reflectivity_files = data.prerefl_data_file
                 self.v_box.le_reflectivity_files.setText(data.prerefl_data_file)
+                self.v_box.reflectivity_kind = 1
+                self.v_box.reflectivity_kind_combo.setCurrentIndex(1)
+
+                self.v_box.set_reflectivity_kind()
 
                 self.dump_reflectivity_files()
 
             if data.m_layer_data_file_dat != ShadowPreProcessorData.NONE:
                 self.v_box.reflectivity_files = data.m_layer_data_file_dat
                 self.v_box.le_reflectivity_files.setText(data.m_layer_data_file_dat)
+                self.v_box.reflectivity_kind = 2
+                self.v_box.reflectivity_kind_combo.setCurrentIndex(2)
+
+                self.v_box.set_reflectivity_kind()
 
                 self.dump_reflectivity_files()
 
             if data.waviness_data_file != ShadowPreProcessorData.NONE:
                 self.v_box.surface_error_files = data.waviness_data_file
                 self.v_box.le_surface_error_files.setText(data.waviness_data_file)
+                self.v_box.has_surface_error = 1
+                self.v_box.has_surface_error_combo.setCurrentIndex(1)
+
+                self.v_box.set_has_surface_error()
 
                 self.dump_surface_error_files()
+
+            if data.bragg_data_file != ShadowPreProcessorData.NONE:
+                QtGui.QMessageBox.warning(self, "Warning",
+                          "This O.E. is not a crystal: bragg parameter will be ignored",
+                          QtGui.QMessageBox.Ok)
 
     def setPreProcessorDataH(self, data):
         if data is not None:
             if data.prerefl_data_file != ShadowPreProcessorData.NONE:
                 self.h_box.reflectivity_files = data.prerefl_data_file
                 self.h_box.le_reflectivity_files.setText(data.prerefl_data_file)
+                self.h_box.reflectivity_kind = 1
+                self.h_box.reflectivity_kind_combo.setCurrentIndex(1)
+
+                self.h_box.set_reflectivity_kind()
 
                 self.dump_reflectivity_files()
 
             if data.m_layer_data_file_dat != ShadowPreProcessorData.NONE:
                 self.h_box.reflectivity_files = data.m_layer_data_file_dat
                 self.h_box.le_reflectivity_files.setText(data.m_layer_data_file_dat)
+                self.h_box.reflectivity_kind = 2
+                self.h_box.reflectivity_kind_combo.setCurrentIndex(2)
+
+                self.h_box.set_reflectivity_kind()
 
             if data.waviness_data_file != ShadowPreProcessorData.NONE:
                 self.h_box.surface_error_files = data.waviness_data_file
                 self.h_box.le_surface_error_files.setText(data.waviness_data_file)
+                self.h_box.has_surface_error = 1
+                self.h_box.has_surface_error_combo.setCurrentIndex(1)
+
+                self.h_box.set_has_surface_error()
 
                 self.dump_surface_error_files()
 
@@ -619,27 +652,32 @@ class MirrorBox(QtGui.QWidget):
 
         gui.separator(mirror_box, height=10)
 
-        gui.comboBox(mirror_box, self, "reflectivity_kind", label="Reflectivity Kind", labelWidth=350,
-                     items=["Ideal Reflector", "Mirror", "Multilayer"], sendSelectedValue=False, orientation="horizontal", callback=self.set_reflectivity_kind)
+        self.reflectivity_kind_combo = gui.comboBox(mirror_box, self, "reflectivity_kind",
+                                                    label="Reflectivity Kind", labelWidth=350,
+                                                    items=["Ideal Reflector", "Mirror", "Multilayer"],
+                                                    sendSelectedValue=False, orientation="horizontal",
+                                                    callback=self.set_reflectivity_kind)
 
         self.reflectivity_box = oasysgui.widgetBox(mirror_box, "", addSpace=True, orientation="vertical", height=25)
         self.reflectivity_box_empty = oasysgui.widgetBox(mirror_box, "", addSpace=True, orientation="vertical", height=25)
 
         file_box = oasysgui.widgetBox(self.reflectivity_box, "", addSpace=True, orientation="horizontal", height=25)
 
-        self.le_reflectivity_files = oasysgui.lineEdit(file_box, self, "reflectivity_files", "Reflectivity File", labelWidth=150, valueType=str,
-                                                        orientation="horizontal", callback=self.kb.dump_reflectivity_files)
+        self.le_reflectivity_files = oasysgui.lineEdit(file_box, self, "reflectivity_files", "Reflectivity File",
+                                                       labelWidth=150, valueType=str, orientation="horizontal",
+                                                       callback=self.kb.dump_reflectivity_files)
 
         pushButton = gui.button(file_box, self, "...")
         pushButton.clicked.connect(self.selectFilePrerefl)
-
 
         self.set_reflectivity_kind()
 
         gui.separator(mirror_box)
 
-        gui.comboBox(mirror_box, self, "has_surface_error", label="Surface Error", labelWidth=350,
-                     items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.set_has_surface_error)
+        self.has_surface_error_combo = gui.comboBox(mirror_box, self, "has_surface_error",
+                                                    label="Surface Error", labelWidth=350,
+                                                    items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal",
+                                                    callback=self.set_has_surface_error)
 
         self.surface_error_box = oasysgui.widgetBox(mirror_box, "", addSpace=True, orientation="vertical", height=25)
         self.surface_error_box_empty = oasysgui.widgetBox(mirror_box, "", addSpace=True, orientation="vertical", height=25)
@@ -647,9 +685,9 @@ class MirrorBox(QtGui.QWidget):
 
         file_box = oasysgui.widgetBox(self.surface_error_box, "", addSpace=True, orientation="horizontal", height=25)
 
-        self.le_surface_error_files = oasysgui.lineEdit(file_box, self, "surface_error_files", "Surface Error File", labelWidth=150, valueType=str,
-                                                         orientation="horizontal",
-                                                         callback=self.kb.dump_surface_error_files)
+        self.le_surface_error_files = oasysgui.lineEdit(file_box, self, "surface_error_files", "Surface Error File",
+                                                        labelWidth=150, valueType=str,orientation="horizontal",
+                                                        callback=self.kb.dump_surface_error_files)
 
         pushButton = gui.button(file_box, self, "...")
         pushButton.clicked.connect(self.selectFileSurfaceError)
@@ -692,9 +730,15 @@ class MirrorBox(QtGui.QWidget):
         else:
             raise ValueError("Dimensions")
 
+    def get_reflectivity_files(self):
+        if self.reflectivity_kind != 0:
+            return congruence.checkFileName(self.reflectivity_files)
+        else:
+            return ""
+
     def get_surface_error_files(self):
         if self.has_surface_error == 1:
-            return self.surface_error_files
+            return congruence.checkFileName(self.surface_error_files)
         else:
             return ""
 

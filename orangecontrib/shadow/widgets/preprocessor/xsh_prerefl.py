@@ -147,7 +147,7 @@ class OWxsh_prerefl(OWWidget):
             tmp = prerefl(interactive=False,
                           SYMBOL=self.SYMBOL,
                           DENSITY=self.DENSITY,
-                          FILE=self.SHADOW_FILE,
+                          FILE=congruence.checkFileName(self.SHADOW_FILE),
                           E_MIN=self.E_MIN,
                           E_MAX=self.E_MAX,
                           E_STEP=self.E_STEP)
@@ -165,7 +165,7 @@ class OWxsh_prerefl(OWWidget):
         self.E_MAX  = congruence.checkStrictlyPositiveNumber(self.E_MAX , "Maximum Energy")
         self.E_STEP = congruence.checkStrictlyPositiveNumber(self.E_STEP, "Energy step")
         if self.E_MIN > self.E_MAX: raise Exception("Minimum Energy cannot be bigger than Maximum Energy")
-        self.SHADOW_FILE=congruence.checkDir(self.SHADOW_FILE)
+        congruence.checkDir(self.SHADOW_FILE)
 
     def defaults(self):
          self.resetSettings()

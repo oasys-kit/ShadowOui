@@ -8,9 +8,10 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 
-from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerOut, ShadowBeam, \
-    ShadowSource
+from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerOut, ShadowBeam, ShadowSource
 from orangecontrib.shadow.widgets.gui import ow_source
+
+from srxraylib.sources import srfunc
 
 class UndulatorGaussian(ow_source.Source):
 
@@ -198,12 +199,7 @@ class UndulatorGaussian(ow_source.Source):
         elif user_unit == 1:
             user_unit_to_m = 1e-2
 
-        codata_c = numpy.array(299792458.0)
-        codata_h = numpy.array(6.62606957e-34)
-        codata_ec = numpy.array(1.602176565e-19)
-        m2ev = codata_c*codata_h/codata_ec
-
-        lambda1 = m2ev/undulator_E0
+        lambda1 = srfunc.m2ev/undulator_E0
 
         # calculate sizes of the photon undulator beam
         # see formulas 25 & 30 in Elleaume (Onaki & Elleaume)

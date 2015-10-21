@@ -364,8 +364,22 @@ class OWxsh_pre_mlayer(OWWidget):
 
             self.checkFields()
 
+            if self.GRADE_DEPTH == 0:
+                FILE_DEPTH = "NONE"
+            else:
+                FILE_DEPTH = congruence.checkFileName(self.FILE_DEPTH)
+
+            if self.GRADE_SURFACE == 1:
+                FILE_SHADOW    = congruence.checkFileName(self.FILE_SHADOW)
+                FILE_THICKNESS = congruence.checkFileName(self.FILE_THICKNESS)
+                FILE_GAMMA     = congruence.checkFileName(self.FILE_GAMMA)
+            else:
+                FILE_SHADOW    = "NONE"
+                FILE_THICKNESS = "NONE"
+                FILE_GAMMA     = "NONE"
+
             tmp = pre_mlayer(interactive=False,
-                             FILE=self.FILE,
+                             FILE=congruence.checkFileName(self.FILE),
                              E_MIN=self.E_MIN,
                              E_MAX=self.E_MAX,
                              S_DENSITY=self.S_DENSITY,
@@ -380,11 +394,11 @@ class OWxsh_pre_mlayer(OWWidget):
                              GAMMA=self.GAMMA,
                              ROUGHNESS_EVEN=self.ROUGHNESS_EVEN,
                              ROUGHNESS_ODD=self.ROUGHNESS_ODD,
-                             FILE_DEPTH=self.FILE_DEPTH,
+                             FILE_DEPTH=FILE_DEPTH,
                              GRADE_SURFACE=self.GRADE_SURFACE,
-                             FILE_SHADOW=self.FILE_SHADOW,
-                             FILE_THICKNESS=self.FILE_THICKNESS,
-                             FILE_GAMMA=self.FILE_GAMMA,
+                             FILE_SHADOW=FILE_SHADOW,
+                             FILE_THICKNESS=FILE_THICKNESS,
+                             FILE_GAMMA=FILE_GAMMA,
                              AA0=self.AA0,
                              AA1=self.AA1,
                              AA2=self.AA2)
@@ -397,7 +411,7 @@ class OWxsh_pre_mlayer(OWWidget):
             raise exception
 
     def checkFields(self):
-        self.FILE=congruence.checkDir(self.FILE)
+        congruence.checkDir(self.FILE)
         self.E_MIN  = congruence.checkPositiveNumber(self.E_MIN , "Min Energy")
         self.E_MAX  = congruence.checkStrictlyPositiveNumber(self.E_MAX , "Max Energy")
         if self.E_MIN > self.E_MAX: raise Exception("Minimum Energy cannot be bigger than Maximum Energy")
@@ -415,12 +429,12 @@ class OWxsh_pre_mlayer(OWWidget):
             self.ROUGHNESS_EVEN = congruence.checkPositiveNumber(float(self.ROUGHNESS_EVEN), "Roughness even layer")
             self.ROUGHNESS_ODD = congruence.checkPositiveNumber(float(self.ROUGHNESS_ODD), "Roughness odd layer")
         else:
-            self.FILE_DEPTH=congruence.checkDir(self.FILE_DEPTH)
+            congruence.checkDir(self.FILE_DEPTH)
 
         if self.GRADE_SURFACE == 1:
-            self.FILE_SHADOW=congruence.checkDir(self.FILE_SHADOW)
-            self.FILE_THICKNESS=congruence.checkDir(self.FILE_THICKNESS)
-            self.FILE_GAMMA=congruence.checkDir(self.FILE_GAMMA)
+            congruence.checkDir(self.FILE_SHADOW)
+            congruence.checkDir(self.FILE_THICKNESS)
+            congruence.checkDir(self.FILE_GAMMA)
         elif self.GRADE_SURFACE == 2:
             self.AA0 = congruence.checkPositiveNumber(float(self.AA0), "zero-order coefficient")
             self.AA1 = congruence.checkPositiveNumber(float(self.AA1), "linear coefficient")

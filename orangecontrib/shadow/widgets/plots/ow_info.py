@@ -142,17 +142,29 @@ class Info(widget.OWWidget):
                         optical_element_list.append(history_element._shadow_oe_start._oe)
 
                     if not history_element._shadow_source_end is None:
-                        self.sourceInfo.append(history_element._shadow_source_end.src.sourcinfo())
+                        try:
+                            self.sourceInfo.append(history_element._shadow_source_end.src.sourcinfo())
+                        except:
+                            self.sourceInfo.append("Problem in calculating Source Info:\n" + str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]))
                     elif not history_element._shadow_oe_end is None:
-                        self.mirInfo.append(history_element._shadow_oe_end._oe.mirinfo(title="O.E. #" + str(history_element._oe_number)))
+                        try:
+                            self.mirInfo.append(history_element._shadow_oe_end._oe.mirinfo(title="O.E. #" + str(history_element._oe_number)))
+                        except:
+                            self.sourceInfo.append("Problem in calculating Mir Info for O.E. #:" + str(history_element._oe_number) + "\n" + str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]))
 
                 coe = ShadowCompoundOpticalElement.create_compound_oe()
                 for oe in optical_element_list:
                     coe._oe.append(oe)
 
-                self.distancesSummary.setText(coe._oe.info())
+                try:
+                    self.distancesSummary.setText(coe._oe.info())
+                except:
+                    self.distancesSummary.setText("Problem in calculating Distance Summary:\n" + str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]))
 
-                self.pythonScript.setText(ST.make_python_script_from_list(optical_element_list))
+                try:
+                    self.pythonScript.setText(ST.make_python_script_from_list(optical_element_list))
+                except:
+                    self.pythonScript.setText("Problem in writing python script:\n" + str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]))
             else:
                 QtGui.QMessageBox.critical(self, "Error",
                                            "Data not displayable: No good rays or bad content",

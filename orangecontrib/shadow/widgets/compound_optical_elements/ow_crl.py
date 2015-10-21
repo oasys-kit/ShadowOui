@@ -229,7 +229,7 @@ class CRL(ow_generic_element.GenericElement):
 
     def get_prerefl_file(self):
         if self.ri_calculation_mode == 1:
-            return self.prerefl_file
+            return congruence.checkFileName(self.prerefl_file)
         else:
             return None
 
@@ -397,6 +397,14 @@ class CRL(ow_generic_element.GenericElement):
         if data is not None:
             if data.prerefl_data_file != ShadowPreProcessorData.NONE:
                 self.prerefl_file = data.prerefl_data_file
+                self.ri_calculation_mode = 1
+
+                self.set_ri_calculation_mode()
+            else:
+                QtGui.QMessageBox.warning(self, "Warning",
+                          "Incompatible Preprocessor Data",
+                          QtGui.QMessageBox.Ok)
+
 
     def setupUI(self):
         self.set_surface_shape()

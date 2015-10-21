@@ -2,6 +2,7 @@ import sys
 from numpy import array, zeros
 
 from orangewidget import gui
+from oasys.widgets import congruence
 from PyQt4.QtGui import QApplication
 
 from orangecontrib.shadow.widgets.gui.ow_optical_element import OpticalElement, GraphicalOptions
@@ -56,7 +57,7 @@ class ScreenSlits(OpticalElement):
             k_slit[0] = self.aperture_shape
 
             if self.aperture_shape == 2:
-                file_src_ext[0] = bytes(self.external_file_with_coordinate, 'utf-8')
+                file_src_ext[0] = bytes(congruence.checkFileName(self.external_file_with_coordinate, 'utf-8'))
             else:
                 rx_slit[0] = self.slit_width_xaxis
                 rz_slit[0] = self.slit_height_zaxis
@@ -65,7 +66,7 @@ class ScreenSlits(OpticalElement):
 
         if self.absorption == 1:
             thick[0] = self.thickness
-            file_abs[0] = bytes(self.opt_const_file_name, 'utf-8')
+            file_abs[0] = bytes(congruence.checkFileName(self.opt_const_file_name), 'utf-8')
 
         shadow_oe._oe.set_screens(n_screen,
                                 i_screen,

@@ -19,7 +19,6 @@ import orangecontrib.shadow.widgets.plots.ow_info as ow_info
 
 from orangecontrib.shadow.util.shadow_objects import ShadowFile
 
-
 class ShadowToolsMenu(OMenu):
     is_weird_shadow_bug_fixed = False
 
@@ -39,6 +38,10 @@ class ShadowToolsMenu(OMenu):
         self.addSeparator()
         self.addSubMenu("Enable all the Plotting widgets")
         self.addSubMenu("Disable all the Plotting widgets")
+        self.addSeparator()
+        self.addSubMenu("Select Detailed Plots on all Source and O.E. widgets")
+        self.addSubMenu("Select Preview Plots on all Source and O.E. widgets")
+        self.addSubMenu("Select No Plots on all Source and O.E. widgets")
 
     def fixWeirdShadowBug(self):
         if not self.is_weird_shadow_bug_fixed:
@@ -193,6 +196,51 @@ class ShadowToolsMenu(OMenu):
                        isinstance(widget, ow_histogram.Histogram) or \
                        isinstance(widget, ow_info.Info):
                         link.set_enabled(False)
+        except Exception as exception:
+            QtGui.QMessageBox.critical(None, "Error",
+                exception.args[0],
+                QtGui.QMessageBox.Ok)
+
+            raise exception
+
+    def executeAction_9(self, action):
+        try:
+            for node in self.canvas_main_window.current_document().scheme().nodes:
+                widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
+
+                if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
+                    widget.view_type = 0
+                    widget.set_PlotQuality()
+        except Exception as exception:
+            QtGui.QMessageBox.critical(None, "Error",
+                exception.args[0],
+                QtGui.QMessageBox.Ok)
+
+            raise exception
+
+    def executeAction_10(self, action):
+        try:
+            for node in self.canvas_main_window.current_document().scheme().nodes:
+                widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
+
+                if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
+                    widget.view_type = 1
+                    widget.set_PlotQuality()
+        except Exception as exception:
+            QtGui.QMessageBox.critical(None, "Error",
+                exception.args[0],
+                QtGui.QMessageBox.Ok)
+
+            raise exception
+
+    def executeAction_11(self, action):
+        try:
+            for node in self.canvas_main_window.current_document().scheme().nodes:
+                widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
+
+                if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
+                    widget.view_type = 2
+                    widget.set_PlotQuality()
         except Exception as exception:
             QtGui.QMessageBox.critical(None, "Error",
                 exception.args[0],

@@ -236,7 +236,7 @@ class BendingMagnet(ow_source.Source):
         if self.optimize_source > 0:
             self.max_number_of_rejected_rays = congruence.checkPositiveNumber(self.max_number_of_rejected_rays,
                                                                              "Max number of rejected rays")
-            self.optimize_file_name = congruence.checkFile(self.optimize_file_name)
+            congruence.checkFile(self.optimize_file_name)
 
     def populateFields(self, shadow_src):
         shadow_src.src.NPOINT = self.number_of_rays
@@ -261,7 +261,8 @@ class BendingMagnet(ow_source.Source):
         shadow_src.src.VDIV2 = self.max_vertical_half_divergence_to
         shadow_src.src.FDISTR = 4 + 2 * self.calculation_mode_combo
         shadow_src.src.F_BOUND_SOUR = self.optimize_source
-        shadow_src.src.FILE_BOUND = bytes(self.optimize_file_name, 'utf-8')
+        if self.optimize_source > 0:
+            shadow_src.src.FILE_BOUND = bytes(congruence.checkFileName(self.optimize_file_name), 'utf-8')
         shadow_src.src.NTOTALPOINT = self.max_number_of_rejected_rays
 
     def deserialize(self, shadow_file):

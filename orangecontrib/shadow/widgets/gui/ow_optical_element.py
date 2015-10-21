@@ -462,7 +462,7 @@ class OpticalElement(ow_generic_element.GenericElement):
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_x", "O.E. Offset X  [cm]", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_x", "O.E. Rotation X [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_y", "O.E. Offset Y [cm]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_y", "O.E. Rotation Z [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_y", "O.E. Rotation Y [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_z", "O.E. Offset Z [cm]", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_z", "O.E. Rotation Z [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
 
@@ -547,7 +547,7 @@ class OpticalElement(ow_generic_element.GenericElement):
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_x", "O.E. Offset X  [cm]", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_x", "O.E. Rotation X [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_y", "O.E. Offset Y [cm]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_y", "O.E. Rotation Z [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_y", "O.E. Rotation Y [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_z", "O.E. Offset Z [cm]", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_z", "O.E. Rotation Z [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
 
@@ -1269,7 +1269,7 @@ class OpticalElement(ow_generic_element.GenericElement):
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_x", "O.E. Offset X  [cm]", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_x", "O.E. Rotation X [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_y", "O.E. Offset Y [cm]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_y", "O.E. Rotation Z [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_y", "O.E. Rotation Y [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_z", "O.E. Offset Z [cm]", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_z", "O.E. Rotation Z [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
 
@@ -1766,7 +1766,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     if self.source_of_reflectivity == 0:
                         shadow_oe._oe.F_REFLEC = 1
                         shadow_oe._oe.F_REFL = 0
-                        shadow_oe._oe.FILE_REFL = bytes(self.file_prerefl, 'utf-8')
+                        shadow_oe._oe.FILE_REFL = bytes(congruence.checkFileName(self.file_prerefl), 'utf-8')
                         shadow_oe._oe.ALFA = 0.0
                         shadow_oe._oe.GAMMA = 0.0
                         shadow_oe._oe.F_THICK = 0
@@ -1780,7 +1780,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     elif self.source_of_reflectivity == 2:
                         shadow_oe._oe.F_REFLEC = 1
                         shadow_oe._oe.F_REFL = 2
-                        shadow_oe._oe.FILE_REFL = bytes(self.file_prerefl_m, 'utf-8')
+                        shadow_oe._oe.FILE_REFL = bytes(congruence.checkFileName(self.file_prerefl_m), 'utf-8')
                         shadow_oe._oe.ALFA = 0.0
                         shadow_oe._oe.GAMMA = 0.0
                         shadow_oe._oe.F_THICK = self.m_layer_tickness
@@ -1788,7 +1788,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     if self.source_of_reflectivity == 0:
                         shadow_oe._oe.F_REFLEC = 2
                         shadow_oe._oe.F_REFL = 0
-                        shadow_oe._oe.FILE_REFL = bytes(self.file_prerefl, 'utf-8')
+                        shadow_oe._oe.FILE_REFL = bytes(congruence.checkFileName(self.file_prerefl), 'utf-8')
                         shadow_oe._oe.ALFA = 0.0
                         shadow_oe._oe.GAMMA = 0.0
                         shadow_oe._oe.F_THICK = 0
@@ -1802,7 +1802,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     elif self.source_of_reflectivity == 2:
                         shadow_oe._oe.F_REFLEC = 2
                         shadow_oe._oe.F_REFL = 2
-                        shadow_oe._oe.FILE_REFL = bytes(self.file_prerefl_m, 'utf-8')
+                        shadow_oe._oe.FILE_REFL = bytes(congruence.checkFileName(self.file_prerefl_m), 'utf-8')
                         shadow_oe._oe.ALFA = 0.0
                         shadow_oe._oe.GAMMA = 0.0
                         shadow_oe._oe.F_THICK = self.m_layer_tickness
@@ -1813,7 +1813,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     shadow_oe._oe.F_CRYSTAL = 0  # user defined profile -> simulated as mirror with no reflectivity
                 else:
                     shadow_oe._oe.F_CRYSTAL = 1
-                    shadow_oe._oe.FILE_REFL = bytes(self.file_crystal_parameters, 'utf-8')
+                    shadow_oe._oe.FILE_REFL = bytes(congruence.checkFileName(self.file_crystal_parameters), 'utf-8')
                     shadow_oe._oe.F_REFLECT = 0
                     shadow_oe._oe.F_BRAGG_A = 0
                     shadow_oe._oe.A_BRAGG = 0.0
@@ -1957,11 +1957,11 @@ class OpticalElement(ow_generic_element.GenericElement):
                      shadow_oe._oe.Y_RIP_AMP = 0.0
                      shadow_oe._oe.Y_RIP_WAV = 0.0
                      shadow_oe._oe.Y_PHASE   = 0.0
-                     shadow_oe._oe.FILE_RIP  = bytes(self.ms_defect_file_name, 'utf-8')
+                     shadow_oe._oe.FILE_RIP  = bytes(congruence.checkFileName(self.ms_defect_file_name), 'utf-8')
 
             elif self.modified_surface == 2:
                 shadow_oe._oe.F_FACET = 1
-                shadow_oe._oe.FILE_FAC=bytes(self.ms_file_facet_descr, 'utf-8')
+                shadow_oe._oe.FILE_FAC=bytes(congruence.checkFileName(self.ms_file_facet_descr), 'utf-8')
                 shadow_oe._oe.F_FAC_LATT=self.ms_lattice_type
                 shadow_oe._oe.F_FAC_ORIENT=self.ms_orientation
                 shadow_oe._oe.F_POLSEL=self.ms_lattice_type+1
@@ -1975,14 +1975,14 @@ class OpticalElement(ow_generic_element.GenericElement):
                 shadow_oe._oe.RFAC_DELY2=self.ms_dead_width_y_plus
             elif self.modified_surface == 3:
                 shadow_oe._oe.F_ROUGHNESS = 1
-                shadow_oe._oe.FILE_ROUGH=bytes(self.ms_file_surf_roughness, 'utf-8')
+                shadow_oe._oe.FILE_ROUGH=bytes(congruence.checkFileName(self.ms_file_surf_roughness), 'utf-8')
                 shadow_oe._oe.ROUGH_X=self.ms_roughness_rms_x
                 shadow_oe._oe.ROUGH_Y=self.ms_roughness_rms_y
             elif self.modified_surface == 4:
                 shadow_oe._oe.F_KOMA = 1
                 shadow_oe._oe.F_KOMA_CA=self.ms_specify_rz2
-                shadow_oe._oe.FILE_KOMA=bytes(self.ms_file_with_parameters_rz, 'utf-8')
-                shadow_oe._oe.FILE_KOMA_CA=bytes(self.ms_file_with_parameters_rz2, 'utf-8')
+                shadow_oe._oe.FILE_KOMA=bytes(congruence.checkFileName(self.ms_file_with_parameters_rz), 'utf-8')
+                shadow_oe._oe.FILE_KOMA_CA=bytes(congruence.checkFileName(self.ms_file_with_parameters_rz2), 'utf-8')
                 shadow_oe._oe.F_KOMA_BOUNCE=self.ms_save_intercept_bounces
             elif self.modified_surface == 5:
                 shadow_oe._oe.F_SEGMENT = 1
@@ -1990,8 +1990,8 @@ class OpticalElement(ow_generic_element.GenericElement):
                 shadow_oe._oe.ISEG_YNUM=self.ms_number_of_segments_y
                 shadow_oe._oe.SEG_LENX=self.ms_length_of_segments_x
                 shadow_oe._oe.SEG_LENY=self.ms_length_of_segments_y
-                shadow_oe._oe.FILE_SEGMENT=bytes(self.ms_file_orientations, 'utf-8')
-                shadow_oe._oe.FILE_SEGP=bytes(self.ms_file_polynomial, 'utf-8')
+                shadow_oe._oe.FILE_SEGMENT=bytes(congruence.checkFileName(self.ms_file_orientations), 'utf-8')
+                shadow_oe._oe.FILE_SEGP=bytes(congruence.checkFileName(self.ms_file_polynomial), 'utf-8')
 
             if self.mirror_movement == 1:
                  shadow_oe._oe.F_MOVE=1
@@ -2127,16 +2127,16 @@ class OpticalElement(ow_generic_element.GenericElement):
                     self.refractive_index_in_image_medium = congruence.checkPositiveNumber(self.refractive_index_in_image_medium, "Refractive Index in Image Medium")
                     self.attenuation_in_image_medium = congruence.checkNumber(self.attenuation_in_image_medium, "Refractive Index in Image Medium")
                 elif self.optical_constants_refraction_index == 1:
-                    self.file_prerefl_for_object_medium = congruence.checkFile(self.file_prerefl_for_object_medium)
+                    congruence.checkFile(self.file_prerefl_for_object_medium)
                     self.refractive_index_in_image_medium = congruence.checkPositiveNumber(self.refractive_index_in_image_medium, "Refractive Index in Image Medium")
                     self.attenuation_in_image_medium = congruence.checkNumber(self.attenuation_in_image_medium, "Refractive Index in Image Medium")
                 elif self.optical_constants_refraction_index == 2:
                     self.refractive_index_in_object_medium = congruence.checkPositiveNumber(self.refractive_index_in_object_medium, "Refractive Index in Object Medium")
                     self.attenuation_in_object_medium = congruence.checkNumber(self.attenuation_in_object_medium, "Refractive Index in Object Medium")
-                    self.file_prerefl_for_image_medium = congruence.checkFile(self.file_prerefl_for_image_medium)
+                    congruence.checkFile(self.file_prerefl_for_image_medium)
                 elif self.optical_constants_refraction_index == 3:
-                    self.file_prerefl_for_object_medium = congruence.checkFile(self.file_prerefl_for_object_medium)
-                    self.file_prerefl_for_image_medium = congruence.checkFile(self.file_prerefl_for_image_medium)
+                    congruence.checkFile(self.file_prerefl_for_object_medium)
+                    congruence.checkFile(self.file_prerefl_for_image_medium)
 
             if not self.is_infinite == 0:
                self.dim_y_plus = congruence.checkPositiveNumber(self.dim_y_plus, "Dimensions: y plus")
@@ -2158,7 +2158,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                  else:
                      congruence.checkFile(self.ms_defect_file_name)
             elif self.modified_surface == 2:
-                self.checkFile(self.ms_file_facet_descr)
+                congruence.checkFile(self.ms_file_facet_descr)
                 self.ms_facet_width_x = congruence.checkPositiveNumber(self.ms_facet_width_x, "Modified Surface: Facet width x")
                 self.ms_facet_phase_x = congruence.checkPositiveAngle(self.ms_facet_phase_x, "Modified Surface: Facet phase x")
                 self.ms_dead_width_x_minus = congruence.checkPositiveNumber(self.ms_dead_width_x_minus, "Modified Surface: Dead width x minus")
@@ -2691,6 +2691,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
         self.deserialize(shadow_file)
 
+        os.remove(shadow_temp_file)
 
     def setupUI(self):
         if self.graphical_options.is_screen_slit:

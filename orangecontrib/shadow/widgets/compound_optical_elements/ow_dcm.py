@@ -247,7 +247,7 @@ class DCM(ow_generic_element.GenericElement):
                                                          separation=self.separation,
                                                          dimensions1=dimension1_out,
                                                          dimensions2=dimension2_out,
-                                                         reflectivity_file=self.reflectivity_file)
+                                                         reflectivity_file=congruence.checkFileName(self.reflectivity_file))
 
     def doSpecificSetting(self, shadow_oe):
         pass
@@ -352,6 +352,11 @@ class DCM(ow_generic_element.GenericElement):
             if data.bragg_data_file != ShadowPreProcessorData.NONE:
                 self.reflectivity_file = data.bragg_data_file
                 self.le_reflectivity_file.setText(data.bragg_data_file)
+
+            else:
+                QtGui.QMessageBox.warning(self, "Warning",
+                          "Incompatible Preprocessor Data",
+                          QtGui.QMessageBox.Ok)
 
     def setupUI(self):
         self.set_use_different_focal_positions()
