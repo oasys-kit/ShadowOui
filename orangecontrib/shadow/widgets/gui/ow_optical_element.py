@@ -2360,15 +2360,19 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             if data.prerefl_data_file != ShadowPreProcessorData.NONE:
                 if self.graphical_options.is_mirror:
-
                     self.file_prerefl=data.prerefl_data_file
                     self.reflectivity_type = 1
                     self.source_of_reflectivity = 0
 
                     self.set_Refl_Parameters()
+                elif self.graphical_options.is_screen_slit:
+                    self.absorption = 1
+                    self.opt_const_file_name = data.prerefl_data_file
+
+                    self.set_Absorption()
                 else:
                     QtGui.QMessageBox.warning(self, "Warning",
-                              "This O.E. is not a mirror: prerefl parameter will be ignored",
+                              "This O.E. is not a mirror or screen/slit: prerefl parameter will be ignored",
                               QtGui.QMessageBox.Ok)
 
             if data.m_layer_data_file_dat != ShadowPreProcessorData.NONE:
