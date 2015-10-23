@@ -754,6 +754,13 @@ class ShadowOpticalElement:
         return self
 
     @classmethod
+    def create_oe_from_file(cls, filename):
+        self = cls.create_empty_oe()
+        self._oe.load(filename)
+
+        return self
+
+    @classmethod
     def create_screen_slit(cls):
         self = ShadowOpticalElement(oe=Shadow.OE())
 
