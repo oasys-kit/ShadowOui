@@ -1,7 +1,7 @@
 from math import isnan, floor
 from numbers import Real
 
-from orangecontrib.shadow.util.value import Value, Unknown
+from orangecontrib.shadow.util.script.value import Value, Unknown
 import collections
 
 

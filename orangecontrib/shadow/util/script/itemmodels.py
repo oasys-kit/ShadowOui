@@ -9,7 +9,7 @@ from PyQt4.QtGui import (
     QWidget, QBoxLayout, QToolButton, QAbstractButton, QAction
 )
 
-from orangecontrib.shadow.util.variable import (
+from orangecontrib.shadow.util.script.variable import (
     Variable, DiscreteVariable, ContinuousVariable, StringVariable
 )
 from orangewidget import gui
