@@ -34,7 +34,6 @@ except ImportError:
 
 import Shadow.ShadowToolsPrivate as stp
 
-
 class ShadowCongruence():
 
     @classmethod

@@ -7,7 +7,7 @@ from Shadow import ShadowTools as ST
 from orangewidget import widget, gui
 from oasys.widgets import gui as oasysgui
 
-from orangecontrib.shadow.util.python_script import PythonConsole
+from orangecontrib.shadow.util.script.python_script import PythonConsole
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream, ShadowCompoundOpticalElement
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 

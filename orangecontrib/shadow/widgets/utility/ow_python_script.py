@@ -15,13 +15,10 @@ from PyQt4.QtGui import (
 
 from PyQt4.QtCore import Qt, QRegExp, QByteArray
 
-#import orangewidget.data
-#import orangewidget.classification
-
 from oasys.widgets import widget
 from orangewidget import gui
 
-from orangecontrib.shadow.util import itemmodels
+from orangecontrib.shadow.util.script import itemmodels
 from orangewidget.settings import Setting
 
 __all__ = ["OWPythonScript"]
