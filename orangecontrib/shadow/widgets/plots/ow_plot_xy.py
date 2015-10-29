@@ -139,8 +139,8 @@ class PlotXY(AutomaticElement):
                                             "Set.."],
                                      callback=self.set_XRange, sendSelectedValue=False, orientation="horizontal")
 
-        self.xrange_box = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=420, height=100)
-        self.xrange_box_empty = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=420, height=100)
+        self.xrange_box = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=390, height=100)
+        self.xrange_box_empty = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=390, height=100)
 
         oasysgui.lineEdit(self.xrange_box, self, "x_range_min", "X min", labelWidth=220, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.xrange_box, self, "x_range_max", "X max", labelWidth=220, valueType=float, orientation="horizontal")
@@ -190,8 +190,8 @@ class PlotXY(AutomaticElement):
                                             "Set.."],
                                      callback=self.set_YRange, sendSelectedValue=False, orientation="horizontal")
 
-        self.yrange_box = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=420, height=100)
-        self.yrange_box_empty = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=420, height=100)
+        self.yrange_box = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=390, height=100)
+        self.yrange_box_empty = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=390, height=100)
 
         oasysgui.lineEdit(self.yrange_box, self, "y_range_min", "Y min", labelWidth=220, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.yrange_box, self, "y_range_max", "Y max", labelWidth=220, valueType=float, orientation="horizontal")
