@@ -2036,7 +2036,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                                     cz_slit,
                                     file_src_ext)
 
-        out_beam = ShadowBeam.traceFromOENoHistory(input_beam, empty_element)
+        out_beam = ShadowBeam.traceFromOE(input_beam, empty_element, history=False)
 
         crystal = ShadowOpticalElement.create_plane_crystal()
 
@@ -2073,7 +2073,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         crystal._oe.FWRITE = 3
         crystal._oe.F_ANGLE = 0
 
-        return ShadowBeam.traceFromOENoHistory(out_beam, crystal)
+        return ShadowBeam.traceFromOE(out_beam, crystal, history=False)
 
     ############################################################
 
@@ -2134,8 +2134,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                                     cz_slit,
                                     file_src_ext)
 
-
-        return ShadowBeam.traceFromOENoHistory(input_beam, empty_element)
+        return ShadowBeam.traceFromOE(input_beam, empty_element, history=False)
 
     def traceTo2DDetector(self, bar_value, diffracted_beam, avg_wavelength, twotheta_bragg, normalization,
                           debye_waller_B, statistic_factor):
@@ -2189,7 +2188,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                                      cz_slit,
                                      file_src_ext)
 
-        out_beam = ShadowBeam.traceFromOENoHistory(input_beam, empty_element)
+        out_beam = ShadowBeam.traceFromOE(input_beam, empty_element, history=False)
 
         go_rays = copy.deepcopy(out_beam._beam.rays[numpy.where(out_beam._beam.rays[:, 9] == 1)])
 
