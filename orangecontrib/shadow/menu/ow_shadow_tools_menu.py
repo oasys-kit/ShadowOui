@@ -12,6 +12,7 @@ import orangecontrib.shadow.widgets.preprocessor.xsh_bragg as xsh_bragg
 import orangecontrib.shadow.widgets.preprocessor.xsh_pre_mlayer as xsh_pre_mlayer
 import orangecontrib.shadow.widgets.preprocessor.xsh_prerefl as xsh_prerefl
 import orangecontrib.shadow.widgets.preprocessor.xsh_waviness as xsh_waviness
+import orangecontrib.shadow.widgets.preprocessor.aps_error_profile as aps_error_profile
 
 import orangecontrib.shadow.widgets.plots.ow_plot_xy as ow_plot_xy
 import orangecontrib.shadow.widgets.plots.ow_histogram as ow_histogram
@@ -160,6 +161,9 @@ class ShadowToolsMenu(OMenu):
                 elif isinstance(widget, xsh_waviness.OWxsh_waviness):
                     widget.calculate_waviness(not_interactive_mode=True)
                     widget.generate_waviness_file(not_interactive_mode=True)
+                elif isinstance(widget, aps_error_profile.OWaps_error_profile):
+                    widget.calculate_error_profile(not_interactive_mode=True)
+                    widget.generate_error_profile_file(not_interactive_mode=True)
 
         except Exception as exception:
             QtGui.QMessageBox.critical(None, "Error",
