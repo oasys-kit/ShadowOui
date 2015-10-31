@@ -2,6 +2,6 @@ setuptools
 numpy
 scipy
 matplotlib
-srxraylib
+srxraylib>=0.0.6
 orange-widget-core>=0.0.2
 oasys>=0.1.7

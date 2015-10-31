@@ -128,10 +128,12 @@ orangecontrib/shadow/widgets/plots/icons/plottingTools.jpg
 orangecontrib/shadow/widgets/plots/icons/plottingTools.png
 orangecontrib/shadow/widgets/preprocessor/ShadowPreprocessorsXraylib.py
 orangecontrib/shadow/widgets/preprocessor/__init__.py
+orangecontrib/shadow/widgets/preprocessor/aps_error_profile.py
 orangecontrib/shadow/widgets/preprocessor/xsh_bragg.py
 orangecontrib/shadow/widgets/preprocessor/xsh_pre_mlayer.py
 orangecontrib/shadow/widgets/preprocessor/xsh_prerefl.py
 orangecontrib/shadow/widgets/preprocessor/xsh_waviness.py
+orangecontrib/shadow/widgets/preprocessor/icons/aps.png
 orangecontrib/shadow/widgets/preprocessor/icons/bragg.png
 orangecontrib/shadow/widgets/preprocessor/icons/ingranaggio.png
 orangecontrib/shadow/widgets/preprocessor/icons/premlayer.png
