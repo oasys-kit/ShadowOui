@@ -21,15 +21,15 @@ from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, Emi
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics
 
 class OWxsh_bragg(OWWidget):
-    name = "xsh_bragg"
+    name = "Bragg"
     id = "xsh_bragg"
-    description = "xoppy application to compute..."
+    description = "Calculation of crystal diffraction profile"
     icon = "icons/bragg.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 1
     category = ""
-    keywords = ["xoppy", "xsh_bragg"]
+    keywords = ["xoppy", "bragg"]
 
     outputs = [{"name":"PreProcessor_Data",
                 "type":ShadowPreProcessorData,

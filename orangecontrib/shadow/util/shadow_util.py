@@ -627,6 +627,75 @@ class ShadowPlot:
 
         return factor
 
+class ShadowPreProcessor:
+
+    @classmethod
+    def read_surface_error_file(cls, filename):
+        file = open(congruence.checkFile(filename), "r")
+
+        rows = file.readlines()
+
+        dimensions = rows[0].split()
+        n_x = int(dimensions[0])
+        n_y = int(dimensions[1])
+
+        x_coords = numpy.zeros(0)
+        y_coords = numpy.zeros(0)
+        z_values = numpy.zeros((n_x, n_y))
+
+        if len(rows[1].split()) == 5:
+            for index in range(1, int(numpy.ceil(n_y/5) + 1)):
+                y_values = rows[index].split()
+
+                for y_value in y_values:
+                    y_coords = numpy.append(y_coords, float(y_value))
+
+            x_index = 0
+            z_index = 0
+
+            for index in range(int(numpy.ceil(n_y/5) + 1), len(rows)):
+                if z_index == 0:
+                    values = rows[index].split()
+                    x_coords = numpy.append(x_coords, float(values[0]))
+                    z_value = float(values[1])
+                else:
+                    z_value = float(rows[index])
+
+                z_values[x_index, z_index] = z_value
+                z_index += 1
+
+                if z_index == n_y:
+                    x_index += 1
+                    z_index = 0
+        else:
+            y_row = rows[1].split()
+            x_rows = []
+
+            for index in range(2, len(rows)):
+
+                x_row = rows[index].split("\t")
+
+                if len(x_row) != 1 + n_y:
+                    x_row = rows[index].split()
+
+                if len(x_row) != 1 + n_y:
+                    raise Exception("Malformed file: check format")
+
+                x_rows.append(x_row)
+            for y_value in y_row:
+                 y_coords = numpy.append(y_coords, float(y_value))
+
+            for x_index in range(0, len(x_rows)):
+                x_coords = numpy.append(x_coords, float(x_rows[x_index][0]))
+
+                for z_index in range(0, len(x_rows[x_index]) - 1):
+                    z_value = float(x_rows[x_index][z_index + 1])
+
+                    z_values[x_index, z_index] = z_value
+
+        return x_coords, y_coords, z_values
+
+
 class ShadowMath:
 
     @classmethod
@@ -1111,12 +1180,22 @@ class Properties(object):
             if hasattr(self._props,name):
                 return getattr(self._props, name)
 
+from matplotlib import cm
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
+from matplotlib.figure import Figure
+try:
+    from mpl_toolkits.mplot3d import Axes3D  # necessario per caricare i plot 3D
+except:
+    pass
+
+from PyQt4.QtGui import QApplication, QVBoxLayout
+
 if __name__ == "__main__":
 
-    print(congruence.checkFileName("pippo.dat"))
-    print(congruence.checkFileName("Files/pippo.dat"))
-    print(congruence.checkFileName("Files/pippo.dat"))
-    print(congruence.checkFileName("/Users/labx/Desktop/pippo.dat"))
+    #print(congruence.checkFileName("pippo.dat"))
+    #print(congruence.checkFileName("Files/pippo.dat"))
+    #print(congruence.checkFileName("Files/pippo.dat"))
+    #print(congruence.checkFileName("/Users/labx/Desktop/pippo.dat"))
 
 
     '''
@@ -1140,3 +1219,51 @@ if __name__ == "__main__":
     print(ShadowPhysics.ChebyshevBackgroundNoised(coefficients, 19, random_generator=random_generator))
     print(ShadowPhysics.ChebyshevBackgroundNoised(coefficients, 20, random_generator=random_generator))
     '''
+    '''
+    import matplotlib.pyplot as plt
+
+    x_coords, y_coords, z_values = ShadowPreProcessor.read_surface_error_file("/Users/labx/Oasys/mirror.dat")
+
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    X, Y = numpy.meshgrid(x_coords, y_coords)
+    surf = ax.plot_surface(X, Y, z_values.T, rstride=1, cstride=1, cmap=cm.coolwarm,
+            linewidth=0, antialiased=False)
+    #ax.set_zlim(-1.01, 1.01)
+
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+
+    plt.show()
+    '''
+
+    app = QApplication(sys.argv)
+
+    widget = QWidget()
+    widget.setLayout(QVBoxLayout())
+
+    figure = Figure(figsize=(100, 100))
+    figure.patch.set_facecolor('white')
+
+    axis = figure.add_subplot(111, projection='3d')
+
+    axis.set_xlabel("X (cm)")
+    axis.set_ylabel("Y (cm)")
+    axis.set_zlabel("Z (cm)")
+
+    figure_canvas = FigureCanvasQTAgg(figure)
+    widget.layout().addWidget(figure_canvas)
+    figure_canvas.setFixedWidth(500)
+    figure_canvas.setFixedHeight(450)
+
+    x_coords, y_coords, z_values = ShadowPreProcessor.read_surface_error_file("/Users/labx/Oasys/mirror.dat")
+
+    x_to_plot, y_to_plot = numpy.meshgrid(x_coords, y_coords)
+
+    axis.plot_surface(x_to_plot, y_to_plot, z_values.T,
+                      rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
+
+    figure_canvas.draw()
+    figure_canvas.show()
+    widget.show()
+
+    app.exec()

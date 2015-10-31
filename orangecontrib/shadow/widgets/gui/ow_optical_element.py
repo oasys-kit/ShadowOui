@@ -4,7 +4,16 @@ import sys
 
 import numpy
 from PyQt4 import QtGui
-from PyQt4.QtGui import QPalette, QColor, QFont
+from PyQt4.QtGui import QPalette, QColor, QFont, QDialog, QVBoxLayout
+
+from matplotlib import cm
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
+from matplotlib.figure import Figure
+try:
+    from mpl_toolkits.mplot3d import Axes3D  # necessario per caricare i plot 3D
+except:
+    pass
+
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -14,7 +23,7 @@ import orangecanvas.resources as resources
 
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerIn, ShadowPreProcessorData, \
     ShadowOpticalElement, ShadowBeam, ShadowFile
-from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics
+from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics, ShadowPreProcessor
 from orangecontrib.shadow.widgets.gui import ow_generic_element
 
 shadow_oe_to_copy = None
@@ -1141,6 +1150,8 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             pushButton = gui.button(self.mod_surf_err_box_1, self, "...")
             pushButton.clicked.connect(self.selectDefectFileName)
+            pushButton = gui.button(self.mod_surf_err_box_1, self, "View")
+            pushButton.clicked.connect(self.viewDefectFileName)
 
             self.mod_surf_err_box_2 = oasysgui.widgetBox(self.surface_error_box, "", addSpace=False, orientation="vertical")
 
@@ -1545,6 +1556,57 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     def selectDefectFileName(self):
         self.le_ms_defect_file_name.setText(oasysgui.selectFileFromDialog(self, self.ms_defect_file_name, "Select Defect File Name", file_extension_filter="*.dat; *.sha"))
+
+    class ShowDefectFileDialog(QDialog):
+
+        def __init__(self, parent=None, filename=""):
+            QDialog.__init__(self, parent)
+            self.setWindowTitle('Defect File - Surface Error Profile')
+            layout = QtGui.QVBoxLayout(self)
+            label = QtGui.QLabel("")
+
+            figure = Figure(figsize=(100, 100))
+            figure.patch.set_facecolor('white')
+
+            axis = figure.add_subplot(111, projection='3d')
+
+            axis.set_xlabel("X (cm)")
+            axis.set_ylabel("Y (cm)")
+            axis.set_zlabel("Z (cm)")
+
+            figure_canvas = FigureCanvasQTAgg(figure)
+            figure_canvas.setFixedWidth(500)
+            figure_canvas.setFixedHeight(450)
+
+            x_coords, y_coords, z_values = ShadowPreProcessor.read_surface_error_file(filename)
+
+            x_to_plot, y_to_plot = numpy.meshgrid(x_coords, y_coords)
+
+            axis.plot_surface(x_to_plot, y_to_plot, z_values.T,
+                              rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
+
+            figure_canvas.draw()
+
+            bbox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
+
+            bbox.accepted.connect(self.accept)
+            layout.addWidget(figure_canvas)
+            layout.addWidget(bbox)
+
+
+    def showAxisSystem(self):
+        dialog = XRDCapillary.ShowAxisSystemDialog(parent=self)
+        dialog.show()
+
+
+    def viewDefectFileName(self):
+        try:
+            dialog = OpticalElement.ShowDefectFileDialog(parent=self, filename=self.ms_defect_file_name)
+            dialog.show()
+        except Exception as exception:
+            QtGui.QMessageBox.critical(self, "Error",
+                                       str(exception), QtGui.QMessageBox.Ok)
+
 
     def selectFileFacetDescr(self):
         self.le_ms_file_facet_descr.setText(oasysgui.selectFileFromDialog(self, self.ms_file_facet_descr, "Select File with Facet Description"))
@@ -2388,43 +2450,53 @@ class OpticalElement(ow_generic_element.GenericElement):
                               "This O.E. is not a mirror: prerefl_m parameter will be ignored",
                               QtGui.QMessageBox.Ok)
 
-            if data.waviness_data_file != ShadowPreProcessorData.NONE:
+            if data.error_profile_data_file != ShadowPreProcessorData.NONE:
                 if self.graphical_options.is_mirror:
-                    self.ms_defect_file_name = data.waviness_data_file
+                    self.ms_defect_file_name = data.error_profile_data_file
                     self.modified_surface = 1
                     self.ms_type_of_defect = 2
+
+                    self.set_TypeOfDefect()
 
                     if self.is_infinite == 1:
                         changed = False
 
-                        if self.dim_x_plus > data.waviness_x_dim/2:
-                            self.dim_x_plus = data.waviness_x_dim/2
-                            changed = True
-                        if self.dim_x_minus > data.waviness_x_dim/2:
-                            self.dim_x_minus = data.waviness_x_dim/2
-                            changed = True
-                        if self.dim_y_plus > data.waviness_y_dim/2:
-                            self.dim_y_plus = data.waviness_y_dim/2
-                            changed = True
-                        if self.dim_y_minus > data.waviness_y_dim/2:
-                            self.dim_y_minus = data.waviness_y_dim/2
+                        if self.dim_x_plus > data.error_profile_x_dim/2 or \
+                           self.dim_x_minus > data.error_profile_x_dim/2 or \
+                           self.dim_y_plus > data.error_profile_y_dim/2 or \
+                           self.dim_y_minus > data.error_profile_y_dim/2:
                             changed = True
 
-                        if changed == True:
-                            QtGui.QMessageBox.information(self, "QMessageBox.information()",
-                                                          "Dimensions of this mirror were changed in order to ensure congruence with the waviness surface",
-                                                          QtGui.QMessageBox.Ok)
+                        if changed:
+                            if QtGui.QMessageBox.information(self, "Confirm Modification",
+                                                          "Dimensions of this mirror must be changed in order to ensure congruence with the error profile surface, accept?",
+                                                          QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
+                                if self.dim_x_plus > data.error_profile_x_dim/2:
+                                    self.dim_x_plus = data.error_profile_x_dim/2
+                                if self.dim_x_minus > data.error_profile_x_dim/2:
+                                    self.dim_x_minus = data.error_profile_x_dim/2
+                                if self.dim_y_plus > data.error_profile_y_dim/2:
+                                    self.dim_y_plus = data.error_profile_y_dim/2
+                                if self.dim_y_minus > data.error_profile_y_dim/2:
+                                    self.dim_y_minus = data.error_profile_y_dim/2
+
+                                QtGui.QMessageBox.information(self, "QMessageBox.information()",
+                                                              "Dimensions of this mirror were changed",
+                                                              QtGui.QMessageBox.Ok)
                     else:
-                        self.is_infinite = 1
-                        self.mirror_shape = 0
-                        self.dim_x_plus = data.waviness_x_dim/2
-                        self.dim_x_minus = data.waviness_x_dim/2
-                        self.dim_y_plus = data.waviness_y_dim/2
-                        self.dim_y_minus = data.waviness_y_dim/2
+                        if QtGui.QMessageBox.information(self, "Confirm Modification",
+                                                      "This mirror must become rectangular with finite dimensions in order to ensure congruence with the error surface, accept?",
+                                                      QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
+                            self.is_infinite = 1
+                            self.mirror_shape = 0
+                            self.dim_x_plus = data.error_profile_x_dim/2
+                            self.dim_x_minus = data.error_profile_x_dim/2
+                            self.dim_y_plus = data.error_profile_y_dim/2
+                            self.dim_y_minus = data.error_profile_y_dim/2
 
-                        QtGui.QMessageBox.warning(self, "Warning",
-                                                      "This mirror became rectangular with finite dimensions in order to ensure congruence with the waviness surface",
-                                                      QtGui.QMessageBox.Ok)
+                            QtGui.QMessageBox.warning(self, "Warning",
+                                                          "Dimensions of this mirror were changed",
+                                                          QtGui.QMessageBox.Ok)
 
                     self.set_Dim_Parameters()
 

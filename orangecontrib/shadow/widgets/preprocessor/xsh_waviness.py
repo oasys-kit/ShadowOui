@@ -26,13 +26,13 @@ from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, Emi
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
 class OWxsh_waviness(OWWidget):
-    name = "xsh_waviness"
+    name = "Waviness"
     id = "xsh_waviness"
-    description = "xoppy application to compute..."
+    description = "Calculation of mirror surface error profile"
     icon = "icons/waviness.png"
     author = "Luca Rebuffi"
     maintainer_email = "srio@esrf.eu; luca.rebuffi@elettra.eu"
-    priority = 10
+    priority = 4
     category = ""
     keywords = ["xoppy", "xsh_waviness"]
 
@@ -369,7 +369,7 @@ class OWxsh_waviness(OWWidget):
 
         self.axis.set_xlabel("X (cm)")
         self.axis.set_ylabel("Y (cm)")
-        self.axis.set_zlabel("Z (µm)")
+        self.axis.set_zlabel("Z (nm)")
 
         self.figure_canvas = FigureCanvasQTAgg(self.figure)
         self.mainArea.layout().addWidget(self.figure_canvas)
@@ -596,7 +596,7 @@ class OWxsh_waviness(OWWidget):
             for y_index in range(0, len(yy)):
                 z_array = []
                 for x_index in range(0, len(xx)):
-                    z_array.append(1e4 * float(zz[x_index][y_index]))  # to micron
+                    z_array.append(1e7 * float(zz[x_index][y_index]))  # to nm
                 z_to_plot.append(z_array)
 
             z_to_plot = numpy.array(z_to_plot)
@@ -613,7 +613,7 @@ class OWxsh_waviness(OWWidget):
 
             self.axis.set_xlabel("X (cm)")
             self.axis.set_ylabel("Y (cm)")
-            self.axis.set_zlabel("Z (µm)")
+            self.axis.set_zlabel("Z (nm)")
             self.axis.set_title(title)
             self.axis.mouse_init()
 
@@ -641,9 +641,9 @@ class OWxsh_waviness(OWWidget):
                                             "Waviness file " + self.waviness_file_name + " written on disk",
                                             QMessageBox.Ok)
 
-                self.send("PreProcessor_Data", ShadowPreProcessorData(waviness_data_file=self.waviness_file_name,
-                                                                      waviness_x_dim=self.dimension_x,
-                                                                      waviness_y_dim=self.dimension_y))
+                self.send("PreProcessor_Data", ShadowPreProcessorData(error_profile_data_file=self.waviness_file_name,
+                                                                      error_profile_x_dim=self.dimension_x,
+                                                                      error_profile_y_dim=self.dimension_y))
             except Exception as exception:
                 QMessageBox.critical(self, "Error",
                                      exception.args[0],

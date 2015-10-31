@@ -21,13 +21,13 @@ from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, Emi
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics
 
 class OWxsh_prerefl(OWWidget):
-    name = "xsh_prerefl"
+    name = "PreRefl"
     id = "xsh_prerefl"
-    description = "xoppy application to compute..."
+    description = "Calculation of mirror reflectivity profile"
     icon = "icons/prerefl.png"
     author = "create_widget.py"
     maintainer_email = "srio@esrf.eu"
-    priority = 10
+    priority = 2
     category = ""
     keywords = ["xoppy", "xsh_prerefl"]
 

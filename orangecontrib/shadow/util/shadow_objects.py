@@ -42,18 +42,18 @@ class ShadowPreProcessorData:
                     m_layer_data_file_dat=NONE,
                     m_layer_data_file_sha=NONE,
                     prerefl_data_file=NONE,
-                    waviness_data_file=NONE,
-                    waviness_x_dim = 0.0,
-                    waviness_y_dim=0.0):
+                    error_profile_data_file=NONE,
+                    error_profile_x_dim = 0.0,
+                    error_profile_y_dim=0.0):
         super().__init__()
 
         self.bragg_data_file=bragg_data_file
         self.m_layer_data_file_dat=m_layer_data_file_dat
         self.m_layer_data_file_sha=m_layer_data_file_sha
         self.prerefl_data_file=prerefl_data_file
-        self.waviness_data_file = waviness_data_file
-        self.waviness_x_dim = waviness_x_dim
-        self.waviness_y_dim = waviness_y_dim
+        self.error_profile_data_file = error_profile_data_file
+        self.error_profile_x_dim = error_profile_x_dim
+        self.error_profile_y_dim = error_profile_y_dim
 
 class ShadowTriggerOut:
     def __init__(self, new_beam=False):
