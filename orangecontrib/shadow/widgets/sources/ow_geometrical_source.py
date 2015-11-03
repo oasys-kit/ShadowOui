@@ -14,6 +14,8 @@ from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber,
 from orangecontrib.shadow.util.shadow_util import ShadowPhysics
 from orangecontrib.shadow.widgets.gui import ow_source
 
+from srxraylib.oasys.exchange import DataExchangeObject
+
 
 class GeometricalSource(ow_source.Source):
 
@@ -26,7 +28,8 @@ class GeometricalSource(ow_source.Source):
     category = "Sources"
     keywords = ["data", "file", "load", "read"]
 
-    inputs = [("Trigger", ShadowTriggerOut, "sendNewBeam")]
+    inputs = [("Trigger", ShadowTriggerOut, "sendNewBeam"),
+              ("ExchangeData", DataExchangeObject, "acceptExchangeData")]
 
     outputs = [{"name":"Beam",
                 "type":ShadowBeam,
@@ -583,6 +586,7 @@ class GeometricalSource(ow_source.Source):
                                        str(exception),
                 QtGui.QMessageBox.Ok)
 
+            raise exception
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))
 
@@ -630,7 +634,9 @@ class GeometricalSource(ow_source.Source):
 
             rows = spectrum_file.readlines()
 
-            for row in rows:
+            step = 0.0
+            for index in range(0, len(rows)):
+                row = rows[index]
 
                 if not row.strip() == "":
                     values = row.split()
@@ -640,7 +646,7 @@ class GeometricalSource(ow_source.Source):
                     energy = float(values[0].strip())
                     intensity = float(values[1].strip())
 
-                    if energy > self.user_defined_minimum and energy <= self.user_defined_maximum:
+                    if energy >= self.user_defined_minimum and energy <= self.user_defined_maximum:
                         spectrum.append([energy, intensity])
 
         except Exception as err:
@@ -648,19 +654,34 @@ class GeometricalSource(ow_source.Source):
         except:
             raise Exception("Unexpected error reading spectrum file: ", sys.exc_info()[0])
 
-        spectrum.insert(0, [self.user_defined_minimum, 0.0])
-
         return numpy.array(spectrum)
 
     def sample_from_spectrum(self, spectrum, npoints):
+        if spectrum[0, 0] == 0:
+            y_values = spectrum[1:, 1]
+            x_values = spectrum[1:, 0]
+        else:
+            y_values = spectrum[:, 1]
+            x_values = spectrum[:, 0]
+
+        if len(x_values) < 10000:
+            x_values, y_values = self.resample_spectrum(x_values, y_values, 10000)
+
         # normalize distribution function
-        spectrum[:, 1] /= spectrum[:, 1].sum()
-        #calculate the cumulative distribution function
-        a_cdf = numpy.cumsum(spectrum[:, 1])
-        # create randomly distributed npoints
-        rd = numpy.random.rand(npoints)
-        # evaluate rd following the inverse of cdf
-        return numpy.interp(rd, a_cdf, spectrum[:, 0])
+        y_values /= numpy.max(y_values)
+        y_values /= y_values.sum()
+
+        random_generator = stats.rv_discrete(name='user_defined_distribution', values=(x_values, y_values))
+
+        return random_generator.rvs(size=npoints)
+
+    def resample_spectrum(self, x_values, y_values, new_dim):
+        e_min = x_values[0]
+        e_max = x_values[len(x_values)-1]
+
+        new_x_values = e_min + numpy.arange(0, new_dim+1) * (e_max-e_min)/new_dim
+
+        return new_x_values, numpy.interp(new_x_values, x_values, y_values)
 
     #########################################################################################
 
@@ -675,6 +696,56 @@ class GeometricalSource(ow_source.Source):
     def sendNewBeam(self, trigger):
         if trigger and trigger.new_beam == True:
             self.runShadowSource()
+
+    def acceptExchangeData(self, exchangeData):
+        try:
+            if not exchangeData is None:
+                if exchangeData.get_program_name() == "XOPPY":
+                    if exchangeData.get_widget_name() =="UNDULATOR_FLUX" :
+                        self.user_defined_file = "xoppy_undulator_flux"
+                        index_flux = 2
+                    elif exchangeData.get_widget_name() == "BM" :
+                        if exchangeData.get_content("is_log_plot") == 1:
+                            raise Exception("Logaritmic X scale of Xoppy Energy distribution not supported")
+                        self.user_defined_file = "xoppy_bm_flux"
+                        index_flux = 5
+                    elif exchangeData.get_widget_name() =="XWIGGLER" :
+                        if exchangeData.get_content("is_log_plot") == 1:
+                            raise Exception("Logaritmic X scale of Xoppy Energy distribution not supported")
+                        self.user_defined_file = "xoppy_xwiggler_flux"
+                        index_flux = 1
+                    elif exchangeData.get_widget_name() =="XTUBES" :
+                        self.user_defined_file = "xoppy_xtubes_flux"
+                        index_flux = 1
+                    else:
+                        raise Exception("Xoppy Source not recognized")
+
+                    self.user_defined_file += "_" + str(id(self)) + ".dat"
+
+                    self.photon_energy_distribution = 5
+                    self.units = 0 # eV
+
+                    spectrum = exchangeData.get_content("xoppy_data")
+
+                    file = open(self.user_defined_file, "w")
+                    for index in range(0, spectrum.shape[0]):
+                        file.write(str(spectrum[index, 0]) + " " + str(spectrum[index, index_flux]) + "\n")
+
+                    file.close()
+
+                    if not spectrum is None:
+                        self.user_defined_minimum = numpy.min(spectrum[:, 0])
+                        self.user_defined_maximum = numpy.max(spectrum[:, 0])
+
+
+                    self.set_PhotonEnergyDistribution()
+        except Exception as exception:
+            QtGui.QMessageBox.critical(self, "Error",
+                                       str(exception),
+                QtGui.QMessageBox.Ok)
+
+            #raise exception
+
 
     def setupUI(self):
         self.set_OptimizeSource()
