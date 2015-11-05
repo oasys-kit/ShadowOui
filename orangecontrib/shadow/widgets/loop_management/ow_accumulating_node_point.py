@@ -39,8 +39,10 @@ class AccumulatingLoopPoint(AutomaticElement):
     want_main_area = 0
 
     number_of_accumulated_rays = Setting(10000)
+    kind_of_accumulation = Setting(0)
 
     current_number_of_rays = 0
+    current_intensity = 0
     current_number_of_total_rays = 0
     current_number_of_lost_rays = 0
 
@@ -53,13 +55,26 @@ class AccumulatingLoopPoint(AutomaticElement):
     def __init__(self):
         super().__init__()
 
-        self.setFixedWidth(500)
-        self.setFixedHeight(350)
+        self.setFixedWidth(570)
+        self.setFixedHeight(430)
 
-        left_box_1 = oasysgui.widgetBox(self.controlArea, "Accumulating Loop Management", addSpace=True, orientation="vertical", height=200)
+        left_box_1 = oasysgui.widgetBox(self.controlArea, "Accumulating Loop Management", addSpace=True, orientation="vertical", height=280)
 
-        oasysgui.lineEdit(left_box_1, self, "number_of_accumulated_rays", "Number of accumulated good rays\n(before sending signal)", labelWidth=350, valueType=int,
+        gui.comboBox(left_box_1, self, "kind_of_accumulation", label="Accumulated Quantity", labelWidth=350,
+                     items=["Number of Good Rays ", "Intensity of Good Rays"],
+                     callback=self.set_KindOfAccumulation,
+                     sendSelectedValue=False, orientation="horizontal")
+
+        self.left_box_1_1 = oasysgui.widgetBox(left_box_1, "", addSpace=True, orientation="vertical")
+        self.left_box_1_2 = oasysgui.widgetBox(left_box_1, "", addSpace=True, orientation="vertical")
+
+        oasysgui.lineEdit(self.left_box_1_1, self, "number_of_accumulated_rays", "Number of accumulated good rays\n(before sending signal)", labelWidth=350, valueType=float,
                            orientation="horizontal")
+
+        oasysgui.lineEdit(self.left_box_1_2, self, "number_of_accumulated_rays", "Intenisty of accumulated good rays\n(before sending signal)", labelWidth=350, valueType=float,
+                           orientation="horizontal")
+
+        self.set_KindOfAccumulation()
 
         gui.comboBox(left_box_1, self, "keep_go_rays", label="Remove lost rays from beam", labelWidth=350, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
@@ -74,6 +89,16 @@ class AccumulatingLoopPoint(AutomaticElement):
         palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
         palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
         le.setPalette(palette)
+
+        self.le_current_intensity = oasysgui.lineEdit(left_box_1, self, "current_intensity", "Current intensity", labelWidth=350, valueType=float, orientation="horizontal")
+        self.le_current_intensity.setReadOnly(True)
+        font = QtGui.QFont(self.le_current_intensity.font())
+        font.setBold(True)
+        self.le_current_intensity.setFont(font)
+        palette = QtGui.QPalette(le.palette())  # make a copy of the palette
+        palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
+        palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
+        self.le_current_intensity.setPalette(palette)
 
         le = oasysgui.lineEdit(left_box_1, self, "current_number_of_lost_rays", "Current number of lost rays", labelWidth=350, valueType=int, orientation="horizontal")
         le.setReadOnly(True)
@@ -105,13 +130,18 @@ class AccumulatingLoopPoint(AutomaticElement):
 
         gui.rubber(self.controlArea)
 
+    def set_KindOfAccumulation(self):
+        self.left_box_1_1.setVisible(self.kind_of_accumulation==0)
+        self.left_box_1_2.setVisible(self.kind_of_accumulation==1)
+
     def sendSignal(self):
         self.send("Accumulated Beam", self.input_beam)
-        self.send("Trigger", ShadowTriggerIn(new_beam=True))
+        self.send("Trigger", ShadowTriggerIn(interrupt=True))
 
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the accumulated beam"):
             self.current_number_of_rays = 0
+            self.current_intensity = 0.0
             self.current_number_of_lost_rays = 0
             self.current_number_of_total_rays = 0
             self.input_beam = None
@@ -130,12 +160,18 @@ class AccumulatingLoopPoint(AutomaticElement):
                 nr_good = len(beam._beam.rays[go])
                 nr_total = len(beam._beam.rays)
                 nr_lost = nr_total - nr_good
+                intensity = beam._beam.histo1(1, nolost=1, ref=23)['intensity']
 
-                self.current_number_of_rays = self.current_number_of_rays + nr_good
-                self.current_number_of_lost_rays = self.current_number_of_lost_rays + nr_lost
-                self.current_number_of_total_rays = self.current_number_of_total_rays + nr_total
+                self.current_number_of_rays += nr_good
+                self.current_intensity += intensity
+                self.le_current_intensity.setText("{:10.3f}".format(self.current_intensity))
+                self.current_number_of_lost_rays += nr_lost
+                self.current_number_of_total_rays += nr_total
 
-                if self.current_number_of_rays <= self.number_of_accumulated_rays:
+
+
+                if (self.kind_of_accumulation == 0 and self.current_number_of_rays <= self.number_of_accumulated_rays) or \
+                   (self.kind_of_accumulation == 1 and self.current_intensity <= self.number_of_accumulated_rays):
                     if self.keep_go_rays == 1:
                         beam._beam.rays = copy.deepcopy(beam._beam.rays[go])
 
@@ -150,6 +186,7 @@ class AccumulatingLoopPoint(AutomaticElement):
                         self.sendSignal()
 
                         self.current_number_of_rays = 0
+                        self.current_intensity = 0.0
                         self.current_number_of_lost_rays = 0
                         self.current_number_of_total_rays = 0
                         self.input_beam = None
