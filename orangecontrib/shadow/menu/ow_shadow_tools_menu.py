@@ -23,7 +23,6 @@ from orangecontrib.shadow.util.shadow_objects import ShadowFile
 class ShadowToolsMenu(OMenu):
     is_weird_shadow_bug_fixed = False
 
-
     OMIT_WIDGET = "OMIT_WIDGET"
     ABORT_IMPORT = "ABORT_IMPORT"
 

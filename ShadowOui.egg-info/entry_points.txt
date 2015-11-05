@@ -2,7 +2,7 @@
 shadow = orangecontrib.shadow
 
 [oasys.menus]
-Menu = orangecontrib.shadow.menu
+shadowmenu = orangecontrib.shadow.menu
 
 [oasys.widgets]
 Shadow Compound Optical Elements = orangecontrib.shadow.widgets.compound_optical_elements

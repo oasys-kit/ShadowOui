@@ -5,7 +5,7 @@ import os
 from setuptools import find_packages, setup
 
 NAME = 'ShadowOui'
-VERSION = '1.2.31'
+VERSION = '1.2.32'
 ISRELEASED = False
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
@@ -43,7 +43,7 @@ INSTALL_REQUIRES = (
     'matplotlib',
     'srxraylib>=0.0.8',
     'orange-widget-core>=0.0.2',
-    'oasys>=0.1.7',
+    'oasys>=0.1.8',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
@@ -74,7 +74,7 @@ ENTRY_POINTS = {
         "Shadow Sources = orangecontrib.shadow.widgets.sources",
         "Shadow Utility = orangecontrib.shadow.widgets.utility",
     ),
-    'oasys.menus' : ("Menu = orangecontrib.shadow.menu",)
+    'oasys.menus' : ("shadowmenu = orangecontrib.shadow.menu",)
 }
 
 if __name__ == '__main__':

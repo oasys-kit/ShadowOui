@@ -4,4 +4,4 @@ scipy
 matplotlib
 srxraylib>=0.0.8
 orange-widget-core>=0.0.2
-oasys>=0.1.7
+oasys>=0.1.8
