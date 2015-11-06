@@ -408,7 +408,6 @@ class OWxsh_pre_mlayer(OWWidget):
             QMessageBox.critical(self, "Error",
                                  str(exception),
                                  QMessageBox.Ok)
-            raise exception
 
     def checkFields(self):
         congruence.checkDir(self.FILE)

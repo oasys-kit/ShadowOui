@@ -9,6 +9,17 @@ ShadowOui.egg-info/namespace_packages.txt
 ShadowOui.egg-info/not-zip-safe
 ShadowOui.egg-info/requires.txt
 ShadowOui.egg-info/top_level.txt
+libraries/darwin/.DS_Store
+libraries/darwin/_xraylib.la
+libraries/darwin/_xraylib.so
+libraries/darwin/xrayhelp.py
+libraries/darwin/xraylib.py
+libraries/darwin/xraylib_np.la
+libraries/darwin/xraylib_np.so
+libraries/darwin/xraymessages.py
+libraries/linux/xrayhelp.py
+libraries/linux/xraylib.py
+libraries/linux/xraymessages.py
 orangecontrib/__init__.py
 orangecontrib/shadow/__init__.py
 orangecontrib/shadow/menu/__init__.py

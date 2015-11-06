@@ -141,8 +141,6 @@ class ShadowToolsMenu(OMenu):
             QtGui.QMessageBox.critical(None, "Error",
                 exception.args[0],
                 QtGui.QMessageBox.Ok)
-            print(exception.args[0])
-            print(exception)
 
     def executeAction_4(self, action):
         try:
@@ -169,8 +167,6 @@ class ShadowToolsMenu(OMenu):
                 exception.args[0],
                 QtGui.QMessageBox.Ok)
 
-            raise exception
-
     #ENABLE PLOTS
     def executeAction_6(self, action):
         try:
@@ -187,8 +183,6 @@ class ShadowToolsMenu(OMenu):
                 exception.args[0],
                 QtGui.QMessageBox.Ok)
 
-            raise exception
-
     def executeAction_7(self, action):
         try:
             for link in self.canvas_main_window.current_document().scheme().links:
@@ -204,8 +198,6 @@ class ShadowToolsMenu(OMenu):
                 exception.args[0],
                 QtGui.QMessageBox.Ok)
 
-            raise exception
-
     def executeAction_9(self, action):
         try:
             for node in self.canvas_main_window.current_document().scheme().nodes:
@@ -218,8 +210,6 @@ class ShadowToolsMenu(OMenu):
             QtGui.QMessageBox.critical(None, "Error",
                 exception.args[0],
                 QtGui.QMessageBox.Ok)
-
-            raise exception
 
     def executeAction_10(self, action):
         try:
@@ -234,8 +224,6 @@ class ShadowToolsMenu(OMenu):
                 exception.args[0],
                 QtGui.QMessageBox.Ok)
 
-            raise exception
-
     def executeAction_11(self, action):
         try:
             for node in self.canvas_main_window.current_document().scheme().nodes:
@@ -248,8 +236,6 @@ class ShadowToolsMenu(OMenu):
             QtGui.QMessageBox.critical(None, "Error",
                 exception.args[0],
                 QtGui.QMessageBox.Ok)
-
-            raise exception
 
     ###############################################################
     #

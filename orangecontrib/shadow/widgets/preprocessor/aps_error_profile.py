@@ -339,8 +339,6 @@ class OWaps_error_profile(OWWidget):
                                      exception.args[0],
                                      QMessageBox.Ok)
 
-                raise exception
-
     def call_reset_settings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):
             try:

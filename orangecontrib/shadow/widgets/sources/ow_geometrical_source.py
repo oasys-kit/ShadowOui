@@ -586,7 +586,6 @@ class GeometricalSource(ow_source.Source):
                                        str(exception),
                 QtGui.QMessageBox.Ok)
 
-            raise exception
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))
 
