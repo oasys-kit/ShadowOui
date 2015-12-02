@@ -69,6 +69,9 @@ class OWaps_error_profile(OWWidget):
     montecarlo_seed_y = Setting(8788)
 
     error_profile_1D_file_name = Setting("mirror_1D.dat")
+    conversion_factor_x = Setting(0.1)
+    conversion_factor_y = Setting(1e-6)
+
     error_profile_file_name = Setting('mirror.dat')
 
     def __init__(self):
@@ -123,7 +126,6 @@ class OWaps_error_profile(OWWidget):
 
         gui.comboBox(self.calculation_type_box_1, self, "error_type", label="Error Type", labelWidth=270,
                      items=["Figure Error (nm)", "Slope Error (" + u"\u03BC" + "rad)"],
-                     callback=self.set_AxisType,
                      sendSelectedValue=False, orientation="horizontal")
 
         oasysgui.lineEdit(self.calculation_type_box_1, self, "rms_x", "Rms                                          X (width)",
@@ -149,6 +151,13 @@ class OWaps_error_profile(OWWidget):
         pushButton = gui.button(self.select_file_box_1, self, "...")
         pushButton.clicked.connect(self.selectFile1D)
 
+
+        oasysgui.lineEdit(self.calculation_type_box_2, self, "conversion_factor_x", "Conversion from user unit to cm     (Y)", labelWidth=300,
+                           valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(self.calculation_type_box_2, self, "conversion_factor_y", "Conversion from user unit to cm/rad (Error)", labelWidth=300,
+                           valueType=float, orientation="horizontal")
+
         gui.separator(self.calculation_type_box_2)
 
         oasysgui.lineEdit(self.calculation_type_box_2, self, "dimension_x", "Dimensions [cm]                        X (width)",
@@ -161,7 +170,6 @@ class OWaps_error_profile(OWWidget):
 
         gui.comboBox(self.calculation_type_box_2, self, "error_type", label="Error Type", labelWidth=270,
                      items=["Figure Error (nm)", "Slope Error (" + u"\u03BC" + "rad)"],
-                     callback=self.set_AxisType,
                      sendSelectedValue=False, orientation="horizontal")
 
         gui.separator(self.calculation_type_box_2)
@@ -225,10 +233,7 @@ class OWaps_error_profile(OWWidget):
 
         self.axis.set_xlabel("X (cm)")
         self.axis.set_ylabel("Y (cm)")
-        if self.error_type == error_profile.FIGURE_ERROR:
-            self.axis.set_zlabel("Z (nm)")
-        else:
-            self.axis.set_zlabel("Z (µrad)")
+        self.axis.set_zlabel("Z (cm)")
 
         self.figure_canvas = FigureCanvasQTAgg(self.figure)
         self.mainArea.layout().addWidget(self.figure_canvas)
@@ -238,13 +243,6 @@ class OWaps_error_profile(OWWidget):
     def set_CalculationType(self):
         self.calculation_type_box_1.setVisible(self.calculation_type==0)
         self.calculation_type_box_2.setVisible(self.calculation_type==1)
-
-    def set_AxisType(self):
-        if self.error_type == error_profile.FIGURE_ERROR:
-            self.axis.set_zlabel("Z (nm)")
-        else:
-            self.axis.set_zlabel("Z (µrad)")
-        self.figure_canvas.draw()
 
     def calculate_error_profile_ni(self):
         self.calculate_error_profile(not_interactive_mode=True)
@@ -262,17 +260,28 @@ class OWaps_error_profile(OWWidget):
                 rms_x = self.rms_x*1e-6 # from urad to rad
                 rms_y = self.rms_y*1e-6 # from urad to rad
 
+            if self.calculation_type == 0:
+                xx, yy, zz = error_profile.create_simulated_2D_profile_APS(self.dimension_y,
+                                                                           self.step_y,
+                                                                           self.montecarlo_seed_y,
+                                                                           self.error_type,
+                                                                           rms_y,
+                                                                           self.dimension_x,
+                                                                           self.step_x,
+                                                                           self.montecarlo_seed_x,
+                                                                           self.error_type,
+                                                                           rms_x)
+            else:
+                profile_1D_x, profile_1D_y = numpy.loadtxt(self.error_profile_1D_file_name, delimiter='\t', unpack=True)
 
-            xx, yy, zz = error_profile.create_simulated_2D_profile_APS(self.dimension_y,
-                                                                       self.step_y,
-                                                                       self.montecarlo_seed_y,
-                                                                       self.error_type,
-                                                                       rms_y,
-                                                                       self.dimension_x,
-                                                                       self.step_x,
-                                                                       self.montecarlo_seed_x,
-                                                                       self.error_type,
-                                                                       rms_x)
+                xx, yy, zz = error_profile.create_2D_profile_from_1D(profile_1D_x*self.conversion_factor_x,
+                                                                     profile_1D_y*self.conversion_factor_y,
+                                                                     self.dimension_x,
+                                                                     self.step_x,
+                                                                     self.montecarlo_seed_x,
+                                                                     self.error_type,
+                                                                     rms_x)
+
             self.xx = xx
             self.yy = yy
             self.zz = zz # in cm
@@ -281,24 +290,12 @@ class OWaps_error_profile(OWWidget):
 
             x_to_plot, y_to_plot = numpy.meshgrid(xx, yy)
 
-            if self.error_type == error_profile.FIGURE_ERROR:
-                z_to_plot = self.zz*1e7 # from cm to nm
-            else:
-                z_to_plot = self.zz*1e6 # from rad to urad
-
-            print(z_to_plot.T[0])
-            print(len(xx), len(yy), zz.shape)
-            print(len(x_to_plot), len(y_to_plot), z_to_plot.shape)
-
-            self.axis.plot_surface(x_to_plot, y_to_plot, z_to_plot,
+            self.axis.plot_surface(x_to_plot, y_to_plot, self.zz,
                                    rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
 
             self.axis.set_xlabel("X (cm)")
             self.axis.set_ylabel("Y (cm)")
-            if self.error_type == error_profile.FIGURE_ERROR:
-                self.axis.set_zlabel("Z (nm)")
-            else:
-                self.axis.set_zlabel("Z (µrad)")
+            self.axis.set_zlabel("Z (cm)")
 
             self.axis.set_title("Generated 2D Error Profile")
             self.axis.mouse_init()
