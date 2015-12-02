@@ -1006,8 +1006,6 @@ class GeometricalSource(ow_source.Source):
             shadow_src.src.FILE_BOUND = bytes(congruence.checkFileName(self.optimize_file_name), 'utf-8')
         shadow_src.src.NTOTALPOINT = self.max_number_of_rejected_rays
 
-        shadow_src.src.write("diobono.txt")
-
     def deserialize(self, shadow_file):
         if not shadow_file is None:
             try:
