@@ -107,13 +107,15 @@ if __name__ == '__main__':
 
     try:
         is_install = False
+        is_develop = False
 
         print(sys.argv)
 
         for arg in sys.argv:
             if arg == 'install': is_install = True
+            if arg == 'develop': is_develop = True
 
-        if is_install:
+        if is_install and not is_develop:
             site_packages_dir = None
 
             for directory in site.getsitepackages():
