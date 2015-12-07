@@ -5,7 +5,7 @@ from PyQt4.QtCore import QRect
 from PyQt4.QtGui import QTextEdit, QTextCursor, QApplication, QFont, QPalette, QColor, \
     QMessageBox
 
-from srxraylib.metrology import error_profile
+from srxraylib.metrology import profiles_simulation
 from Shadow import ShadowTools as ST
 from matplotlib import cm
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
@@ -26,16 +26,16 @@ except:
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
-class OWaps_error_profile(OWWidget):
-    name = "Surface Error Profile"
-    id = "aps_error_profile"
+class OWdabam_height_profile(OWWidget):
+    name = "Dabam Height Profile"
+    id = "dabam_height_profile"
     description = "Calculation of mirror surface error profile"
-    icon = "icons/aps.png"
+    icon = "icons/dabam.png"
     author = "Luca Rebuffi"
     maintainer_email = "srio@esrf.eu; luca.rebuffi@elettra.eu"
-    priority = 5
+    priority = 6
     category = ""
-    keywords = ["aps_error_profile"]
+    keywords = ["dabam_height_profile"]
 
     outputs = [{"name": "PreProcessor_Data",
                 "type": ShadowPreProcessorData,
@@ -60,7 +60,7 @@ class OWaps_error_profile(OWWidget):
     dimension_x = Setting(20.1)
     dimension_y = Setting(200.1)
 
-    error_type = Setting(error_profile.FIGURE_ERROR)
+    error_type = Setting(profiles_simulation.FIGURE_ERROR)
 
     rms_x = Setting(0.1)
     montecarlo_seed_x = Setting(8787)
@@ -152,10 +152,10 @@ class OWaps_error_profile(OWWidget):
         pushButton.clicked.connect(self.selectFile1D)
 
 
-        oasysgui.lineEdit(self.calculation_type_box_2, self, "conversion_factor_x", "Conversion from user unit to cm     (Y)", labelWidth=300,
+        oasysgui.lineEdit(self.calculation_type_box_2, self, "conversion_factor_x", "Conversion from user unit to cm (Y)", labelWidth=300,
                            valueType=float, orientation="horizontal")
 
-        oasysgui.lineEdit(self.calculation_type_box_2, self, "conversion_factor_y", "Conversion from user unit to cm/rad (Error)", labelWidth=300,
+        oasysgui.lineEdit(self.calculation_type_box_2, self, "conversion_factor_y", "Conversion from user unit to cm (Height Profile)", labelWidth=300,
                            valueType=float, orientation="horizontal")
 
         gui.separator(self.calculation_type_box_2)
@@ -253,7 +253,7 @@ class OWaps_error_profile(OWWidget):
 
             self.check_fields()
 
-            if self.error_type == error_profile.FIGURE_ERROR:
+            if self.error_type == profiles_simulation.FIGURE_ERROR:
                 rms_x = self.rms_x*1e-7 # from nm to cm
                 rms_y = self.rms_y*1e-7 # from nm to cm
             else:
@@ -261,7 +261,7 @@ class OWaps_error_profile(OWWidget):
                 rms_y = self.rms_y*1e-6 # from urad to rad
 
             if self.calculation_type == 0:
-                xx, yy, zz = error_profile.create_simulated_2D_profile_APS(self.dimension_y,
+                xx, yy, zz = profiles_simulation.create_simulated_2D_profile_APS(self.dimension_y,
                                                                            self.step_y,
                                                                            self.montecarlo_seed_y,
                                                                            self.error_type,
@@ -274,7 +274,7 @@ class OWaps_error_profile(OWWidget):
             else:
                 profile_1D_x, profile_1D_y = numpy.loadtxt(self.error_profile_1D_file_name, delimiter='\t', unpack=True)
 
-                xx, yy, zz = error_profile.create_2D_profile_from_1D(profile_1D_x*self.conversion_factor_x,
+                xx, yy, zz = profiles_simulation.create_2D_profile_from_1D(profile_1D_x*self.conversion_factor_x,
                                                                      profile_1D_y*self.conversion_factor_y,
                                                                      self.dimension_x,
                                                                      self.step_x,
@@ -379,7 +379,7 @@ class OWaps_error_profile(OWWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    w = OWaps_error_profile()
+    w = OWdabam_height_profile()
     w.show()
     app.exec()
     w.saveSettings()

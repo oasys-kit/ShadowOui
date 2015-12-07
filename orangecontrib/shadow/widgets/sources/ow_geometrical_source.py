@@ -8,13 +8,13 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
+from oasys.widgets.exchange import DataExchangeObject
 
 from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerOut, ShadowBeam, \
     ShadowSource
 from orangecontrib.shadow.util.shadow_util import ShadowPhysics
 from orangecontrib.shadow.widgets.gui import ow_source
 
-from srxraylib.oasys.exchange import DataExchangeObject
 
 
 class GeometricalSource(ow_source.Source):

@@ -12,7 +12,8 @@ import orangecontrib.shadow.widgets.preprocessor.xsh_bragg as xsh_bragg
 import orangecontrib.shadow.widgets.preprocessor.xsh_pre_mlayer as xsh_pre_mlayer
 import orangecontrib.shadow.widgets.preprocessor.xsh_prerefl as xsh_prerefl
 import orangecontrib.shadow.widgets.preprocessor.xsh_waviness as xsh_waviness
-import orangecontrib.shadow.widgets.preprocessor.aps_error_profile as aps_error_profile
+import orangecontrib.shadow.widgets.preprocessor.height_profile_simulator as height_profile_simulator
+import orangecontrib.shadow.widgets.preprocessor.dabam_height_profile as dabam_height_profile
 
 import orangecontrib.shadow.widgets.plots.ow_plot_xy as ow_plot_xy
 import orangecontrib.shadow.widgets.plots.ow_histogram as ow_histogram
@@ -149,16 +150,13 @@ class ShadowToolsMenu(OMenu):
             for node in self.canvas_main_window.current_document().scheme().nodes:
                 widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
 
-                if isinstance(widget, xsh_bragg.OWxsh_bragg):
+                if isinstance(widget, xsh_bragg.OWxsh_bragg) or \
+                        isinstance(widget, xsh_prerefl.OWxsh_prerefl) or \
+                        isinstance(widget, xsh_pre_mlayer.OWxsh_pre_mlayer):
                     widget.compute()
-                elif isinstance(widget, xsh_prerefl.OWxsh_prerefl):
-                    widget.compute()
-                elif isinstance(widget, xsh_pre_mlayer.OWxsh_pre_mlayer):
-                    widget.compute()
-                elif isinstance(widget, xsh_waviness.OWxsh_waviness):
-                    widget.calculate_waviness(not_interactive_mode=True)
-                    widget.generate_waviness_file(not_interactive_mode=True)
-                elif isinstance(widget, aps_error_profile.OWaps_error_profile):
+                elif isinstance(widget, xsh_waviness.OWxsh_waviness) or \
+                        isinstance(widget, dabam_height_profile.OWdabam_height_profile) or \
+                        isinstance(widget, height_profile_simulator.OWheight_profile_simulator):
                     widget.calculate_error_profile(not_interactive_mode=True)
                     widget.generate_error_profile_file(not_interactive_mode=True)
 
@@ -566,9 +564,12 @@ class ShadowToolsMenu(OMenu):
                     slit_widget.aperture_shape = slits_screen_before[index].aperture_shape
                     slit_widget.thickness = slits_screen_before[index].thickness
                     slit_widget.opt_const_file_name = slits_screen_before[index].opt_const_file_name
+
                     slit_widget.slit_width_xaxis = slits_screen_before[index].slit_width_xaxis
                     slit_widget.slit_height_zaxis = slits_screen_before[index].slit_height_zaxis
+
                     slit_widget.external_file_with_coordinate = slits_screen_before[index].external_file_with_coordinate
+
                     slit_widget.slit_center_xaxis  = slits_screen_before[index].slit_center_xaxis
                     slit_widget.slit_center_zaxis  = slits_screen_before[index].slit_center_zaxis
 
