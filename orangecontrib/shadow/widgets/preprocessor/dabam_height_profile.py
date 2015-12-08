@@ -1,11 +1,12 @@
 import sys
 
 import numpy
-from PyQt4.QtCore import QRect
+from PyQt4.QtCore import QRect, Qt
 from PyQt4.QtGui import QTextEdit, QTextCursor, QApplication, QFont, QPalette, QColor, \
-    QMessageBox
+    QMessageBox, QScrollArea, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView
+from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
 
-from srxraylib.metrology import profiles_simulation
+from srxraylib.metrology import profiles_simulation, dabam
 from Shadow import ShadowTools as ST
 from matplotlib import cm
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
@@ -48,41 +49,40 @@ class OWdabam_height_profile(OWWidget):
     WIDGET_WIDTH = 1100
     WIDGET_HEIGHT = 650
 
+    IMAGE_WIDTH = 800
+    IMAGE_HEIGHT = 800
+
     xx = None
     yy = None
     zz = None
 
-    calculation_type=Setting(0)
+    shape=Setting(0)
+    slope_error_from = Setting(0.0)
+    slope_error_to = Setting(1.5)
+    dimension_y_from = Setting(0.0)
+    dimension_y_to = Setting(200.0)
 
     step_x = Setting(1.0)
-    step_y = Setting(1.0)
-
     dimension_x = Setting(20.1)
-    dimension_y = Setting(200.1)
+    renormalize_y = Setting(0)
+    error_type_y = Setting(0)
+    rms_y = Setting(0.9)
 
-    error_type = Setting(profiles_simulation.FIGURE_ERROR)
+    dabam_profile_index = Setting(1)
 
-    rms_x = Setting(0.1)
-    montecarlo_seed_x = Setting(8787)
+    heigth_profile_file_name = Setting('mirror.dat')
 
-    rms_y = Setting(1)
-    montecarlo_seed_y = Setting(8788)
-
-    error_profile_1D_file_name = Setting("mirror_1D.dat")
-    conversion_factor_x = Setting(0.1)
-    conversion_factor_y = Setting(1e-6)
-
-    error_profile_file_name = Setting('mirror.dat')
+    tab=[]
 
     def __init__(self):
         super().__init__()
 
-        self.runaction = widget.OWAction("Calculate Error Profile", self)
-        self.runaction.triggered.connect(self.calculate_error_profile_ni)
+        self.runaction = widget.OWAction("Calculate Height Profile", self)
+        self.runaction.triggered.connect(self.calculate_heigth_profile_ni)
         self.addAction(self.runaction)
 
-        self.runaction = widget.OWAction("Generate Error Profile File", self)
-        self.runaction.triggered.connect(self.generate_error_profile_file_ni)
+        self.runaction = widget.OWAction("Generate Height Profile File", self)
+        self.runaction.triggered.connect(self.generate_heigth_profile_file_ni)
         self.addAction(self.runaction)
 
         geom = QApplication.desktop().availableGeometry()
@@ -91,102 +91,98 @@ class OWdabam_height_profile(OWWidget):
                                round(min(geom.width() * 0.98, self.WIDGET_WIDTH)),
                                round(min(geom.height() * 0.95, self.WIDGET_HEIGHT))))
 
+        # DABAM INITIALIZATION
+        self.server = dabam.dabam()
+        self.server.set_input_silent(True)
+
         gen_box = oasysgui.widgetBox(self.controlArea, "Error Profile Parameters", addSpace=True, orientation="horizontal",
                                       width=500)
 
         tabs_setting = gui.tabWidget(gen_box)
 
-        tab_input = oasysgui.createTabPage(tabs_setting, "Input Parameters")
+        tab_input = oasysgui.createTabPage(tabs_setting, "DABAM Input Parameters")
 
         tab_out = oasysgui.createTabPage(tabs_setting, "Output")
 
-        self.input_box = oasysgui.widgetBox(tab_input, "Input", addSpace=True, orientation="vertical", width=470)
+        self.input_box = oasysgui.widgetBox(tab_input, "Search Paramters", addSpace=True, orientation="vertical", width=470)
 
-        gui.comboBox(self.input_box, self, "calculation_type", label="Kind of Calculation", labelWidth=260,
-                     items=["Complete 2D simulation", "2D simulation from 1D profile"],
-                     callback=self.set_CalculationType, sendSelectedValue=False, orientation="horizontal")
+        gui.comboBox(self.input_box, self, "shape", label="Mirror Shape", labelWidth=300,
+                     items=["All", "Plane", "Cylindrical", "Elliptical", "Toroidal", "Spherical"],
+                     sendSelectedValue=False, orientation="horizontal")
 
-        gui.separator(self.input_box)
+        input_box_1 = oasysgui.widgetBox(self.input_box, "", addSpace=True, orientation="horizontal", width=450)
 
-        self.calculation_type_box_1 = oasysgui.widgetBox(tab_input, "", addSpace=True, orientation="vertical", width=460, height=300)
+        oasysgui.lineEdit(input_box_1, self, "slope_error_from", "Slope Error From (" + u"\u03BC" + "rad)",
+                           labelWidth=140, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(input_box_1, self, "slope_error_to", "To (" + u"\u03BC" + "rad)",
+                           labelWidth=50, valueType=float, orientation="horizontal")
 
-        oasysgui.lineEdit(self.calculation_type_box_1, self, "dimension_x", "Dimensions [cm]                        X (width)",
+        input_box_2 = oasysgui.widgetBox(self.input_box, "", addSpace=True, orientation="horizontal", width=450)
+
+        oasysgui.lineEdit(input_box_2, self, "dimension_y_from", "Mirror Length From (cm)",
+                           labelWidth=140, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(input_box_2, self, "dimension_y_to", "To (cm)",
+                           labelWidth=50, valueType=float, orientation="horizontal")
+
+        button = gui.button(self.input_box, self, "Search", callback=self.search_profiles)
+        button.setFixedHeight(25)
+        button.setFixedWidth(250)
+
+        self.table_box = oasysgui.widgetBox(tab_input, "Search Results", addSpace=True, orientation="vertical", width=470, height=300)
+
+        self.scrollarea = QScrollArea()
+        self.scrollarea.setMinimumWidth(450)
+
+        self.table_box.layout().addWidget(self.scrollarea, alignment=Qt.AlignHCenter)
+
+        self.table = QTableWidget(1, 5)
+        self.table.setAlternatingRowColors(True)
+        self.table.horizontalHeader().setResizeMode(QHeaderView.Fixed)
+
+        self.table.setColumnWidth(0, 40)
+        self.table.setColumnWidth(1, 70)
+        self.table.setColumnWidth(2, 70)
+        self.table.setColumnWidth(3, 110)
+        self.table.setColumnWidth(4, 110)
+
+        horHeaders = ["Entry", "Shape", "Length [cm]", "Height Error [nm]",  "Slope Error [" + u"\u03BC" + "rad]"]
+
+        self.table.setHorizontalHeaderLabels(horHeaders)
+        self.table.resizeRowsToContents()
+        self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table.itemClicked.connect(self.table_item_clicked)
+
+        self.scrollarea.setWidget(self.table)
+        self.scrollarea.setWidgetResizable(1)
+
+        self.output_profile_box = oasysgui.widgetBox(tab_input, "Surface Generation Parameters", addSpace=True, orientation="vertical", height=180, width=470)
+
+        oasysgui.lineEdit(self.output_profile_box, self, "dimension_x", "Width [cm]",
                            labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.calculation_type_box_1, self, "dimension_y",
-                           "                                                 Y (length)", labelWidth=300,
-                           valueType=float, orientation="horizontal")
-
-        oasysgui.lineEdit(self.calculation_type_box_1, self, "step_x", "Step [cm]                                   X (width)",
+        oasysgui.lineEdit(self.output_profile_box, self, "step_x", "Step Width [cm]",
                            labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.calculation_type_box_1, self, "step_y",
-                           "                                                 Y (length)", labelWidth=300, valueType=float,
-                           orientation="horizontal")
 
-        gui.separator(self.calculation_type_box_1)
+        gui.separator(self.output_profile_box)
 
-        gui.comboBox(self.calculation_type_box_1, self, "error_type", label="Error Type", labelWidth=270,
+        gui.comboBox(self.output_profile_box, self, "renormalize_y", label="Renormalize Length Profile to different RMS", labelWidth=300,
+                     items=["No", "Yes"], callback=self.set_RenormalizeY, sendSelectedValue=False, orientation="horizontal")
+
+        self.output_profile_box_1 = oasysgui.widgetBox(self.output_profile_box, "", addSpace=True, orientation="vertical", width=450)
+
+        gui.comboBox(self.output_profile_box_1, self, "error_type_y", label="Normalization to", labelWidth=270,
                      items=["Figure Error (nm)", "Slope Error (" + u"\u03BC" + "rad)"],
                      sendSelectedValue=False, orientation="horizontal")
 
-        oasysgui.lineEdit(self.calculation_type_box_1, self, "rms_x", "Rms                                          X (width)",
-                           labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.calculation_type_box_1, self, "rms_y",
-                           "                                                 Y (length)", labelWidth=300, valueType=float,
-                           orientation="horizontal")
-
-        oasysgui.lineEdit(self.calculation_type_box_1, self, "montecarlo_seed_x", "Monte Carlo initial seed        X (width)", labelWidth=300,
-                           valueType=int, orientation="horizontal")
-
-        oasysgui.lineEdit(self.calculation_type_box_1, self, "montecarlo_seed_y",
-                           "                                                 Y (length)", labelWidth=300, valueType=int,
-                           orientation="horizontal")
-
-        self.calculation_type_box_2 = oasysgui.widgetBox(tab_input, "", addSpace=True, orientation="vertical", width=460, height=300)
-
-        self.select_file_box_1 = oasysgui.widgetBox(self.calculation_type_box_2, "", addSpace=True, orientation="horizontal")
-
-        self.le_error_profile_1D_file_name = oasysgui.lineEdit(self.select_file_box_1, self, "error_profile_1D_file_name", "1D Profile File Name",
-                                                        labelWidth=120, valueType=str, orientation="horizontal")
-
-        pushButton = gui.button(self.select_file_box_1, self, "...")
-        pushButton.clicked.connect(self.selectFile1D)
-
-
-        oasysgui.lineEdit(self.calculation_type_box_2, self, "conversion_factor_x", "Conversion from user unit to cm (Y)", labelWidth=300,
-                           valueType=float, orientation="horizontal")
-
-        oasysgui.lineEdit(self.calculation_type_box_2, self, "conversion_factor_y", "Conversion from user unit to cm (Height Profile)", labelWidth=300,
-                           valueType=float, orientation="horizontal")
-
-        gui.separator(self.calculation_type_box_2)
-
-        oasysgui.lineEdit(self.calculation_type_box_2, self, "dimension_x", "Dimensions [cm]                        X (width)",
+        oasysgui.lineEdit(self.output_profile_box_1, self, "rms_y", "Rms Value",
                            labelWidth=300, valueType=float, orientation="horizontal")
 
-        oasysgui.lineEdit(self.calculation_type_box_2, self, "step_x", "Step [cm]                                   X (width)",
-                           labelWidth=300, valueType=float, orientation="horizontal")
-
-        gui.separator(self.calculation_type_box_2)
-
-        gui.comboBox(self.calculation_type_box_2, self, "error_type", label="Error Type", labelWidth=270,
-                     items=["Figure Error (nm)", "Slope Error (" + u"\u03BC" + "rad)"],
-                     sendSelectedValue=False, orientation="horizontal")
-
-        gui.separator(self.calculation_type_box_2)
-
-        oasysgui.lineEdit(self.calculation_type_box_2, self, "rms_x", "Rms                                          X (width)",
-                           labelWidth=300, valueType=float, orientation="horizontal")
-
-        oasysgui.lineEdit(self.calculation_type_box_2, self, "montecarlo_seed_x", "Monte Carlo initial seed        X (width)", labelWidth=300,
-                           valueType=int, orientation="horizontal")
-
-        self.set_CalculationType()
+        self.set_RenormalizeY()
 
         self.output_box = oasysgui.widgetBox(tab_input, "Outputs", addSpace=True, orientation="vertical", width=470)
 
         self.select_file_box = oasysgui.widgetBox(self.output_box, "", addSpace=True, orientation="horizontal")
 
-        self.le_error_profile_file_name = oasysgui.lineEdit(self.select_file_box, self, "error_profile_file_name", "Output File Name",
+        self.le_heigth_profile_file_name = oasysgui.lineEdit(self.select_file_box, self, "heigth_profile_file_name", "Output File Name",
                                                         labelWidth=120, valueType=str, orientation="horizontal")
 
         pushButton = gui.button(self.select_file_box, self, "...")
@@ -200,11 +196,11 @@ class OWdabam_height_profile(OWWidget):
 
         button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
-        button = gui.button(button_box, self, "Calculate Error Profile", callback=self.calculate_error_profile)
+        button = gui.button(button_box, self, "Calculate Height Profile", callback=self.calculate_heigth_profile)
         button.setFixedHeight(45)
         button.setFixedWidth(170)
 
-        button = gui.button(button_box, self, "Generate Error Profile File", callback=self.generate_error_profile_file)
+        button = gui.button(button_box, self, "Generate Height Profile File", callback=self.generate_heigth_profile_file)
         font = QFont(button.font())
         font.setBold(True)
         button.setFont(font)
@@ -226,62 +222,225 @@ class OWdabam_height_profile(OWWidget):
 
         gui.rubber(self.controlArea)
 
-        self.figure = Figure(figsize=(600, 600))
+        self.tab = []
+        self.tabs = gui.tabWidget(self.mainArea)
+
+        self.initializeTabs()
+
+        gui.rubber(self.mainArea)
+
+
+    def initializeTabs(self):
+        current_tab = self.tabs.currentIndex()
+
+        size = len(self.tab)
+        indexes = range(0, size)
+        for index in indexes:
+            self.tabs.removeTab(size-1-index)
+
+        self.tab = [gui.createTabPage(self.tabs, "Height Error"),
+                    gui.createTabPage(self.tabs, "Slope Error"),
+                    gui.createTabPage(self.tabs, "P.S.D. Height"),
+                    gui.createTabPage(self.tabs, "Cumulative S.D. Height"),
+                    gui.createTabPage(self.tabs, "Covariance"),
+                    gui.createTabPage(self.tabs, "Generated 2D Profile"),
+        ]
+
+        for tab in self.tab:
+            tab.setFixedHeight(self.IMAGE_HEIGHT)
+            tab.setFixedWidth(self.IMAGE_WIDTH)
+
+        self.plot_canvas = [None, None, None, None, None, None]
+
+        self.plot_canvas[0] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+        self.plot_canvas[0].setDefaultPlotLines(True)
+        self.plot_canvas[0].setActiveCurveColor(color='darkblue')
+        self.plot_canvas[0].setGraphXLabel("Y [cm]")
+        self.plot_canvas[0].setGraphYLabel("Z [nm]")
+        self.plot_canvas[0].setGraphTitle("Heights Profile")
+        self.plot_canvas[0].setDrawModeEnabled(True, 'rectangle')
+        self.plot_canvas[0].setZoomModeEnabled(True)
+
+        self.plot_canvas[1] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+        self.plot_canvas[1].setDefaultPlotLines(True)
+        self.plot_canvas[1].setActiveCurveColor(color='darkblue')
+        self.plot_canvas[1].setGraphXLabel("Y [cm]")
+        self.plot_canvas[1].setGraphYLabel("Zp [$\mu$rad]")
+        self.plot_canvas[1].setGraphTitle("Slopes Profile")
+        self.plot_canvas[1].setDrawModeEnabled(True, 'rectangle')
+        self.plot_canvas[1].setZoomModeEnabled(True)
+
+        self.plot_canvas[2] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+        self.plot_canvas[2].setDefaultPlotLines(True)
+        self.plot_canvas[2].setActiveCurveColor(color='darkblue')
+        self.plot_canvas[2].setGraphXLabel("f [m^-1]")
+        self.plot_canvas[2].setGraphYLabel("PSD [m^3]")
+        self.plot_canvas[2].setGraphTitle("Power Spectral Density of Heights Profile")
+        self.plot_canvas[2].setDrawModeEnabled(True, 'rectangle')
+        self.plot_canvas[2].setZoomModeEnabled(True)
+
+        self.plot_canvas[3] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+        self.plot_canvas[3].setDefaultPlotLines(True)
+        self.plot_canvas[3].setActiveCurveColor(color='darkblue')
+        self.plot_canvas[3].setGraphXLabel("f [m^-1]")
+        self.plot_canvas[3].setGraphYLabel("CSD [m^3]")
+        self.plot_canvas[3].setGraphTitle("Cumulative Spectral Density of Heights Profile")
+        self.plot_canvas[3].setDrawModeEnabled(True, 'rectangle')
+        self.plot_canvas[3].setZoomModeEnabled(True)
+
+        self.plot_canvas[4] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+        self.plot_canvas[4].setDefaultPlotLines(True)
+        self.plot_canvas[4].setActiveCurveColor(color='darkblue')
+        self.plot_canvas[4].setGraphXLabel("Length [m]")
+        self.plot_canvas[4].setGraphYLabel("Heights Autocovariance")
+        self.plot_canvas[4].setGraphTitle("Heights Autocovariance")
+        self.plot_canvas[4].setDrawModeEnabled(True, 'rectangle')
+        self.plot_canvas[4].setZoomModeEnabled(True)
+
+        self.figure = Figure(figsize=(self.IMAGE_WIDTH, self.IMAGE_HEIGHT))
         self.figure.patch.set_facecolor('white')
 
         self.axis = self.figure.add_subplot(111, projection='3d')
 
         self.axis.set_xlabel("X (cm)")
         self.axis.set_ylabel("Y (cm)")
-        self.axis.set_zlabel("Z (cm)")
+        self.axis.set_zlabel("Z (nm)")
 
-        self.figure_canvas = FigureCanvasQTAgg(self.figure)
-        self.mainArea.layout().addWidget(self.figure_canvas)
+        self.plot_canvas[5] = FigureCanvasQTAgg(self.figure)
 
-        gui.rubber(self.mainArea)
+        for index in range(0, 6):
+            self.tab[index].layout().addWidget(self.plot_canvas[index])
 
-    def set_CalculationType(self):
-        self.calculation_type_box_1.setVisible(self.calculation_type==0)
-        self.calculation_type_box_2.setVisible(self.calculation_type==1)
+        self.tabs.setCurrentIndex(current_tab)
 
-    def calculate_error_profile_ni(self):
-        self.calculate_error_profile(not_interactive_mode=True)
 
-    def calculate_error_profile(self, not_interactive_mode=False):
+    def plot_dabam_graph(self, plot_canvas_index, curve_name, x_values, y_values, xtitle, ytitle, color='blue', replace=True):
+        self.plot_canvas[plot_canvas_index].addCurve(x_values, y_values, curve_name, symbol='', color=color, replace=replace) #'+', '^', ','
+        self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
+        self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
+        self.plot_canvas[plot_canvas_index].replot()
+
+    def set_RenormalizeY(self):
+        self.output_profile_box_1.setVisible(self.renormalize_y==1)
+
+    def table_item_clicked(self):
+        if self.table.selectionModel().hasSelection():
+            row = self.table.selectionModel().selectedRows()[0].row()
+            entry = int(self.table.item(row, 0).text())
+
+            self.server.load(entry)
+
+            self.plot_dabam_graph(0, "heights_profile", 1e2*self.server.y, 1e7*self.server.zHeights, "Y [cm]", "Z [nm]")
+            self.plot_dabam_graph(1, "slopes_profile", 1e2*self.server.y, 1e6*self.server.zSlopes, "Y [cm]", "Zp [$\mu$rad]")
+            
+            y = self.server.f**(self.server.powerlaw["hgt_pendent"])*10**self.server.powerlaw["hgt_shift"]
+            i0 = self.server.powerlaw["index_from"]
+            i1 = self.server.powerlaw["index_to"]
+            beta = -self.server.powerlaw["hgt_pendent"]
+
+            self.plot_dabam_graph(2, "psd_heights_2", self.server.f, self.server.psdHeights, "f [m^-1]", "PSD [m^3]")
+            self.plot_dabam_graph(2, "psd_heights_1", self.server.f, y, "f [m^-1]", "PSD [m^3]", color='red', replace=False)
+            self.plot_dabam_graph(2, "psd_heights_3", self.server.f[i0:i1], y[i0:i1], "f [m^-1]", "PSD [m^3]", color='green', replace=False)
+
+            self.plot_canvas[2].setXAxisLogarithmic(True)
+            self.plot_canvas[2].setYAxisLogarithmic(True)
+            self.plot_canvas[2].setGraphTitle("PSD of heights profile (beta=%.2f,Df=%.2f)"%(beta,(5-beta)/2))
+
+            self.plot_dabam_graph(3, "csd", self.server.f,self.server.csd_heights(), "f [m^-1]", "CSD [m^3]")
+            self.plot_canvas[3].setXAxisLogarithmic(True)
+
+            c1,c2,c3 = dabam.autocorrelationfunction(self.server.y,self.server.zHeights)
+
+            self.plot_dabam_graph(4, "acf", c1[0:-1], c2, "Length [m]", "Heights Autocovariance")
+            self.plot_canvas[4].setGraphTitle("Heights Autocovariance. Autocorrelation length (acf_h=0.5)=%.3f m"%(c3))
+
+        if (self.tabs.currentIndex()==5): self.tabs.setCurrentIndex(0)
+
+    def search_profiles(self):
+        self.table.itemClicked.disconnect(self.table_item_clicked)
+        self.table.clear()
+
+        row_count = self.table.rowCount()
+        for n in range(0, row_count):
+            self.table.removeRow(0)
+
+        profiles = dabam.dabam_summary_dictionary()
+
+        matching_profiles = []
+        for profile in profiles:
+            add_profile = True
+            if self.shape > 0: add_profile = profile["surface"] == self.get_dabam_shape()
+            if add_profile: add_profile = profile["slp_err"] >= self.slope_error_from*1e-6 and profile["slp_err"] <= self.slope_error_to*1e-6
+            if add_profile: add_profile = profile["length"] >= self.dimension_y_from*1e-2 and profile["length"] <= self.dimension_y_to*1e-2
+            if add_profile: matching_profiles.append(profile)
+
+        for index in range(0, len(matching_profiles)):
+            self.table.insertRow(0)
+
+        for index in range(0, len(matching_profiles)):
+            table_item = QTableWidgetItem(str(matching_profiles[index]["entry"]))
+            table_item.setTextAlignment(Qt.AlignCenter)
+            self.table.setItem(index, 0, table_item)
+            table_item = QTableWidgetItem(str(matching_profiles[index]["surface"]))
+            table_item.setTextAlignment(Qt.AlignLeft)
+            self.table.setItem(index, 1, table_item)
+            table_item = QTableWidgetItem(str(numpy.round(matching_profiles[index]["length"]*1e2, 3)))
+            table_item.setTextAlignment(Qt.AlignRight)
+            self.table.setItem(index, 2, table_item)
+            table_item = QTableWidgetItem(str(numpy.round(matching_profiles[index]["hgt_err"]*1e9, 3)))
+            table_item.setTextAlignment(Qt.AlignRight)
+            self.table.setItem(index, 3, table_item)
+            table_item = QTableWidgetItem(str(numpy.round(matching_profiles[index]["slp_err"]*1e6, 3)))
+            table_item.setTextAlignment(Qt.AlignRight)
+            self.table.setItem(index, 4, table_item)
+
+        horHeaders = ["Entry", "Shape", "Length [cm]", "Height Error [nm]",  "Slope Error [" + "\u03BC" + "rad]"]
+
+        self.table.setHorizontalHeaderLabels(horHeaders)
+        self.table.resizeRowsToContents()
+        self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
+
+        self.table.itemClicked.connect(self.table_item_clicked)
+
+    def get_dabam_shape(self):
+        if self.shape == 1: return "plane"
+        elif self.shape == 2: return "cylindrical"
+        elif self.shape == 3: return "elliptical"
+        elif self.shape == 4: return "toroidal"
+        elif self.shape == 5: return "spherical"
+
+    def calculate_heigth_profile_ni(self):
+        self.calculate_heigth_profile(not_interactive_mode=True)
+
+    def calculate_heigth_profile(self, not_interactive_mode=False):
         try:
+            if self.server.y is None: raise Exception("No Profile Selected")
+
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
             self.check_fields()
 
-            if self.error_type == profiles_simulation.FIGURE_ERROR:
-                rms_x = self.rms_x*1e-7 # from nm to cm
-                rms_y = self.rms_y*1e-7 # from nm to cm
+            combination = "EF"
+
+            profile_1D_y_x = 1e2*self.server.y
+            profile_1D_y_y = 1e2*self.server.zHeights
+
+            if self.renormalize_y == 0:
+                rms_y = None
             else:
-                rms_x = self.rms_x*1e-6 # from urad to rad
-                rms_y = self.rms_y*1e-6 # from urad to rad
+                if self.error_type_y == profiles_simulation.FIGURE_ERROR:
+                    rms_y = self.rms_y*1e-7 # from nm to cm
+                else:
+                    rms_y = self.rms_y*1e-6 # from urad to rad
 
-            if self.calculation_type == 0:
-                xx, yy, zz = profiles_simulation.create_simulated_2D_profile_APS(self.dimension_y,
-                                                                           self.step_y,
-                                                                           self.montecarlo_seed_y,
-                                                                           self.error_type,
-                                                                           rms_y,
-                                                                           self.dimension_x,
-                                                                           self.step_x,
-                                                                           self.montecarlo_seed_x,
-                                                                           self.error_type,
-                                                                           rms_x)
-            else:
-                profile_1D_x, profile_1D_y = numpy.loadtxt(self.error_profile_1D_file_name, delimiter='\t', unpack=True)
-
-                xx, yy, zz = profiles_simulation.create_2D_profile_from_1D(profile_1D_x*self.conversion_factor_x,
-                                                                     profile_1D_y*self.conversion_factor_y,
-                                                                     self.dimension_x,
-                                                                     self.step_x,
-                                                                     self.montecarlo_seed_x,
-                                                                     self.error_type,
-                                                                     rms_x)
-
+            xx, yy, zz = profiles_simulation.simulate_profile_2D(combination = combination,
+                                                                 error_type_l = self.error_type_y,
+                                                                 rms_l = rms_y,
+                                                                 x_l = profile_1D_y_x,
+                                                                 y_l = profile_1D_y_y,
+                                                                 mirror_width = self.dimension_x,
+                                                                 step_w = self.step_x,
+                                                                 rms_w = 0.0)
             self.xx = xx
             self.yy = yy
             self.zz = zz # in cm
@@ -289,22 +448,34 @@ class OWdabam_height_profile(OWWidget):
             self.axis.clear()
 
             x_to_plot, y_to_plot = numpy.meshgrid(xx, yy)
+            z_to_plot = zz*1e7 #nm
 
-            self.axis.plot_surface(x_to_plot, y_to_plot, self.zz,
+            self.axis.plot_surface(x_to_plot, y_to_plot, z_to_plot,
                                    rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
 
+            slope, sloperms = ST.slopes(zz.T, xx, yy)
+
+            title = ' Slope error rms in X direction: %f arcsec' % (sloperms[0]) + '\n' + \
+                    '                                            : %f urad' % (sloperms[2]) + '\n' + \
+                    ' Slope error rms in Y direction: %f arcsec' % (sloperms[1]) + '\n' + \
+                    '                                            : %f urad' % (sloperms[3])
             self.axis.set_xlabel("X (cm)")
             self.axis.set_ylabel("Y (cm)")
-            self.axis.set_zlabel("Z (cm)")
+            self.axis.set_zlabel("Z (nm)")
 
-            self.axis.set_title("Generated 2D Error Profile")
+            self.axis.set_title(title)
             self.axis.mouse_init()
 
             if not not_interactive_mode:
-                self.figure_canvas.draw()
+                try:
+                    self.plot_canvas[5].draw()
+                except:
+                    pass
+
+                self.tabs.setCurrentIndex(5)
 
                 QMessageBox.information(self, "QMessageBox.information()",
-                                        "Error Profile calculated: if the result is satisfactory,\nclick \'Generate Error Profile File\' to complete the operation ",
+                                        "Height Profile calculated: if the result is satisfactory,\nclick \'Generate Height Profile File\' to complete the operation ",
                                         QMessageBox.Ok)
         except Exception as exception:
             QMessageBox.critical(self, "Error",
@@ -312,25 +483,25 @@ class OWdabam_height_profile(OWWidget):
                                  QMessageBox.Ok)
             #raise exception
 
-    def generate_error_profile_file_ni(self):
-        self.generate_error_profile_file(not_interactive_mode=True)
+    def generate_heigth_profile_file_ni(self):
+        self.generate_heigth_profile_file(not_interactive_mode=True)
 
-    def generate_error_profile_file(self, not_interactive_mode=False):
+    def generate_heigth_profile_file(self, not_interactive_mode=False):
         if not self.zz is None and not self.yy is None and not self.xx is None:
             try:
-                congruence.checkDir(self.error_profile_file_name)
+                congruence.checkDir(self.heigth_profile_file_name)
 
                 sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
-                ST.write_shadow_surface(self.zz, self.xx, self.yy, outFile=congruence.checkFileName(self.error_profile_file_name))
+                ST.write_shadow_surface(self.zz, self.xx, self.yy, outFile=congruence.checkFileName(self.heigth_profile_file_name))
                 if not not_interactive_mode:
                     QMessageBox.information(self, "QMessageBox.information()",
-                                            "Error Profile file " + self.error_profile_file_name + " written on disk",
+                                            "Height Profile file " + self.heigth_profile_file_name + " written on disk",
                                             QMessageBox.Ok)
 
-                self.send("PreProcessor_Data", ShadowPreProcessorData(error_profile_data_file=self.error_profile_file_name,
+                self.send("PreProcessor_Data", ShadowPreProcessorData(error_profile_data_file=self.heigth_profile_file_name,
                                                                       error_profile_x_dim=self.dimension_x,
-                                                                      error_profile_y_dim=self.dimension_y))
+                                                                      error_profile_y_dim=1e2*(self.server.y[-1]-self.server.y[0])))
             except Exception as exception:
                 QMessageBox.critical(self, "Error",
                                      exception.args[0],
@@ -340,28 +511,16 @@ class OWdabam_height_profile(OWWidget):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):
             try:
                 self.resetSettings()
-                self.reload_harmonics_table()
             except:
                 pass
 
     def check_fields(self):
-        if self.calculation_type == 0:
-            self.dimension_x = congruence.checkStrictlyPositiveNumber(self.dimension_x, "Dimension X")
-            self.dimension_y = congruence.checkStrictlyPositiveNumber(self.dimension_y, "Dimension Y")
-            self.step_x = congruence.checkStrictlyPositiveNumber(self.step_x, "Step X")
-            self.step_y = congruence.checkStrictlyPositiveNumber(self.step_y, "Step Y")
-            self.rms_x = congruence.checkPositiveNumber(self.rms_x, "Rms X")
+        self.dimension_x = congruence.checkStrictlyPositiveNumber(self.dimension_x, "Dimension X")
+        self.step_x = congruence.checkStrictlyPositiveNumber(self.step_x, "Step X")
+        if self.renormalize_y == 1:
             self.rms_y = congruence.checkPositiveNumber(self.rms_y, "Rms Y")
-            self.montecarlo_seed_x = congruence.checkPositiveNumber(self.montecarlo_seed_x, "Monte Carlo initial seed X")
-            self.montecarlo_seed_y = congruence.checkPositiveNumber(self.montecarlo_seed_y, "Monte Carlo initial seed y")
-        else:
-            congruence.checkFile(self.error_profile_1D_file_name)
-            self.dimension_x = congruence.checkStrictlyPositiveNumber(self.dimension_x, "Dimension X")
-            self.step_x = congruence.checkStrictlyPositiveNumber(self.step_x, "Step X")
-            self.rms_x = congruence.checkPositiveNumber(self.rms_x, "Rms X")
-            self.montecarlo_seed_x = congruence.checkPositiveNumber(self.montecarlo_seed_x, "Monte Carlo initial seed X")
 
-        congruence.checkDir(self.error_profile_file_name)
+        congruence.checkDir(self.heigth_profile_file_name)
 
     def writeStdOut(self, text):
         cursor = self.shadow_output.textCursor()
@@ -370,11 +529,8 @@ class OWdabam_height_profile(OWWidget):
         self.shadow_output.setTextCursor(cursor)
         self.shadow_output.ensureCursorVisible()
 
-    def selectFile1D(self):
-        self.le_error_profile_1D_file_name.setText(oasysgui.selectFileFromDialog(self, self.error_profile_1D_file_name, "Select 1D Error Profile File", file_extension_filter="*.dat; *.txt"))
-
     def selectFile(self):
-        self.le_error_profile_file_name.setText(oasysgui.selectFileFromDialog(self, self.error_profile_file_name, "Select Output File", file_extension_filter="*.dat"))
+        self.le_heigth_profile_file_name.setText(oasysgui.selectFileFromDialog(self, self.heigth_profile_file_name, "Select Output File", file_extension_filter="*.dat"))
 
 
 if __name__ == "__main__":

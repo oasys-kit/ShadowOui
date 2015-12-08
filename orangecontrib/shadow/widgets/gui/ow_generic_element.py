@@ -20,7 +20,6 @@ class GenericElement(ow_automatic_element.AutomaticElement):
     view_type=Setting(2)
 
     plotted_beam=None
-    tab=[]
 
     def __init__(self, show_automatic_box=True):
         super().__init__(show_automatic_box)
@@ -32,7 +31,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                                             labelWidth=220,
                                             items=["Detailed Plot", "Preview", "None"],
                                             callback=self.set_PlotQuality, sendSelectedValue=False, orientation="horizontal")
-
+        self.tab = []
         self.tabs = gui.tabWidget(self.mainArea)
 
         self.initializeTabs()

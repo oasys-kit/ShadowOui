@@ -2456,7 +2456,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     self.modified_surface = 1
                     self.ms_type_of_defect = 2
 
-                    self.set_TypeOfDefect()
+                    self.set_ModifiedSurface()
 
                     if self.is_infinite == 1:
                         changed = False
