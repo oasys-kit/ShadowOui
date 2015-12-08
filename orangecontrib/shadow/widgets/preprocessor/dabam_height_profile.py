@@ -106,41 +106,43 @@ class OWdabam_height_profile(OWWidget):
 
         tab_out = oasysgui.createTabPage(tabs_setting, "Output")
 
-        self.input_box = oasysgui.widgetBox(tab_input, "Search Paramters", addSpace=True, orientation="vertical", width=470)
+        input_box = oasysgui.widgetBox(tab_input, "Search Paramters", addSpace=True, orientation="vertical", width=470)
 
-        gui.comboBox(self.input_box, self, "shape", label="Mirror Shape", labelWidth=300,
+        gui.comboBox(input_box, self, "shape", label="Mirror Shape", labelWidth=300,
                      items=["All", "Plane", "Cylindrical", "Elliptical", "Toroidal", "Spherical"],
                      sendSelectedValue=False, orientation="horizontal")
 
-        input_box_1 = oasysgui.widgetBox(self.input_box, "", addSpace=True, orientation="horizontal", width=450)
+        gui.separator(input_box)
+        
+        input_box_1 = oasysgui.widgetBox(input_box, "", addSpace=True, orientation="horizontal", width=450)
 
         oasysgui.lineEdit(input_box_1, self, "slope_error_from", "Slope Error From (" + u"\u03BC" + "rad)",
                            labelWidth=140, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(input_box_1, self, "slope_error_to", "To (" + u"\u03BC" + "rad)",
                            labelWidth=50, valueType=float, orientation="horizontal")
 
-        input_box_2 = oasysgui.widgetBox(self.input_box, "", addSpace=True, orientation="horizontal", width=450)
+        input_box_2 = oasysgui.widgetBox(input_box, "", addSpace=True, orientation="horizontal", width=450)
 
         oasysgui.lineEdit(input_box_2, self, "dimension_y_from", "Mirror Length From (cm)",
                            labelWidth=140, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(input_box_2, self, "dimension_y_to", "To (cm)",
                            labelWidth=50, valueType=float, orientation="horizontal")
 
-        button = gui.button(self.input_box, self, "Search", callback=self.search_profiles)
+        button = gui.button(input_box, self, "Search", callback=self.search_profiles)
         button.setFixedHeight(25)
         button.setFixedWidth(450)
 
-        self.table_box = oasysgui.widgetBox(tab_input, "Search Results", addSpace=True, orientation="vertical", width=470, height=300)
+        table_box = oasysgui.widgetBox(tab_input, "Search Results", addSpace=True, orientation="vertical", width=470, height=300)
 
-        gui.comboBox(self.table_box, self, "use_undetrended", label="Use Undetrended Profile", labelWidth=300,
+        gui.comboBox(table_box, self, "use_undetrended", label="Use Undetrended Profile", labelWidth=300,
                      items=["No", "Yes"], callback=self.table_item_clicked, sendSelectedValue=False, orientation="horizontal")
 
-        gui.separator(self.table_box)
+        gui.separator(table_box)
 
         self.scrollarea = QScrollArea()
         self.scrollarea.setMinimumWidth(450)
 
-        self.table_box.layout().addWidget(self.scrollarea, alignment=Qt.AlignHCenter)
+        table_box.layout().addWidget(self.scrollarea, alignment=Qt.AlignHCenter)
 
         self.table = QTableWidget(1, 5)
         self.table.setAlternatingRowColors(True)
@@ -162,19 +164,19 @@ class OWdabam_height_profile(OWWidget):
         self.scrollarea.setWidget(self.table)
         self.scrollarea.setWidgetResizable(1)
 
-        self.output_profile_box = oasysgui.widgetBox(tab_input, "Surface Generation Parameters", addSpace=True, orientation="vertical", height=180, width=470)
+        output_profile_box = oasysgui.widgetBox(tab_input, "Surface Generation Parameters", addSpace=True, orientation="vertical", height=180, width=470)
 
-        oasysgui.lineEdit(self.output_profile_box, self, "dimension_x", "Width [cm]",
+        oasysgui.lineEdit(output_profile_box, self, "dimension_x", "Width [cm]",
                            labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.output_profile_box, self, "step_x", "Step Width [cm]",
+        oasysgui.lineEdit(output_profile_box, self, "step_x", "Step Width [cm]",
                            labelWidth=300, valueType=float, orientation="horizontal")
 
-        gui.separator(self.output_profile_box)
+        gui.separator(output_profile_box)
 
-        gui.comboBox(self.output_profile_box, self, "renormalize_y", label="Renormalize Length Profile to different RMS", labelWidth=300,
+        gui.comboBox(output_profile_box, self, "renormalize_y", label="Renormalize Length Profile to different RMS", labelWidth=300,
                      items=["No", "Yes"], callback=self.set_RenormalizeY, sendSelectedValue=False, orientation="horizontal")
 
-        self.output_profile_box_1 = oasysgui.widgetBox(self.output_profile_box, "", addSpace=True, orientation="vertical", width=450)
+        self.output_profile_box_1 = oasysgui.widgetBox(output_profile_box, "", addSpace=True, orientation="vertical", width=450)
 
         gui.comboBox(self.output_profile_box_1, self, "error_type_y", label="Normalization to", labelWidth=270,
                      items=["Figure Error (nm)", "Slope Error (" + u"\u03BC" + "rad)"],
@@ -185,14 +187,14 @@ class OWdabam_height_profile(OWWidget):
 
         self.set_RenormalizeY()
 
-        self.output_box = oasysgui.widgetBox(tab_input, "Outputs", addSpace=True, orientation="vertical", width=470)
+        output_box = oasysgui.widgetBox(tab_input, "Outputs", addSpace=True, orientation="vertical", width=470)
 
-        self.select_file_box = oasysgui.widgetBox(self.output_box, "", addSpace=True, orientation="horizontal")
+        select_file_box = oasysgui.widgetBox(output_box, "", addSpace=True, orientation="horizontal")
 
-        self.le_heigth_profile_file_name = oasysgui.lineEdit(self.select_file_box, self, "heigth_profile_file_name", "Output File Name",
+        self.le_heigth_profile_file_name = oasysgui.lineEdit(select_file_box, self, "heigth_profile_file_name", "Output File Name",
                                                         labelWidth=120, valueType=str, orientation="horizontal")
 
-        pushButton = gui.button(self.select_file_box, self, "...")
+        pushButton = gui.button(select_file_box, self, "...")
         pushButton.clicked.connect(self.selectFile)
 
         self.shadow_output = QTextEdit()
@@ -379,33 +381,29 @@ class OWdabam_height_profile(OWWidget):
         for n in range(0, row_count):
             self.table.removeRow(0)
 
-        profiles = dabam.dabam_summary_dictionary()
+        profiles = dabam.dabam_summary_dictionary(surface=self.get_dabam_shape(),
+                                                  slp_err_from=self.slope_error_from*1e-6,
+                                                  slp_err_to=self.slope_error_to*1e-6,
+                                                  length_from=self.dimension_y_from*1e-2,
+                                                  length_to=self.dimension_y_to*1e-2)
 
-        matching_profiles = []
-        for profile in profiles:
-            add_profile = True
-            if self.shape > 0: add_profile = profile["surface"] == self.get_dabam_shape()
-            if add_profile: add_profile = profile["slp_err"] >= self.slope_error_from*1e-6 and profile["slp_err"] <= self.slope_error_to*1e-6
-            if add_profile: add_profile = profile["length"] >= self.dimension_y_from*1e-2 and profile["length"] <= self.dimension_y_to*1e-2
-            if add_profile: matching_profiles.append(profile)
-
-        for index in range(0, len(matching_profiles)):
+        for index in range(0, len(profiles)):
             self.table.insertRow(0)
 
-        for index in range(0, len(matching_profiles)):
-            table_item = QTableWidgetItem(str(matching_profiles[index]["entry"]))
+        for index in range(0, len(profiles)):
+            table_item = QTableWidgetItem(str(profiles[index]["entry"]))
             table_item.setTextAlignment(Qt.AlignCenter)
             self.table.setItem(index, 0, table_item)
-            table_item = QTableWidgetItem(str(matching_profiles[index]["surface"]))
+            table_item = QTableWidgetItem(str(profiles[index]["surface"]))
             table_item.setTextAlignment(Qt.AlignLeft)
             self.table.setItem(index, 1, table_item)
-            table_item = QTableWidgetItem(str(numpy.round(matching_profiles[index]["length"]*1e2, 3)))
+            table_item = QTableWidgetItem(str(numpy.round(profiles[index]["length"]*1e2, 3)))
             table_item.setTextAlignment(Qt.AlignRight)
             self.table.setItem(index, 2, table_item)
-            table_item = QTableWidgetItem(str(numpy.round(matching_profiles[index]["hgt_err"]*1e9, 3)))
+            table_item = QTableWidgetItem(str(numpy.round(profiles[index]["hgt_err"]*1e9, 3)))
             table_item.setTextAlignment(Qt.AlignRight)
             self.table.setItem(index, 3, table_item)
-            table_item = QTableWidgetItem(str(numpy.round(matching_profiles[index]["slp_err"]*1e6, 3)))
+            table_item = QTableWidgetItem(str(numpy.round(profiles[index]["slp_err"]*1e6, 3)))
             table_item.setTextAlignment(Qt.AlignRight)
             self.table.setItem(index, 4, table_item)
 
@@ -418,7 +416,8 @@ class OWdabam_height_profile(OWWidget):
         self.table.itemClicked.connect(self.table_item_clicked)
 
     def get_dabam_shape(self):
-        if self.shape == 1: return "plane"
+        if self.shape == 0: return None
+        elif self.shape == 1: return "plane"
         elif self.shape == 2: return "cylindrical"
         elif self.shape == 3: return "elliptical"
         elif self.shape == 4: return "toroidal"
