@@ -62,6 +62,8 @@ class OWdabam_height_profile(OWWidget):
     dimension_y_from = Setting(0.0)
     dimension_y_to = Setting(200.0)
 
+    use_undetrended = Setting(0)
+
     step_x = Setting(1.0)
     dimension_x = Setting(20.1)
     renormalize_y = Setting(0)
@@ -126,9 +128,14 @@ class OWdabam_height_profile(OWWidget):
 
         button = gui.button(self.input_box, self, "Search", callback=self.search_profiles)
         button.setFixedHeight(25)
-        button.setFixedWidth(250)
+        button.setFixedWidth(450)
 
         self.table_box = oasysgui.widgetBox(tab_input, "Search Results", addSpace=True, orientation="vertical", width=470, height=300)
+
+        gui.comboBox(self.table_box, self, "use_undetrended", label="Use Undetrended Profile", labelWidth=300,
+                     items=["No", "Yes"], callback=self.table_item_clicked, sendSelectedValue=False, orientation="horizontal")
+
+        gui.separator(self.table_box)
 
         self.scrollarea = QScrollArea()
         self.scrollarea.setMinimumWidth(450)
@@ -278,6 +285,8 @@ class OWdabam_height_profile(OWWidget):
         self.plot_canvas[2].setGraphTitle("Power Spectral Density of Heights Profile")
         self.plot_canvas[2].setDrawModeEnabled(True, 'rectangle')
         self.plot_canvas[2].setZoomModeEnabled(True)
+        self.plot_canvas[2].setXAxisLogarithmic(True)
+        self.plot_canvas[2].setYAxisLogarithmic(True)
 
         self.plot_canvas[3] = PlotWindow(roi=False, control=False, position=False, plugins=False)
         self.plot_canvas[3].setDefaultPlotLines(True)
@@ -287,6 +296,7 @@ class OWdabam_height_profile(OWWidget):
         self.plot_canvas[3].setGraphTitle("Cumulative Spectral Density of Heights Profile")
         self.plot_canvas[3].setDrawModeEnabled(True, 'rectangle')
         self.plot_canvas[3].setZoomModeEnabled(True)
+        self.plot_canvas[3].setXAxisLogarithmic(True)
 
         self.plot_canvas[4] = PlotWindow(roi=False, control=False, position=False, plugins=False)
         self.plot_canvas[4].setDefaultPlotLines(True)
@@ -330,29 +340,34 @@ class OWdabam_height_profile(OWWidget):
 
             self.server.load(entry)
 
-            self.plot_dabam_graph(0, "heights_profile", 1e2*self.server.y, 1e7*self.server.zHeights, "Y [cm]", "Z [nm]")
-            self.plot_dabam_graph(1, "slopes_profile", 1e2*self.server.y, 1e6*self.server.zSlopes, "Y [cm]", "Zp [$\mu$rad]")
-            
+            if self.use_undetrended == 0:
+                self.plot_canvas[0].setGraphTitle("Heights Profile")
+                self.plot_canvas[1].setGraphTitle("Slopes Profile")
+                self.plot_dabam_graph(0, "heights_profile", 1e2*self.server.y, 1e7*self.server.zHeights, "Y [cm]", "Z [nm]")
+                self.plot_dabam_graph(1, "slopes_profile", 1e2*self.server.y, 1e6*self.server.zSlopes, "Y [cm]", "Zp [$\mu$rad]")
+            else:
+                self.plot_canvas[0].setGraphTitle("Heights Profile (Undetrended)")
+                self.plot_canvas[1].setGraphTitle("Slopes Profile (Undetrended)")
+                self.plot_dabam_graph(0, "heights_profile", 1e2*self.server.y, 1e7*self.server.zHeightsUndetrended, "Y [cm]", "Z [nm]")
+                self.plot_dabam_graph(1, "slopes_profile", 1e2*self.server.y, 1e6*self.server.zSlopesUndetrended, "Y [cm]", "Zp [$\mu$rad]")
+
             y = self.server.f**(self.server.powerlaw["hgt_pendent"])*10**self.server.powerlaw["hgt_shift"]
             i0 = self.server.powerlaw["index_from"]
             i1 = self.server.powerlaw["index_to"]
             beta = -self.server.powerlaw["hgt_pendent"]
 
+            self.plot_canvas[2].setGraphTitle("PSD of heights profile (beta=%.2f,Df=%.2f)"%(beta,(5-beta)/2))
+
             self.plot_dabam_graph(2, "psd_heights_2", self.server.f, self.server.psdHeights, "f [m^-1]", "PSD [m^3]")
             self.plot_dabam_graph(2, "psd_heights_1", self.server.f, y, "f [m^-1]", "PSD [m^3]", color='red', replace=False)
             self.plot_dabam_graph(2, "psd_heights_3", self.server.f[i0:i1], y[i0:i1], "f [m^-1]", "PSD [m^3]", color='green', replace=False)
 
-            self.plot_canvas[2].setXAxisLogarithmic(True)
-            self.plot_canvas[2].setYAxisLogarithmic(True)
-            self.plot_canvas[2].setGraphTitle("PSD of heights profile (beta=%.2f,Df=%.2f)"%(beta,(5-beta)/2))
-
             self.plot_dabam_graph(3, "csd", self.server.f,self.server.csd_heights(), "f [m^-1]", "CSD [m^3]")
-            self.plot_canvas[3].setXAxisLogarithmic(True)
 
             c1,c2,c3 = dabam.autocorrelationfunction(self.server.y,self.server.zHeights)
 
-            self.plot_dabam_graph(4, "acf", c1[0:-1], c2, "Length [m]", "Heights Autocovariance")
             self.plot_canvas[4].setGraphTitle("Heights Autocovariance. Autocorrelation length (acf_h=0.5)=%.3f m"%(c3))
+            self.plot_dabam_graph(4, "acf", c1[0:-1], c2, "Length [m]", "Heights Autocovariance")
 
         if (self.tabs.currentIndex()==5): self.tabs.setCurrentIndex(0)
 
@@ -423,7 +438,8 @@ class OWdabam_height_profile(OWWidget):
             combination = "EF"
 
             profile_1D_y_x = 1e2*self.server.y
-            profile_1D_y_y = 1e2*self.server.zHeights
+            if self.use_undetrended == 0: profile_1D_y_y = 1e2*self.server.zHeights
+            else: profile_1D_y_y = 1e2*self.server.zHeightsUndetrended
 
             if self.renormalize_y == 0:
                 rms_y = None
