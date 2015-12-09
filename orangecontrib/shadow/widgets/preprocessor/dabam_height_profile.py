@@ -28,7 +28,7 @@ from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, Emi
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
 class OWdabam_height_profile(OWWidget):
-    name = "Dabam Height Profile"
+    name = "DABAM Height Profile"
     id = "dabam_height_profile"
     description = "Calculation of mirror surface error profile"
     icon = "icons/dabam.png"
@@ -65,8 +65,9 @@ class OWdabam_height_profile(OWWidget):
     use_undetrended = Setting(0)
 
     step_x = Setting(1.0)
-    dimension_x = Setting(20.1)
-    renormalize_y = Setting(0)
+    dimension_x = Setting(10.0)
+    scale_factor_y = Setting(1.0)
+    renormalize_y = Setting(1)
     error_type_y = Setting(0)
     rms_y = Setting(0.9)
 
@@ -154,7 +155,7 @@ class OWdabam_height_profile(OWWidget):
         self.table.setColumnWidth(3, 110)
         self.table.setColumnWidth(4, 110)
 
-        horHeaders = ["Entry", "Shape", "Length [cm]", "Height Error [nm]",  "Slope Error [" + u"\u03BC" + "rad]"]
+        horHeaders = ["Entry", "Shape", "Length [cm]", "Heights St.Dev. [nm]",  "Slopes St.Dev. [" + u"\u03BC" + "rad]"]
 
         self.table.setHorizontalHeaderLabels(horHeaders)
         self.table.resizeRowsToContents()
@@ -164,14 +165,15 @@ class OWdabam_height_profile(OWWidget):
         self.scrollarea.setWidget(self.table)
         self.scrollarea.setWidgetResizable(1)
 
-        output_profile_box = oasysgui.widgetBox(tab_input, "Surface Generation Parameters", addSpace=True, orientation="vertical", height=180, width=470)
+        output_profile_box = oasysgui.widgetBox(tab_input, "Surface Generation Parameters", addSpace=True, orientation="vertical", height=190, width=470)
 
         oasysgui.lineEdit(output_profile_box, self, "dimension_x", "Width [cm]",
                            labelWidth=300, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(output_profile_box, self, "step_x", "Step Width [cm]",
                            labelWidth=300, valueType=float, orientation="horizontal")
 
-        gui.separator(output_profile_box)
+        oasysgui.lineEdit(output_profile_box, self, "scale_factor_y", "Scale Factor for Length",
+                           labelWidth=300, valueType=float, orientation="horizontal")
 
         gui.comboBox(output_profile_box, self, "renormalize_y", label="Renormalize Length Profile to different RMS", labelWidth=300,
                      items=["No", "Yes"], callback=self.set_RenormalizeY, sendSelectedValue=False, orientation="horizontal")
@@ -231,27 +233,20 @@ class OWdabam_height_profile(OWWidget):
 
         gui.rubber(self.controlArea)
 
-        self.tab = []
-        self.tabs = gui.tabWidget(self.mainArea)
-
         self.initializeTabs()
 
         gui.rubber(self.mainArea)
 
 
     def initializeTabs(self):
-        current_tab = self.tabs.currentIndex()
+        self.tabs = gui.tabWidget(self.mainArea)
 
-        size = len(self.tab)
-        indexes = range(0, size)
-        for index in indexes:
-            self.tabs.removeTab(size-1-index)
-
-        self.tab = [gui.createTabPage(self.tabs, "Height Error"),
-                    gui.createTabPage(self.tabs, "Slope Error"),
-                    gui.createTabPage(self.tabs, "P.S.D. Height"),
-                    gui.createTabPage(self.tabs, "Cumulative S.D. Height"),
-                    gui.createTabPage(self.tabs, "Covariance"),
+        self.tab = [gui.createTabPage(self.tabs, "Info"),
+                    gui.createTabPage(self.tabs, "Heights Profile"),
+                    gui.createTabPage(self.tabs, "Slopes Profile"),
+                    gui.createTabPage(self.tabs, "PSD Heights"),
+                    gui.createTabPage(self.tabs, "CSD Heights"),
+                    gui.createTabPage(self.tabs, "ACF"),
                     gui.createTabPage(self.tabs, "Generated 2D Profile"),
         ]
 
@@ -304,8 +299,8 @@ class OWdabam_height_profile(OWWidget):
         self.plot_canvas[4].setDefaultPlotLines(True)
         self.plot_canvas[4].setActiveCurveColor(color='darkblue')
         self.plot_canvas[4].setGraphXLabel("Length [m]")
-        self.plot_canvas[4].setGraphYLabel("Heights Autocovariance")
-        self.plot_canvas[4].setGraphTitle("Heights Autocovariance")
+        self.plot_canvas[4].setGraphYLabel("ACF")
+        self.plot_canvas[4].setGraphTitle("Autocovariance Function of Heights Profile")
         self.plot_canvas[4].setDrawModeEnabled(True, 'rectangle')
         self.plot_canvas[4].setZoomModeEnabled(True)
 
@@ -320,11 +315,20 @@ class OWdabam_height_profile(OWWidget):
 
         self.plot_canvas[5] = FigureCanvasQTAgg(self.figure)
 
+        self.profileInfo = QTextEdit()
+        self.profileInfo.setReadOnly(True)
+        self.profileInfo.setMinimumHeight(self.IMAGE_HEIGHT-10)
+        self.profileInfo.setMaximumHeight(self.IMAGE_HEIGHT-10)
+        self.profileInfo.setMinimumWidth(self.IMAGE_WIDTH-10)
+        self.profileInfo.setMaximumWidth(self.IMAGE_WIDTH-10)
+
+        profile_box = oasysgui.widgetBox(self.tab[0], "", addSpace=True, orientation="horizontal", height = self.IMAGE_HEIGHT, width = self.IMAGE_WIDTH)
+        profile_box.layout().addWidget(self.profileInfo)
+
         for index in range(0, 6):
-            self.tab[index].layout().addWidget(self.plot_canvas[index])
+            self.tab[index+1].layout().addWidget(self.plot_canvas[index])
 
-        self.tabs.setCurrentIndex(current_tab)
-
+        self.tabs.setCurrentIndex(1)
 
     def plot_dabam_graph(self, plot_canvas_index, curve_name, x_values, y_values, xtitle, ytitle, color='blue', replace=True):
         self.plot_canvas[plot_canvas_index].addCurve(x_values, y_values, curve_name, symbol='', color=color, replace=replace) #'+', '^', ','
@@ -342,36 +346,35 @@ class OWdabam_height_profile(OWWidget):
 
             self.server.load(entry)
 
+            self.profileInfo.setText(self.server.info_profiles())
+
             if self.use_undetrended == 0:
-                self.plot_canvas[0].setGraphTitle("Heights Profile")
-                self.plot_canvas[1].setGraphTitle("Slopes Profile")
-                self.plot_dabam_graph(0, "heights_profile", 1e2*self.server.y, 1e7*self.server.zHeights, "Y [cm]", "Z [nm]")
+                self.plot_canvas[0].setGraphTitle("Heights Profile. St.Dev.=%.3f nm"%(self.server.stdev_profile_heights()*1e9))
+                self.plot_canvas[1].setGraphTitle("Slopes Profile. St.Dev.=%.3f $\mu$rad"%(self.server.stdev_profile_slopes()*1e6))
+                self.plot_dabam_graph(0, "heights_profile", 1e2*self.server.y, 1e9*self.server.zHeights, "Y [cm]", "Z [nm]")
                 self.plot_dabam_graph(1, "slopes_profile", 1e2*self.server.y, 1e6*self.server.zSlopes, "Y [cm]", "Zp [$\mu$rad]")
             else:
-                self.plot_canvas[0].setGraphTitle("Heights Profile (Undetrended)")
-                self.plot_canvas[1].setGraphTitle("Slopes Profile (Undetrended)")
-                self.plot_dabam_graph(0, "heights_profile", 1e2*self.server.y, 1e7*self.server.zHeightsUndetrended, "Y [cm]", "Z [nm]")
+                self.plot_canvas[0].setGraphTitle("Heights Profile. St.Dev.=%.3f nm"%(self.server.stdev_profile_heights()*1e9))
+                self.plot_canvas[1].setGraphTitle("Slopes Profile. St.Dev.=%.3f $\mu$rad"%(self.server.stdev_profile_slopes()*1e6))
+                self.plot_dabam_graph(0, "heights_profile", 1e2*self.server.y, 1e9*self.server.zHeightsUndetrended, "Y [cm]", "Z [nm]")
                 self.plot_dabam_graph(1, "slopes_profile", 1e2*self.server.y, 1e6*self.server.zSlopesUndetrended, "Y [cm]", "Zp [$\mu$rad]")
 
             y = self.server.f**(self.server.powerlaw["hgt_pendent"])*10**self.server.powerlaw["hgt_shift"]
             i0 = self.server.powerlaw["index_from"]
             i1 = self.server.powerlaw["index_to"]
             beta = -self.server.powerlaw["hgt_pendent"]
-
-            self.plot_canvas[2].setGraphTitle("PSD of heights profile (beta=%.2f,Df=%.2f)"%(beta,(5-beta)/2))
-
+            self.plot_canvas[2].setGraphTitle("Power Spectral Density of Heights Profile (beta=%.2f,Df=%.2f)"%(beta,(5-beta)/2))
             self.plot_dabam_graph(2, "psd_heights_2", self.server.f, self.server.psdHeights, "f [m^-1]", "PSD [m^3]")
-            self.plot_dabam_graph(2, "psd_heights_1", self.server.f, y, "f [m^-1]", "PSD [m^3]", color='red', replace=False)
-            self.plot_dabam_graph(2, "psd_heights_3", self.server.f[i0:i1], y[i0:i1], "f [m^-1]", "PSD [m^3]", color='green', replace=False)
+            self.plot_dabam_graph(2, "psd_heights_1", self.server.f, y, "f [m^-1]", "PSD [m^3]", color='green', replace=False)
+            self.plot_dabam_graph(2, "psd_heights_3", self.server.f[i0:i1], y[i0:i1], "f [m^-1]", "PSD [m^3]", color='red', replace=False)
 
             self.plot_dabam_graph(3, "csd", self.server.f,self.server.csd_heights(), "f [m^-1]", "CSD [m^3]")
 
             c1,c2,c3 = dabam.autocorrelationfunction(self.server.y,self.server.zHeights)
-
-            self.plot_canvas[4].setGraphTitle("Heights Autocovariance. Autocorrelation length (acf_h=0.5)=%.3f m"%(c3))
+            self.plot_canvas[4].setGraphTitle("Autocovariance Function of Heights Profile.\nAutocorrelation Length (ACF=0.5)=%.3f m"%(c3))
             self.plot_dabam_graph(4, "acf", c1[0:-1], c2, "Length [m]", "Heights Autocovariance")
 
-        if (self.tabs.currentIndex()==5): self.tabs.setCurrentIndex(0)
+        if (self.tabs.currentIndex()==6): self.tabs.setCurrentIndex(1)
 
     def search_profiles(self):
         self.table.itemClicked.disconnect(self.table_item_clicked)
@@ -436,7 +439,7 @@ class OWdabam_height_profile(OWWidget):
 
             combination = "EF"
 
-            profile_1D_y_x = 1e2*self.server.y
+            profile_1D_y_x = 1e2*self.server.y*self.scale_factor_y
             if self.use_undetrended == 0: profile_1D_y_y = 1e2*self.server.zHeights
             else: profile_1D_y_y = 1e2*self.server.zHeightsUndetrended
 
@@ -471,9 +474,9 @@ class OWdabam_height_profile(OWWidget):
             slope, sloperms = ST.slopes(zz.T, xx, yy)
 
             title = ' Slope error rms in X direction: %f arcsec' % (sloperms[0]) + '\n' + \
-                    '                                            : %f urad' % (sloperms[2]) + '\n' + \
+                    '                                            : %f $\mu$rad' % (sloperms[2]) + '\n' + \
                     ' Slope error rms in Y direction: %f arcsec' % (sloperms[1]) + '\n' + \
-                    '                                            : %f urad' % (sloperms[3])
+                    '                                            : %f $\mu$rad' % (sloperms[3])
             self.axis.set_xlabel("X (cm)")
             self.axis.set_ylabel("Y (cm)")
             self.axis.set_zlabel("Z (nm)")
@@ -487,7 +490,7 @@ class OWdabam_height_profile(OWWidget):
                 except:
                     pass
 
-                self.tabs.setCurrentIndex(5)
+                self.tabs.setCurrentIndex(6)
 
                 QMessageBox.information(self, "QMessageBox.information()",
                                         "Height Profile calculated: if the result is satisfactory,\nclick \'Generate Height Profile File\' to complete the operation ",

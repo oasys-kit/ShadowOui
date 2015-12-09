@@ -154,7 +154,7 @@ class OWheight_profile_simulator(OWWidget):
         gui.separator(self.kind_of_profile_y_box_1)
 
         gui.comboBox(self.kind_of_profile_y_box_1, self, "error_type_y", label="Normalization to", labelWidth=270,
-                     items=["Figure Error (nm)", "Slope Error (" + u"\u03BC" + "rad)"],
+                     items=["Figure Error (nm)", "Slope Error (" + "\u03BC" + "rad)"],
                      sendSelectedValue=False, orientation="horizontal")
 
         oasysgui.lineEdit(self.kind_of_profile_y_box_1, self, "rms_y", "Rms Value                                                   Y (lenght)",
@@ -187,7 +187,7 @@ class OWheight_profile_simulator(OWWidget):
         self.kind_of_profile_y_box_2_1 = oasysgui.widgetBox(self.kind_of_profile_y_box_2, "", addSpace=True, orientation="vertical", width=440)
 
         gui.comboBox(self.kind_of_profile_y_box_2_1, self, "error_type_y", label="Normalization to", labelWidth=270,
-                     items=["Figure Error (nm)", "Slope Error (" + u"\u03BC" + "rad)"],
+                     items=["Figure Error (nm)", "Slope Error (" + "\u03BC" + "rad)"],
                      sendSelectedValue=False, orientation="horizontal")
 
         oasysgui.lineEdit(self.kind_of_profile_y_box_2_1, self, "rms_y", "Rms Value                                                   Y (lenght)",
@@ -226,7 +226,7 @@ class OWheight_profile_simulator(OWWidget):
         gui.separator(self.kind_of_profile_x_box_1)
 
         gui.comboBox(self.kind_of_profile_x_box_1, self, "error_type_x", label="Normalization to", labelWidth=270,
-                     items=["Figure Error (nm)", "Slope Error (" + u"\u03BC" + "rad)"],
+                     items=["Figure Error (nm)", "Slope Error (" + "\u03BC" + "rad)"],
                      sendSelectedValue=False, orientation="horizontal")
 
         oasysgui.lineEdit(self.kind_of_profile_x_box_1, self, "rms_x", "Rms Value                                                   X (width)",
@@ -263,7 +263,7 @@ class OWheight_profile_simulator(OWWidget):
         self.kind_of_profile_x_box_2_1 = oasysgui.widgetBox(self.kind_of_profile_x_box_2, "", addSpace=True, orientation="vertical", width=440)
 
         gui.comboBox(self.kind_of_profile_x_box_2_1, self, "error_type_x", label="Normalization to", labelWidth=270,
-                     items=["Figure Error (nm)", "Slope Error (" + u"\u03BC" + "rad)"],
+                     items=["Figure Error (nm)", "Slope Error (" + "\u03BC" + "rad)"],
                      sendSelectedValue=False, orientation="horizontal")
 
         oasysgui.lineEdit(self.kind_of_profile_x_box_2_1, self, "rms_x", "Rms Value                                                   X (width)",
@@ -453,9 +453,9 @@ class OWheight_profile_simulator(OWWidget):
             slope, sloperms = ST.slopes(zz.T, xx, yy)
 
             title = ' Slope error rms in X direction: %f arcsec' % (sloperms[0]) + '\n' + \
-                    '                                            : %f urad' % (sloperms[2]) + '\n' + \
+                    '                                            : %f $\mu$rad' % (sloperms[2]) + '\n' + \
                     ' Slope error rms in Y direction: %f arcsec' % (sloperms[1]) + '\n' + \
-                    '                                            : %f urad' % (sloperms[3])
+                    '                                            : %f $\mu$rad' % (sloperms[3])
             self.axis.set_xlabel("X (cm)")
             self.axis.set_ylabel("Y (cm)")
             self.axis.set_zlabel("Z (nm)")
