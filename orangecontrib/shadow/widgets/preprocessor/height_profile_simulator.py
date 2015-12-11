@@ -212,6 +212,8 @@ class OWheight_profile_simulator(OWWidget):
                            labelWidth=300, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.kind_of_profile_x_box_1, self, "step_x", "Step [cm]                                                    X (width)",
                            labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.kind_of_profile_x_box_1, self, "montecarlo_seed_x", "Monte Carlo initial seed                              X (width)", labelWidth=300,
+                           valueType=int, orientation="horizontal")
 
         self.kind_of_profile_x_box_1_1 = oasysgui.widgetBox(self.kind_of_profile_x_box_1, "", addSpace=True, orientation="vertical", width=440)
 
@@ -232,9 +234,6 @@ class OWheight_profile_simulator(OWWidget):
         oasysgui.lineEdit(self.kind_of_profile_x_box_1, self, "rms_x", "Rms Value                                                   X (width)",
                            labelWidth=300, valueType=float, orientation="horizontal")
 
-
-        oasysgui.lineEdit(self.kind_of_profile_x_box_1, self, "montecarlo_seed_x", "Monte Carlo initial seed                              X (width)", labelWidth=300,
-                           valueType=int, orientation="horizontal")
 
         self.kind_of_profile_x_box_2 = oasysgui.widgetBox(input_box_w, "", addSpace=True, orientation="vertical", width=440, height=300)
 

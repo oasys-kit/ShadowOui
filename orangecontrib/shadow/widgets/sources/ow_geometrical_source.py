@@ -700,6 +700,7 @@ class GeometricalSource(ow_source.Source):
         try:
             if not exchangeData is None:
                 if exchangeData.get_program_name() == "XOPPY":
+                    no_bandwidth = False
                     if exchangeData.get_widget_name() =="UNDULATOR_FLUX" :
                         self.user_defined_file = "xoppy_undulator_flux"
                         index_flux = 2
@@ -716,6 +717,7 @@ class GeometricalSource(ow_source.Source):
                     elif exchangeData.get_widget_name() =="XTUBES" :
                         self.user_defined_file = "xoppy_xtubes_flux"
                         index_flux = 1
+                        no_bandwidth = True
                     else:
                         raise Exception("Xoppy Source not recognized")
 
@@ -725,6 +727,9 @@ class GeometricalSource(ow_source.Source):
                     self.units = 0 # eV
 
                     spectrum = exchangeData.get_content("xoppy_data")
+
+                    if not no_bandwidth:
+                        spectrum[:,index_flux] /= 0.001*spectrum[:,0]
 
                     file = open(self.user_defined_file, "w")
                     for index in range(0, spectrum.shape[0]):
