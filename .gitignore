@@ -1,0 +1,5 @@
+dist*
+build/*
+.idea/*
+ShadowOui.egg-info/*
+*.pyc
