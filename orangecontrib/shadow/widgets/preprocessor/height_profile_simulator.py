@@ -451,10 +451,8 @@ class OWheight_profile_simulator(OWWidget):
 
             slope, sloperms = ST.slopes(zz.T, xx, yy)
 
-            title = ' Slope error rms in X direction: %f arcsec' % (sloperms[0]) + '\n' + \
-                    '                                            : %f $\mu$rad' % (sloperms[2]) + '\n' + \
-                    ' Slope error rms in Y direction: %f arcsec' % (sloperms[1]) + '\n' + \
-                    '                                            : %f $\mu$rad' % (sloperms[3])
+            title = ' Slope error rms in X direction: %f $\mu$rad' % (sloperms[0]*1e6) + '\n' + \
+                    ' Slope error rms in Y direction: %f $\mu$rad' % (sloperms[1]*1e6)
             self.axis.set_xlabel("X (cm)")
             self.axis.set_ylabel("Y (cm)")
             self.axis.set_zlabel("Z (nm)")

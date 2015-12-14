@@ -473,10 +473,12 @@ class OWdabam_height_profile(OWWidget):
 
             slope, sloperms = ST.slopes(zz.T, xx, yy)
 
-            title = ' Slope error rms in X direction: %f arcsec' % (sloperms[0]) + '\n' + \
-                    '                                            : %f $\mu$rad' % (sloperms[2]) + '\n' + \
-                    ' Slope error rms in Y direction: %f arcsec' % (sloperms[1]) + '\n' + \
-                    '                                            : %f $\mu$rad' % (sloperms[3])
+            slope_rms_x = sloperms[0]*1e6
+            slope_rms_y = sloperms[1]*1e6
+
+            title = ' Slope error rms in X direction: %f $\mu$rad' % (slope_rms_x) + '\n' + \
+                    ' Slope error rms in Y direction: %f $\mu$rad' % (slope_rms_y)
+
             self.axis.set_xlabel("X (cm)")
             self.axis.set_ylabel("Y (cm)")
             self.axis.set_zlabel("Z (nm)")
@@ -499,7 +501,7 @@ class OWdabam_height_profile(OWWidget):
             QMessageBox.critical(self, "Error",
                                  exception.args[0],
                                  QMessageBox.Ok)
-            #raise exception
+            raise exception
 
     def generate_heigth_profile_file_ni(self):
         self.generate_heigth_profile_file(not_interactive_mode=True)
