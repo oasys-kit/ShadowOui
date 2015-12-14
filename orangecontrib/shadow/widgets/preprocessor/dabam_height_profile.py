@@ -459,6 +459,7 @@ class OWdabam_height_profile(OWWidget):
                                                                  mirror_width = self.dimension_x,
                                                                  step_w = self.step_x,
                                                                  rms_w = 0.0)
+
             self.xx = xx
             self.yy = yy
             self.zz = zz # in cm
@@ -501,7 +502,7 @@ class OWdabam_height_profile(OWWidget):
             QMessageBox.critical(self, "Error",
                                  exception.args[0],
                                  QMessageBox.Ok)
-            raise exception
+            #raise exception
 
     def generate_heigth_profile_file_ni(self):
         self.generate_heigth_profile_file(not_interactive_mode=True)
