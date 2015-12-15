@@ -40,10 +40,10 @@ INSTALL_REQUIRES = (
     'setuptools',
     'numpy',
     'scipy',
-    'matplotlib',
-    'srxraylib>=0.0.8',
+    'matplotlib==1.4.3', #problems found with 1.5.0
+    'srxraylib>=0.0.9',
     'orange-widget-core>=0.0.2',
-    'oasys>=0.1.8',
+    'oasys>=0.1.9',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
@@ -52,6 +52,7 @@ PACKAGE_DATA = {
     "orangecontrib.shadow.widgets.gui":["misc/*.*"],
     "orangecontrib.shadow.widgets.experimental_elements":["icons/*.png", "icons/*.jpg", "misc/*.*", "data/*.*"],
     "orangecontrib.shadow.widgets.optical_elements":["icons/*.png", "icons/*.jpg"],
+    "orangecontrib.shadow.widgets.special_elements":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.shadow.widgets.compound_optical_elements": ["icons/*.png", "icons/*.jpg"],
     "orangecontrib.shadow.widgets.loop_management":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.shadow.widgets.plots":["icons/*.png", "icons/*.jpg"],
@@ -69,7 +70,8 @@ ENTRY_POINTS = {
         "Shadow Loop Management = orangecontrib.shadow.widgets.loop_management",
         "Shadow Optical Elements = orangecontrib.shadow.widgets.optical_elements",
         "Shadow Compound Optical Elements = orangecontrib.shadow.widgets.compound_optical_elements",
-        "Shadow Visualization = orangecontrib.shadow.widgets.plots",
+        "Shadow Special Elements = orangecontrib.shadow.widgets.special_elements",
+        "Shadow PostProcessor = orangecontrib.shadow.widgets.plots",
         "Shadow PreProcessor = orangecontrib.shadow.widgets.preprocessor",
         "Shadow Sources = orangecontrib.shadow.widgets.sources",
         "Shadow Utility = orangecontrib.shadow.widgets.utility",

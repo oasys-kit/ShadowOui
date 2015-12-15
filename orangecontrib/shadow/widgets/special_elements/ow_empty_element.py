@@ -13,7 +13,7 @@ class EmptyElement(ow_optical_element.OpticalElement):
     icon = "icons/empty_element.png"
     maintainer = "Luca Rebuffi"
     maintainer_email = "luca.rebuffi(@at@)elettra.eu"
-    priority = 24
+    priority = 1
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]
 

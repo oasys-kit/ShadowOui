@@ -13,7 +13,7 @@ class ConicCoefficientsRefractor(ow_conic_coefficients_element.ConicCoefficients
     icon = "icons/refractor_interface.png"
     maintainer = "Luca Rebuffi"
     maintainer_email = "luca.rebuffi(@at@)elettra.eu"
-    priority = 23
+    priority = 2
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]
 
