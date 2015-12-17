@@ -157,12 +157,8 @@ def hy_run(input_parameters=HybridInputParameters()):
         hy_conv(input_parameters, calculation_parameters)	    #Perform ray resampling
 
         input_parameters.widget.status_message("Creating Output Shadow Beam")
-        input_parameters.widget.set_progress_bar(90)
 
         output_beam = hy_create_shadow_beam(input_parameters, calculation_parameters)
-
-        input_parameters.widget.status_message("")
-        input_parameters.widget.set_progress_bar(100)
 
         return output_beam, calculation_parameters
     except Exception as exception:
@@ -193,7 +189,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
 
         if input_parameters.ghy_calcType == 3:
-            if input_parameters.ghy_usemirrorfile == 0: # use slope error of shadow_ow
+            if input_parameters.ghy_usemirrorfile == 0: # use EMBEDDED one in OE
                 if shadow_oe._oe.F_RIPPLE == 1 and shadow_oe._oe.F_G_S == 2:
                     input_parameters.ghy_mirrorfile = shadow_oe._oe.FILE_RIP
 
@@ -339,7 +335,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         calculation_parameters.angle_inc = (90.0 - angle_inc)/180.0*1e3*numpy.pi
 
         # read in mirror surface
-        if input_parameters.ghy_profile_dimension == 1:
+        if input_parameters.ghy_usemirrorfile == 0 or input_parameters.ghy_profile_dimension == 1:
             calculation_parameters.w_mirr_2D_values = sh_readsurface(input_parameters.ghy_mirrorfile, dimension=2)
         else:
             calculation_parameters.w_mirr_1D_values = sh_readsurface(input_parameters.ghy_mirrorfile, dimension=1)
@@ -395,7 +391,7 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
             input_parameters.widget.status_message("Propagation distance = " + str(input_parameters.ghy_distance))
 
     if input_parameters.ghy_calcType == 3: #mirror with figure error
-        if input_parameters.ghy_profile_dimension == 1:
+        if input_parameters.ghy_usemirrorfile == 0 or input_parameters.ghy_profile_dimension == 1:
             if input_parameters.ghy_diff_plane == 1: #X
                 np_array = calculation_parameters.w_mirr_2D_values.z_values[:, round(len(calculation_parameters.w_mirr_2D_values.y_coord)/2)]
 

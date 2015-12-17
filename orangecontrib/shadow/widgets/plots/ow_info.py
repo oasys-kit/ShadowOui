@@ -131,8 +131,6 @@ class Info(widget.OWWidget):
 
                 self.input_beam = beam
 
-                self.sysInfo.setText("\n\n\n\n\nNot Available")
-
                 optical_element_list = []
 
                 for history_element in self.input_beam.getOEHistory():
@@ -155,6 +153,11 @@ class Info(widget.OWWidget):
                 coe = ShadowCompoundOpticalElement.create_compound_oe()
                 for oe in optical_element_list:
                     coe._oe.append(oe)
+
+                try:
+                    self.sysInfo.setText(coe._oe.sysinfo())
+                except:
+                    self.distancesSummary.setText("Problem in calculating SysInfo:\n" + str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]))
 
                 try:
                     self.distancesSummary.setText(coe._oe.info())

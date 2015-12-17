@@ -1,13 +1,12 @@
 __author__ = 'labx'
 
 import sys
-import threading
 
 from oasys.widgets import gui as oasysgui
 from orangewidget import gui
 from orangewidget.settings import Setting
 
-from orangecontrib.shadow.util.shadow_util import ShadowCongruence
+from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream
 
 from PyQt4 import QtGui
@@ -57,6 +56,9 @@ class HybridScreen(AutomaticElement):
     ghy_fftnpts = Setting(1e6)
 
     input_beam = None
+
+    IMAGE_WIDTH = 1100
+    IMAGE_HEIGHT = 545
 
     def __init__(self):
         super().__init__()
@@ -143,12 +145,7 @@ class HybridScreen(AutomaticElement):
         button.setPalette(palette) # assign new palette
         button.setFixedHeight(45)
 
-        tabs_2 = oasysgui.tabWidget(self.mainArea, height=700)
-
-        tab_2_1 = oasysgui.createTabPage(tabs_2, "FF Delta Divergence")
-        tab_2_3 = oasysgui.createTabPage(tabs_2, "X,Z at FF")
-        tab_2_2 = oasysgui.createTabPage(tabs_2, "NF Delta Position")
-        tab_2_4 = oasysgui.createTabPage(tabs_2, "X,Z at NF")
+        self.initializeTabs()
 
         self.shadow_output = QtGui.QTextEdit()
         self.shadow_output.setReadOnly(True)
@@ -159,6 +156,39 @@ class HybridScreen(AutomaticElement):
         self.shadow_output.setFixedHeight(100)
         self.shadow_output.setFixedWidth(850)
 
+
+    def initializeTabs(self):
+        tabs = oasysgui.tabWidget(self.mainArea, height=700)
+
+        self.tab = [gui.createTabPage(tabs, "FF Delta Divergence"),
+                    gui.createTabPage(tabs, "X,Z at FF"),
+                    gui.createTabPage(tabs, "NF Delta Position"),
+                    gui.createTabPage(tabs, "X,Z at NF")
+        ]
+
+        for tab in self.tab:
+            tab.setFixedHeight(self.IMAGE_HEIGHT)
+            tab.setFixedWidth(self.IMAGE_WIDTH)
+
+        self.plot_canvas = [None, None, None, None]
+
+    def plot_xy(self, beam_out, progressBarValue, var_x, var_y, plot_canvas_index, title, xtitle, ytitle, xum="", yum="", is_footprint=False):
+        if self.plot_canvas[plot_canvas_index] is None:
+            self.plot_canvas[plot_canvas_index] = ShadowPlot.DetailedPlotWidget()
+            self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+
+        self.plot_canvas[plot_canvas_index].plot_xy(beam_out._beam, var_x, var_y, title, xtitle, ytitle, xum=xum, yum=yum, is_footprint=is_footprint)
+
+        self.progressBarSet(progressBarValue)
+
+    def plot_histo(self, beam_out, progressBarValue, var, plot_canvas_index, title, xtitle, ytitle, xum=""):
+        if self.plot_canvas[plot_canvas_index] is None:
+            self.plot_canvas[plot_canvas_index] = ShadowPlot.DetailedHistoWidget()
+            self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+
+        self.plot_canvas[plot_canvas_index].plot_histo(beam_out._beam, var, 1, None, 23, title, xtitle, ytitle, xum=xum)
+
+        self.progressBarSet(progressBarValue)
 
 
     def selectFile(self):
@@ -211,10 +241,18 @@ class HybridScreen(AutomaticElement):
             input_parameters.ghy_diff_plane = self.ghy_diff_plane + 1
             input_parameters.ghy_calcType = self.ghy_calcType + 1
 
-            input_parameters.ghy_focallength = self.ghy_focallength
-            input_parameters.ghy_distance = self.ghy_distance
+            if self.distance_to_image_calc == 0:
+                input_parameters.ghy_distance = -1
+            else:
+                input_parameters.ghy_distance = self.ghy_distance
+
+            if self.focal_length_calc == 0:
+                input_parameters.ghy_focallength = -1
+            else:
+                input_parameters.ghy_focallength = self.ghy_focallength
 
             #input_parameters.ghy_lengthunit = 2
+            input_parameters.ghy_usemirrorfile = self.ghy_usemirrorfile
 
             if self.ghy_usemirrorfile == 0:
                 input_parameters.ghy_mirrorfile == None
@@ -241,6 +279,24 @@ class HybridScreen(AutomaticElement):
             self.ghy_nbins_z = input_parameters.ghy_nbins_z
             self.ghy_npeak   = input_parameters.ghy_npeak
             self.ghy_fftnpts = input_parameters.ghy_fftnpts
+
+            self.setStatusMessage("Plotting Results")
+
+            do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
+
+            if do_nf:
+                self.plot_xy(output_beam, 84, 1, 3, plot_canvas_index=1, title="X,Z", xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]',
+                             xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
+
+                self.plot_xy(output_beam, 92, 1, 3, plot_canvas_index=3, title="X,Z", xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]',
+                             xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
+
+            else:
+                self.plot_xy(output_beam, 88, 1, 3, plot_canvas_index=1, title="X,Z", xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]',
+                             xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
+
+            self.setStatusMessage("")
+            self.progressBarFinished()
 
             self.send("Beam", output_beam)
         except Exception as exception:
