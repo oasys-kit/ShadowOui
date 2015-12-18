@@ -345,10 +345,17 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         hy_npoly_angle = 3
         hy_npoly_l = 6
 
-        calculation_parameters.wangle_x = numpy.poly1d(numpy.polyfit(calculation_parameters.xx_screen, calculation_parameters.angle_inc, hy_npoly_angle))
-        calculation_parameters.wangle_z = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.angle_inc, hy_npoly_angle))
-        calculation_parameters.wl_x     = numpy.poly1d(numpy.polyfit(calculation_parameters.xx_screen, calculation_parameters.xx_mirr, hy_npoly_l))
-        calculation_parameters.wl_z     = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.yy_mirr, hy_npoly_l))
+        if numpy.amax(calculation_parameters.xx_screen) == numpy.amin(calculation_parameters.xx_screen):
+            if input_parameters.ghy_diff_plane == 1: raise Exception("Unconsistend calculation: Diffraction plane is set on X, but the beam has no extention in that direction")
+        else:
+            calculation_parameters.wangle_x = numpy.poly1d(numpy.polyfit(calculation_parameters.xx_screen, calculation_parameters.angle_inc, hy_npoly_angle))
+            calculation_parameters.wl_x     = numpy.poly1d(numpy.polyfit(calculation_parameters.xx_screen, calculation_parameters.xx_mirr, hy_npoly_l))
+
+        if numpy.amax(calculation_parameters.zz_screen) == numpy.amin(calculation_parameters.zz_screen):
+            if input_parameters.ghy_diff_plane == 2: raise Exception("Unconsistend calculation: Diffraction plane is set on Z, but the beam has no extention in that direction")
+        else:
+            calculation_parameters.wangle_z = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.angle_inc, hy_npoly_angle))
+            calculation_parameters.wl_z     = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.yy_mirr, hy_npoly_l))
 
 ##########################################################################
 

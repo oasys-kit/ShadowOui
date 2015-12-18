@@ -643,17 +643,31 @@ class ShadowPreProcessor:
         y_coords = numpy.zeros(0)
         z_values = numpy.zeros((n_x, n_y))
 
-        if len(rows[1].split()) == 5:
-            for index in range(1, int(numpy.ceil(n_y/5) + 1)):
-                y_values = rows[index].split()
 
+        index = 1
+        dim_y_row = len(rows[index].split())
+        is_ycoord = True
+        first_x_row_index = 0
+
+        while(is_ycoord):
+            y_values = rows[index].split()
+
+            if len(y_values) == dim_y_row:
                 for y_value in y_values:
                     y_coords = numpy.append(y_coords, float(y_value))
+            else:
+                first_x_row_index = index
+                is_ycoord = False
 
+            index +=1
+
+        first_x_row = rows[first_x_row_index].split()
+
+        if len(first_x_row) == 2:
             x_index = 0
             z_index = 0
 
-            for index in range(int(numpy.ceil(n_y/5) + 1), len(rows)):
+            for index in range(first_x_row_index, len(rows)):
                 if z_index == 0:
                     values = rows[index].split()
                     x_coords = numpy.append(x_coords, float(values[0]))
@@ -668,7 +682,6 @@ class ShadowPreProcessor:
                     x_index += 1
                     z_index = 0
         else:
-            y_row = rows[1].split()
             x_rows = []
 
             for index in range(2, len(rows)):
@@ -682,8 +695,6 @@ class ShadowPreProcessor:
                     raise Exception("Malformed file: check format")
 
                 x_rows.append(x_row)
-            for y_value in y_row:
-                 y_coords = numpy.append(y_coords, float(y_value))
 
             for x_index in range(0, len(x_rows)):
                 x_coords = numpy.append(x_coords, float(x_rows[x_index][0]))
