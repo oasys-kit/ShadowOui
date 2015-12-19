@@ -251,7 +251,7 @@ class HybridScreen(AutomaticElement):
             else:
                 input_parameters.ghy_focallength = self.ghy_focallength
 
-            input_parameters.ghy_lengthunit = 2
+            #input_parameters.ghy_lengthunit = 2
             input_parameters.ghy_usemirrorfile = self.ghy_usemirrorfile
 
             if self.ghy_usemirrorfile == 0:
