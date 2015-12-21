@@ -373,6 +373,15 @@ class OWdabam_height_profile(OWWidget):
             self.plot_canvas[4].setGraphTitle("Autocovariance Function of Heights Profile.\nAutocorrelation Length (ACF=0.5)=%.3f m"%(c3))
             self.plot_dabam_graph(4, "acf", c1[0:-1], c2, "Length [m]", "Heights Autocovariance")
 
+            #surface error removal
+            if not self.zz is None and not self.yy is None and not self.xx is None:
+                self.xx = None
+                self.yy = None
+                self.zz = None
+                self.axis.set_title("")
+                self.axis.clear()
+                self.plot_canvas[5].draw()
+
         if (self.tabs.currentIndex()==6): self.tabs.setCurrentIndex(1)
 
     def search_profiles(self):

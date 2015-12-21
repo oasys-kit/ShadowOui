@@ -64,6 +64,8 @@ class HybridCalculationParameters(object):
 
     image_plane_beam = None
     image_plane_cursor = None
+    ff_beam = None
+    nf_beam = None
 
     screen_plane_beam = None
     screen_plane_cursor = None
@@ -158,11 +160,10 @@ def hy_run(input_parameters=HybridInputParameters()):
 
         input_parameters.widget.status_message("Creating Output Shadow Beam")
 
-        output_beam = hy_create_shadow_beam(input_parameters, calculation_parameters)
+        hy_create_shadow_beam(input_parameters, calculation_parameters)
 
-        return output_beam, calculation_parameters
+        return calculation_parameters
     except Exception as exception:
-        #input_parameters.widget.write_stdout("HYBRID CALCULATION FAILED")
         raise exception
 
 ##########################################################################
@@ -529,29 +530,34 @@ def hy_conv(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
 #########################################################################
 
 def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_parameters=HybridCalculationParameters()):
-    output_beam = calculation_parameters.image_plane_beam.duplicate(history=False)
+    do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
+
+    calculation_parameters.ff_beam = calculation_parameters.image_plane_beam.duplicate(history=False)
+    if do_nf: calculation_parameters.nf_beam = calculation_parameters.screen_plane_beam.duplicate(history=False)
 
     if input_parameters.ghy_diff_plane == 1: #1d calculation in x direction
         angle_perpen = numpy.arctan(calculation_parameters.zp_screen/calculation_parameters.yp_screen)
         angle_num = numpy.sqrt(1+(numpy.tan(angle_perpen))**2+(numpy.tan(calculation_parameters.dx_conv))**2)
 
-        output_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
-        output_beam._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
-        output_beam._beam.rays[:, 4] = 1/angle_num
-        output_beam._beam.rays[:, 5] = numpy.tan(angle_perpen)/angle_num
+        calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
+        calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
+        calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
+        calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(angle_perpen)/angle_num
+
+        if do_nf: calculation_parameters.nf_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)
+
     elif input_parameters.ghy_diff_plane == 2: #1d calculation in z direction
         angle_perpen = numpy.arctan(calculation_parameters.xp_screen/calculation_parameters.yp_screen)
         angle_num = numpy.sqrt(1+(numpy.tan(angle_perpen))**2+(numpy.tan(calculation_parameters.dz_conv))**2)
 
-        output_beam = calculation_parameters.image_plane_beam.duplicate()
-        output_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
-        output_beam._beam.rays[:, 3] = numpy.tan(angle_perpen)/angle_num
-        output_beam._beam.rays[:, 4] = 1/angle_num
-        output_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
+        calculation_parameters.ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
+        calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(angle_perpen)/angle_num
+        calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
+        calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
 
-    output_beam.history = calculation_parameters.original_beam_history
+        if do_nf: calculation_parameters.nf_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)
 
-    return output_beam
+    calculation_parameters.ff_beam.history = calculation_parameters.original_beam_history
 
 ##########################################################################
 # 1D PROPAGATION ALGORITHM - X DIRECTION

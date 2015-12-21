@@ -1,7 +1,7 @@
 __author__ = 'labx'
 
 import sys
-
+import numpy
 from oasys.widgets import gui as oasysgui
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -15,14 +15,16 @@ from PyQt4.QtGui import QPalette, QColor, QFont
 from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticElement
 from orangecontrib.shadow.widgets.special_elements import hybrid_control
 
+from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
+
 class HybridScreen(AutomaticElement):
 
     inputs = [("Input Beam", ShadowBeam, "setBeam"),]
 
-    outputs = [{"name":"Beam",
+    outputs = [{"name":"Output Beam (Far Field)",
                 "type":ShadowBeam,
                 "doc":"Shadow Beam",
-                "id":"beam"},]
+                "id":"beam_ff"},]
 
     name = "Hybrid Screen"
     description = "Shadow HYBRID: Hybrid Screen"
@@ -62,6 +64,8 @@ class HybridScreen(AutomaticElement):
 
     def __init__(self):
         super().__init__()
+
+        self.tabs = oasysgui.tabWidget(self.mainArea, height=700)
 
         tabs_setting = oasysgui.tabWidget(self.controlArea)
 
@@ -145,8 +149,6 @@ class HybridScreen(AutomaticElement):
         button.setPalette(palette) # assign new palette
         button.setFixedHeight(45)
 
-        self.initializeTabs()
-
         self.shadow_output = QtGui.QTextEdit()
         self.shadow_output.setReadOnly(True)
 
@@ -156,30 +158,25 @@ class HybridScreen(AutomaticElement):
         self.shadow_output.setFixedHeight(100)
         self.shadow_output.setFixedWidth(850)
 
-
     def initializeTabs(self):
-        tabs = oasysgui.tabWidget(self.mainArea, height=700)
+        self.tabs.clear()
 
-        self.tab = [gui.createTabPage(tabs, "FF Delta Divergence"),
-                    gui.createTabPage(tabs, "X,Z at FF"),
-                    gui.createTabPage(tabs, "NF Delta Position"),
-                    gui.createTabPage(tabs, "X,Z at NF")
-        ]
+        if self.ghy_nf == 1:
+            self.tab = [gui.createTabPage(self.tabs, "C.D.F. of " + u"\u2206" + "Divergence at Far Field"),
+                        gui.createTabPage(self.tabs, "Distribution of Position at Far Field"),
+                        gui.createTabPage(self.tabs, "C.D.F. of " + u"\u2206" + "Position at Near Field"),
+                        gui.createTabPage(self.tabs, "Distribution of Position at Near Field")
+                        ]
+        else:
+            self.tab = [gui.createTabPage(self.tabs, "C.D.F. of " + u"\u2206" + "Divergence at Far Field"),
+                        gui.createTabPage(self.tabs, "Distribution of Position at Far Field")
+                        ]
 
         for tab in self.tab:
             tab.setFixedHeight(self.IMAGE_HEIGHT)
             tab.setFixedWidth(self.IMAGE_WIDTH)
 
         self.plot_canvas = [None, None, None, None]
-
-    def plot_xy(self, beam_out, progressBarValue, var_x, var_y, plot_canvas_index, title, xtitle, ytitle, xum="", yum="", is_footprint=False):
-        if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = ShadowPlot.DetailedPlotWidget()
-            self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
-
-        self.plot_canvas[plot_canvas_index].plot_xy(beam_out._beam, var_x, var_y, title, xtitle, ytitle, xum=xum, yum=yum, is_footprint=is_footprint)
-
-        self.progressBarSet(progressBarValue)
 
     def plot_histo(self, beam_out, progressBarValue, var, plot_canvas_index, title, xtitle, ytitle, xum=""):
         if self.plot_canvas[plot_canvas_index] is None:
@@ -190,6 +187,27 @@ class HybridScreen(AutomaticElement):
 
         self.progressBarSet(progressBarValue)
 
+    def plot_histo_hybrid(self, progressBarValue, scaled_array, plot_canvas_index, title, xtitle, ytitle, var):
+        if self.plot_canvas[plot_canvas_index] is None:
+            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+            self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
+            self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
+            self.plot_canvas[plot_canvas_index].setDrawModeEnabled(True, 'rectangle')
+            self.plot_canvas[plot_canvas_index].setZoomModeEnabled(True)
+
+            self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+
+        factor = ShadowPlot.get_factor(var)
+
+        self.plot_canvas[plot_canvas_index].addCurve(scaled_array.scale*factor, scaled_array.np_array, "crv_"+ytitle, symbol='', color="blue", replace=True) #'+', '^', ','
+        self.plot_canvas[plot_canvas_index]._plot.graph.ax.get_yaxis().get_major_formatter().set_useOffset(True)
+        self.plot_canvas[plot_canvas_index]._plot.graph.ax.get_yaxis().get_major_formatter().set_scientific(True)
+        self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
+        self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
+        self.plot_canvas[plot_canvas_index].setGraphTitle(title)
+        self.plot_canvas[plot_canvas_index].replot()
+
+        self.progressBarSet(progressBarValue)
 
     def selectFile(self):
         self.le_mirrorfile.setText(oasysgui.selectFileFromDialog(self, self.ghy_mirrorfile, "Select Mirror Error File", file_extension_filter="*.dat; *.txt"))
@@ -201,6 +219,7 @@ class HybridScreen(AutomaticElement):
 
                 if self.is_automatic_run:
                     self.run_hybrid()
+
 
     def set_DiffPlane(self):
         self.le_nbins_x.setEnabled(self.ghy_diff_plane == 0 or self.ghy_diff_plane == 2)
@@ -230,75 +249,98 @@ class HybridScreen(AutomaticElement):
     def set_MirrorFile(self):
         self.select_file_box.setEnabled(self.ghy_usemirrorfile == 1)
         self.cb_profile_dimension.setEnabled(self.ghy_usemirrorfile == 1)
+        self.initializeTabs()
 
     def run_hybrid(self):
         try:
-            sys.stdout = EmittingStream(textWritten=self.write_stdout)
-
-            input_parameters = hybrid_control.HybridInputParameters()
-            input_parameters.widget = self
-            input_parameters.shadow_beam = self.input_beam
-            input_parameters.ghy_diff_plane = self.ghy_diff_plane + 1
-            input_parameters.ghy_calcType = self.ghy_calcType + 1
-
-            if self.distance_to_image_calc == 0:
-                input_parameters.ghy_distance = -1
-            else:
-                input_parameters.ghy_distance = self.ghy_distance
-
-            if self.focal_length_calc == 0:
-                input_parameters.ghy_focallength = -1
-            else:
-                input_parameters.ghy_focallength = self.ghy_focallength
-
-            #input_parameters.ghy_lengthunit = 2
-            input_parameters.ghy_usemirrorfile = self.ghy_usemirrorfile
-
-            if self.ghy_usemirrorfile == 0:
-                input_parameters.ghy_mirrorfile == None
-            else:
-                input_parameters.ghy_mirrorfile = self.ghy_mirrorfile
-
-            input_parameters.ghy_profile_dimension = self.ghy_profile_dimension
-
-            if self.ghy_calcType != 0:
-                input_parameters.ghy_nf = self.ghy_nf
-            else:
-                input_parameters.ghy_nf = 0
-
-            input_parameters.ghy_nbins_x = self.ghy_nbins_x
-            input_parameters.ghy_nbins_z = self.ghy_nbins_z
-            input_parameters.ghy_npeak = self.ghy_npeak
-            input_parameters.ghy_fftnpts = self.ghy_fftnpts
-
-            output_beam, calculation_parameters = hybrid_control.hy_run(input_parameters)
-
-            self.ghy_focallength = input_parameters.ghy_focallength
-            self.ghy_distance = input_parameters.ghy_distance
-            self.ghy_nbins_x = input_parameters.ghy_nbins_x
-            self.ghy_nbins_z = input_parameters.ghy_nbins_z
-            self.ghy_npeak   = input_parameters.ghy_npeak
-            self.ghy_fftnpts = input_parameters.ghy_fftnpts
-
-            self.setStatusMessage("Plotting Results")
-
-            do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
-
-            if do_nf:
-                self.plot_xy(output_beam, 84, 1, 3, plot_canvas_index=1, title="X,Z", xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]',
-                             xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
-
-                self.plot_xy(output_beam, 92, 1, 3, plot_canvas_index=3, title="X,Z", xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]',
-                             xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
-
-            else:
-                self.plot_xy(output_beam, 88, 1, 3, plot_canvas_index=1, title="X,Z", xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]',
-                             xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
-
             self.setStatusMessage("")
-            self.progressBarFinished()
+            self.progressBarInit()
 
-            self.send("Beam", output_beam)
+            if ShadowCongruence.checkEmptyBeam(self.input_beam):
+                if ShadowCongruence.checkGoodBeam(self.input_beam):
+                    sys.stdout = EmittingStream(textWritten=self.write_stdout)
+
+                    input_parameters = hybrid_control.HybridInputParameters()
+                    input_parameters.widget = self
+                    input_parameters.shadow_beam = self.input_beam
+                    input_parameters.ghy_diff_plane = self.ghy_diff_plane + 1
+                    input_parameters.ghy_calcType = self.ghy_calcType + 1
+
+                    if self.distance_to_image_calc == 0:
+                        input_parameters.ghy_distance = -1
+                    else:
+                        input_parameters.ghy_distance = self.ghy_distance
+
+                    if self.focal_length_calc == 0:
+                        input_parameters.ghy_focallength = -1
+                    else:
+                        input_parameters.ghy_focallength = self.ghy_focallength
+
+                    input_parameters.ghy_usemirrorfile = self.ghy_usemirrorfile
+
+                    if self.ghy_usemirrorfile == 0:
+                        input_parameters.ghy_mirrorfile == None
+                    else:
+                        input_parameters.ghy_mirrorfile = self.ghy_mirrorfile
+
+                    input_parameters.ghy_profile_dimension = self.ghy_profile_dimension
+
+                    if self.ghy_calcType != 0:
+                        input_parameters.ghy_nf = self.ghy_nf
+                    else:
+                        input_parameters.ghy_nf = 0
+
+                    input_parameters.ghy_nbins_x = self.ghy_nbins_x
+                    input_parameters.ghy_nbins_z = self.ghy_nbins_z
+                    input_parameters.ghy_npeak = self.ghy_npeak
+                    input_parameters.ghy_fftnpts = self.ghy_fftnpts
+
+                    calculation_parameters = hybrid_control.hy_run(input_parameters)
+
+                    self.ghy_focallength = input_parameters.ghy_focallength
+                    self.ghy_distance = input_parameters.ghy_distance
+                    self.ghy_nbins_x = input_parameters.ghy_nbins_x
+                    self.ghy_nbins_z = input_parameters.ghy_nbins_z
+                    self.ghy_npeak   = input_parameters.ghy_npeak
+                    self.ghy_fftnpts = input_parameters.ghy_fftnpts
+
+                    self.setStatusMessage("Plotting Results")
+
+                    do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
+
+                    if do_nf:
+                        if self.ghy_diff_plane == 0:
+                            self.plot_histo_hybrid(84, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp", xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Cumulative Distribution Function', var=4)
+                            self.plot_histo(calculation_parameters.ff_beam, 84, 1, plot_canvas_index=1, title="X",
+                                            xtitle=r'X [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
+                            self.plot_histo_hybrid(88, calculation_parameters.dif_x, 2, title=u"\u2206" + "X", xtitle=r'$\Delta$X [$\mu$m]', ytitle=r'Cumulative Distribution Function', var=1)
+                            self.plot_histo(calculation_parameters.nf_beam, 96, 1, plot_canvas_index=3, title="X",
+                                            xtitle=r'X [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
+                        elif self.ghy_diff_plane == 1:
+                            self.plot_histo_hybrid(84, calculation_parameters.dif_zp, 0, title=u"\u2206" + "Zp", xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Cumulative Distribution Function', var=6)
+                            self.plot_histo(calculation_parameters.ff_beam, 84, 3, plot_canvas_index=1, title="Z",
+                                            xtitle=r'Z [$\mu$m]', ytitle=r'Number of Rays', xum=("Z [" + u"\u03BC" + "m]"))
+                            self.plot_histo_hybrid(88, calculation_parameters.dif_z, 2, title=u"\u2206" + "Z", xtitle=r'$\Delta$Z [$\mu$m]', ytitle=r'Cumulative Distribution Function', var=2)
+                            self.plot_histo(calculation_parameters.nf_beam, 96, 3, plot_canvas_index=3, title="Z",
+                                            xtitle=r'Z [$\mu$m]', ytitle=r'Number of Rays', xum=("Z [" + u"\u03BC" + "m]"))
+                    else:
+                        if self.ghy_diff_plane == 0:
+                            self.plot_histo_hybrid(88, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp", xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Cumulative Distribution Function', var=4)
+                            self.plot_histo(calculation_parameters.ff_beam, 96, 1, plot_canvas_index=1, title="X",
+                                            xtitle=r'X [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
+                        elif self.ghy_diff_plane == 1:
+                            self.plot_histo_hybrid(88, calculation_parameters.dif_zp, 0, title=u"\u2206" + "Zp", xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Cumulative Distribution Function', var=6)
+                            self.plot_histo(calculation_parameters.ff_beam, 96, 3, plot_canvas_index=1, title="Z",
+                                            xtitle=r'Z [$\mu$m]', ytitle=r'Number of Rays', xum=("Z [" + u"\u03BC" + "m]"))
+
+                    self.setStatusMessage("")
+                    self.progressBarFinished()
+
+                    self.send("Output Beam (Far Field)", calculation_parameters.ff_beam)
+                else:
+                    raise Exception("Input Beam with no good rays")
+            else:
+                raise Exception("Empty Input Beam")
         except Exception as exception:
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))
@@ -306,6 +348,8 @@ class HybridScreen(AutomaticElement):
             QtGui.QMessageBox.critical(self, "Error", str(exception.args[0]), QtGui.QMessageBox.Ok)
 
             #raise exception
+
+        self.progressBarFinished()
 
     def set_progress_bar(self, value):
         if value >= 100:
