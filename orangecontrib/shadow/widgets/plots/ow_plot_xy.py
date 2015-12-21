@@ -44,7 +44,7 @@ class PlotXY(AutomaticElement):
 
     x_range=Setting(0)
     x_range_min=Setting(0.0)
-    x_range_max=Setting(0)
+    x_range_max=Setting(0.0)
 
     y_range=Setting(0.0)
     y_range_min=Setting(0.0)

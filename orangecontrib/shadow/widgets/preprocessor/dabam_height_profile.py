@@ -25,7 +25,6 @@ except:
     pass
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
-from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
 class OWdabam_height_profile(OWWidget):
     name = "DABAM Height Profile"

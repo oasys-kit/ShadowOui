@@ -39,7 +39,11 @@ class Histogram(ow_automatic_element.AutomaticElement):
     image_plane_rel_abs_position=Setting(0)
 
     x_column_index=Setting(10)
-    weight_column_index = Setting(22)
+
+    x_range=Setting(0)
+    x_range_min=Setting(0.0)
+    x_range_max=Setting(0.0)
+
     weight_column_index = Setting(22)
 
     number_of_bins=Setting(100)
@@ -155,6 +159,19 @@ class Histogram(ow_automatic_element.AutomaticElement):
                                          ],
                                          sendSelectedValue=False, orientation="horizontal")
 
+        gui.comboBox(general_box, self, "x_range", label="X Range", labelWidth=250,
+                                     items=["<Default>",
+                                            "Set.."],
+                                     callback=self.set_XRange, sendSelectedValue=False, orientation="horizontal")
+
+        self.xrange_box = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=390, height=100)
+        self.xrange_box_empty = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=390, height=100)
+
+        oasysgui.lineEdit(self.xrange_box, self, "x_range_min", "X min", labelWidth=220, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.xrange_box, self, "x_range_max", "X max", labelWidth=220, valueType=float, orientation="horizontal")
+
+        self.set_XRange()
+
         histograms_box = oasysgui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=70)
 
         oasysgui.lineEdit(histograms_box, self, "number_of_bins", "Number of Bins", labelWidth=250, valueType=int, orientation="horizontal")
@@ -178,17 +195,21 @@ class Histogram(ow_automatic_element.AutomaticElement):
             self.input_beam = ShadowBeam()
             self.plot_canvas.clear()
 
+    def set_XRange(self):
+        self.xrange_box.setVisible(self.x_range == 1)
+        self.xrange_box_empty.setVisible(self.x_range == 0)
+
     def set_ImagePlane(self):
         self.image_plane_box.setVisible(self.image_plane==1)
         self.image_plane_box_empty.setVisible(self.image_plane==0)
 
-    def replace_fig(self, beam, var, title, xtitle, ytitle, xum):
+    def replace_fig(self, beam, var, x_range, title, xtitle, ytitle, xum):
         if self.plot_canvas is None:
             self.plot_canvas = ShadowPlot.DetailedHistoWidget()
             self.image_box.layout().addWidget(self.plot_canvas)
 
         try:
-            self.plot_canvas.plot_histo(beam, var, 1, None, self.weight_column_index+1, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum)
+            self.plot_canvas.plot_histo(beam, var, 1, x_range, self.weight_column_index+1, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum)
         except Exception:
             raise Exception("Data not plottable: No good rays or bad content")
 
@@ -214,7 +235,16 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
             beam_to_plot = new_shadow_beam._beam
 
-        self.replace_fig(beam_to_plot, var_x, title, xtitle, ytitle, xum)
+        if self.x_range == 1:
+            if self.x_range_min >= self.x_range_max: raise Exception("X range min cannot be greater or equal than X range max")
+
+            factor1 = ShadowPlot.get_factor(var_x)
+
+            x_range = [self.x_range_min/factor1, self.x_range_max/factor1]
+        else:
+            x_range = None
+
+        self.replace_fig(beam_to_plot, var_x, x_range, title, xtitle, ytitle, xum)
 
     def plot_results(self):
         #self.error(self.error_id)
