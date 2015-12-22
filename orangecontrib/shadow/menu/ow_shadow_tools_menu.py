@@ -477,6 +477,8 @@ class ShadowToolsMenu(OMenu):
                 slits_screen_before = []
                 slits_screen_after = []
 
+                mirror_orientation_angle = int(float(shadow_file.getProperty("ALPHA"))/90)
+
                 for index in range(n_screen):
                     try:
                         slit = ScreenSlit()
@@ -509,6 +511,11 @@ class ShadowToolsMenu(OMenu):
                                 if slit.absolute_distance_from_mirror > original_source_plane_distance:
                                     messages.append("SCREEN/SLITS BEFORE O.E. " + widget_desc.name + " REFUSED - ABSOLUTE DISTANCE FROM MIRROR > O.E. SOURCE PLANE DISTANCE")
                                     continue
+
+                                if mirror_orientation_angle == 1 or mirror_orientation_angle == 3:
+                                    #90 or 270 -> x must be inverted with z, slits before has the same reference of previous widget
+                                    if slit.aperture_shape == 2:
+                                        messages.append("SCREEN/SLITS BEFORE O.E. " + widget_desc.name + " WITH EXTERNAL FILE FOR COORDINATES - OE HAS 90 OR 270deg ORIENTATION ANGLE, COORDINATES SHOULD BE INVERTED")
 
                                 if len(slits_screen_before) == 0:
                                     slits_screen_before.append(slit)
@@ -568,13 +575,19 @@ class ShadowToolsMenu(OMenu):
                     slit_widget.thickness = slits_screen_before[index].thickness
                     slit_widget.opt_const_file_name = slits_screen_before[index].opt_const_file_name
 
-                    slit_widget.slit_width_xaxis = slits_screen_before[index].slit_width_xaxis
-                    slit_widget.slit_height_zaxis = slits_screen_before[index].slit_height_zaxis
+                    if mirror_orientation_angle == 1 or mirror_orientation_angle == 3:
+                        #90 or 270 -> x must be inverted with z, slits before has the same reference of previous widget
+                        slit_widget.slit_width_xaxis = slits_screen_before[index].slit_height_zaxis
+                        slit_widget.slit_height_zaxis = slits_screen_before[index].slit_width_xaxis
+                        slit_widget.slit_center_xaxis  = slits_screen_before[index].slit_center_zaxis
+                        slit_widget.slit_center_zaxis  = slits_screen_before[index].slit_center_xaxis
+                    else:
+                        slit_widget.slit_width_xaxis = slits_screen_before[index].slit_width_xaxis
+                        slit_widget.slit_height_zaxis = slits_screen_before[index].slit_height_zaxis
+                        slit_widget.slit_center_xaxis  = slits_screen_before[index].slit_center_xaxis
+                        slit_widget.slit_center_zaxis  = slits_screen_before[index].slit_center_zaxis
 
                     slit_widget.external_file_with_coordinate = slits_screen_before[index].external_file_with_coordinate
-
-                    slit_widget.slit_center_xaxis  = slits_screen_before[index].slit_center_xaxis
-                    slit_widget.slit_center_zaxis  = slits_screen_before[index].slit_center_zaxis
 
                     slit_widget.setupUI()
 
