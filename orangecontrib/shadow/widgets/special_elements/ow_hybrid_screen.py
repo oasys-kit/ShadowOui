@@ -161,7 +161,7 @@ class HybridScreen(AutomaticElement):
     def initializeTabs(self):
         self.tabs.clear()
 
-        if self.ghy_nf == 1:
+        if self.ghy_calcType !=0 and self.ghy_nf == 1:
             self.tab = [gui.createTabPage(self.tabs, "C.D.F. of " + u"\u2206" + "Divergence at Far Field"),
                         gui.createTabPage(self.tabs, "Distribution of Position at Far Field"),
                         gui.createTabPage(self.tabs, "C.D.F. of " + u"\u2206" + "Position at Near Field"),

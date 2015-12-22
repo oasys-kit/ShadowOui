@@ -576,6 +576,8 @@ class ShadowToolsMenu(OMenu):
                     slit_widget.slit_center_xaxis  = slits_screen_before[index].slit_center_xaxis
                     slit_widget.slit_center_zaxis  = slits_screen_before[index].slit_center_zaxis
 
+                    slit_widget.setupUI()
+
                     nodes.append(slit_node)
 
                 widget_node = self.createNewNode(widget_desc)
@@ -610,6 +612,8 @@ class ShadowToolsMenu(OMenu):
                     slit_widget.external_file_with_coordinate = slits_screen_after[index].external_file_with_coordinate
                     slit_widget.slit_center_xaxis  = slits_screen_after[index].slit_center_xaxis
                     slit_widget.slit_center_zaxis  = slits_screen_after[index].slit_center_zaxis
+
+                    slit_widget.setupUI()
 
                     nodes.append(slit_node)
 

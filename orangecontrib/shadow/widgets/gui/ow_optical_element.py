@@ -1005,38 +1005,38 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 self.ruling_box_1 = oasysgui.widgetBox(ruling_box, "", addSpace=True, orientation="horizontal")
 
-                self.ruling_density_label = gui.widgetLabel(self.ruling_box_1, "Ruling Density at origin [Lines/cm]", labelWidth=300)
+                self.ruling_density_label = gui.widgetLabel(self.ruling_box_1, "Ruling Density at origin [Lines/cm]", labelWidth=280)
                 oasysgui.lineEdit(self.ruling_box_1, self, "grating_ruling_density", "", labelWidth=1, valueType=float, orientation="horizontal")
 
                 self.ruling_box_2 = oasysgui.widgetBox(ruling_box, "", addSpace=False, orientation="vertical")
 
-                oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_left_distance", "\"Left\" distance [cm]", labelWidth=300, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_left_incidence_angle", "\"Left\" incidence angle [deg]", labelWidth=300, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_left_azimuth_from_y", "\"Left\" azimuth from +Y (CCW) [deg]", labelWidth=300, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_right_distance", "\"Right\" distance [cm]", labelWidth=300, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_right_incidence_angle", "\"Right\" incidence angle [deg]", labelWidth=300, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_right_azimuth_from_y", "\"Right\" azimuth from +Y (CCW) [deg]", labelWidth=300, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_left_distance", "\"Left\" distance [cm]", labelWidth=280, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_left_incidence_angle", "\"Left\" incidence angle [deg]", labelWidth=280, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_left_azimuth_from_y", "\"Left\" azimuth from +Y (CCW) [deg]", labelWidth=280, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_right_distance", "\"Right\" distance [cm]", labelWidth=280, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_right_incidence_angle", "\"Right\" incidence angle [deg]", labelWidth=280, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_right_azimuth_from_y", "\"Right\" azimuth from +Y (CCW) [deg]", labelWidth=280, valueType=float, orientation="horizontal")
                 gui.comboBox(self.ruling_box_2, self, "grating_holo_pattern_type", label="Pattern Type", labelWidth=250,
                              items=["Spherical/Spherical", "Plane/Spherical", "Spherical/Plane", "Plane/Plane"], sendSelectedValue=False, orientation="horizontal")
                 gui.comboBox(self.ruling_box_2, self, "grating_holo_source_type", label="Source Type", labelWidth=250,
                              items=["Real/Real", "Real/Virtual", "Virtual/Real", "Real/Real"], sendSelectedValue=False, orientation="horizontal")
                 gui.comboBox(self.ruling_box_2, self, "grating_holo_cylindrical_source", label="Cylindrical Source", labelWidth=250,
                              items=["Spherical/Spherical", "Cylindrical/Spherical", "Spherical/Cylindrical", "Cylindrical/Cylindrical"], sendSelectedValue=False, orientation="horizontal")
-                oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_recording_wavelength", "Recording wavelength [Å]", labelWidth=300, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_recording_wavelength", "Recording wavelength [Å]", labelWidth=280, valueType=float, orientation="horizontal")
 
                 self.ruling_box_3 = oasysgui.widgetBox(ruling_box, "", addSpace=False, orientation="vertical")
 
-                oasysgui.lineEdit(self.ruling_box_3, self, "grating_groove_pole_distance", "Groove pole distance [cm]", labelWidth=300, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.ruling_box_3, self, "grating_groove_pole_azimuth_from_y", "Groove pole azimuth from +Y (CCW) [deg]", labelWidth=300, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.ruling_box_3, self, "grating_coma_correction_factor", "Coma correction factor", labelWidth=300, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.ruling_box_3, self, "grating_groove_pole_distance", "Groove pole distance [cm]", labelWidth=280, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.ruling_box_3, self, "grating_groove_pole_azimuth_from_y", "Groove pole azimuth from +Y (CCW) [deg]", labelWidth=280, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.ruling_box_3, self, "grating_coma_correction_factor", "Coma correction factor", labelWidth=280, valueType=float, orientation="horizontal")
 
                 self.ruling_box_4 = oasysgui.widgetBox(ruling_box, "", addSpace=False, orientation="vertical")
 
-                oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_1", "Polynomial Line Density coeff.: linear", labelWidth=300, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_2", "Polynomial Line Density coeff.: quadratic", labelWidth=300, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_3", "Polynomial Line Density coeff.: third power", labelWidth=300, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_4", "Polynomial Line Density coeff.: fourth power", labelWidth=300, valueType=float, orientation="horizontal")
-                gui.comboBox(self.ruling_box_4, self, "grating_poly_signed_absolute", label="Line density absolute/signed from the origin", labelWidth=300,
+                oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_1", "Polynomial Line Density coeff.: linear", labelWidth=280, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_2", "Polynomial Line Density coeff.: quadratic", labelWidth=280, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_3", "Polynomial Line Density coeff.: third power", labelWidth=280, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_4", "Polynomial Line Density coeff.: fourth power", labelWidth=280, valueType=float, orientation="horizontal")
+                gui.comboBox(self.ruling_box_4, self, "grating_poly_signed_absolute", label="Line density absolute/signed from the origin", labelWidth=280,
                              items=["Absolute", "Signed"], sendSelectedValue=False, orientation="horizontal")
 
                 self.set_GratingRulingType()
@@ -2499,6 +2499,10 @@ class OpticalElement(ow_generic_element.GenericElement):
                                                           QtGui.QMessageBox.Ok)
 
                     self.set_Dim_Parameters()
+                else:
+                    QtGui.QMessageBox.warning(self, "Warning",
+                              "This O.E. is not a mirror: surface error file will be ignored",
+                              QtGui.QMessageBox.Ok)
 
     def deserialize(self, shadow_file):
         if self.graphical_options.is_screen_slit:
