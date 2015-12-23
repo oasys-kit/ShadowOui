@@ -3,7 +3,7 @@ NAME = "Special Elements"
 
 DESCRIPTION = "Widgets for Shadow Special Optical Elements."
 
-BACKGROUND = "#FFFFFF"
+BACKGROUND = "#DEDEDE"
 
 ICON = "icons/special_elements.png"
 

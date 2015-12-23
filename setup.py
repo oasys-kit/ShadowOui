@@ -5,7 +5,7 @@ import os
 from setuptools import find_packages, setup
 
 NAME = 'ShadowOui'
-VERSION = '1.2.34'
+VERSION = '1.2.35'
 ISRELEASED = False
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
@@ -79,7 +79,7 @@ ENTRY_POINTS = {
     'oasys.menus' : ("shadowmenu = orangecontrib.shadow.menu",)
 }
 
-import site, shutil, sys
+import site, shutil, sys, platform
 
 if __name__ == '__main__':
     setup(
@@ -111,8 +111,6 @@ if __name__ == '__main__':
         is_install = False
         is_develop = False
 
-        print(sys.argv)
-
         for arg in sys.argv:
             if arg == 'install': is_install = True
             if arg == 'develop': is_develop = True
@@ -125,18 +123,30 @@ if __name__ == '__main__':
                     site_packages_dir = directory
                     break
 
-            print("SITE: ", site_packages_dir)
-
             if not site_packages_dir is None:
-                if sys.platform == 'darwin':
-                    shutil.copyfile("libraries/darwin/xrayhelp.py", site_packages_dir + "/xrayhelp.py")
-                    shutil.copyfile("libraries/darwin/xraylib.py", site_packages_dir + "/xraylib.py")
-                    shutil.copyfile("libraries/darwin/xraymessages.py", site_packages_dir + "/xraymessages.py")
-                    shutil.copyfile("libraries/darwin/_xraylib.la", site_packages_dir + "/_xraylib.la")
-                    shutil.copyfile("libraries/darwin/_xraylib.so", site_packages_dir + "/_xraylib.so")
-                    shutil.copyfile("libraries/darwin/xraylib_np.la", site_packages_dir + "/xraylib_np.la")
-                    shutil.copyfile("libraries/darwin/xraylib_np.so", site_packages_dir + "/xraylib_np.so")
-                elif sys.platform == 'linux':
+                if platform.system()== 'Darwin':
+                    version, _ , _ = platform.mac_ver()
+                    version_data = version.split('.')
+
+                    if version_data[0] < 10 or version_data[1] < 8: raise Exception("MacOSX version not supported (>= 10.8)")
+                    if version_data[1] < 10: version_dir = "10.8"
+                    else: version_dir = "10.10"
+
+                    if not os.path.exists(site_packages_dir + "/xrayhelp.py"):
+                        shutil.copyfile("libraries/darwin/xrayhelp.py", site_packages_dir + "/xrayhelp.py")
+                    if not os.path.exists(site_packages_dir + "/xraylib.py"):
+                        shutil.copyfile("libraries/darwin/xraylib.py", site_packages_dir + "/xraylib.py")
+                    if not os.path.exists(site_packages_dir + "/xraymessages.py"):
+                        shutil.copyfile("libraries/darwin/xraymessages.py", site_packages_dir + "/xraymessages.py")
+                    if not os.path.exists(site_packages_dir + "/_xraylib.la"):
+                        shutil.copyfile("libraries/darwin/" + version_dir +"/_xraylib.la", site_packages_dir + "/_xraylib.la")
+                    if not os.path.exists(site_packages_dir + "/_xraylib.so"):
+                        shutil.copyfile("libraries/darwin/" + version_dir +"/_xraylib.so", site_packages_dir + "/_xraylib.so")
+                    if not os.path.exists(site_packages_dir + "/xraylib_np.la"):
+                        shutil.copyfile("libraries/darwin/" + version_dir +"/xraylib_np.la", site_packages_dir + "/xraylib_np.la")
+                    if not os.path.exists(site_packages_dir + "/xraylib_np.so"):
+                        shutil.copyfile("libraries/darwin/" + version_dir +"/xraylib_np.so", site_packages_dir + "/xraylib_np.so")
+                elif platform.system() == 'Linux':
                     pass
     except Exception as exception:
         raise exception
