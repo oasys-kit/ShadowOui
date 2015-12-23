@@ -5,7 +5,7 @@ import os
 from setuptools import find_packages, setup
 
 NAME = 'ShadowOui'
-VERSION = '1.2.35'
+VERSION = '1.2.36'
 ISRELEASED = False
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
@@ -128,8 +128,8 @@ if __name__ == '__main__':
                     version, _ , _ = platform.mac_ver()
                     version_data = version.split('.')
 
-                    if version_data[0] < 10 or version_data[1] < 8: raise Exception("MacOSX version not supported (>= 10.8)")
-                    if version_data[1] < 10: version_dir = "10.8"
+                    if int(version_data[0]) < 10 or int(version_data[1]) < 8: raise Exception("MacOSX version not supported (>= 10.8)")
+                    if int(version_data[1]) < 10: version_dir = "10.8"
                     else: version_dir = "10.10"
 
                     if not os.path.exists(site_packages_dir + "/xrayhelp.py"):
