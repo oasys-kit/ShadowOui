@@ -1,9 +1,10 @@
 import os
 
+from PyQt4 import QtGui
 from oasys.widgets import widget
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from oasys.widgets import gui as oasysgui, congruence
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 
@@ -56,12 +57,17 @@ class BeamFileReader(widget.OWWidget):
     def read_file(self):
         self.setStatusMessage("")
 
-        beam_out = ShadowBeam()
-        beam_out.loadFromFile(self.beam_file_name)
+        try:
+            if congruence.checkFileName(self.beam_file_name):
+                beam_out = ShadowBeam()
+                beam_out.loadFromFile(self.beam_file_name)
 
-        path, file_name = os.path.split(self.beam_file_name)
+                path, file_name = os.path.split(self.beam_file_name)
 
-        self.setStatusMessage("Current: " + file_name)
+                self.setStatusMessage("Current: " + file_name)
 
-        self.send("Beam", beam_out)
+                self.send("Beam", beam_out)
+        except Exception as exception:
+            QtGui.QMessageBox.critical(self, "Error",
+                                       str(exception), QtGui.QMessageBox.Ok)
 

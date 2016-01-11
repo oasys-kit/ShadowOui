@@ -367,7 +367,7 @@ class ShadowPlot:
 
             factor=ShadowPlot.get_factor(col)
 
-            if ref != 0 and not ytitle is None:  ytitle = ytitle + ' % ' + (stp.getLabel(ref-1))[0]
+            if ref != 0 and not ytitle is None:  ytitle = ytitle + ' weighted by ' + (stp.getLabel(ref-1))[0]
 
             histogram = ticket['histogram_path']
             bins = ticket['bin_path']*factor
@@ -394,8 +394,11 @@ class ShadowPlot:
                                                           arrowstyle=ArrowStyle.CurveAB(head_width=2, head_length=4),
                                                           color='b',
                                                           linewidth=1.5))
+            if min(histogram) < 0:
+                self.plot_canvas.setGraphYLimits(min(histogram), max(histogram))
+            else:
+                self.plot_canvas.setGraphYLimits(0, max(histogram))
 
-            self.plot_canvas.setGraphYLimits(0, max(histogram))
             self.plot_canvas.replot()
 
             self.info_box.intensity.setText("{:4.3f}".format(ticket['intensity']))
@@ -603,7 +606,7 @@ class ShadowPlot:
 
         ticket = beam.histo1(col, nbins=100, xrange=None, nolost=nolost, ref=ref)
 
-        if ref != 0 and not ytitle is None:  ytitle = ytitle + ' % ' + (stp.getLabel(ref-1))[0]
+        if ref != 0 and not ytitle is None:  ytitle = ytitle + ' weighted by ' + (stp.getLabel(ref-1))[0]
 
         histogram = ticket['histogram_path']
         bins = ticket['bin_path']*factor
@@ -613,7 +616,10 @@ class ShadowPlot:
         if not ytitle is None: plot_window.setGraphYLabel(ytitle)
         plot_window.setDrawModeEnabled(True, 'rectangle')
         plot_window.setZoomModeEnabled(True)
-        plot_window.setGraphYLimits(0, max(histogram))
+        if min(histogram) < 0:
+            plot_window.setGraphYLimits(min(histogram), max(histogram))
+        else:
+            plot_window.setGraphYLimits(0, max(histogram))
         plot_window.replot()
 
     @classmethod
@@ -914,11 +920,14 @@ class ShadowPhysics:
 
         compound_name = compound_name.strip()
 
-        try:
-            xraylib.CompoundParser(compound_name)
+        if compound_name == "Diamond":
             return compound_name
-        except:
-            raise Exception("Compound Name is not correct")
+        else:
+            try:
+                xraylib.CompoundParser(compound_name)
+                return compound_name
+            except:
+                raise Exception("Compound Name is not correct")
 
     @classmethod
     def getMaterialDensity(cls, material_name):

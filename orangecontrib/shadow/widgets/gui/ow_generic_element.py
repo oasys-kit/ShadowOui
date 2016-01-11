@@ -179,7 +179,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                             self.plot_histo_fast(beam_out, progressBarValue + 20, 11, plot_canvas_index=4, title="Energy", xtitle="Energy [eV]", ytitle="Number of Rays")
 
                             if self.isFootprintEnabled():
-                                self.plot_xy_fast(beam_foot_print, progressBarValue + 20, 3, 1, plot_canvas_index=5, title="Footprint", xtitle=r'Y [cm]', ytitle="X [cm]", is_footprint=True)
+                                self.plot_xy_fast(beam_foot_print, progressBarValue + 20, 2, 1, plot_canvas_index=5, title="Footprint", xtitle=r'Y [cm]', ytitle="X [cm]", is_footprint=True)
 
 
                         elif self.view_type == 0:
@@ -194,7 +194,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                             self.plot_histo(beam_out, progressBarValue + 20, 11, plot_canvas_index=4, title="Energy", xtitle="Energy [eV]", ytitle="Number of Rays", xum="[eV]")
 
                             if self.isFootprintEnabled():
-                                self.plot_xy(beam_out, progressBarValue + 20, 3, 1, plot_canvas_index=5, title="Footprint", xtitle=r'Y [cm]', ytitle=r'X [cm]',
+                                self.plot_xy(beam_foot_print, progressBarValue + 20, 2, 1, plot_canvas_index=5, title="Footprint", xtitle=r'Y [cm]', ytitle=r'X [cm]',
                                              xum=("Y [cm]"), yum=("X [cm]"), is_footprint=True)
 
                     except Exception:

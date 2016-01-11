@@ -4,7 +4,7 @@ from PyQt4 import QtGui
 from oasys.widgets import widget
 from orangewidget import gui
 from orangewidget.settings import Setting
-from oasys.widgets import gui as oasysgui
+from oasys.widgets import gui as oasysgui, congruence
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence
@@ -79,11 +79,23 @@ class BeamFileWriter(widget.OWWidget):
     def write_file(self):
         self.setStatusMessage("")
 
-        self.input_beam.writeToFile(self.beam_file_name)
+        try:
+            if ShadowCongruence.checkEmptyBeam(self.input_beam):
+                if ShadowCongruence.checkGoodBeam(self.input_beam):
+                    if congruence.checkFileName(self.beam_file_name):
+                        self.input_beam.writeToFile(self.beam_file_name)
 
-        path, file_name = os.path.split(self.beam_file_name)
+                        path, file_name = os.path.split(self.beam_file_name)
 
-        self.setStatusMessage("File Out: " + file_name)
+                        self.setStatusMessage("File Out: " + file_name)
 
-        self.send("Beam", self.input_beam)
+                        self.send("Beam", self.input_beam)
+                else:
+                    QtGui.QMessageBox.critical(self, "Error",
+                                               "No good rays or bad content",
+                                               QtGui.QMessageBox.Ok)
+        except Exception as exception:
+            QtGui.QMessageBox.critical(self, "Error",
+                                       str(exception), QtGui.QMessageBox.Ok)
+
 

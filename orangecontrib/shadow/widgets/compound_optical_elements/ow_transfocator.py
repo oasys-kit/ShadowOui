@@ -134,7 +134,7 @@ class Transfocator(ow_generic_element.GenericElement):
         adv_other_box = oasysgui.widgetBox(tab_adv, "Optional file output", addSpace=False, orientation="vertical")
 
         gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=310,
-                     items=["All", "Mirror", "Image", "None"],
+                     items=["All", "Mirror", "Image", "None", "Debug (All + start.xx/end.xx)"],
                      sendSelectedValue=False, orientation="horizontal")
 
         button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
@@ -252,6 +252,8 @@ class Transfocator(ow_generic_element.GenericElement):
                 self.tab_crls.setCurrentIndex(current_index)
 
     def get_write_file_options(self):
+        write_start_files = 0
+        write_end_files = 0
         write_star_files = 0
         write_mirr_files = 0
 
@@ -262,8 +264,13 @@ class Transfocator(ow_generic_element.GenericElement):
             write_star_files = 1
         elif self.file_to_write_out == 2:
             write_mirr_files = 1
+        elif self.file_to_write_out == 4:
+            write_start_files = 1
+            write_end_files = 1
+            write_star_files = 1
+            write_mirr_files = 1
 
-        return write_star_files, write_mirr_files
+        return write_start_files, write_end_files, write_star_files, write_mirr_files
 
     def dumpSettings(self):
         bkp_nlenses = copy.deepcopy(self.nlenses)
@@ -608,12 +615,15 @@ class Transfocator(ow_generic_element.GenericElement):
         self.fixWeirdShadowBug()
         ###########################################
 
-        write_star_files, write_mirr_files = self.get_write_file_options()
+        write_start_files, write_end_files, write_star_files, write_mirr_files = self.get_write_file_options()
 
         beam_out = ShadowBeam.traceFromCompoundOE(self.input_beam,
                                                   shadow_oe,
+                                                  write_start_files=write_start_files,
+                                                  write_end_files=write_end_files,
                                                   write_star_files=write_star_files,
-                                                  write_mirr_files=write_mirr_files)
+                                                  write_mirr_files=write_mirr_files
+                                                  )
 
         if self.trace_shadow:
             grabber.stop()

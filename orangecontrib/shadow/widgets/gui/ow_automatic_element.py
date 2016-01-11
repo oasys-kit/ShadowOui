@@ -18,7 +18,8 @@ class AutomaticElement(widget.OWWidget):
     want_main_area=1
 
     is_automatic_run = Setting(True)
-    trace_shadow = Setting(False)
+    #trace_shadow = Setting(False)
+    trace_shadow = False
 
     error_id = 0
     warning_id = 0
@@ -41,8 +42,8 @@ class AutomaticElement(widget.OWWidget):
         if show_automatic_box :
             gui.checkBox(box, self, 'is_automatic_run', 'Automatic Execution')
 
-        gui.checkBox(box, self, 'trace_shadow', 'Display Shadow Output')
-
+        trace = gui.checkBox(box, self, 'trace_shadow', 'Display Shadow Output')
+        trace.setVisible(False)
 
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):
