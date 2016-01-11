@@ -1,17 +1,17 @@
-[oasys.menus]
-shadowmenu = orangecontrib.shadow.menu
-
 [oasys.addons]
 shadow = orangecontrib.shadow
 
+[oasys.menus]
+shadowmenu = orangecontrib.shadow.menu
+
 [oasys.widgets]
 Shadow Compound Optical Elements = orangecontrib.shadow.widgets.compound_optical_elements
-Shadow Optical Elements = orangecontrib.shadow.widgets.optical_elements
 Shadow Experiments = orangecontrib.shadow.widgets.experimental_elements
+Shadow Loop Management = orangecontrib.shadow.widgets.loop_management
+Shadow Optical Elements = orangecontrib.shadow.widgets.optical_elements
 Shadow PostProcessor = orangecontrib.shadow.widgets.plots
 Shadow PreProcessor = orangecontrib.shadow.widgets.preprocessor
 Shadow Sources = orangecontrib.shadow.widgets.sources
-Shadow Loop Management = orangecontrib.shadow.widgets.loop_management
-Shadow Utility = orangecontrib.shadow.widgets.utility
 Shadow Special Elements = orangecontrib.shadow.widgets.special_elements
+Shadow Utility = orangecontrib.shadow.widgets.utility
 
