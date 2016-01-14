@@ -45,7 +45,7 @@ class ScreenSlits(OpticalElement):
         rx_slit = numpy.zeros(10)
         rz_slit = numpy.zeros(10)
         sl_dis = numpy.zeros(10)
-        file_src_ext = ['', '', '', '', '', '', '', '', '', '']
+        file_scr_ext = ['', '', '', '', '', '', '', '', '', '']
         cx_slit = numpy.zeros(10)
         cz_slit = numpy.zeros(10)
 
@@ -57,7 +57,7 @@ class ScreenSlits(OpticalElement):
             k_slit[0] = self.aperture_shape
 
             if self.aperture_shape == 2:
-                file_src_ext[0] = bytes(congruence.checkFileName(self.external_file_with_coordinate), 'utf-8')
+                file_scr_ext[0] = bytes(congruence.checkFileName(self.external_file_with_coordinate), 'utf-8')
             else:
                 rx_slit[0] = self.slit_width_xaxis
                 rz_slit[0] = self.slit_height_zaxis
@@ -68,20 +68,20 @@ class ScreenSlits(OpticalElement):
             thick[0] = self.thickness
             file_abs[0] = bytes(congruence.checkFileName(self.opt_const_file_name), 'utf-8')
 
-        shadow_oe._oe.set_screens(n_screen=n_screen,
-                                i_screen=i_screen,
-                                i_abs=i_abs,
-                                sl_dis=sl_dis,
-                                i_slit=i_slit,
-                                i_stop=i_stop,
-                                k_slit=k_slit,
-                                thick=thick,
-                                file_abs=numpy.array(file_abs),
-                                rx_slit=rx_slit,
-                                rz_slit=rz_slit,
-                                cx_slit=cx_slit,
-                                cz_slit=cz_slit,
-                                file_src_ext=numpy.array(file_src_ext))
+        shadow_oe._oe.set_screens(n_screen,
+                                  i_screen,
+                                  i_abs,
+                                  sl_dis,
+                                  i_slit,
+                                  i_stop,
+                                  k_slit,
+                                  thick,
+                                  numpy.array(file_abs),
+                                  rx_slit,
+                                  rz_slit,
+                                  cx_slit,
+                                  cz_slit,
+                                  numpy.array(file_scr_ext))
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)

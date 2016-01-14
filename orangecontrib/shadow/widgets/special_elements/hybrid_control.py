@@ -216,7 +216,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         rx_slit = numpy.zeros(10)
         rz_slit = numpy.zeros(10)
         sl_dis = numpy.zeros(10)
-        file_src_ext = numpy.array(['', '', '', '', '', '', '', '', '', ''])
+        file_scr_ext = numpy.array(['', '', '', '', '', '', '', '', '', ''])
         cx_slit = numpy.zeros(10)
         cz_slit = numpy.zeros(10)
 
@@ -233,7 +233,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
                                 rz_slit,
                                 cx_slit,
                                 cz_slit,
-                                file_src_ext)
+                                file_scr_ext)
 
         if input_parameters.ghy_calcType == 3:
             if shadow_oe._oe.FWRITE > 1 or shadow_oe._oe.F_ANGLE == 0:

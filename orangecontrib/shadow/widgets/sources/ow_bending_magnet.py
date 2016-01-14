@@ -1,7 +1,7 @@
 import sys
 
 from PyQt4 import QtGui
-from PyQt4.QtGui import QApplication, QPalette, QColor, QFont
+from PyQt4.QtGui import QApplication, QPalette, QColor, QFont, QLabel
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -72,13 +72,13 @@ class BendingMagnet(ow_source.Source):
 
         left_box_2 = oasysgui.widgetBox(self.controlArea, "Machine Parameters", addSpace=True, orientation="vertical")
 
-        oasysgui.lineEdit(left_box_2, self, "sigma_x", "Sigma X [cm]", labelWidth=300, tooltip="Sigma X [cm]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_2, self, "sigma_z", "Sigma Z [cm]", labelWidth=300, tooltip="Sigma Z [cm]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_2, self, "emittance_x", "Emittance X [rad.cm]", labelWidth=300, tooltip="Emittance X [rad.cm]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_2, self, "emittance_z", "Emittance Z [rad.cm]", labelWidth=300, tooltip="Emittance Z [rad.cm]", valueType=float, orientation="horizontal")
+        self.le_sigma_x = oasysgui.lineEdit(left_box_2, self, "sigma_x", "Sigma X", labelWidth=300, tooltip="Sigma X", valueType=float, orientation="horizontal")
+        self.le_sigma_z = oasysgui.lineEdit(left_box_2, self, "sigma_z", "Sigma Z", labelWidth=300, tooltip="Sigma Z", valueType=float, orientation="horizontal")
+        self.le_emittance_x = oasysgui.lineEdit(left_box_2, self, "emittance_x", "Emittance X", labelWidth=300, tooltip="Emittance X", valueType=float, orientation="horizontal")
+        self.le_emittance_z = oasysgui.lineEdit(left_box_2, self, "emittance_z", "Emittance Z", labelWidth=300, tooltip="Emittance Z", valueType=float, orientation="horizontal")
         oasysgui.lineEdit(left_box_2, self, "energy", "Energy [GeV]", tooltip="Energy [GeV]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_2, self, "distance_from_waist_x", "Distance from Waist X [cm]", labelWidth=300, tooltip="Distance from Waist X [cm]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_2, self, "distance_from_waist_z", "Distance from Waist Z [cm]", labelWidth=300, tooltip="Distance from Waist Z [cm]", valueType=float, orientation="horizontal")
+        self.le_distance_from_waist_x = oasysgui.lineEdit(left_box_2, self, "distance_from_waist_x", "Distance from Waist X", labelWidth=300, tooltip="Distance from Waist X", valueType=float, orientation="horizontal")
+        self.le_distance_from_waist_z = oasysgui.lineEdit(left_box_2, self, "distance_from_waist_z", "Distance from Waist Z", labelWidth=300, tooltip="Distance from Waist Z", valueType=float, orientation="horizontal")
 
         left_box_3 = oasysgui.widgetBox(self.controlArea, "Bending Magnet Parameters", addSpace=True, orientation="vertical")
 
@@ -132,8 +132,21 @@ class BendingMagnet(ow_source.Source):
         button.setFixedWidth(100)
 
         gui.rubber(self.controlArea)
-
         gui.rubber(self.mainArea)
+
+    def after_change_units(self):
+        label = self.le_sigma_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.units_label + "]")
+        label = self.le_sigma_z.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.units_label + "]")
+        label = self.le_emittance_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [rad." + self.units_label + "]")
+        label = self.le_emittance_z.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [rad." + self.units_label + "]")
+        label = self.le_distance_from_waist_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.units_label + "]")
+        label = self.le_distance_from_waist_z.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.units_label + "]")
 
     def set_OptimizeSource(self):
         self.optimize_file_name_box.setVisible(self.optimize_source != 0)
