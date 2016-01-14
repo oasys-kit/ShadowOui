@@ -39,7 +39,7 @@ class Lens(ow_generic_element.GenericElement):
     NONE_SPECIFIED = "NONE SPECIFIED"
 
     CONTROL_AREA_HEIGHT = 440
-    CONTROL_AREA_WIDTH = 470
+    CONTROL_AREA_WIDTH = 500
 
     p = Setting(0.0)
     q = Setting(0.0)
@@ -72,11 +72,13 @@ class Lens(ow_generic_element.GenericElement):
         self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
         tabs_setting = gui.tabWidget(self.controlArea)
+        tabs_setting.setFixedWidth(495)
+        #tabs_setting.setFixedHeight(650)
 
         tab_bas = oasysgui.createTabPage(tabs_setting, "Basic Setting")
         tab_adv = oasysgui.createTabPage(tabs_setting, "Advanced Setting")
 
-        lens_box = oasysgui.widgetBox(tab_bas, "Input Parameters", addSpace=False, orientation="vertical", height=600, width=450)
+        lens_box = oasysgui.widgetBox(tab_bas, "Input Parameters", addSpace=False, orientation="vertical", height=600, width=480)
 
         oasysgui.lineEdit(lens_box, self, "p", "Distance Source-First lens interface (P) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(lens_box, self, "q", "Distance Last lens interface-Image plane (Q) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
@@ -212,7 +214,7 @@ class Lens(ow_generic_element.GenericElement):
             return None
 
     def get_diameter(self):
-        if self.has_finite_diameter:
+        if self.has_finite_diameter == 0:
             return self.diameter
         else:
             return None
@@ -288,14 +290,14 @@ class Lens(ow_generic_element.GenericElement):
         congruence.checkPositiveNumber(self.p, "P")
         congruence.checkPositiveNumber(self.q, "Q")
 
-        if self.has_finite_diameter:
+        if self.has_finite_diameter == 0:
             congruence.checkStrictlyPositiveNumber(self.diameter, "Diameter")
 
         if self.ri_calculation_mode == 1:
             congruence.checkFile(self.prerefl_file)
         else:
-            congruence.checkStrictlyPositiveNumber(self.refraction_index, "Refraction Index")
-            congruence.checkStrictlyPositiveNumber(self.attenuation_coefficient, "Attenuation Coefficient")
+            congruence.checkPositiveNumber(self.refraction_index, "Refraction Index")
+            congruence.checkPositiveNumber(self.attenuation_coefficient, "Attenuation Coefficient")
 
         congruence.checkStrictlyPositiveNumber(self.radius, "Radius")
         congruence.checkPositiveNumber(self.interthickness, "Lens Thickness")

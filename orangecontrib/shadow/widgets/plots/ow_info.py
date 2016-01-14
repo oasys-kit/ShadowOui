@@ -11,6 +11,8 @@ from orangecontrib.shadow.util.script.python_script import PythonConsole
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream, ShadowCompoundOpticalElement
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
+from Shadow.ShadowLibExtensions import CompoundOE
+
 class Info(widget.OWWidget):
 
     name = "Info"
@@ -133,6 +135,12 @@ class Info(widget.OWWidget):
 
                 optical_element_list = []
 
+                self.sysInfo.setText("")
+                self.mirInfo.setText("")
+                self.sourceInfo.setText("")
+                self.distancesSummary.setText("")
+                self.pythonScript.setText("")
+
                 for history_element in self.input_beam.getOEHistory():
                     if not history_element._shadow_source_start is None:
                         optical_element_list.append(history_element._shadow_source_start.src)
@@ -146,7 +154,10 @@ class Info(widget.OWWidget):
                             self.sourceInfo.append("Problem in calculating Source Info:\n" + str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]))
                     elif not history_element._shadow_oe_end is None:
                         try:
-                            self.mirInfo.append(history_element._shadow_oe_end._oe.mirinfo(title="O.E. #" + str(history_element._oe_number)))
+                            if isinstance(history_element._shadow_oe_end._oe, CompoundOE):
+                                self.mirInfo.append(history_element._shadow_oe_end._oe.mirinfo())
+                            else:
+                                self.mirInfo.append(history_element._shadow_oe_end._oe.mirinfo(title="O.E. #" + str(history_element._oe_number)))
                         except:
                             self.sourceInfo.append("Problem in calculating Mir Info for O.E. #:" + str(history_element._oe_number) + "\n" + str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]))
 

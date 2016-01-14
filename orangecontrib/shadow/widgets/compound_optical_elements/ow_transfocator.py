@@ -912,7 +912,7 @@ class CRLBox(QtGui.QWidget):
             return None
 
     def get_diameter(self):
-        if self.has_finite_diameter:
+        if self.has_finite_diameter == 0:
             return self.diameter
         else:
             return None
@@ -954,7 +954,7 @@ class CRLBox(QtGui.QWidget):
         congruence.checkPositiveNumber(self.p, "P")
         congruence.checkPositiveNumber(self.q, "Q")
 
-        if self.has_finite_diameter:
+        if self.has_finite_diameter == 0:
             congruence.checkStrictlyPositiveNumber(self.diameter, "Diameter")
 
         if self.ri_calculation_mode == 1:
