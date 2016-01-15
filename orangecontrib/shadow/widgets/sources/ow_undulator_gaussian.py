@@ -58,8 +58,8 @@ class UndulatorGaussian(ow_source.Source):
 
         left_box_2 = oasysgui.widgetBox(self.controlArea, "Machine Parameters", addSpace=True, orientation="vertical")
 
-        oasysgui.lineEdit(left_box_2, self, "sigma_x", "Size RMS H [cm]", labelWidth=300, tooltip="Size RMS H [cm]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_2, self, "sigma_z", "Size RMS V [cm]", labelWidth=300, tooltip="Size RMS V [cm]", valueType=float, orientation="horizontal")
+        self.le_sigma_x = oasysgui.lineEdit(left_box_2, self, "sigma_x", "Size RMS H", labelWidth=300, tooltip="Size RMS H", valueType=float, orientation="horizontal")
+        self.le_sigma_z = oasysgui.lineEdit(left_box_2, self, "sigma_z", "Size RMS V", labelWidth=300, tooltip="Size RMS V", valueType=float, orientation="horizontal")
 
         oasysgui.lineEdit(left_box_2, self, "sigma_divergence_x", "Divergence RMS H [rad]", labelWidth=300, tooltip="Divergence RMS H [rad]", valueType=float, orientation="horizontal")
         oasysgui.lineEdit(left_box_2, self, "sigma_divergence_z", "Divergence RMS V [rad]", labelWidth=300, tooltip="Divergence RMS V [rad]", valueType=float, orientation="horizontal")
@@ -94,6 +94,12 @@ class UndulatorGaussian(ow_source.Source):
         gui.rubber(self.controlArea)
 
         gui.rubber(self.mainArea)
+
+    def after_change_workspace_units(self):
+        label = self.le_sigma_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label = self.le_sigma_z.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
 
     def calculateMagneticField(self):
         self.magnetic_radius=abs(self.magnetic_radius)

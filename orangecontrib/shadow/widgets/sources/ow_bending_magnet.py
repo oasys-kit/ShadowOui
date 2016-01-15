@@ -66,8 +66,8 @@ class BendingMagnet(ow_source.Source):
         oasysgui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=300, valueType=int, orientation="horizontal")
 
         oasysgui.lineEdit(left_box_1, self, "seed", "Seed", tooltip="Seed", labelWidth=300, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(left_box_1, self, "e_min", "Minimum Energy (eV)", tooltip="Minimum Energy (eV)", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_1, self, "e_max", "Maximum Energy (eV)", tooltip="Maximum Energy (eV)", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "e_min", "Minimum Energy [eV]", tooltip="Minimum Energy [eV]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "e_max", "Maximum Energy [eV]", tooltip="Maximum Energy [eV]", labelWidth=300, valueType=float, orientation="horizontal")
         gui.comboBox(left_box_1, self, "generate_polarization_combo", label="Generate Polarization", items=["Only Parallel", "Only Perpendicular", "Total"], labelWidth=300, orientation="horizontal")
 
         left_box_2 = oasysgui.widgetBox(self.controlArea, "Machine Parameters", addSpace=True, orientation="vertical")

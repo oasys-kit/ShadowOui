@@ -35,7 +35,6 @@ class Wiggler(ow_source.Source):
 
     number_of_rays=Setting(5000)
     seed=Setting(5676561)
-    user_unit = 1
     e_min=Setting(5000)
     e_max=Setting(100000)
     optimize_source_combo=Setting(0)
@@ -80,8 +79,8 @@ class Wiggler(ow_source.Source):
         oasysgui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=300, valueType=int, orientation="horizontal")
 
         oasysgui.lineEdit(left_box_1, self, "seed", "Seed", tooltip="Seed", labelWidth=300, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(left_box_1, self, "e_min", "Minimum Photon Energy (eV)", tooltip="Minimum Energy (eV)", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_1, self, "e_max", "Maximum Photon Energy (eV)", tooltip="Maximum Energy (eV)", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "e_min", "Minimum Photon Energy [eV]", tooltip="Minimum Energy [eV]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "e_max", "Maximum Photon Energy [eV]", tooltip="Maximum Energy [eV]", labelWidth=300, valueType=float, orientation="horizontal")
 
         gui.comboBox(left_box_1, self, "optimize_source_combo", label="Optimize Source? (reject rays)", items=["No", "Using file with phase space volume", "Using slit/acceptance"], callback=self.set_OptimizeSource, labelWidth=280, orientation="horizontal")
 
@@ -100,11 +99,11 @@ class Wiggler(ow_source.Source):
         self.box_using_slit_acceptance = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(self.box_using_slit_acceptance, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=300, tooltip="Max number of rejected rays", valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(self.box_using_slit_acceptance, self, "slit_distance", "Slit Distance [cm] (set 0 for angular acceptance)", labelWidth=300, tooltip="Slit Distance [cm]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_using_slit_acceptance, self, "min_x", "Min X [cm]/Min Xp [rad]", labelWidth=300, tooltip="Min X/Min Xp", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_using_slit_acceptance, self, "max_x", "Max X [cm]/Max Xp [rad]", labelWidth=300, tooltip="Max X/Max Xp", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_using_slit_acceptance, self, "min_z", "Min Z [cm]/Min Zp [rad]", labelWidth=300, tooltip="Min Z/Min Zp", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_using_slit_acceptance, self, "max_z", "Max Z [cm]/Max Zp [rad]", labelWidth=300, tooltip="Max Z/Max Zp", valueType=float, orientation="horizontal")
+        self.le_slit_distance = oasysgui.lineEdit(self.box_using_slit_acceptance, self, "slit_distance", "--", labelWidth=300, tooltip="Slit Distance", valueType=float, orientation="horizontal")
+        self.le_min_x = oasysgui.lineEdit(self.box_using_slit_acceptance, self, "min_x", "--", labelWidth=300, tooltip="Min X/Min Xp", valueType=float, orientation="horizontal")
+        self.le_max_x = oasysgui.lineEdit(self.box_using_slit_acceptance, self, "max_x", "--", labelWidth=300, tooltip="Max X/Max Xp", valueType=float, orientation="horizontal")
+        self.le_min_z = oasysgui.lineEdit(self.box_using_slit_acceptance, self, "min_z", "--", labelWidth=300, tooltip="Min Z/Min Zp", valueType=float, orientation="horizontal")
+        self.le_max_z = oasysgui.lineEdit(self.box_using_slit_acceptance, self, "max_z", "--", labelWidth=300, tooltip="Max Z/Max Zp", valueType=float, orientation="horizontal")
 
         self.set_OptimizeSource()
 
@@ -116,12 +115,12 @@ class Wiggler(ow_source.Source):
 
         self.box_use_emittances = oasysgui.widgetBox(left_box_2, "", addSpace=True, orientation="vertical")
 
-        oasysgui.lineEdit(self.box_use_emittances, self, "sigma_x", "Sigma X [cm]", labelWidth=300, tooltip="Sigma X [cm]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_use_emittances, self, "sigma_z", "Sigma Z [cm]", labelWidth=300, tooltip="Sigma Z [cm]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_use_emittances, self, "emittance_x", "Emittance X [rad.cm]", labelWidth=300, tooltip="Emittance X [rad.cm]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_use_emittances, self, "emittance_z", "Emittance Z [rad.cm]", labelWidth=300, tooltip="Emittance Z [rad.cm]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_use_emittances, self, "distance_from_waist_x", "Distance from Waist X [cm]", labelWidth=300, tooltip="Distance from Waist X [cm]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_use_emittances, self, "distance_from_waist_z", "Distance from Waist Z [cm]", labelWidth=300, tooltip="Distance from Waist Z [cm]", valueType=float, orientation="horizontal")
+        self.le_sigma_x = oasysgui.lineEdit(left_box_2, self, "sigma_x", "Sigma X", labelWidth=300, tooltip="Sigma X", valueType=float, orientation="horizontal")
+        self.le_sigma_z = oasysgui.lineEdit(left_box_2, self, "sigma_z", "Sigma Z", labelWidth=300, tooltip="Sigma Z", valueType=float, orientation="horizontal")
+        self.le_emittance_x = oasysgui.lineEdit(left_box_2, self, "emittance_x", "Emittance X", labelWidth=300, tooltip="Emittance X", valueType=float, orientation="horizontal")
+        self.le_emittance_z = oasysgui.lineEdit(left_box_2, self, "emittance_z", "Emittance Z", labelWidth=300, tooltip="Emittance Z", valueType=float, orientation="horizontal")
+        self.le_distance_from_waist_x = oasysgui.lineEdit(left_box_2, self, "distance_from_waist_x", "Distance from Waist X", labelWidth=300, tooltip="Distance from Waist X", valueType=float, orientation="horizontal")
+        self.le_distance_from_waist_z = oasysgui.lineEdit(left_box_2, self, "distance_from_waist_z", "Distance from Waist Z", labelWidth=300, tooltip="Distance from Waist Z", valueType=float, orientation="horizontal")
 
         self.set_UseEmittances()
 
@@ -186,6 +185,33 @@ class Wiggler(ow_source.Source):
 
         gui.rubber(self.mainArea)
 
+    def after_change_workspace_units(self):
+        label = self.le_slit_distance.parent().layout().itemAt(0).widget()
+        label.setText("Slit Distance [" + self.workspace_units_label + "] (set 0 for angular acceptance)")
+
+        label = self.le_min_x.parent().layout().itemAt(0).widget()
+        label.setText("Min X [" + self.workspace_units_label + "]/Min Xp [rad]")
+        label = self.le_max_x.parent().layout().itemAt(0).widget()
+        label.setText("Max X [" + self.workspace_units_label + "]/Max Xp [rad]")
+        label = self.le_min_z.parent().layout().itemAt(0).widget()
+        label.setText("Min Z [" + self.workspace_units_label + "]/Min Zp [rad]")
+        label = self.le_max_z.parent().layout().itemAt(0).widget()
+        label.setText("Max Z [" + self.workspace_units_label + "]/Max Zp [rad]")
+
+        label = self.le_sigma_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label = self.le_sigma_z.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label = self.le_emittance_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [rad." + self.workspace_units_label + "]")
+        label = self.le_emittance_z.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [rad." + self.workspace_units_label + "]")
+        label = self.le_distance_from_waist_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label = self.le_distance_from_waist_z.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+
+
     def set_OptimizeSource(self):
         self.box_using_file_with_phase_space_volume.setVisible(self.optimize_source_combo == 1)
         self.box_using_slit_acceptance.setVisible(self.optimize_source_combo == 2)
@@ -223,13 +249,6 @@ class Wiggler(ow_source.Source):
                 inData = bytes(congruence.checkFileName(self.file_with_b_vs_y), 'utf-8')
             elif self.type_combo == 2:
                 inData = bytes(congruence.checkFileName(self.file_with_harmonics), 'utf-8')
-
-            m_to_user_unit = 1.0
-
-            if self.user_unit == 0:
-                m_to_user_unit = 1000.0
-            elif self.user_unit == 1:
-                m_to_user_unit = 100.0
 
             self.progressBarSet(10)
             #self.information(0, "Calculate electron trajectory")
@@ -272,7 +291,7 @@ class Wiggler(ow_source.Source):
             shadow_src.src.NPOINT=self.number_of_rays
             shadow_src.src.ISTAR1=self.seed
 
-            shadow_src.src.CONV_FACT = m_to_user_unit # from m to cm (or user unit)
+            shadow_src.src.CONV_FACT = self.workspace_units_to_cm * 100 # from m to cm (or user unit)
 
             shadow_src.src.HDIV1 = 1.00000000000000
             shadow_src.src.HDIV2 = 1.00000000000000

@@ -205,18 +205,18 @@ class GeometricalSource(ow_source.Source):
 
         self.spatial_type_box_1 = oasysgui.widgetBox(spatial_type_box, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.spatial_type_box_1, self, "rect_width", "Width [cm]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.spatial_type_box_1, self, "rect_height", "Height [cm]", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_rect_width  = oasysgui.lineEdit(self.spatial_type_box_1, self, "rect_width", "Width", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_rect_height = oasysgui.lineEdit(self.spatial_type_box_1, self, "rect_height", "Height", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.spatial_type_box_2 = oasysgui.widgetBox(spatial_type_box, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.spatial_type_box_2, self, "ell_semiaxis_x", "Semi-Axis X [cm]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.spatial_type_box_2, self, "ell_semiaxis_z", "Semi-Axis Z [cm]", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_ell_semiaxis_x = oasysgui.lineEdit(self.spatial_type_box_2, self, "ell_semiaxis_x", "Semi-Axis X", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_ell_semiaxis_z = oasysgui.lineEdit(self.spatial_type_box_2, self, "ell_semiaxis_z", "Semi-Axis Z", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.spatial_type_box_3 = oasysgui.widgetBox(spatial_type_box, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.spatial_type_box_3, self, "gauss_sigma_x", "Sigma X [cm]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.spatial_type_box_3, self, "gauss_sigma_z", "Sigma Z [cm]", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_gauss_sigma_x = oasysgui.lineEdit(self.spatial_type_box_3, self, "gauss_sigma_x", "Sigma X", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_gauss_sigma_z = oasysgui.lineEdit(self.spatial_type_box_3, self, "gauss_sigma_z", "Sigma Z", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.set_SpatialType()
 
@@ -263,11 +263,11 @@ class GeometricalSource(ow_source.Source):
 
         self.depth_box_1 = oasysgui.widgetBox(depth_box, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.depth_box_1, self, "source_depth_y", "Source Depth (Y) [cm]", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_source_depth_y = oasysgui.lineEdit(self.depth_box_1, self, "source_depth_y", "Source Depth (Y)", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.depth_box_2 = oasysgui.widgetBox(depth_box, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.depth_box_2, self, "sigma_y", "Sigma Y [cm]", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_sigma_y = oasysgui.lineEdit(self.depth_box_2, self, "sigma_y", "Sigma Y", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.set_Depth()
 
@@ -421,8 +421,26 @@ class GeometricalSource(ow_source.Source):
         button.setFixedWidth(100)
 
         gui.rubber(self.controlArea)
-
         gui.rubber(self.mainArea)
+
+    def after_change_workspace_units(self):
+        label = self.le_rect_width.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label = self.le_rect_height.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label = self.le_ell_semiaxis_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label = self.le_ell_semiaxis_z.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label = self.le_gauss_sigma_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label = self.le_gauss_sigma_z.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label = self.le_source_depth_y.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label = self.le_sigma_y.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+
 
     def callResetSettings(self):
         super().callResetSettings()

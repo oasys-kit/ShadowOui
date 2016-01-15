@@ -375,8 +375,8 @@ class OpticalElement(ow_generic_element.GenericElement):
 
         upper_box = oasysgui.widgetBox(self.controlArea, "Optical Element Orientation", addSpace=True, orientation="vertical")
 
-        oasysgui.lineEdit(upper_box, self, "source_plane_distance", "Source Plane Distance [cm]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(upper_box, self, "image_plane_distance", "Image Plane Distance [cm]", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_source_plane_distance = oasysgui.lineEdit(upper_box, self, "source_plane_distance", "Source Plane Distance", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_image_plane_distance  = oasysgui.lineEdit(upper_box, self, "image_plane_distance", "Image Plane Distance", labelWidth=300, valueType=float, orientation="horizontal")
 
         if self.graphical_options.is_screen_slit:
             tabs_setting = oasysgui.tabWidget(self.controlArea)
@@ -414,10 +414,10 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             self.box_aperturing_shape_2 = oasysgui.widgetBox(self.box_aperturing_shape, "", addSpace=False, orientation="vertical")
 
-            oasysgui.lineEdit(self.box_aperturing_shape_2, self, "slit_width_xaxis", "Slit width/x-axis [cm]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.box_aperturing_shape_2, self, "slit_height_zaxis", "Slit height/z-axis [cm]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.box_aperturing_shape_2, self, "slit_center_xaxis", "Slit center/x-axis [cm]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.box_aperturing_shape_2, self, "slit_center_zaxis", "Slit center/z-axis [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_slit_width_xaxis  = oasysgui.lineEdit(self.box_aperturing_shape_2, self, "slit_width_xaxis", "Slit width/x-axis", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_slit_height_zaxis = oasysgui.lineEdit(self.box_aperturing_shape_2, self, "slit_height_zaxis", "Slit height/z-axis", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_slit_center_xaxis = oasysgui.lineEdit(self.box_aperturing_shape_2, self, "slit_center_xaxis", "Slit center/x-axis", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_slit_center_zaxis = oasysgui.lineEdit(self.box_aperturing_shape_2, self, "slit_center_zaxis", "Slit center/z-axis", labelWidth=260, valueType=float, orientation="horizontal")
 
             self.set_Aperturing()
 
@@ -432,7 +432,7 @@ class OpticalElement(ow_generic_element.GenericElement):
             self.box_absorption_1 = oasysgui.widgetBox(box_absorption, "", addSpace=False, orientation="vertical")
             self.box_absorption_1_empty = oasysgui.widgetBox(box_absorption, "", addSpace=False, orientation="vertical")
 
-            oasysgui.lineEdit(self.box_absorption_1, self, "thickness", "Thickness [cm]", labelWidth=340, valueType=float, orientation="horizontal")
+            self.le_thickness = oasysgui.lineEdit(self.box_absorption_1, self, "thickness", "Thickness", labelWidth=340, valueType=float, orientation="horizontal")
 
             file_box = oasysgui.widgetBox(self.box_absorption_1, "", addSpace=True, orientation="horizontal", height=25)
 
@@ -468,11 +468,11 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             self.mir_mov_box_1 = oasysgui.widgetBox(mir_mov_box, "", addSpace=False, orientation="vertical")
 
-            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_x", "O.E. Offset X  [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_mm_mirror_offset_x = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_x", "O.E. Offset X", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_x", "O.E. Rotation X [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_y", "O.E. Offset Y [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_mm_mirror_offset_y = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_y", "O.E. Offset Y", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_y", "O.E. Rotation Y [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_z", "O.E. Offset Z [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_mm_mirror_offset_z = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_z", "O.E. Offset Z", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_z", "O.E. Rotation Z [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
 
             self.set_MirrorMovement()
@@ -494,14 +494,14 @@ class OpticalElement(ow_generic_element.GenericElement):
             self.sou_mov_box_1 = oasysgui.widgetBox(sou_mov_box, "", addSpace=False, orientation="vertical")
 
             oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_angle_of_incidence", "Angle of Incidence [deg]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_distance_from_mirror", "Distance from O.E. [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_distance_from_mirror = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_distance_from_mirror", "Distance from O.E.", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_z_rotation", "Z-rotation [deg]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_mirr_ref_frame", "offset X [cm] in O.E. reference frame", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_mirr_ref_frame", "offset Y [cm] in O.E. reference frame", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_mirr_ref_frame", "offset Z [cm] in O.E. reference frame", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_source_ref_frame", "offset X [cm] in SOURCE reference frame", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_source_ref_frame", "offset Y [cm] in SOURCE reference frame", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_source_ref_frame", "offset Z [cm] in SOURCE reference frame", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_x_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_y_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_z_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_x_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_y_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_z_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_x", "rotation [CCW, deg] around X", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_y", "rotation [CCW, deg] around Y", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_z", "rotation [CCW, deg] around Z", labelWidth=260, valueType=float, orientation="horizontal")
@@ -553,11 +553,11 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             self.mir_mov_box_1 = oasysgui.widgetBox(mir_mov_box, "", addSpace=False, orientation="vertical")
 
-            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_x", "O.E. Offset X  [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_x", "O.E. Offset X", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_x", "O.E. Rotation X [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_y", "O.E. Offset Y [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_y", "O.E. Offset Y", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_y", "O.E. Rotation Y [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_z", "O.E. Offset Z [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_z", "O.E. Offset Z", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_z", "O.E. Rotation Z [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
 
             self.set_MirrorMovement()
@@ -579,14 +579,14 @@ class OpticalElement(ow_generic_element.GenericElement):
             self.sou_mov_box_1 = oasysgui.widgetBox(sou_mov_box, "", addSpace=False, orientation="vertical")
 
             oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_angle_of_incidence", "Angle of Incidence [deg]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_distance_from_mirror", "Distance from O.E. [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_distance_from_mirror", "Distance from O.E.", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_z_rotation", "Z-rotation [deg]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_mirr_ref_frame", "offset X [cm] in O.E. reference frame", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_mirr_ref_frame", "offset Y [cm] in O.E. reference frame", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_mirr_ref_frame", "offset Z [cm] in O.E. reference frame", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_source_ref_frame", "offset X [cm] in SOURCE reference frame", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_source_ref_frame", "offset Y [cm] in SOURCE reference frame", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_source_ref_frame", "offset Z [cm] in SOURCE reference frame", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_x", "rotation [CCW, deg] around X", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_y", "rotation [CCW, deg] around Y", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_z", "rotation [CCW, deg] around Z", labelWidth=260, valueType=float, orientation="horizontal")
@@ -595,7 +595,6 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="vertical", height=125)
         else:
-
             self.incidence_angle_deg_le = oasysgui.lineEdit(upper_box, self, "incidence_angle_deg", "Incident Angle respect to the normal [deg]", labelWidth=300, callback=self.calculate_incidence_angle_mrad, valueType=float, orientation="horizontal")
             self.incidence_angle_rad_le = oasysgui.lineEdit(upper_box, self, "incidence_angle_mrad", "... or with respect to the surface [mrad]", labelWidth=300, callback=self.calculate_incidence_angle_deg, valueType=float, orientation="horizontal")
             self.reflection_angle_deg_le = oasysgui.lineEdit(upper_box, self, "reflection_angle_deg", "Reflection Angle respect to the normal [deg]", labelWidth=300, callback=self.calculate_reflection_angle_mrad, valueType=float, orientation="horizontal")
@@ -661,16 +660,16 @@ class OpticalElement(ow_generic_element.GenericElement):
                     gui.separator(self.surface_box_ext)
 
                     if self.graphical_options.is_spheric:
-                        oasysgui.lineEdit(self.surface_box_ext, self, "spherical_radius", "Spherical Radius [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+                        self.le_spherical_radius = oasysgui.lineEdit(self.surface_box_ext, self, "spherical_radius", "Spherical Radius", labelWidth=260, valueType=float, orientation="horizontal")
                     elif self.graphical_options.is_toroidal:
-                        oasysgui.lineEdit(self.surface_box_ext, self, "torus_major_radius", "Torus Major Radius [cm]", labelWidth=260, valueType=float, orientation="horizontal")
-                        oasysgui.lineEdit(self.surface_box_ext, self, "torus_minor_radius", "Torus Minor Radius [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+                        self.le_torus_major_radius = oasysgui.lineEdit(self.surface_box_ext, self, "torus_major_radius", "Torus Major Radius", labelWidth=260, valueType=float, orientation="horizontal")
+                        self.le_torus_minor_radius = oasysgui.lineEdit(self.surface_box_ext, self, "torus_minor_radius", "Torus Minor Radius", labelWidth=260, valueType=float, orientation="horizontal")
                     elif self.graphical_options.is_hyperboloid or self.graphical_options.is_ellipsoidal:
-                        oasysgui.lineEdit(self.surface_box_ext, self, "ellipse_hyperbola_semi_major_axis", "Ellipse/Hyperbola semi-major Axis [cm]",  labelWidth=260, valueType=float, orientation="horizontal")
-                        oasysgui.lineEdit(self.surface_box_ext, self, "ellipse_hyperbola_semi_minor_axis", "Ellipse/Hyperbola semi-minor Axis [cm]", labelWidth=260, valueType=float, orientation="horizontal")
-                        oasysgui.lineEdit(self.surface_box_ext, self, "angle_of_majax_and_pole", "Angle of MajAx and Pole [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+                        self.le_ellipse_hyperbola_semi_major_axis = oasysgui.lineEdit(self.surface_box_ext, self, "ellipse_hyperbola_semi_major_axis", "Ellipse/Hyperbola semi-major Axis",  labelWidth=260, valueType=float, orientation="horizontal")
+                        self.le_ellipse_hyperbola_semi_minor_axis = oasysgui.lineEdit(self.surface_box_ext, self, "ellipse_hyperbola_semi_minor_axis", "Ellipse/Hyperbola semi-minor Axis", labelWidth=260, valueType=float, orientation="horizontal")
+                        oasysgui.lineEdit(self.surface_box_ext, self, "angle_of_majax_and_pole", "Angle of MajAx and Pole [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
                     elif self.graphical_options.is_paraboloid:
-                        oasysgui.lineEdit(self.surface_box_ext, self, "paraboloid_parameter", "Paraboloid parameter", labelWidth=260, valueType=float, orientation="horizontal")
+                        self.le_paraboloid_parameter = oasysgui.lineEdit(self.surface_box_ext, self, "paraboloid_parameter", "Paraboloid parameter", labelWidth=260, valueType=float, orientation="horizontal")
 
                     self.surface_box_int = oasysgui.widgetBox(surface_box, "", addSpace=True, orientation="vertical", height=150)
 
@@ -680,8 +679,8 @@ class OpticalElement(ow_generic_element.GenericElement):
                     self.surface_box_int_2 = oasysgui.widgetBox(self.surface_box_int, "", addSpace=True, orientation="vertical", width=self.INNER_BOX_WIDTH_L1)
                     self.surface_box_int_2_empty = oasysgui.widgetBox(self.surface_box_int, "", addSpace=True, orientation="vertical", width=self.INNER_BOX_WIDTH_L1)
 
-                    self.w_object_side_focal_distance = oasysgui.lineEdit(self.surface_box_int_2, self, "object_side_focal_distance", "Object Side_Focal Distance [cm]", labelWidth=260, valueType=float, orientation="horizontal")
-                    self.w_image_side_focal_distance = oasysgui.lineEdit(self.surface_box_int_2, self, "image_side_focal_distance", "Image Side_Focal Distance [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+                    self.w_object_side_focal_distance = oasysgui.lineEdit(self.surface_box_int_2, self, "object_side_focal_distance", "Object Side_Focal Distance", labelWidth=260, valueType=float, orientation="horizontal")
+                    self.w_image_side_focal_distance = oasysgui.lineEdit(self.surface_box_int_2, self, "image_side_focal_distance", "Image Side_Focal Distance", labelWidth=260, valueType=float, orientation="horizontal")
                     self.w_incidence_angle_respect_to_normal = oasysgui.lineEdit(self.surface_box_int_2, self, "incidence_angle_respect_to_normal", "Incidence Angle Respect to Normal [deg]", labelWidth=260, valueType=float, orientation="horizontal")
 
                     if self.graphical_options.is_paraboloid:
@@ -777,8 +776,8 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 figure_box.layout().addWidget(label)
 
-                oasysgui.lineEdit(dcm_box, self, "vertical_quote", "H (Vertical Distance) [cm]", labelWidth=260, valueType=float, orientation="horizontal", callback=self.calculate_dcm_distances)
-                oasysgui.lineEdit(dcm_box, self, "total_distance", "D (First Crystal to Next O.E.) [cm]", labelWidth=260, valueType=float, orientation="horizontal", callback=self.calculate_dcm_distances)
+                self.le_vertical_quote = oasysgui.lineEdit(dcm_box, self, "vertical_quote", "H (Vertical Distance)", labelWidth=260, valueType=float, orientation="horizontal", callback=self.calculate_dcm_distances)
+                self.le_total_distance = oasysgui.lineEdit(dcm_box, self, "total_distance", "D (First Crystal to Next O.E.)", labelWidth=260, valueType=float, orientation="horizontal", callback=self.calculate_dcm_distances)
 
                 dcm_box_1 = oasysgui.widgetBox(dcm_box, "", addSpace=True, orientation="horizontal")
                 oasysgui.lineEdit(dcm_box_1, self, "twotheta_bragg", "Bragg Angle [deg]",
@@ -791,15 +790,15 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 dcm_box_2 = oasysgui.widgetBox(dcm_box, "", addSpace=True, orientation="horizontal")
 
-                le = oasysgui.lineEdit(dcm_box_2, self, "d_1", "d_1 [cm]", labelWidth=100, valueType=float, orientation="horizontal")
-                le.setReadOnly(True)
-                font = QtGui.QFont(le.font())
+                self.le_d_1 = oasysgui.lineEdit(dcm_box_2, self, "d_1", "d_1", labelWidth=100, valueType=float, orientation="horizontal")
+                self.le_d_1.setReadOnly(True)
+                font = QtGui.QFont(self.le_d_1.font())
                 font.setBold(True)
-                le.setFont(font)
-                palette = QtGui.QPalette(le.palette()) # make a copy of the palette
+                self.le_d_1.setFont(font)
+                palette = QtGui.QPalette(self.le_d_1.palette()) # make a copy of the palette
                 palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
                 palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
-                le.setPalette(palette)
+                self.le_d_1.setPalette(palette)
 
                 dcm_button2_1 = gui.button(dcm_box_2, self, "set as S.P.")
                 dcm_button2_1.clicked.connect(self.set_d1_as_source_plane)
@@ -809,15 +808,15 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 dcm_box_3 = oasysgui.widgetBox(dcm_box, "", addSpace=True, orientation="horizontal")
 
-                le = oasysgui.lineEdit(dcm_box_3, self, "d_2", "d_2 [cm]", labelWidth=100, valueType=float, orientation="horizontal")
-                le.setReadOnly(True)
-                font = QtGui.QFont(le.font())
+                self.le_d_2 = oasysgui.lineEdit(dcm_box_3, self, "d_2", "d_2", labelWidth=100, valueType=float, orientation="horizontal")
+                self.le_d_2.setReadOnly(True)
+                font = QtGui.QFont(self.le_d_2.font())
                 font.setBold(True)
-                le.setFont(font)
-                palette = QtGui.QPalette(le.palette()) # make a copy of the palette
+                self.le_d_2.setFont(font)
+                palette = QtGui.QPalette(self.le_d_2.palette()) # make a copy of the palette
                 palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
                 palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
-                le.setPalette(palette)
+                self.le_d_2.setPalette(palette)
 
                 dcm_button3_1 = gui.button(dcm_box_3, self, "set as S.P.")
                 dcm_button3_1.clicked.connect(self.set_d2_as_source_plane)
@@ -920,7 +919,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 oasysgui.lineEdit(self.asymmetric_cut_box_1, self, "planes_angle", "Planes angle [deg]", labelWidth=260, valueType=float, orientation="horizontal")
                 oasysgui.lineEdit(self.asymmetric_cut_box_1, self, "below_onto_bragg_planes", "Below[-1]/onto[1] bragg planes",  labelWidth=260, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.asymmetric_cut_box_1, self, "thickness", "Thickness [cm]", valueType=float, labelWidth=260, orientation="horizontal")
+                self.le_thickness = oasysgui.lineEdit(self.asymmetric_cut_box_1, self, "thickness", "Thickness", valueType=float, labelWidth=260, orientation="horizontal")
 
                 gui.separator(self.mosaic_box_1)
 
@@ -933,12 +932,12 @@ class OpticalElement(ow_generic_element.GenericElement):
                 self.johansson_box_1 = oasysgui.widgetBox(self.johansson_box, "", addSpace=False, orientation="vertical")
                 self.johansson_box_1_empty = oasysgui.widgetBox(self.johansson_box, "", addSpace=False, orientation="vertical")
 
-                oasysgui.lineEdit(self.johansson_box_1, self, "johansson_radius", "Johansson radius", labelWidth=260, valueType=float, orientation="horizontal")
+                self.le_johansson_radius = oasysgui.lineEdit(self.johansson_box_1, self, "johansson_radius", "Johansson radius", labelWidth=260, valueType=float, orientation="horizontal")
 
                 self.mosaic_box_2 = oasysgui.widgetBox(mosaic_box, "", addSpace=False, orientation="vertical")
 
                 oasysgui.lineEdit(self.mosaic_box_2, self, "angle_spread_FWHM", "Angle spread FWHM [deg]",  labelWidth=260, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.mosaic_box_2, self, "thickness", "Thickness [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.mosaic_box_2, self, "thickness", "Thickness", labelWidth=260, valueType=float, orientation="horizontal")
                 oasysgui.lineEdit(self.mosaic_box_2, self, "seed_for_mosaic", "Seed for mosaic [>10^5]", labelWidth=260, valueType=float, orientation="horizontal")
 
                 self.set_Mosaic()
@@ -988,8 +987,8 @@ class OpticalElement(ow_generic_element.GenericElement):
                 oasysgui.lineEdit(self.grating_mount_box_1, self, "grating_hunter_blaze_angle", "Blaze angle [deg]", labelWidth=300, valueType=float, orientation="horizontal")
                 gui.comboBox(self.grating_mount_box_1, self, "grating_hunter_grating_selected", label="Grating selected", labelWidth=300,
                              items=["First", "Second"], sendSelectedValue=False, orientation="horizontal")
-                oasysgui.lineEdit(self.grating_mount_box_1, self, "grating_hunter_monochromator_length", "Monochromator Length [cm]", labelWidth=300, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.grating_mount_box_1, self, "grating_hunter_distance_between_beams", "Distance between beams [cm]", labelWidth=300, valueType=float, orientation="horizontal")
+                self.le_grating_hunter_monochromator_length = oasysgui.lineEdit(self.grating_mount_box_1, self, "grating_hunter_monochromator_length", "Monochromator Length", labelWidth=300, valueType=float, orientation="horizontal")
+                self.le_grating_hunter_distance_between_beams = oasysgui.lineEdit(self.grating_mount_box_1, self, "grating_hunter_distance_between_beams", "Distance between beams", labelWidth=300, valueType=float, orientation="horizontal")
 
                 self.set_GratingAutosetting()
 
@@ -1005,15 +1004,15 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 self.ruling_box_1 = oasysgui.widgetBox(ruling_box, "", addSpace=True, orientation="horizontal")
 
-                self.ruling_density_label = gui.widgetLabel(self.ruling_box_1, "Ruling Density at origin [Lines/cm]", labelWidth=280)
+                self.ruling_density_label = gui.widgetLabel(self.ruling_box_1, "Ruling Density at origin", labelWidth=280)
                 oasysgui.lineEdit(self.ruling_box_1, self, "grating_ruling_density", "", labelWidth=1, valueType=float, orientation="horizontal")
 
                 self.ruling_box_2 = oasysgui.widgetBox(ruling_box, "", addSpace=False, orientation="vertical")
 
-                oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_left_distance", "\"Left\" distance [cm]", labelWidth=280, valueType=float, orientation="horizontal")
+                self.le_grating_holo_left_distance = oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_left_distance", "\"Left\" distance", labelWidth=280, valueType=float, orientation="horizontal")
                 oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_left_incidence_angle", "\"Left\" incidence angle [deg]", labelWidth=280, valueType=float, orientation="horizontal")
                 oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_left_azimuth_from_y", "\"Left\" azimuth from +Y (CCW) [deg]", labelWidth=280, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_right_distance", "\"Right\" distance [cm]", labelWidth=280, valueType=float, orientation="horizontal")
+                self.le_grating_holo_right_distance = oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_right_distance", "\"Right\" distance", labelWidth=280, valueType=float, orientation="horizontal")
                 oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_right_incidence_angle", "\"Right\" incidence angle [deg]", labelWidth=280, valueType=float, orientation="horizontal")
                 oasysgui.lineEdit(self.ruling_box_2, self, "grating_holo_right_azimuth_from_y", "\"Right\" azimuth from +Y (CCW) [deg]", labelWidth=280, valueType=float, orientation="horizontal")
                 gui.comboBox(self.ruling_box_2, self, "grating_holo_pattern_type", label="Pattern Type", labelWidth=250,
@@ -1026,7 +1025,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 self.ruling_box_3 = oasysgui.widgetBox(ruling_box, "", addSpace=False, orientation="vertical")
 
-                oasysgui.lineEdit(self.ruling_box_3, self, "grating_groove_pole_distance", "Groove pole distance [cm]", labelWidth=280, valueType=float, orientation="horizontal")
+                self.le_grating_groove_pole_distance = oasysgui.lineEdit(self.ruling_box_3, self, "grating_groove_pole_distance", "Groove pole distance", labelWidth=280, valueType=float, orientation="horizontal")
                 oasysgui.lineEdit(self.ruling_box_3, self, "grating_groove_pole_azimuth_from_y", "Groove pole azimuth from +Y (CCW) [deg]", labelWidth=280, valueType=float, orientation="horizontal")
                 oasysgui.lineEdit(self.ruling_box_3, self, "grating_coma_correction_factor", "Coma correction factor", labelWidth=280, valueType=float, orientation="horizontal")
 
@@ -1100,10 +1099,10 @@ class OpticalElement(ow_generic_element.GenericElement):
                          items=["Rectangular", "Full ellipse", "Ellipse with hole"],
                          sendSelectedValue=False, orientation="horizontal")
 
-            oasysgui.lineEdit(self.dimdet_box, self, "dim_x_plus", "X(+) Half Width / Int Maj Ax [cm]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.dimdet_box, self, "dim_x_minus", "X(-) Half Width / Int Maj Ax [cm]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.dimdet_box, self, "dim_y_plus", "Y(+) Half Width / Int Min Ax [cm]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.dimdet_box, self, "dim_y_minus", "Y(-) Half Width / Int Min Ax [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_dim_x_plus  = oasysgui.lineEdit(self.dimdet_box, self, "dim_x_plus", "X(+) Half Width / Int Maj Ax", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_dim_x_minus = oasysgui.lineEdit(self.dimdet_box, self, "dim_x_minus", "X(-) Half Width / Int Maj Ax", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_dim_y_plus  = oasysgui.lineEdit(self.dimdet_box, self, "dim_y_plus", "Y(+) Half Width / Int Min Ax", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_dim_y_minus = oasysgui.lineEdit(self.dimdet_box, self, "dim_y_minus", "Y(-) Half Width / Int Min Ax", labelWidth=260, valueType=float, orientation="horizontal")
 
             self.set_Dim_Parameters()
 
@@ -1277,11 +1276,11 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             self.mir_mov_box_1 = oasysgui.widgetBox(mir_mov_box, "", addSpace=False, orientation="vertical")
 
-            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_x", "O.E. Offset X  [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_mm_mirror_offset_x = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_x", "O.E. Offset X", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_x", "O.E. Rotation X [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_y", "O.E. Offset Y [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_mm_mirror_offset_y = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_y", "O.E. Offset Y", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_y", "O.E. Rotation Y [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_z", "O.E. Offset Z [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_mm_mirror_offset_z = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_z", "O.E. Offset Z", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_z", "O.E. Rotation Z [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
 
             self.set_MirrorMovement()
@@ -1303,14 +1302,14 @@ class OpticalElement(ow_generic_element.GenericElement):
             self.sou_mov_box_1 = oasysgui.widgetBox(sou_mov_box, "", addSpace=False, orientation="vertical")
 
             oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_angle_of_incidence", "Angle of Incidence [deg]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_distance_from_mirror", "Distance from o.e. [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_distance_from_mirror = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_distance_from_mirror", "Distance from O.E.", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_z_rotation", "Z-rotation [deg]", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_mirr_ref_frame", "offset X [cm] in O.E. reference frame", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_mirr_ref_frame", "offset Y [cm] in O.E. reference frame", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_mirr_ref_frame", "offset Z [cm] in O.E. reference frame", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_source_ref_frame", "offset X [cm] in SOURCE reference frame", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_source_ref_frame", "offset Y [cm] in SOURCE reference frame", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_source_ref_frame", "offset Z [cm] in SOURCE reference frame", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_x_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_y_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_z_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_x_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_y_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_z_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_x", "rotation [CCW, deg] around X", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_y", "rotation [CCW, deg] around Y", labelWidth=260, valueType=float, orientation="horizontal")
             oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_z", "rotation [CCW, deg] around Z", labelWidth=260, valueType=float, orientation="horizontal")
@@ -1355,6 +1354,117 @@ class OpticalElement(ow_generic_element.GenericElement):
         button.setPalette(palette) # assign new palette
         button.setFixedHeight(45)
         button.setFixedWidth(100)
+
+
+    def after_change_workspace_units(self):
+        label = self.le_source_plane_distance.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label = self.le_image_plane_distance.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+
+        if self.graphical_options.is_screen_slit:
+            label = self.le_slit_width_xaxis.parent().layout().itemAt(0).widget()
+            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            label = self.le_slit_height_zaxis.parent().layout().itemAt(0).widget()
+            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            label = self.le_slit_center_xaxis.parent().layout().itemAt(0).widget()
+            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            label = self.le_slit_center_zaxis.parent().layout().itemAt(0).widget()
+            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            label = self.le_thickness.parent().layout().itemAt(0).widget()
+            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        else:
+            if self.graphical_options.is_curved:
+                if not self.graphical_options.is_conic_coefficients:
+                    if self.graphical_options.is_spheric:
+                        label = self.le_spherical_radius.parent().layout().itemAt(0).widget()
+                        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                    elif self.graphical_options.is_toroidal:
+                        label = self.le_torus_major_radius.parent().layout().itemAt(0).widget()
+                        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                        label = self.le_torus_minor_radius.parent().layout().itemAt(0).widget()
+                        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                    elif self.graphical_options.is_hyperboloid or self.graphical_options.is_ellipsoidal:
+                        label = self.le_ellipse_hyperbola_semi_major_axis.parent().layout().itemAt(0).widget()
+                        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                        label = self.le_ellipse_hyperbola_semi_minor_axis.parent().layout().itemAt(0).widget()
+                        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                    elif self.graphical_options.is_paraboloid:
+                        label = self.le_paraboloid_parameter.parent().layout().itemAt(0).widget()
+                        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+
+                    label = self.w_object_side_focal_distance.parent().layout().itemAt(0).widget()
+                    label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                    label = self.w_image_side_focal_distance.parent().layout().itemAt(0).widget()
+                    label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+
+            if self.graphical_options.is_crystal:
+                label = self.le_thickness.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label = self.le_johansson_radius.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label = self.le_vertical_quote.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label = self.le_total_distance.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label = self.le_d_1.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label = self.le_d_2.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            elif self.graphical_options.is_grating:
+                label = self.le_grating_hunter_monochromator_length.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label = self.le_grating_hunter_distance_between_beams.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+
+                # TO DO: RULING DENSITY??????
+                self.ruling_density_label.setText(self.ruling_density_label.text() + "  [Lines/" + self.workspace_units_label + "]")
+
+                label = self.le_grating_holo_left_distance.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label = self.le_grating_holo_right_distance.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label = self.le_grating_groove_pole_distance.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            elif self.graphical_options.is_refractor:
+                pass
+                #attenuation_in_object_medium
+                #attenuation_in_image_medium
+
+            # DIMENSIONS
+            label = self.le_dim_x_plus.parent().layout().itemAt(0).widget()
+            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            label = self.le_dim_x_minus.parent().layout().itemAt(0).widget()
+            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            label = self.le_dim_y_plus.parent().layout().itemAt(0).widget()
+            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            label = self.le_dim_y_minus.parent().layout().itemAt(0).widget()
+            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+
+        # ADVANCED SETTINGS
+        # MIRROR MOVEMENTS
+        label = self.le_mm_mirror_offset_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label = self.le_mm_mirror_offset_y.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label = self.le_mm_mirror_offset_z.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        # SOURCE MOVEMENTS
+        label = self.le_sm_distance_from_mirror.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label = self.le_sm_offset_x_mirr_ref_frame.parent().layout().itemAt(0).widget()
+        label.setText("offset X [" + self.workspace_units_label + "] in O.E. reference frame")
+        label = self.le_sm_offset_y_mirr_ref_frame.parent().layout().itemAt(0).widget()
+        label.setText("offset Y [" + self.workspace_units_label + "] in O.E. reference frame")
+        label = self.le_sm_offset_z_mirr_ref_frame.parent().layout().itemAt(0).widget()
+        label.setText("offset Z [" + self.workspace_units_label + "] in O.E. reference frame")
+        label = self.le_sm_offset_x_source_ref_frame.parent().layout().itemAt(0).widget()
+        label.setText("offset X [" + self.workspace_units_label + "] in SOURCE reference frame")
+        label = self.le_sm_offset_y_source_ref_frame.parent().layout().itemAt(0).widget()
+        label.setText("offset Y [" + self.workspace_units_label + "] in SOURCE reference frame")
+        label = self.le_sm_offset_z_source_ref_frame.parent().layout().itemAt(0).widget()
+        label.setText("offset Z [" + self.workspace_units_label + "] in SOURCE reference frame")
+
 
     def set_Footprint(self):
         if self.file_to_write_out == 0 or self.file_to_write_out == 1:
@@ -1470,9 +1580,9 @@ class OpticalElement(ow_generic_element.GenericElement):
         self.ruling_box_4.setVisible(self.grating_ruling_type == 4)
 
         if (self.grating_ruling_type == 0 or self.grating_ruling_type == 1):
-            self.ruling_density_label.setText("Ruling Density at origin [Lines/cm]")
+            self.ruling_density_label.setText("Ruling Density at origin")
         elif (self.grating_ruling_type == 3):
-            self.ruling_density_label.setText("Ruling Density at center [Lines/cm]")
+            self.ruling_density_label.setText("Ruling Density at center")
         elif (self.grating_ruling_type == 4):
             self.ruling_density_label.setText("Polynomial Line Density coeff.: constant")
 
@@ -1570,9 +1680,9 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             axis = figure.add_subplot(111, projection='3d')
 
-            axis.set_xlabel("X (cm)")
-            axis.set_ylabel("Y (cm)")
-            axis.set_zlabel("Z (cm)")
+            axis.set_xlabel("X (" + self.workspace_units_label + ")")
+            axis.set_ylabel("Y (" + self.workspace_units_label + ")")
+            axis.set_zlabel("Z (" + self.workspace_units_label + ")")
 
             figure_canvas = FigureCanvasQTAgg(figure)
             figure_canvas.setFixedWidth(500)
