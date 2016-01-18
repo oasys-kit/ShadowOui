@@ -209,7 +209,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
             self.image_box.layout().addWidget(self.plot_canvas)
 
         try:
-            self.plot_canvas.plot_histo(beam, var, 1, x_range, self.weight_column_index+1, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum)
+            self.plot_canvas.plot_histo(beam, var, 1, x_range, self.weight_column_index+1, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum, conv=self.workspace_units_to_cm)
         except Exception:
             raise Exception("Data not plottable: No good rays or bad content")
 
@@ -238,7 +238,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
         if self.x_range == 1:
             if self.x_range_min >= self.x_range_max: raise Exception("X range min cannot be greater or equal than X range max")
 
-            factor1 = ShadowPlot.get_factor(var_x)
+            factor1 = ShadowPlot.get_factor(var_x, self.workspace_units_to_cm)
 
             x_range = [self.x_range_min/factor1, self.x_range_max/factor1]
         else:
@@ -276,8 +276,8 @@ class Histogram(ow_automatic_element.AutomaticElement):
                     xum = xum + "[eV]"
                     auto_title = auto_title + " [eV]"
                 elif x == 13:
-                    xum = xum + "[cm]"
-                    auto_title = auto_title + " [cm]"
+                    xum = xum + " [" + self.workspace_units_label + "]"
+                    auto_title = auto_title + " [" + self.workspace_units_label + "]"
                 elif x == 14:
                     xum = xum + "[rad]"
                     auto_title = auto_title + " [rad]"
@@ -288,8 +288,8 @@ class Histogram(ow_automatic_element.AutomaticElement):
                     xum = xum + "[Å]"
                     auto_title = auto_title + " [Å]"
                 elif x == 20:
-                    xum = xum + "[cm]"
-                    auto_title = auto_title + " [cm]"
+                    xum = xum + " [" + self.workspace_units_label + "]"
+                    auto_title = auto_title + " [" + self.workspace_units_label + "]"
                 elif x == 21:
                     xum = xum + "[rad]"
                     auto_title = auto_title + " [rad]"

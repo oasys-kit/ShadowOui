@@ -97,9 +97,9 @@ class UndulatorGaussian(ow_source.Source):
 
     def after_change_workspace_units(self):
         label = self.le_sigma_x.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_sigma_z.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
     def calculateMagneticField(self):
         self.magnetic_radius=abs(self.magnetic_radius)

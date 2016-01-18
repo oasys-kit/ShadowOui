@@ -136,17 +136,17 @@ class BendingMagnet(ow_source.Source):
 
     def after_change_workspace_units(self):
         label = self.le_sigma_x.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_sigma_z.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_emittance_x.parent().layout().itemAt(0).widget()
         label.setText(label.text() + "  [rad." + self.workspace_units_label + "]")
         label = self.le_emittance_z.parent().layout().itemAt(0).widget()
         label.setText(label.text() + "  [rad." + self.workspace_units_label + "]")
         label = self.le_distance_from_waist_x.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_distance_from_waist_z.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
     def set_OptimizeSource(self):
         self.optimize_file_name_box.setVisible(self.optimize_source != 0)

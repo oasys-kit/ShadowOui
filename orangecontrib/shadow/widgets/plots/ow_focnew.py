@@ -73,8 +73,8 @@ class FocNew(ow_automatic_element.AutomaticElement):
 
         gui.separator(self.center_box)
 
-        oasysgui.lineEdit(self.center_box, self, "center_x", "Center X [cm]", labelWidth=220, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.center_box, self, "center_z", "Center Z [cm]", labelWidth=220, valueType=float, orientation="horizontal")
+        self.le_center_x = oasysgui.lineEdit(self.center_box, self, "center_x", "Center X", labelWidth=220, valueType=float, orientation="horizontal")
+        self.le_center_z = oasysgui.lineEdit(self.center_box, self, "center_z", "Center Z", labelWidth=220, valueType=float, orientation="horizontal")
 
         self.set_Center()
 
@@ -86,8 +86,8 @@ class FocNew(ow_automatic_element.AutomaticElement):
         self.yrange_box = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=390, height=100)
         self.yrange_box_empty = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=390, height=100)
 
-        oasysgui.lineEdit(self.yrange_box, self, "y_range_min", "Y min", labelWidth=220, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.yrange_box, self, "y_range_max", "Y max", labelWidth=220, valueType=float, orientation="horizontal")
+        self.le_y_range_min = oasysgui.lineEdit(self.yrange_box, self, "y_range_min", "Y min", labelWidth=220, valueType=float, orientation="horizontal")
+        self.le_y_range_max = oasysgui.lineEdit(self.yrange_box, self, "y_range_max", "Y max", labelWidth=220, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.yrange_box, self, "y_npoints", "Points", labelWidth=220, valueType=float, orientation="horizontal")
 
         self.set_YRange()
@@ -116,11 +116,15 @@ class FocNew(ow_automatic_element.AutomaticElement):
         self.image_box.setFixedHeight(self.IMAGE_HEIGHT-30)
         self.image_box.setFixedWidth(self.IMAGE_WIDTH-20)
 
-        #self.shadow_output = QtGui.QTextEdit()
-        #self.shadow_output.setReadOnly(True)
-
-        #out_box = oasysgui.widgetBox(self.mainArea, "System Output", addSpace=True, orientation="horizontal", height=125)
-        #out_box.layout().addWidget(self.shadow_output)
+    def after_change_workspace_units(self):
+        label = self.le_center_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_center_z.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_y_range_min.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_y_range_max.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
     def set_Center(self):
         self.center_box.setVisible(self.mode == 2)

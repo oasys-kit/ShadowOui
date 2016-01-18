@@ -425,21 +425,21 @@ class GeometricalSource(ow_source.Source):
 
     def after_change_workspace_units(self):
         label = self.le_rect_width.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_rect_height.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_ell_semiaxis_x.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_ell_semiaxis_z.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_gauss_sigma_x.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_gauss_sigma_z.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_source_depth_y.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_sigma_y.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
 
     def callResetSettings(self):

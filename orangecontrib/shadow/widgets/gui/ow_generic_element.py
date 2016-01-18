@@ -120,7 +120,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
             self.plot_canvas[plot_canvas_index] = ShadowPlot.DetailedPlotWidget()
             self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
-        self.plot_canvas[plot_canvas_index].plot_xy(beam_out._beam, var_x, var_y, title, xtitle, ytitle, xum=xum, yum=yum, is_footprint=is_footprint)
+        self.plot_canvas[plot_canvas_index].plot_xy(beam_out._beam, var_x, var_y, title, xtitle, ytitle, xum=xum, yum=yum, conv=self.workspace_units_to_cm, is_footprint=is_footprint)
 
         self.progressBarSet(progressBarValue)
 
@@ -132,7 +132,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
             self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
-        ShadowPlot.plotxy_preview(self.plot_canvas[plot_canvas_index], beam_out._beam, var_x, var_y, nolost=1, title=title, xtitle=xtitle, ytitle=ytitle, is_footprint=is_footprint)
+        ShadowPlot.plotxy_preview(self.plot_canvas[plot_canvas_index], beam_out._beam, var_x, var_y, nolost=1, title=title, xtitle=xtitle, ytitle=ytitle, conv=self.workspace_units_to_cm, is_footprint=is_footprint)
 
         self.progressBarSet(progressBarValue)
 
@@ -141,7 +141,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
             self.plot_canvas[plot_canvas_index] = ShadowPlot.DetailedHistoWidget()
             self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
-        self.plot_canvas[plot_canvas_index].plot_histo(beam_out._beam, var, 1, None, 23, title, xtitle, ytitle, xum=xum)
+        self.plot_canvas[plot_canvas_index].plot_histo(beam_out._beam, var, 1, None, 23, title, xtitle, ytitle, xum=xum, conv=self.workspace_units_to_cm)
 
         self.progressBarSet(progressBarValue)
 
@@ -153,7 +153,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
             self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
-        ShadowPlot.plot_histo_preview(self.plot_canvas[plot_canvas_index], beam_out._beam, var, 1, 23, title, xtitle, ytitle)
+        ShadowPlot.plot_histo_preview(self.plot_canvas[plot_canvas_index], beam_out._beam, var, 1, 23, title, xtitle, ytitle, conv=self.workspace_units_to_cm)
 
         self.progressBarSet(progressBarValue)
 
@@ -179,7 +179,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                             self.plot_histo_fast(beam_out, progressBarValue + 20, 11, plot_canvas_index=4, title="Energy", xtitle="Energy [eV]", ytitle="Number of Rays")
 
                             if self.isFootprintEnabled():
-                                self.plot_xy_fast(beam_foot_print, progressBarValue + 20, 2, 1, plot_canvas_index=5, title="Footprint", xtitle=r'Y [cm]', ytitle="X [cm]", is_footprint=True)
+                                self.plot_xy_fast(beam_foot_print, progressBarValue + 20, 2, 1, plot_canvas_index=5, title="Footprint", xtitle="Y [" + self.workspace_units_label +"]", ytitle="X [" + self.workspace_units_label +"]", is_footprint=True)
 
 
                         elif self.view_type == 0:
@@ -194,8 +194,8 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                             self.plot_histo(beam_out, progressBarValue + 20, 11, plot_canvas_index=4, title="Energy", xtitle="Energy [eV]", ytitle="Number of Rays", xum="[eV]")
 
                             if self.isFootprintEnabled():
-                                self.plot_xy(beam_foot_print, progressBarValue + 20, 2, 1, plot_canvas_index=5, title="Footprint", xtitle=r'Y [cm]', ytitle=r'X [cm]',
-                                             xum=("Y [cm]"), yum=("X [cm]"), is_footprint=True)
+                                self.plot_xy(beam_foot_print, progressBarValue + 20, 2, 1, plot_canvas_index=5, title="Footprint", xtitle="Y [" + self.workspace_units_label +"]", ytitle="X [" + self.workspace_units_label +"]",
+                                             xum=("Y [" + self.workspace_units_label +"]"), yum=("X [" + self.workspace_units_label +"]"), is_footprint=True)
 
                     except Exception:
                         self.view_type_combo.setEnabled(True)

@@ -432,7 +432,7 @@ class OpticalElement(ow_generic_element.GenericElement):
             self.box_absorption_1 = oasysgui.widgetBox(box_absorption, "", addSpace=False, orientation="vertical")
             self.box_absorption_1_empty = oasysgui.widgetBox(box_absorption, "", addSpace=False, orientation="vertical")
 
-            self.le_thickness = oasysgui.lineEdit(self.box_absorption_1, self, "thickness", "Thickness", labelWidth=340, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.box_absorption_1, self, "thickness", "Thickness [cm]", labelWidth=340, valueType=float, orientation="horizontal")
 
             file_box = oasysgui.widgetBox(self.box_absorption_1, "", addSpace=True, orientation="horizontal", height=25)
 
@@ -919,7 +919,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 oasysgui.lineEdit(self.asymmetric_cut_box_1, self, "planes_angle", "Planes angle [deg]", labelWidth=260, valueType=float, orientation="horizontal")
                 oasysgui.lineEdit(self.asymmetric_cut_box_1, self, "below_onto_bragg_planes", "Below[-1]/onto[1] bragg planes",  labelWidth=260, valueType=float, orientation="horizontal")
-                self.le_thickness = oasysgui.lineEdit(self.asymmetric_cut_box_1, self, "thickness", "Thickness", valueType=float, labelWidth=260, orientation="horizontal")
+                oasysgui.lineEdit(self.asymmetric_cut_box_1, self, "thickness", "Thickness [cm]", valueType=float, labelWidth=260, orientation="horizontal")
 
                 gui.separator(self.mosaic_box_1)
 
@@ -937,7 +937,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                 self.mosaic_box_2 = oasysgui.widgetBox(mosaic_box, "", addSpace=False, orientation="vertical")
 
                 oasysgui.lineEdit(self.mosaic_box_2, self, "angle_spread_FWHM", "Angle spread FWHM [deg]",  labelWidth=260, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.mosaic_box_2, self, "thickness", "Thickness", labelWidth=260, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.mosaic_box_2, self, "thickness", "Thickness [cm]", labelWidth=260, valueType=float, orientation="horizontal")
                 oasysgui.lineEdit(self.mosaic_box_2, self, "seed_for_mosaic", "Seed for mosaic [>10^5]", labelWidth=260, valueType=float, orientation="horizontal")
 
                 self.set_Mosaic()
@@ -1031,10 +1031,10 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 self.ruling_box_4 = oasysgui.widgetBox(ruling_box, "", addSpace=False, orientation="vertical")
 
-                oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_1", "Polynomial Line Density coeff.: linear", labelWidth=280, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_2", "Polynomial Line Density coeff.: quadratic", labelWidth=280, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_3", "Polynomial Line Density coeff.: third power", labelWidth=280, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_4", "Polynomial Line Density coeff.: fourth power", labelWidth=280, valueType=float, orientation="horizontal")
+                self.le_grating_poly_coeff_1 = oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_1", "Polynomial Line Density coeff.: 1st", labelWidth=280, valueType=float, orientation="horizontal")
+                self.le_grating_poly_coeff_2 = oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_2", "Polynomial Line Density coeff.: 2nd", labelWidth=280, valueType=float, orientation="horizontal")
+                self.le_grating_poly_coeff_3 = oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_3", "Polynomial Line Density coeff.: 3rd", labelWidth=280, valueType=float, orientation="horizontal")
+                self.le_grating_poly_coeff_4 = oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_4", "Polynomial Line Density coeff.: 4th", labelWidth=280, valueType=float, orientation="horizontal")
                 gui.comboBox(self.ruling_box_4, self, "grating_poly_signed_absolute", label="Line density absolute/signed from the origin", labelWidth=280,
                              items=["Absolute", "Signed"], sendSelectedValue=False, orientation="horizontal")
 
@@ -1056,7 +1056,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 self.refractor_object_box_1 = oasysgui.widgetBox(refractor_box, "OBJECT side", addSpace=False, orientation="vertical", height=100)
                 oasysgui.lineEdit(self.refractor_object_box_1, self, "refractive_index_in_object_medium", "refractive index in object medium", labelWidth=260, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.refractor_object_box_1, self, "attenuation_in_object_medium", "attenuation in object medium [cm-1]", labelWidth=260, valueType=float, orientation="horizontal")
+                self.le_attenuation_in_object_medium = oasysgui.lineEdit(self.refractor_object_box_1, self, "attenuation_in_object_medium", "attenuation in object medium", labelWidth=260, valueType=float, orientation="horizontal")
 
                 self.refractor_object_box_2 = oasysgui.widgetBox(refractor_box, "OBJECT side", addSpace=False, orientation="horizontal", height=100)
                 self.le_file_prerefl_for_object_medium = oasysgui.lineEdit(self.refractor_object_box_2, self, "file_prerefl_for_object_medium",
@@ -1067,7 +1067,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 self.refractor_image_box_1 = oasysgui.widgetBox(refractor_box, "IMAGE side", addSpace=False, orientation="vertical", height=100)
                 oasysgui.lineEdit(self.refractor_image_box_1, self, "refractive_index_in_image_medium", "refractive index in image medium", labelWidth=260, valueType=float, orientation="horizontal")
-                oasysgui.lineEdit(self.refractor_image_box_1, self, "attenuation_in_image_medium", "attenuation in image medium [cm-1]", labelWidth=260, valueType=float, orientation="horizontal")
+                self.le_attenuation_in_image_medium = oasysgui.lineEdit(self.refractor_image_box_1, self, "attenuation_in_image_medium", "attenuation in image medium", labelWidth=260, valueType=float, orientation="horizontal")
 
                 self.refractor_image_box_2 = oasysgui.widgetBox(refractor_box, "IMAGE side", addSpace=False, orientation="horizontal", height=100)
                 self.le_file_prerefl_for_image_medium = oasysgui.lineEdit(self.refractor_image_box_2, self, "file_prerefl_for_image_medium",
@@ -1358,100 +1358,103 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     def after_change_workspace_units(self):
         label = self.le_source_plane_distance.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_image_plane_distance.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
         if self.graphical_options.is_screen_slit:
             label = self.le_slit_width_xaxis.parent().layout().itemAt(0).widget()
-            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            label.setText(label.text() + " [" + self.workspace_units_label + "]")
             label = self.le_slit_height_zaxis.parent().layout().itemAt(0).widget()
-            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            label.setText(label.text() + " [" + self.workspace_units_label + "]")
             label = self.le_slit_center_xaxis.parent().layout().itemAt(0).widget()
-            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            label.setText(label.text() + " [" + self.workspace_units_label + "]")
             label = self.le_slit_center_zaxis.parent().layout().itemAt(0).widget()
-            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
-            label = self.le_thickness.parent().layout().itemAt(0).widget()
-            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            label.setText(label.text() + " [" + self.workspace_units_label + "]")
         else:
             if self.graphical_options.is_curved:
                 if not self.graphical_options.is_conic_coefficients:
                     if self.graphical_options.is_spheric:
                         label = self.le_spherical_radius.parent().layout().itemAt(0).widget()
-                        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                        label.setText(label.text() + " [" + self.workspace_units_label + "]")
                     elif self.graphical_options.is_toroidal:
                         label = self.le_torus_major_radius.parent().layout().itemAt(0).widget()
-                        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                        label.setText(label.text() + " [" + self.workspace_units_label + "]")
                         label = self.le_torus_minor_radius.parent().layout().itemAt(0).widget()
-                        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                        label.setText(label.text() + " [" + self.workspace_units_label + "]")
                     elif self.graphical_options.is_hyperboloid or self.graphical_options.is_ellipsoidal:
                         label = self.le_ellipse_hyperbola_semi_major_axis.parent().layout().itemAt(0).widget()
-                        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                        label.setText(label.text() + " [" + self.workspace_units_label + "]")
                         label = self.le_ellipse_hyperbola_semi_minor_axis.parent().layout().itemAt(0).widget()
-                        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                        label.setText(label.text() + " [" + self.workspace_units_label + "]")
                     elif self.graphical_options.is_paraboloid:
                         label = self.le_paraboloid_parameter.parent().layout().itemAt(0).widget()
-                        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                        label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
                     label = self.w_object_side_focal_distance.parent().layout().itemAt(0).widget()
-                    label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                    label.setText(label.text() + " [" + self.workspace_units_label + "]")
                     label = self.w_image_side_focal_distance.parent().layout().itemAt(0).widget()
-                    label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                    label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
             if self.graphical_options.is_crystal:
-                label = self.le_thickness.parent().layout().itemAt(0).widget()
-                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
                 label = self.le_johansson_radius.parent().layout().itemAt(0).widget()
-                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label.setText(label.text() + " [" + self.workspace_units_label + "]")
                 label = self.le_vertical_quote.parent().layout().itemAt(0).widget()
-                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label.setText(label.text() + " [" + self.workspace_units_label + "]")
                 label = self.le_total_distance.parent().layout().itemAt(0).widget()
-                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label.setText(label.text() + " [" + self.workspace_units_label + "]")
                 label = self.le_d_1.parent().layout().itemAt(0).widget()
-                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label.setText(label.text() + " [" + self.workspace_units_label + "]")
                 label = self.le_d_2.parent().layout().itemAt(0).widget()
-                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label.setText(label.text() + " [" + self.workspace_units_label + "]")
             elif self.graphical_options.is_grating:
                 label = self.le_grating_hunter_monochromator_length.parent().layout().itemAt(0).widget()
-                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label.setText(label.text() + " [" + self.workspace_units_label + "]")
                 label = self.le_grating_hunter_distance_between_beams.parent().layout().itemAt(0).widget()
-                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
-
-                # TO DO: RULING DENSITY??????
+                label.setText(label.text() + " [" + self.workspace_units_label + "]")
                 self.ruling_density_label.setText(self.ruling_density_label.text() + "  [Lines/" + self.workspace_units_label + "]")
+                label = self.le_grating_poly_coeff_1.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + " [Lines." + self.workspace_units_label + "-2]")
+                label = self.le_grating_poly_coeff_2.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + " [Lines." + self.workspace_units_label + "-3]")
+                label = self.le_grating_poly_coeff_3.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + " [Lines." + self.workspace_units_label + "-4]")
+                label = self.le_grating_poly_coeff_4.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + " [Lines." + self.workspace_units_label + "-5]")
 
                 label = self.le_grating_holo_left_distance.parent().layout().itemAt(0).widget()
-                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label.setText(label.text() + " [" + self.workspace_units_label + "]")
                 label = self.le_grating_holo_right_distance.parent().layout().itemAt(0).widget()
-                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label.setText(label.text() + " [" + self.workspace_units_label + "]")
                 label = self.le_grating_groove_pole_distance.parent().layout().itemAt(0).widget()
-                label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+                label.setText(label.text() + " [" + self.workspace_units_label + "]")
             elif self.graphical_options.is_refractor:
-                pass
-                #attenuation_in_object_medium
-                #attenuation_in_image_medium
+                label = self.le_attenuation_in_object_medium.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + " [" + self.workspace_units_label + "-1]")
+                label = self.le_attenuation_in_image_medium.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + " [" + self.workspace_units_label + "-1]")
 
             # DIMENSIONS
             label = self.le_dim_x_plus.parent().layout().itemAt(0).widget()
-            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            label.setText(label.text() + " [" + self.workspace_units_label + "]")
             label = self.le_dim_x_minus.parent().layout().itemAt(0).widget()
-            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            label.setText(label.text() + " [" + self.workspace_units_label + "]")
             label = self.le_dim_y_plus.parent().layout().itemAt(0).widget()
-            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            label.setText(label.text() + " [" + self.workspace_units_label + "]")
             label = self.le_dim_y_minus.parent().layout().itemAt(0).widget()
-            label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+            label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
         # ADVANCED SETTINGS
         # MIRROR MOVEMENTS
         label = self.le_mm_mirror_offset_x.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_mm_mirror_offset_y.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_mm_mirror_offset_z.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         # SOURCE MOVEMENTS
         label = self.le_sm_distance_from_mirror.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_sm_offset_x_mirr_ref_frame.parent().layout().itemAt(0).widget()
         label.setText("offset X [" + self.workspace_units_label + "] in O.E. reference frame")
         label = self.le_sm_offset_y_mirr_ref_frame.parent().layout().itemAt(0).widget()
@@ -1584,7 +1587,10 @@ class OpticalElement(ow_generic_element.GenericElement):
         elif (self.grating_ruling_type == 3):
             self.ruling_density_label.setText("Ruling Density at center")
         elif (self.grating_ruling_type == 4):
-            self.ruling_density_label.setText("Polynomial Line Density coeff.: constant")
+            self.ruling_density_label.setText("Polynomial Line Density coeff.: 0th")
+
+        if hasattr(self, "workspace_units_label"):
+            self.ruling_density_label.setText(self.ruling_density_label.text() + "  [Lines/" + self.workspace_units_label + "]")
 
     def set_GratingMountType(self):
         self.grating_mount_box_1.setVisible(self.grating_mount_type == 4)
@@ -1703,12 +1709,6 @@ class OpticalElement(ow_generic_element.GenericElement):
             layout.addWidget(figure_canvas)
             layout.addWidget(bbox)
 
-
-    def showAxisSystem(self):
-        dialog = XRDCapillary.ShowAxisSystemDialog(parent=self)
-        dialog.show()
-
-
     def viewDefectFileName(self):
         try:
             dialog = OpticalElement.ShowDefectFileDialog(parent=self, filename=self.ms_defect_file_name)
@@ -1790,6 +1790,8 @@ class OpticalElement(ow_generic_element.GenericElement):
             self.d_2 = numpy.nan
 
     def populateFields(self, shadow_oe = ShadowOpticalElement.create_empty_oe()):
+        shadow_oe._oe.DUMMY = self.workspace_units_to_cm
+
         if self.graphical_options.is_screen_slit:
             shadow_oe._oe.T_SOURCE     = self.source_plane_distance
             shadow_oe._oe.T_IMAGE      = self.image_plane_distance
@@ -2291,7 +2293,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                 elif self.grating_ruling_type == 2:
                     self.grating_holo_recording_wavelength = congruence.checkPositiveNumber(self.grating_holo_recording_wavelength, "Recording Wavelength")
                 elif self.grating_ruling_type == 4:
-                    self.grating_ruling_density = congruence.checkPositiveNumber(self.grating_ruling_density, "Polynomial Line Density coeff.: constant")
+                    self.grating_ruling_density = congruence.checkPositiveNumber(self.grating_ruling_density, "Polynomial Line Density coeff.: 0th")
             elif self.graphical_options.is_refractor:
                 if self.optical_constants_refraction_index == 0:
                     self.refractive_index_in_object_medium = congruence.checkPositiveNumber(self.refractive_index_in_object_medium, "Refractive Index in Object Medium")

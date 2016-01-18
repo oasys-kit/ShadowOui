@@ -361,11 +361,11 @@ class ShadowPlot:
 
             self.setLayout(layout)
 
-        def plot_histo(self, beam, col, nolost, xrange, ref, title, xtitle, ytitle, nbins = 100, xum=""):
+        def plot_histo(self, beam, col, nolost, xrange, ref, title, xtitle, ytitle, nbins = 100, xum="", conv=1.0):
 
             ticket = beam.histo1(col, nbins=nbins, xrange=xrange, nolost=nolost, ref=ref)
 
-            factor=ShadowPlot.get_factor(col)
+            factor=ShadowPlot.get_factor(col, conv)
 
             if ref != 0 and not ytitle is None:  ytitle = ytitle + ' weighted by ' + (stp.getLabel(ref-1))[0]
 
@@ -442,7 +442,7 @@ class ShadowPlot:
 
             self.plot_canvas.toolBar()
 
-        def plot_xy(self, beam, var_x, var_y, title, xtitle, ytitle, xrange=None, yrange=None, nolost=1, nbins=100, xum="", yum="", ref=23, is_footprint=False):
+        def plot_xy(self, beam, var_x, var_y, title, xtitle, ytitle, xrange=None, yrange=None, nolost=1, nbins=100, xum="", yum="", conv=1.0, ref=23, is_footprint=False):
 
             matplotlib.rcParams['axes.formatter.useoffset']='False'
 
@@ -452,8 +452,8 @@ class ShadowPlot:
                 factor1 = 1.0
                 factor2 = 1.0
             else:
-                factor1=ShadowPlot.get_factor(var_x)
-                factor2=ShadowPlot.get_factor(var_y)
+                factor1=ShadowPlot.get_factor(var_x, conv)
+                factor2=ShadowPlot.get_factor(var_y, conv)
 
             xx = ticket['bin_h_edges']
             yy = ticket['bin_v_edges']
@@ -571,7 +571,7 @@ class ShadowPlot:
     #########################################################################################
 
     @classmethod
-    def plotxy_preview(cls, plot_window, beam, var_x, var_y, nolost=0, title='PLOTXY', xtitle=None, ytitle=None, is_footprint=False):
+    def plotxy_preview(cls, plot_window, beam, var_x, var_y, nolost=0, title='PLOTXY', xtitle=None, ytitle=None, conv=1.0, is_footprint=False):
 
         matplotlib.rcParams['axes.formatter.useoffset']='False'
 
@@ -583,8 +583,8 @@ class ShadowPlot:
             factor1 = 1.0
             factor2 = 1.0
         else:
-            factor1 = ShadowPlot.get_factor(var_x)
-            factor2 = ShadowPlot.get_factor(var_y)
+            factor1 = ShadowPlot.get_factor(var_x, conv)
+            factor2 = ShadowPlot.get_factor(var_y, conv)
 
         if xtitle is None: xtitle=(stp.getLabel(var_x-1))[0]
         if ytitle is None: ytitle=(stp.getLabel(var_y-1))[0]
@@ -598,11 +598,11 @@ class ShadowPlot:
         plot_window.setZoomModeEnabled(True)
 
     @classmethod
-    def plot_histo_preview(cls, plot_window, beam, col, nolost, ref, title, xtitle, ytitle):
+    def plot_histo_preview(cls, plot_window, beam, col, nolost, ref, title, xtitle, ytitle, conv=1.0):
 
         matplotlib.rcParams['axes.formatter.useoffset']='False'
 
-        factor=ShadowPlot.get_factor(col)
+        factor=ShadowPlot.get_factor(col, conv)
 
         ticket = beam.histo1(col, nbins=100, xrange=None, nolost=nolost, ref=ref)
 
@@ -623,11 +623,11 @@ class ShadowPlot:
         plot_window.replot()
 
     @classmethod
-    def get_factor(cls, var):
+    def get_factor(cls, var, conv):
         factor = 1.0
 
         if var == 1 or var == 2 or var == 3:
-            factor = 1e4 # cm to micron
+            factor = 1e4*conv # cm to micron
         elif var == 4 or var == 5 or var == 6:
             factor = 1e6 # rad to urad
 

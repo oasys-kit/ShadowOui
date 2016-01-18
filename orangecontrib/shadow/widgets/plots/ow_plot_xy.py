@@ -287,7 +287,7 @@ class PlotXY(AutomaticElement):
             self.image_box.layout().addWidget(self.plot_canvas)
 
         try:
-            self.plot_canvas.plot_xy(beam, var_x, var_y, title, xtitle, ytitle, xrange=xrange, yrange=yrange, nbins=nbins, nolost=nolost, xum=xum, yum=yum, ref=self.weight_column_index+1)
+            self.plot_canvas.plot_xy(beam, var_x, var_y, title, xtitle, ytitle, xrange=xrange, yrange=yrange, nbins=nbins, nolost=nolost, xum=xum, yum=yum, conv=self.workspace_units_to_cm, ref=self.weight_column_index+1)
         except Exception:
             raise Exception("Data not plottable: No good rays or bad content")
 
@@ -316,8 +316,8 @@ class PlotXY(AutomaticElement):
         xrange = None
         yrange = None
 
-        factor1 = ShadowPlot.get_factor(var_x)
-        factor2 = ShadowPlot.get_factor(var_y)
+        factor1 = ShadowPlot.get_factor(var_x, self.workspace_units_to_cm)
+        factor2 = ShadowPlot.get_factor(var_y, self.workspace_units_to_cm)
 
         if self.x_range == 0 and self.y_range == 0:
             if self.cartesian_axis == 1:
@@ -401,8 +401,8 @@ class PlotXY(AutomaticElement):
                     xum = xum + "[eV]"
                     auto_x_title = auto_x_title + " [eV]"
                 elif x == 13:
-                    xum = xum + "[cm]"
-                    auto_x_title = auto_x_title + " [cm]"
+                    xum = xum + "[" + self.workspace_units_label + "]"
+                    auto_x_title = auto_x_title + " [" + self.workspace_units_label + "]"
                 elif x == 14:
                     xum = xum + "[rad]"
                     auto_x_title = auto_x_title + " [rad]"
@@ -413,8 +413,8 @@ class PlotXY(AutomaticElement):
                     xum = xum + "[Å]"
                     auto_x_title = auto_x_title + " [Å]"
                 elif x == 20:
-                    xum = xum + "[cm]"
-                    auto_x_title = auto_x_title + " [cm]"
+                    xum = xum + "[" + self.workspace_units_label + "]"
+                    auto_x_title = auto_x_title + " [" + self.workspace_units_label + "]"
                 elif x == 21:
                     xum = xum + "[rad]"
                     auto_x_title = auto_x_title + " [rad]"
@@ -434,8 +434,8 @@ class PlotXY(AutomaticElement):
                     yum = yum + "[eV]"
                     auto_y_title = auto_y_title + " [eV]"
                 elif y == 13:
-                    yum = yum + "[cm]"
-                    auto_y_title = auto_y_title + " [cm]"
+                    yum = yum + "[" + self.workspace_units_label + "]"
+                    auto_y_title = auto_y_title + " [" + self.workspace_units_label + "]"
                 elif y == 14:
                     yum = yum + "[rad]"
                     auto_y_title = auto_y_title + " [rad]"
@@ -446,8 +446,8 @@ class PlotXY(AutomaticElement):
                     yum = yum + "[Å]"
                     auto_y_title = auto_y_title + " [Å]"
                 elif y == 20:
-                    yum = yum + "[cm]"
-                    auto_y_title = auto_y_title + " [cm]"
+                    yum = yum + "[" + self.workspace_units_label + "]"
+                    auto_y_title = auto_y_title + " [" + self.workspace_units_label + "]"
                 elif y == 21:
                     yum = yum + "[rad]"
                     auto_y_title = auto_y_title + " [rad]"

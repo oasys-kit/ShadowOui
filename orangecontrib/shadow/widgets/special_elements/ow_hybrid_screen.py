@@ -158,6 +158,12 @@ class HybridScreen(AutomaticElement):
         self.shadow_output.setFixedHeight(100)
         self.shadow_output.setFixedWidth(850)
 
+    def after_change_workspace_units(self):
+        label = self.le_focal_length.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_distance_to_image.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+
     def initializeTabs(self):
         self.tabs.clear()
 
@@ -183,7 +189,7 @@ class HybridScreen(AutomaticElement):
             self.plot_canvas[plot_canvas_index] = ShadowPlot.DetailedHistoWidget()
             self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
-        self.plot_canvas[plot_canvas_index].plot_histo(beam_out._beam, var, 1, None, 23, title, xtitle, ytitle, xum=xum)
+        self.plot_canvas[plot_canvas_index].plot_histo(beam_out._beam, var, 1, None, 23, title, xtitle, ytitle, xum=xum, conv=self.workspace_units_to_cm)
 
         self.progressBarSet(progressBarValue)
 
@@ -197,7 +203,7 @@ class HybridScreen(AutomaticElement):
 
             self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
-        factor = ShadowPlot.get_factor(var)
+        factor = ShadowPlot.get_factor(var, self.workspace_units_to_cm)
 
         self.plot_canvas[plot_canvas_index].addCurve(scaled_array.scale*factor, scaled_array.np_array, "crv_"+ytitle, symbol='', color="blue", replace=True) #'+', '^', ','
         self.plot_canvas[plot_canvas_index]._plot.graph.ax.get_yaxis().get_major_formatter().set_useOffset(True)

@@ -199,17 +199,17 @@ class Wiggler(ow_source.Source):
         label.setText("Max Z [" + self.workspace_units_label + "]/Max Zp [rad]")
 
         label = self.le_sigma_x.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_sigma_z.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_emittance_x.parent().layout().itemAt(0).widget()
         label.setText(label.text() + "  [rad." + self.workspace_units_label + "]")
         label = self.le_emittance_z.parent().layout().itemAt(0).widget()
         label.setText(label.text() + "  [rad." + self.workspace_units_label + "]")
         label = self.le_distance_from_waist_x.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_distance_from_waist_z.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + "  [" + self.workspace_units_label + "]")
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
 
     def set_OptimizeSource(self):
@@ -244,11 +244,11 @@ class Wiggler(ow_source.Source):
             wigFile = bytes(congruence.checkFileName("xshwig.sha"), 'utf-8')
 
             if self.type_combo == 0:
-                inData = bytes("", 'utf-8')
+                inData = ""
             elif self.type_combo == 1:
-                inData = bytes(congruence.checkFileName(self.file_with_b_vs_y), 'utf-8')
+                inData = congruence.checkFileName(self.file_with_b_vs_y)
             elif self.type_combo == 2:
-                inData = bytes(congruence.checkFileName(self.file_with_harmonics), 'utf-8')
+                inData = congruence.checkFileName(self.file_with_harmonics)
 
             self.progressBarSet(10)
             #self.information(0, "Calculate electron trajectory")
