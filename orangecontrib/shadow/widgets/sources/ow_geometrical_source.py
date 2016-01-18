@@ -18,25 +18,13 @@ from orangecontrib.shadow.widgets.gui import ow_source
 
 
 class GeometricalSource(ow_source.Source):
-
     name = "Geometrical Source"
     description = "Shadow Source: Geometrical Source"
     icon = "icons/geometrical.png"
-    maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
     priority = 1
-    category = "Sources"
-    keywords = ["data", "file", "load", "read"]
 
     inputs = [("Trigger", ShadowTriggerOut, "sendNewBeam"),
               ("ExchangeData", DataExchangeObject, "acceptExchangeData")]
-
-    outputs = [{"name":"Beam",
-                "type":ShadowBeam,
-                "doc":"Shadow Beam",
-                "id":"beam"}]
-
-    want_main_area=1
 
     sampling = Setting(0)
 
@@ -179,11 +167,6 @@ class GeometricalSource(ow_source.Source):
         oasysgui.lineEdit(self.sample_box_3, self, "grid_points_in_x", "Grid Points in X", labelWidth=300, valueType=int, orientation="horizontal")
         oasysgui.lineEdit(self.sample_box_3, self, "grid_points_in_y", "Grid Points in Y", labelWidth=300, valueType=int, orientation="horizontal")
         oasysgui.lineEdit(self.sample_box_3, self, "grid_points_in_z", "Grid Points in Z",  labelWidth=300, valueType=int, orientation="horizontal")
-
-        #self.sample_box_4 = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
-
-        #oasysgui.lineEdit(self.sample_box_4, self, "radial_grid_points", "Radial Grid Points", labelWidth=300, valueType=int, orientation="horizontal")
-        #oasysgui.lineEdit(self.sample_box_4, self, "concentrical_grid_points", "Concentrical Grid Points",  labelWidth=300, valueType=int, orientation="horizontal")
 
         self.set_Sampling()
 
@@ -399,26 +382,11 @@ class GeometricalSource(ow_source.Source):
 
         self.set_OptimizeSource()
 
-        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
+        adv_other_box = oasysgui.widgetBox(self.controlArea, "Optional file output", addSpace=False, orientation="vertical")
 
-        button = gui.button(button_box, self, "Run Shadow/Source", callback=self.runShadowSource)
-        font = QFont(button.font())
-        font.setBold(True)
-        button.setFont(font)
-        palette = QPalette(button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Blue'))
-        button.setPalette(palette) # assign new palette
-        button.setFixedHeight(45)
-
-        button = gui.button(button_box, self, "Reset Fields", callback=self.callResetSettings)
-        font = QFont(button.font())
-        font.setItalic(True)
-        button.setFont(font)
-        palette = QPalette(button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Red'))
-        button.setPalette(palette) # assign new palette
-        button.setFixedHeight(45)
-        button.setFixedWidth(100)
+        gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=200,
+                     items=["None", "Debug (start.xx/end.xx)"],
+                     sendSelectedValue=False, orientation="horizontal")
 
         gui.rubber(self.controlArea)
         gui.rubber(self.mainArea)
@@ -573,7 +541,11 @@ class GeometricalSource(ow_source.Source):
 
             self.progressBarSet(50)
 
-            beam_out = ShadowBeam.traceFromSource(shadow_src)
+            write_start_file, write_end_file = self.get_write_file_options()
+
+            beam_out = ShadowBeam.traceFromSource(shadow_src,
+                                                  write_start_file=write_start_file,
+                                                  write_end_file=write_end_file)
 
             if self.photon_energy_distribution == 4:
                 self.generate_gaussian_spectrum(beam_out)

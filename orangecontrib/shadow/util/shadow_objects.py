@@ -184,14 +184,20 @@ class ShadowBeam:
             return merged_beam
 
     @classmethod
-    def traceFromSource(cls, shadow_src, history=True):
+    def traceFromSource(cls, shadow_src, write_start_file=0, write_end_file=0, history=True):
         self = cls.__new__(ShadowBeam, beam=Shadow.Beam())
 
         shadow_source_start = shadow_src.duplicate()
 
+        if write_start_file == 1:
+            shadow_src.src.write("start.00")
+
         self._beam.genSource(shadow_src.src)
 
         shadow_src.self_repair()
+
+        if write_end_file == 1:
+            shadow_src.src.write("end.00")
 
         shadow_source_end = shadow_src.duplicate()
 
@@ -201,16 +207,22 @@ class ShadowBeam:
         return self
 
     @classmethod
-    def traceFromOE(cls, input_beam, shadow_oe, history=True):
+    def traceFromOE(cls, input_beam, shadow_oe, write_start_file=0, write_end_file=0, history=True):
 
         self = cls.initializeFromPreviousBeam(input_beam)
 
         if history:
             history_shadow_oe_start = shadow_oe.duplicate()
 
+        if write_start_file == 1:
+            shadow_oe._oe.write("start.%02d"%self._oe_number)
+
         self._beam.traceOE(shadow_oe._oe, self._oe_number)
 
         shadow_oe.self_repair()
+
+        if write_end_file == 1:
+            shadow_oe._oe.write("end.%02d"%self._oe_number)
 
         if history:
             history_shadow_oe_end = shadow_oe.duplicate()

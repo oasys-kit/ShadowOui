@@ -340,47 +340,48 @@ class OWdabam_height_profile(OWWidget):
 
     def table_item_clicked(self):
         if self.table.selectionModel().hasSelection():
-            row = self.table.selectionModel().selectedRows()[0].row()
-            entry = int(self.table.item(row, 0).text())
+            if not self.table.rowCount() == 0:
+                row = self.table.selectionModel().selectedRows()[0].row()
+                entry = int(self.table.item(row, 0).text())
 
-            self.server.load(entry)
+                self.server.load(entry)
 
-            self.profileInfo.setText(self.server.info_profiles())
+                self.profileInfo.setText(self.server.info_profiles())
 
-            if self.use_undetrended == 0:
-                self.plot_canvas[0].setGraphTitle("Heights Profile. St.Dev.=%.3f nm"%(self.server.stdev_profile_heights()*1e9))
-                self.plot_canvas[1].setGraphTitle("Slopes Profile. St.Dev.=%.3f $\mu$rad"%(self.server.stdev_profile_slopes()*1e6))
-                self.plot_dabam_graph(0, "heights_profile", 1e2*self.server.y, 1e9*self.server.zHeights, "Y [cm]", "Z [nm]")
-                self.plot_dabam_graph(1, "slopes_profile", 1e2*self.server.y, 1e6*self.server.zSlopes, "Y [cm]", "Zp [$\mu$rad]")
-            else:
-                self.plot_canvas[0].setGraphTitle("Heights Profile. St.Dev.=%.3f nm"%(self.server.stdev_profile_heights()*1e9))
-                self.plot_canvas[1].setGraphTitle("Slopes Profile. St.Dev.=%.3f $\mu$rad"%(self.server.stdev_profile_slopes()*1e6))
-                self.plot_dabam_graph(0, "heights_profile", 1e2*self.server.y, 1e9*self.server.zHeightsUndetrended, "Y [cm]", "Z [nm]")
-                self.plot_dabam_graph(1, "slopes_profile", 1e2*self.server.y, 1e6*self.server.zSlopesUndetrended, "Y [cm]", "Zp [$\mu$rad]")
+                if self.use_undetrended == 0:
+                    self.plot_canvas[0].setGraphTitle("Heights Profile. St.Dev.=%.3f nm"%(self.server.stdev_profile_heights()*1e9))
+                    self.plot_canvas[1].setGraphTitle("Slopes Profile. St.Dev.=%.3f $\mu$rad"%(self.server.stdev_profile_slopes()*1e6))
+                    self.plot_dabam_graph(0, "heights_profile", 1e2*self.server.y, 1e9*self.server.zHeights, "Y [cm]", "Z [nm]")
+                    self.plot_dabam_graph(1, "slopes_profile", 1e2*self.server.y, 1e6*self.server.zSlopes, "Y [cm]", "Zp [$\mu$rad]")
+                else:
+                    self.plot_canvas[0].setGraphTitle("Heights Profile. St.Dev.=%.3f nm"%(self.server.stdev_profile_heights()*1e9))
+                    self.plot_canvas[1].setGraphTitle("Slopes Profile. St.Dev.=%.3f $\mu$rad"%(self.server.stdev_profile_slopes()*1e6))
+                    self.plot_dabam_graph(0, "heights_profile", 1e2*self.server.y, 1e9*self.server.zHeightsUndetrended, "Y [cm]", "Z [nm]")
+                    self.plot_dabam_graph(1, "slopes_profile", 1e2*self.server.y, 1e6*self.server.zSlopesUndetrended, "Y [cm]", "Zp [$\mu$rad]")
 
-            y = self.server.f**(self.server.powerlaw["hgt_pendent"])*10**self.server.powerlaw["hgt_shift"]
-            i0 = self.server.powerlaw["index_from"]
-            i1 = self.server.powerlaw["index_to"]
-            beta = -self.server.powerlaw["hgt_pendent"]
-            self.plot_canvas[2].setGraphTitle("Power Spectral Density of Heights Profile (beta=%.2f,Df=%.2f)"%(beta,(5-beta)/2))
-            self.plot_dabam_graph(2, "psd_heights_2", self.server.f, self.server.psdHeights, "f [m^-1]", "PSD [m^3]")
-            self.plot_dabam_graph(2, "psd_heights_1", self.server.f, y, "f [m^-1]", "PSD [m^3]", color='green', replace=False)
-            self.plot_dabam_graph(2, "psd_heights_3", self.server.f[i0:i1], y[i0:i1], "f [m^-1]", "PSD [m^3]", color='red', replace=False)
+                y = self.server.f**(self.server.powerlaw["hgt_pendent"])*10**self.server.powerlaw["hgt_shift"]
+                i0 = self.server.powerlaw["index_from"]
+                i1 = self.server.powerlaw["index_to"]
+                beta = -self.server.powerlaw["hgt_pendent"]
+                self.plot_canvas[2].setGraphTitle("Power Spectral Density of Heights Profile (beta=%.2f,Df=%.2f)"%(beta,(5-beta)/2))
+                self.plot_dabam_graph(2, "psd_heights_2", self.server.f, self.server.psdHeights, "f [m^-1]", "PSD [m^3]")
+                self.plot_dabam_graph(2, "psd_heights_1", self.server.f, y, "f [m^-1]", "PSD [m^3]", color='green', replace=False)
+                self.plot_dabam_graph(2, "psd_heights_3", self.server.f[i0:i1], y[i0:i1], "f [m^-1]", "PSD [m^3]", color='red', replace=False)
 
-            self.plot_dabam_graph(3, "csd", self.server.f,self.server.csd_heights(), "f [m^-1]", "CSD [m^3]")
+                self.plot_dabam_graph(3, "csd", self.server.f,self.server.csd_heights(), "f [m^-1]", "CSD [m^3]")
 
-            c1,c2,c3 = dabam.autocorrelationfunction(self.server.y,self.server.zHeights)
-            self.plot_canvas[4].setGraphTitle("Autocovariance Function of Heights Profile.\nAutocorrelation Length (ACF=0.5)=%.3f m"%(c3))
-            self.plot_dabam_graph(4, "acf", c1[0:-1], c2, "Length [m]", "Heights Autocovariance")
+                c1,c2,c3 = dabam.autocorrelationfunction(self.server.y,self.server.zHeights)
+                self.plot_canvas[4].setGraphTitle("Autocovariance Function of Heights Profile.\nAutocorrelation Length (ACF=0.5)=%.3f m"%(c3))
+                self.plot_dabam_graph(4, "acf", c1[0:-1], c2, "Length [m]", "Heights Autocovariance")
 
-            #surface error removal
-            if not self.zz is None and not self.yy is None and not self.xx is None:
-                self.xx = None
-                self.yy = None
-                self.zz = None
-                self.axis.set_title("")
-                self.axis.clear()
-                self.plot_canvas[5].draw()
+                #surface error removal
+                if not self.zz is None and not self.yy is None and not self.xx is None:
+                    self.xx = None
+                    self.yy = None
+                    self.zz = None
+                    self.axis.set_title("")
+                    self.axis.clear()
+                    self.plot_canvas[5].draw()
 
         if (self.tabs.currentIndex()==6): self.tabs.setCurrentIndex(1)
 

@@ -1,9 +1,7 @@
 import copy
-import sys
 
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QPalette, QColor, QFont
 
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
@@ -12,39 +10,16 @@ from oasys.widgets.gui import ConfirmDialog
 from orangewidget import gui
 from orangewidget.settings import Setting
 
-from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerIn, ShadowPreProcessorData, \
-    ShadowCompoundOpticalElement, ShadowBeam
-from orangecontrib.shadow.util.shadow_util import ShadowCongruence
-from orangecontrib.shadow.widgets.gui import ow_generic_element
+from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
+from orangecontrib.shadow.widgets.gui import ow_compound_optical_element
 
-
-class DCM(ow_generic_element.GenericElement):
+class DCM(ow_compound_optical_element.CompoundOpticalElement):
     name = "Double-Crystal Monochromator"
     description = "Shadow Compound OE: Double-Crystal Monochromator"
     icon = "icons/dcm.png"
-    maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
     priority = 5
-    category = "Compound Optical Elements"
-    keywords = ["data", "file", "load", "read"]
-
-    inputs = [("Input Beam", ShadowBeam, "setBeam"),
-              ("PreProcessor Data", ShadowPreProcessorData, "setPreProcessorData")]
-
-    outputs = [{"name": "Beam",
-                "type": ShadowBeam,
-                "doc": "Shadow Beam",
-                "id": "beam"},
-               {"name": "Trigger",
-                "type": ShadowTriggerIn,
-                "doc": "Feedback signal to start a new beam simulation",
-                "id": "Trigger"}]
-
-    input_beam = None
 
     NONE_SPECIFIED = "NONE SPECIFIED"
-
-    CONTROL_AREA_WIDTH = 500
 
     p = Setting(0.0)
     q = Setting(0.0)
@@ -55,48 +30,28 @@ class DCM(ow_generic_element.GenericElement):
     has_finite_dimensions = Setting([0, 0])
     dimensions = Setting([[0.0, 0.0], [0.0, 0.0]])
 
-    file_to_write_out = Setting(3)
-
-    want_main_area = 1
-
     def __init__(self):
         super().__init__()
 
-        # self.resetSettings()
+        oasysgui.lineEdit(self.tab_bas, self, "p", "Distance Source - DCM center (P) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.tab_bas, self, "q", "Distance DCM center - Image plane (Q) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
 
-        #################################
-        # FIX A WEIRD BEHAVIOUR AFTER DISPLAY
-        # THE WIDGET: PROBABLY ON SIGNAL MANAGER
-        self.dumpSettings()
-
-        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
-
-        tabs_setting = gui.tabWidget(self.controlArea)
-        tabs_setting.setFixedWidth(495)
-        tabs_setting.setFixedHeight(750)
-
-        tab_bas = oasysgui.createTabPage(tabs_setting, "Basic Setting")
-        tab_adv = oasysgui.createTabPage(tabs_setting, "Advanced Setting")
-
-        oasysgui.lineEdit(tab_bas, self, "p", "Distance Source - DCM center (P) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(tab_bas, self, "q", "Distance DCM center - Image plane (Q) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
-
-        oasysgui.lineEdit(tab_bas, self, "separation", "Separation between the Crystals [cm]\n(from center of 1st C. to center of 2nd C.) ", labelWidth=350, valueType=float,
+        oasysgui.lineEdit(self.tab_bas, self, "separation", "Separation between the Crystals [cm]\n(from center of 1st C. to center of 2nd C.) ", labelWidth=350, valueType=float,
                            orientation="horizontal")
 
-        oasysgui.lineEdit(tab_bas, self, "photon_energy_ev", "Photon Eneergy [eV]", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.tab_bas, self, "photon_energy_ev", "Photon Eneergy [eV]", labelWidth=350, valueType=float, orientation="horizontal")
 
 
-        file_box = oasysgui.widgetBox(tab_bas, "", addSpace=True, orientation="horizontal", height=25)
+        file_box = oasysgui.widgetBox(self.tab_bas, "", addSpace=True, orientation="horizontal", height=25)
 
         self.le_reflectivity_file = oasysgui.lineEdit(file_box, self, "reflectivity_file", "Reflectivity File", labelWidth=150, valueType=str, orientation="horizontal")
 
         pushButton = gui.button(file_box, self, "...")
         pushButton.clicked.connect(self.selectFilePrerefl)
 
-        gui.separator(tab_bas, height=10)
+        gui.separator(self.tab_bas, height=10)
 
-        self.tab_crystals = gui.tabWidget(tab_bas)
+        self.tab_crystals = gui.tabWidget(self.tab_bas)
 
         tab_first_crystal = oasysgui.createTabPage(self.tab_crystals, "First Crystal")
         tab_second_crystal = oasysgui.createTabPage(self.tab_crystals, "Second Crystal")
@@ -110,33 +65,6 @@ class DCM(ow_generic_element.GenericElement):
                                         parent=tab_second_crystal,
                                         has_finite_dimensions=self.has_finite_dimensions[1],
                                         dimensions=self.dimensions[1])
-
-        adv_other_box = oasysgui.widgetBox(tab_adv, "Optional file output", addSpace=False, orientation="vertical")
-
-        gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=310,
-                     items=["All", "Mirror", "Image", "None", "Debug (All + start.xx/end.xx)"],
-                     sendSelectedValue=False, orientation="horizontal")
-
-        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
-
-        button = gui.button(button_box, self, "Run Shadow/trace", callback=self.traceOpticalElement)
-        font = QFont(button.font())
-        font.setBold(True)
-        button.setFont(font)
-        palette = QPalette(button.palette())  # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Blue'))
-        button.setPalette(palette)  # assign new palette
-        button.setFixedHeight(45)
-
-        button = gui.button(button_box, self, "Reset Fields", callback=self.callResetSettings)
-        font = QFont(button.font())
-        font.setItalic(True)
-        button.setFont(font)
-        palette = QPalette(button.palette())  # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Red'))
-        button.setPalette(palette)  # assign new palette
-        button.setFixedHeight(45)
-        button.setFixedWidth(100)
 
     def selectFilePrerefl(self):
         self.le_reflectivity_file.setText(oasysgui.selectFileFromDialog(self, self.reflectivity_file, "Select Reflectivity File", file_extension_filter="*.dat"))
@@ -166,26 +94,6 @@ class DCM(ow_generic_element.GenericElement):
 
             self.setupUI()
 
-    def get_write_file_options(self):
-        write_start_files = 0
-        write_end_files = 0
-        write_star_files = 0
-        write_mirr_files = 0
-
-        if self.file_to_write_out == 0:
-            write_star_files = 1
-            write_mirr_files = 1
-        elif self.file_to_write_out == 1:
-            write_star_files = 1
-        elif self.file_to_write_out == 2:
-            write_mirr_files = 1
-        elif self.file_to_write_out == 4:
-            write_start_files = 1
-            write_end_files = 1
-            write_star_files = 1
-            write_mirr_files = 1
-
-        return write_start_files, write_end_files, write_star_files, write_mirr_files
 
     def dumpSettings(self):
         bkp_has_finite_dimensions = copy.deepcopy(self.has_finite_dimensions)
@@ -256,9 +164,6 @@ class DCM(ow_generic_element.GenericElement):
                                                          dimensions2=dimension2_out,
                                                          reflectivity_file=congruence.checkFileName(self.reflectivity_file))
 
-    def doSpecificSetting(self, shadow_oe):
-        pass
-
     def checkFields(self):
         congruence.checkPositiveNumber(self.p, "Distance Source - KB center")
         congruence.checkPositiveNumber(self.q, "Distance KB center - Image plane")
@@ -270,92 +175,6 @@ class DCM(ow_generic_element.GenericElement):
 
         self.crystal_1_box.checkFields()
         self.crystal_2_box.checkFields()
-
-    def completeOperations(self, shadow_oe=None):
-        self.setStatusMessage("Running SHADOW")
-
-        if self.trace_shadow:
-            grabber = TTYGrabber()
-            grabber.start()
-
-        self.progressBarSet(50)
-
-        ###########################################
-        # TODO: TO BE ADDED JUST IN CASE OF BROKEN
-        #       ENVIRONMENT: MUST BE FOUND A PROPER WAY
-        #       TO TEST SHADOW
-        self.fixWeirdShadowBug()
-        ###########################################
-
-        write_start_files, write_end_files, write_star_files, write_mirr_files = self.get_write_file_options()
-
-        beam_out = ShadowBeam.traceFromCompoundOE(self.input_beam,
-                                                  shadow_oe,
-                                                  write_start_files=write_start_files,
-                                                  write_end_files=write_end_files,
-                                                  write_star_files=write_star_files,
-                                                  write_mirr_files=write_mirr_files
-                                                  )
-
-        if self.trace_shadow:
-            grabber.stop()
-
-            for row in grabber.ttyData:
-                self.writeStdOut(row)
-
-        self.setStatusMessage("Plotting Results")
-
-        self.plot_results(beam_out)
-
-        self.setStatusMessage("")
-
-        self.send("Beam", beam_out)
-        self.send("Trigger", ShadowTriggerIn(new_beam=True))
-
-    def traceOpticalElement(self):
-        try:
-            #self.error(self.error_id)
-            self.setStatusMessage("")
-            self.progressBarInit()
-
-            if ShadowCongruence.checkEmptyBeam(self.input_beam):
-                if ShadowCongruence.checkGoodBeam(self.input_beam):
-                    sys.stdout = EmittingStream(textWritten=self.writeStdOut)
-
-                    self.checkFields()
-
-                    shadow_oe = ShadowCompoundOpticalElement.create_compound_oe()
-
-                    self.populateFields(shadow_oe)
-
-                    self.doSpecificSetting(shadow_oe)
-
-                    self.progressBarSet(10)
-
-                    self.completeOperations(shadow_oe)
-                else:
-                    raise Exception("Input Beam with no good rays")
-            else:
-                raise Exception("Empty Input Beam")
-
-        except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
-                                       str(exception),
-                                       QtGui.QMessageBox.Ok)
-
-            #self.error_id = self.error_id + 1
-            #self.error(self.error_id, "Exception occurred: " + str(exception))
-
-        self.progressBarFinished()
-
-    def setBeam(self, beam):
-        self.onReceivingInput()
-
-        if ShadowCongruence.checkEmptyBeam(beam):
-            self.input_beam = beam
-
-            if self.is_automatic_run:
-                self.traceOpticalElement()
 
     def setPreProcessorData(self, data):
         if data is not None:

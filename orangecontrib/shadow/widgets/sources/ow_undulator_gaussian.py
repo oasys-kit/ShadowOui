@@ -18,18 +18,7 @@ class UndulatorGaussian(ow_source.Source):
     name = "Undulator Gaussian"
     description = "Shadow Source: Undulator Gaussian"
     icon = "icons/undulator_gaussian.png"
-    maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
     priority = 4
-    category = "Sources"
-    keywords = ["data", "file", "load", "read"]
-
-    inputs = [("Trigger", ShadowTriggerOut, "sendNewBeam")]
-
-    outputs = [{"name":"Beam",
-                "type":ShadowBeam,
-                "doc":"Shadow Beam",
-                "id":"beam"}]
 
     number_of_rays=Setting(5000)
     seed=Setting(6775431)
@@ -44,55 +33,35 @@ class UndulatorGaussian(ow_source.Source):
 
     undulator_length=Setting(4.0)
 
-    want_main_area=1
-
     def __init__(self):
         super().__init__()
 
         left_box_1 = oasysgui.widgetBox(self.controlArea, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical")
 
-        oasysgui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=300, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(left_box_1, self, "seed", "Seed", tooltip="Seed", labelWidth=300, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(left_box_1, self, "energy", "Set undulator to energy [eV]", tooltip="Set undulator to energy [eV]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_1, self, "delta_e", "Delta Energy [eV]", tooltip="Delta Energy [eV]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=250, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "seed", "Seed", tooltip="Seed", labelWidth=250, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "energy", "Set undulator to energy [eV]", tooltip="Set undulator to energy [eV]", labelWidth=250, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "delta_e", "Delta Energy [eV]", tooltip="Delta Energy [eV]", labelWidth=250, valueType=float, orientation="horizontal")
 
         left_box_2 = oasysgui.widgetBox(self.controlArea, "Machine Parameters", addSpace=True, orientation="vertical")
 
-        self.le_sigma_x = oasysgui.lineEdit(left_box_2, self, "sigma_x", "Size RMS H", labelWidth=300, tooltip="Size RMS H", valueType=float, orientation="horizontal")
-        self.le_sigma_z = oasysgui.lineEdit(left_box_2, self, "sigma_z", "Size RMS V", labelWidth=300, tooltip="Size RMS V", valueType=float, orientation="horizontal")
+        self.le_sigma_x = oasysgui.lineEdit(left_box_2, self, "sigma_x", "Size RMS H", labelWidth=250, tooltip="Size RMS H", valueType=float, orientation="horizontal")
+        self.le_sigma_z = oasysgui.lineEdit(left_box_2, self, "sigma_z", "Size RMS V", labelWidth=250, tooltip="Size RMS V", valueType=float, orientation="horizontal")
 
-        oasysgui.lineEdit(left_box_2, self, "sigma_divergence_x", "Divergence RMS H [rad]", labelWidth=300, tooltip="Divergence RMS H [rad]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_2, self, "sigma_divergence_z", "Divergence RMS V [rad]", labelWidth=300, tooltip="Divergence RMS V [rad]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_2, self, "sigma_divergence_x", "Divergence RMS H [rad]", labelWidth=250, tooltip="Divergence RMS H [rad]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_2, self, "sigma_divergence_z", "Divergence RMS V [rad]", labelWidth=250, tooltip="Divergence RMS V [rad]", valueType=float, orientation="horizontal")
 
         left_box_3 = oasysgui.widgetBox(self.controlArea, "Undulator Parameters", addSpace=True, orientation="vertical")
 
-        oasysgui.lineEdit(left_box_3, self, "undulator_length", "Undulator Length [m]", labelWidth=300, tooltip="Undulator Length [m]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_3, self, "undulator_length", "Undulator Length [m]", labelWidth=250, tooltip="Undulator Length [m]", valueType=float, orientation="horizontal")
 
-        gui.separator(self.controlArea, height=345)
+        adv_other_box = oasysgui.widgetBox(self.controlArea, "Optional file output", addSpace=False, orientation="vertical")
 
-        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
-
-        button = gui.button(button_box, self, "Run Shadow/Source", callback=self.runShadowSource)
-        font = QFont(button.font())
-        font.setBold(True)
-        button.setFont(font)
-        palette = QPalette(button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Blue'))
-        button.setPalette(palette) # assign new palette
-        button.setFixedHeight(45)
-
-        button = gui.button(button_box, self, "Reset Fields", callback=self.callResetSettings)
-        font = QFont(button.font())
-        font.setItalic(True)
-        button.setFont(font)
-        palette = QPalette(button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Red'))
-        button.setPalette(palette) # assign new palette
-        button.setFixedHeight(45)
-        button.setFixedWidth(100)
+        gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=150,
+                     items=["None", "Debug (start.xx/end.xx)"],
+                     sendSelectedValue=False, orientation="horizontal")
 
         gui.rubber(self.controlArea)
-
         gui.rubber(self.mainArea)
 
     def after_change_workspace_units(self):
@@ -135,7 +104,11 @@ class UndulatorGaussian(ow_source.Source):
 
             self.progressBarSet(50)
 
-            beam_out = ShadowBeam.traceFromSource(shadow_src)
+            write_start_file, write_end_file = self.get_write_file_options()
+
+            beam_out = ShadowBeam.traceFromSource(shadow_src,
+                                                  write_start_file=write_start_file,
+                                                  write_end_file=write_end_file)
 
             if self.trace_shadow:
                 grabber.stop()

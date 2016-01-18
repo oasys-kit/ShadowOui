@@ -3,20 +3,16 @@ import sys
 
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QPalette, QColor, QFont
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.gui import ConfirmDialog
 
-from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerIn, ShadowPreProcessorData, \
-    ShadowCompoundOpticalElement, ShadowBeam
-from orangecontrib.shadow.util.shadow_util import ShadowCongruence
-from orangecontrib.shadow.widgets.gui import ow_generic_element
+from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn, ShadowPreProcessorData, ShadowBeam
+from orangecontrib.shadow.widgets.gui import ow_compound_optical_element
 
-
-class KB(ow_generic_element.GenericElement):
+class KB(ow_compound_optical_element.CompoundOpticalElement):
     name = "Kirkpatrick-Baez Mirror"
     description = "Shadow Compound OE: Kirkpatrick-Baez Mirror"
     icon = "icons/kb.png"
@@ -32,20 +28,8 @@ class KB(ow_generic_element.GenericElement):
               ("Horizontal Focusing PreProcessor Data #1", ShadowPreProcessorData, "setPreProcessorDataH"),
               ("Horizontal Focusing PreProcessor Data #2", ShadowPreProcessorData, "setPreProcessorDataH")]
 
-    outputs = [{"name": "Beam",
-                "type": ShadowBeam,
-                "doc": "Shadow Beam",
-                "id": "beam"},
-               {"name": "Trigger",
-                "type": ShadowTriggerIn,
-                "doc": "Feedback signal to start a new beam simulation",
-                "id": "Trigger"}]
-
-    input_beam = None
 
     NONE_SPECIFIED = "NONE SPECIFIED"
-
-    CONTROL_AREA_WIDTH = 500
 
     p = Setting(0.0)
     q = Setting(0.0)
@@ -64,51 +48,32 @@ class KB(ow_generic_element.GenericElement):
     has_surface_error = Setting([0, 0])
     surface_error_files = Setting([NONE_SPECIFIED, NONE_SPECIFIED])
 
-    file_to_write_out = Setting(3)
-
-    want_main_area = 1
 
     def __init__(self):
         super().__init__()
 
-        # self.resetSettings()
+        oasysgui.lineEdit(self.tab_bas, self, "p", "Distance Source - KB center (P) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.tab_bas, self, "q", "Distance KB center - Image plane (Q) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
 
-        #################################
-        # FIX A WEIRD BEHAVIOUR AFTER DISPLAY
-        # THE WIDGET: PROBABLY ON SIGNAL MANAGER
-        self.dumpSettings()
-
-        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
-
-        tabs_setting = gui.tabWidget(self.controlArea)
-        tabs_setting.setFixedWidth(495)
-        tabs_setting.setFixedHeight(750)
-
-        tab_bas = oasysgui.createTabPage(tabs_setting, "Basic Setting")
-        tab_adv = oasysgui.createTabPage(tabs_setting, "Advanced Setting")
-
-        oasysgui.lineEdit(tab_bas, self, "p", "Distance Source - KB center (P) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(tab_bas, self, "q", "Distance KB center - Image plane (Q) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
-
-        oasysgui.lineEdit(tab_bas, self, "separation", "Separation between the Mirrors [cm]\n(from center of V.F.M. to center of H.F.M.) ", labelWidth=350, valueType=float,
+        oasysgui.lineEdit(self.tab_bas, self, "separation", "Separation between the Mirrors [cm]\n(from center of V.F.M. to center of H.F.M.) ", labelWidth=350, valueType=float,
                            orientation="horizontal")
-        oasysgui.lineEdit(tab_bas, self, "mirror_orientation_angle", "Mirror orientation angle [deg]\n(with respect to the previous o.e. for the first mirror)", labelWidth=350,
+        oasysgui.lineEdit(self.tab_bas, self, "mirror_orientation_angle", "Mirror orientation angle [deg]\n(with respect to the previous o.e. for the first mirror)", labelWidth=350,
                            valueType=float, orientation="horizontal")
 
-        gui.comboBox(tab_bas, self, "use_different_focal_positions", label="Different Focal Positions", labelWidth=350,
+        gui.comboBox(self.tab_bas, self, "use_different_focal_positions", label="Different Focal Positions", labelWidth=350,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.set_use_different_focal_positions)
 
-        self.focal_positions_box = oasysgui.widgetBox(tab_bas, "", addSpace=False, orientation="vertical", height=45)
-        self.focal_positions_empty = oasysgui.widgetBox(tab_bas, "", addSpace=False, orientation="vertical", height=45)
+        self.focal_positions_box = oasysgui.widgetBox(self.tab_bas, "", addSpace=False, orientation="vertical", height=45)
+        self.focal_positions_empty = oasysgui.widgetBox(self.tab_bas, "", addSpace=False, orientation="vertical", height=45)
 
         oasysgui.lineEdit(self.focal_positions_box, self, "focal_positions_p", "Focal Position P [cm]", labelWidth=350, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.focal_positions_box, self, "focal_positions_q", "Focal Position Q [cm]", labelWidth=350, valueType=float, orientation="horizontal")
 
         self.set_use_different_focal_positions()
 
-        gui.separator(tab_bas, height=10)
+        gui.separator(self.tab_bas, height=10)
 
-        self.tab_mirrors = gui.tabWidget(tab_bas)
+        self.tab_mirrors = gui.tabWidget(self.tab_bas)
 
         tab_vertical = oasysgui.createTabPage(self.tab_mirrors, "Vertical Focusing Mirror")
         tab_horizontal = oasysgui.createTabPage(self.tab_mirrors, "Horizontal Focusing Mirror")
@@ -134,33 +99,6 @@ class KB(ow_generic_element.GenericElement):
                                reflectivity_files=self.reflectivity_files[1],
                                has_surface_error=self.has_surface_error[1],
                                surface_error_files=self.surface_error_files[1])
-
-        adv_other_box = oasysgui.widgetBox(tab_adv, "Optional file output", addSpace=False, orientation="vertical")
-
-        gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=310,
-                     items=["All", "Mirror", "Image", "None", "Debug (All + start.xx/end.xx)"],
-                     sendSelectedValue=False, orientation="horizontal")
-
-        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
-
-        button = gui.button(button_box, self, "Run Shadow/trace", callback=self.traceOpticalElement)
-        font = QFont(button.font())
-        font.setBold(True)
-        button.setFont(font)
-        palette = QPalette(button.palette())  # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Blue'))
-        button.setPalette(palette)  # assign new palette
-        button.setFixedHeight(45)
-
-        button = gui.button(button_box, self, "Reset Fields", callback=self.callResetSettings)
-        font = QFont(button.font())
-        font.setItalic(True)
-        button.setFont(font)
-        palette = QPalette(button.palette())  # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Red'))
-        button.setPalette(palette)  # assign new palette
-        button.setFixedHeight(45)
-        button.setFixedWidth(100)
 
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):
@@ -208,27 +146,6 @@ class KB(ow_generic_element.GenericElement):
             return [0.0, 0.0]
         else:
             return [self.focal_positions_p, self.focal_positions_q]
-
-    def get_write_file_options(self):
-        write_start_files = 0
-        write_end_files = 0
-        write_star_files = 0
-        write_mirr_files = 0
-
-        if self.file_to_write_out == 0:
-            write_star_files = 1
-            write_mirr_files = 1
-        elif self.file_to_write_out == 1:
-            write_star_files = 1
-        elif self.file_to_write_out == 2:
-            write_mirr_files = 1
-        elif self.file_to_write_out == 4:
-            write_start_files = 1
-            write_end_files = 1
-            write_star_files = 1
-            write_mirr_files = 1
-
-        return write_start_files, write_end_files, write_star_files, write_mirr_files
 
     def dumpSettings(self):
         bkp_grazing_angles_mrad = copy.deepcopy(self.grazing_angles_mrad)
@@ -412,9 +329,6 @@ class KB(ow_generic_element.GenericElement):
                                reflectivity_files=reflectivity_files_out,
                                surface_error_files=surface_error_files_out)
 
-    def doSpecificSetting(self, shadow_oe):
-        pass
-
     def checkFields(self):
         congruence.checkPositiveNumber(self.p, "Distance Source - KB center")
         congruence.checkPositiveNumber(self.q, "Distance KB center - Image plane")
@@ -428,92 +342,6 @@ class KB(ow_generic_element.GenericElement):
 
         self.v_box.checkFields()
         self.h_box.checkFields()
-
-    def completeOperations(self, shadow_oe=None):
-        self.setStatusMessage("Running SHADOW")
-
-        if self.trace_shadow:
-            grabber = TTYGrabber()
-            grabber.start()
-
-        self.progressBarSet(50)
-
-        ###########################################
-        # TODO: TO BE ADDED JUST IN CASE OF BROKEN
-        #       ENVIRONMENT: MUST BE FOUND A PROPER WAY
-        #       TO TEST SHADOW
-        self.fixWeirdShadowBug()
-        ###########################################
-
-        write_start_files, write_end_files, write_star_files, write_mirr_files = self.get_write_file_options()
-
-        beam_out = ShadowBeam.traceFromCompoundOE(self.input_beam,
-                                                  shadow_oe,
-                                                  write_start_files=write_start_files,
-                                                  write_end_files=write_end_files,
-                                                  write_star_files=write_star_files,
-                                                  write_mirr_files=write_mirr_files
-                                                  )
-
-        if self.trace_shadow:
-            grabber.stop()
-
-            for row in grabber.ttyData:
-                self.writeStdOut(row)
-
-        self.setStatusMessage("Plotting Results")
-
-        self.plot_results(beam_out)
-
-        self.setStatusMessage("")
-
-        self.send("Beam", beam_out)
-        self.send("Trigger", ShadowTriggerIn(new_beam=True))
-
-    def traceOpticalElement(self):
-        try:
-            #self.error(self.error_id)
-            #self.setStatusMessage("")
-            self.progressBarInit()
-
-            if ShadowCongruence.checkEmptyBeam(self.input_beam):
-                if ShadowCongruence.checkGoodBeam(self.input_beam):
-                    sys.stdout = EmittingStream(textWritten=self.writeStdOut)
-
-                    self.checkFields()
-
-                    shadow_oe = ShadowCompoundOpticalElement.create_compound_oe()
-
-                    self.populateFields(shadow_oe)
-
-                    self.doSpecificSetting(shadow_oe)
-
-                    self.progressBarSet(10)
-
-                    self.completeOperations(shadow_oe)
-                else:
-                    raise Exception("Input Beam with no good rays")
-            else:
-                raise Exception("Empty Input Beam")
-
-        except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
-                                       str(exception),
-                                       QtGui.QMessageBox.Ok)
-
-            #self.error_id = self.error_id + 1
-            #self.error(self.error_id, "Exception occurred: " + str(exception))
-
-        self.progressBarFinished()
-
-    def setBeam(self, beam):
-        self.onReceivingInput()
-
-        if ShadowCongruence.checkEmptyBeam(beam):
-            self.input_beam = beam
-
-            if self.is_automatic_run:
-                self.traceOpticalElement()
 
     def setPreProcessorDataV(self, data):
         if data is not None:

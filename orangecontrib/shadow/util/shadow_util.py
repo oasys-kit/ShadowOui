@@ -246,34 +246,34 @@ class ShadowPlot:
             super(ShadowPlot.InfoBoxWidget, self).__init__()
 
             info_box_inner=gui.widgetBox(self, "Info")
-            info_box_inner.setFixedHeight(180*y_scale_factor)
-            info_box_inner.setFixedWidth(250*x_scale_factor)
+            info_box_inner.setFixedHeight(515*y_scale_factor)
+            info_box_inner.setFixedWidth(220*x_scale_factor)
 
-            self.intensity = gui.lineEdit(info_box_inner, self, "intensity_field", "Intensity", tooltip="Intensity", labelWidth=110, valueType=str, orientation="horizontal")
-            self.total_rays = gui.lineEdit(info_box_inner, self, "total_rays_field", "Total Rays", tooltip="Total Rays", labelWidth=110, valueType=str, orientation="horizontal")
-            self.total_good_rays = gui.lineEdit(info_box_inner, self, "total_good_rays_field", "Total Good Rays", tooltip="Total Good Rays", labelWidth=110, valueType=str, orientation="horizontal")
-            self.total_lost_rays = gui.lineEdit(info_box_inner, self, "total_lost_rays_field", "Total Lost Rays", tooltip="Total Lost Rays", labelWidth=110, valueType=str, orientation="horizontal")
+            self.intensity = gui.lineEdit(info_box_inner, self, "intensity_field", "Intensity", tooltip="Intensity", labelWidth=100, valueType=str, orientation="horizontal")
+            self.total_rays = gui.lineEdit(info_box_inner, self, "total_rays_field", "Total Rays", tooltip="Total Rays", labelWidth=100, valueType=str, orientation="horizontal")
+            self.total_good_rays = gui.lineEdit(info_box_inner, self, "total_good_rays_field", "Total Good Rays", tooltip="Total Good Rays", labelWidth=100, valueType=str, orientation="horizontal")
+            self.total_lost_rays = gui.lineEdit(info_box_inner, self, "total_lost_rays_field", "Total Lost Rays", tooltip="Total Lost Rays", labelWidth=100, valueType=str, orientation="horizontal")
 
             label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
 
             self.label_h = QLabel("FWHM ")
-            self.label_h.setFixedWidth(110)
+            self.label_h.setFixedWidth(100)
             palette =  QPalette(self.label_h.palette())
             palette.setColor(QPalette.Foreground, QColor('blue'))
             self.label_h.setPalette(palette)
             label_box_1.layout().addWidget(self.label_h)
-            self.fwhm_h = gui.lineEdit(label_box_1, self, "fwhm_h_field", "", tooltip="FWHM", labelWidth=110, valueType=str, orientation="horizontal")
+            self.fwhm_h = gui.lineEdit(label_box_1, self, "fwhm_h_field", "", tooltip="FWHM", labelWidth=100, valueType=str, orientation="horizontal")
 
             if is_2d:
                 label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
 
                 self.label_v = QLabel("FWHM ")
-                self.label_v.setFixedWidth(110)
+                self.label_v.setFixedWidth(100)
                 palette =  QPalette(self.label_h.palette())
                 palette.setColor(QPalette.Foreground, QColor('red'))
                 self.label_v.setPalette(palette)
                 label_box_2.layout().addWidget(self.label_v)
-                self.fwhm_v = gui.lineEdit(label_box_2, self, "fwhm_v_field", "", tooltip="FWHM", labelWidth=110, valueType=str, orientation="horizontal")
+                self.fwhm_v = gui.lineEdit(label_box_2, self, "fwhm_v_field", "", tooltip="FWHM", labelWidth=100, valueType=str, orientation="horizontal")
 
             self.intensity.setReadOnly(True)
             font = QFont(self.intensity.font())
@@ -424,19 +424,19 @@ class ShadowPlot:
             colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
 
             self.plot_canvas._imagePlot.setDefaultColormap(colormap)
-            self.plot_canvas.setMinimumWidth(800*x_scale_factor)
-            self.plot_canvas.setMaximumWidth(800 * y_scale_factor)
+            self.plot_canvas.setMinimumWidth(600 * x_scale_factor)
+            self.plot_canvas.setMaximumWidth(600 * y_scale_factor)
 
             self.info_box = ShadowPlot.InfoBoxWidget(x_scale_factor, y_scale_factor)
 
             layout = QGridLayout()
 
-            layout.addWidget(self.plot_canvas.toolBar(), 0, 0, 1, 1)
-            layout.addWidget(self.plot_canvas, 1, 0, 1, 1)
-            layout.addWidget(self.info_box, 0, 1, 2, 1)
+            layout.addWidget(self.info_box, 0, 0, 2, 1)
+            layout.addWidget(self.plot_canvas.toolBar(), 0, 1, 1, 1)
+            layout.addWidget(self.plot_canvas, 1, 1, 1, 1)
 
-            layout.setColumnMinimumWidth(0, 850*x_scale_factor)
-            layout.setColumnMinimumWidth(1, 250*x_scale_factor)
+            layout.setColumnMinimumWidth(0, 230*x_scale_factor)
+            layout.setColumnMinimumWidth(1, 610*x_scale_factor)
 
             self.setLayout(layout)
 

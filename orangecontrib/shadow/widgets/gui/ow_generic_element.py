@@ -13,7 +13,7 @@ from orangecontrib.shadow.widgets.gui import ow_automatic_element
 
 class GenericElement(ow_automatic_element.AutomaticElement):
 
-    IMAGE_WIDTH = 1100
+    IMAGE_WIDTH = 860
     IMAGE_HEIGHT = 545
 
     want_main_area=1
@@ -24,7 +24,11 @@ class GenericElement(ow_automatic_element.AutomaticElement):
     def __init__(self, show_automatic_box=True):
         super().__init__(show_automatic_box)
 
-        view_box = oasysgui.widgetBox(self.mainArea, "Plotting Style", addSpace=False, orientation="horizontal")
+        main_tabs = gui.tabWidget(self.mainArea)
+        plot_tab = gui.createTabPage(main_tabs, "Plots")
+        out_tab = gui.createTabPage(main_tabs, "Output")
+
+        view_box = oasysgui.widgetBox(plot_tab, "Plotting Style", addSpace=False, orientation="horizontal")
         view_box_1 = oasysgui.widgetBox(view_box, "", addSpace=False, orientation="vertical", width=350)
 
         self.view_type_combo = gui.comboBox(view_box_1, self, "view_type", label="Select level of Plotting",
@@ -32,7 +36,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                                             items=["Detailed Plot", "Preview", "None"],
                                             callback=self.set_PlotQuality, sendSelectedValue=False, orientation="horizontal")
         self.tab = []
-        self.tabs = gui.tabWidget(self.mainArea)
+        self.tabs = gui.tabWidget(plot_tab)
 
         self.initializeTabs()
 
@@ -41,11 +45,11 @@ class GenericElement(ow_automatic_element.AutomaticElement):
         self.shadow_output = QtGui.QTextEdit()
         self.shadow_output.setReadOnly(True)
 
-        out_box = gui.widgetBox(self.mainArea, "System Output", addSpace=True, orientation="horizontal")
+        out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)
 
-        self.shadow_output.setFixedHeight(150)
-        self.shadow_output.setFixedWidth(850)
+        self.shadow_output.setFixedHeight(600)
+        self.shadow_output.setFixedWidth(600)
 
     def initializeTabs(self):
         current_tab = self.tabs.currentIndex()

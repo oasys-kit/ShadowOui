@@ -1,13 +1,13 @@
 import sys
 
 from PyQt4 import QtGui
-from PyQt4.QtGui import QApplication, QPalette, QColor, QFont, QLabel
+from PyQt4.QtGui import QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 
-from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerOut, ShadowBeam, ShadowSource
+from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowBeam, ShadowSource
 from orangecontrib.shadow.widgets.gui import ow_source
 
 class BendingMagnet(ow_source.Source):
@@ -15,18 +15,7 @@ class BendingMagnet(ow_source.Source):
     name = "Bending Magnet"
     description = "Shadow Source: Bending Magnet"
     icon = "icons/bending_magnet.png"
-    maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
     priority = 2
-    category = "Sources"
-    keywords = ["data", "file", "load", "read"]
-
-    inputs = [("Trigger", ShadowTriggerOut, "sendNewBeam")]
-
-    outputs = [{"name":"Beam",
-                "type":ShadowBeam,
-                "doc":"Shadow Beam",
-                "id":"beam"}]
 
     number_of_rays=Setting(5000)
     seed=Setting(6775431)
@@ -110,26 +99,11 @@ class BendingMagnet(ow_source.Source):
 
         self.set_OptimizeSource()
 
-        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
+        adv_other_box = oasysgui.widgetBox(self.controlArea, "Optional file output", addSpace=False, orientation="vertical")
 
-        button = gui.button(button_box, self, "Run Shadow/Source", callback=self.runShadowSource)
-        font = QFont(button.font())
-        font.setBold(True)
-        button.setFont(font)
-        palette = QPalette(button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Blue'))
-        button.setPalette(palette) # assign new palette
-        button.setFixedHeight(45)
-
-        button = gui.button(button_box, self, "Reset Fields", callback=self.callResetSettings)
-        font = QFont(button.font())
-        font.setItalic(True)
-        button.setFont(font)
-        palette = QPalette(button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Red'))
-        button.setPalette(palette) # assign new palette
-        button.setFixedHeight(45)
-        button.setFixedWidth(100)
+        gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=200,
+                     items=["None", "Debug (start.xx/end.xx)"],
+                     sendSelectedValue=False, orientation="horizontal")
 
         gui.rubber(self.controlArea)
         gui.rubber(self.mainArea)
@@ -159,7 +133,6 @@ class BendingMagnet(ow_source.Source):
         if self.magnetic_radius > 0:
            self.magnetic_field=3.334728*self.energy/self.magnetic_radius
 
-
     def calculateMagneticRadius(self):
         if self.magnetic_field > 0:
            self.magnetic_radius=3.334728*self.energy/self.magnetic_field
@@ -188,7 +161,11 @@ class BendingMagnet(ow_source.Source):
 
             self.progressBarSet(50)
 
-            beam_out = ShadowBeam.traceFromSource(shadow_src)
+            write_start_file, write_end_file = self.get_write_file_options()
+
+            beam_out = ShadowBeam.traceFromSource(shadow_src,
+                                                  write_start_file=write_start_file,
+                                                  write_end_file=write_end_file)
 
             if self.trace_shadow:
                 grabber.stop()

@@ -1,48 +1,23 @@
 import copy
-import sys
 
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QPalette, QColor, QFont
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.gui import ConfirmDialog
 
-from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerIn, ShadowPreProcessorData, \
-    ShadowCompoundOpticalElement, ShadowBeam
-from orangecontrib.shadow.util.shadow_util import ShadowCongruence
-from orangecontrib.shadow.widgets.gui import ow_generic_element
+from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
+from orangecontrib.shadow.widgets.gui import ow_compound_optical_element
 
-
-class Transfocator(ow_generic_element.GenericElement):
+class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
     name = "Transfocator"
     description = "Shadow Compound OE: Transfocator"
     icon = "icons/transfocator.png"
-    maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
     priority = 2
-    category = "Compound Optical Elements"
-    keywords = ["data", "file", "load", "read"]
-
-    inputs = [("Input Beam", ShadowBeam, "setBeam"),
-              ("PreProcessor Data", ShadowPreProcessorData, "setPreProcessorData")]
-
-    outputs = [{"name": "Beam",
-                "type": ShadowBeam,
-                "doc": "Shadow Beam",
-                "id": "beam"},
-               {"name": "Trigger",
-                "type": ShadowTriggerIn,
-                "doc": "Feedback signal to start a new beam simulation",
-                "id": "Trigger"}]
-
-    input_beam = None
 
     NONE_SPECIFIED = "NONE SPECIFIED"
-
-    CONTROL_AREA_WIDTH = 500
 
     nlenses = Setting([4, 8])
     slots_empty = Setting([0, 0])
@@ -69,30 +44,10 @@ class Transfocator(ow_generic_element.GenericElement):
 
     use_ccc = Setting([0, 0])
 
-    file_to_write_out = Setting(3)
-
-    want_main_area = 1
-
     def __init__(self):
         super().__init__()
 
-        # self.resetSettings()
-
-        #################################
-        # FIX A WEIRD BEHAVIOUR AFTER DISPLAY
-        # THE WIDGET: PROBABLY ON SIGNAL MANAGER
-        self.dumpSettings()
-
-        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
-
-        tabs_setting = gui.tabWidget(self.controlArea)
-        tabs_setting.setFixedWidth(495)
-        tabs_setting.setFixedHeight(750)
-
-        tab_bas = oasysgui.createTabPage(tabs_setting, "Basic Setting")
-        tab_adv = oasysgui.createTabPage(tabs_setting, "Advanced Setting")
-
-        tabs_button_box = oasysgui.widgetBox(tab_bas, "", addSpace=False, orientation="horizontal")
+        tabs_button_box = oasysgui.widgetBox(self.tab_bas, "", addSpace=False, orientation="horizontal")
 
         gui.separator(tabs_button_box)
 
@@ -102,7 +57,7 @@ class Transfocator(ow_generic_element.GenericElement):
 
         gui.separator(tabs_button_box)
 
-        self.tab_crls = gui.tabWidget(tab_bas)
+        self.tab_crls = gui.tabWidget(self.tab_bas)
         self.crl_box_array = []
 
         for index in range(len(self.p)):
@@ -130,33 +85,6 @@ class Transfocator(ow_generic_element.GenericElement):
                              use_ccc=self.use_ccc[index])
 
             self.crl_box_array.append(crl_box)
-
-        adv_other_box = oasysgui.widgetBox(tab_adv, "Optional file output", addSpace=False, orientation="vertical")
-
-        gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=310,
-                     items=["All", "Mirror", "Image", "None", "Debug (All + start.xx/end.xx)"],
-                     sendSelectedValue=False, orientation="horizontal")
-
-        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
-
-        button = gui.button(button_box, self, "Run Shadow/trace", callback=self.traceOpticalElement)
-        font = QFont(button.font())
-        font.setBold(True)
-        button.setFont(font)
-        palette = QPalette(button.palette())  # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Blue'))
-        button.setPalette(palette)  # assign new palette
-        button.setFixedHeight(45)
-
-        button = gui.button(button_box, self, "Reset Fields", callback=self.callResetSettings)
-        font = QFont(button.font())
-        font.setItalic(True)
-        button.setFont(font)
-        palette = QPalette(button.palette())  # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Red'))
-        button.setPalette(palette)  # assign new palette
-        button.setFixedHeight(45)
-        button.setFixedWidth(100)
 
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?\n\nWarning: C.R.L. stack will be regenerated"):
@@ -250,27 +178,6 @@ class Transfocator(ow_generic_element.GenericElement):
                     self.tab_crls.setTabText(index, "C.R.L " + str(index + 1))
 
                 self.tab_crls.setCurrentIndex(current_index)
-
-    def get_write_file_options(self):
-        write_start_files = 0
-        write_end_files = 0
-        write_star_files = 0
-        write_mirr_files = 0
-
-        if self.file_to_write_out == 0:
-            write_star_files = 1
-            write_mirr_files = 1
-        elif self.file_to_write_out == 1:
-            write_star_files = 1
-        elif self.file_to_write_out == 2:
-            write_mirr_files = 1
-        elif self.file_to_write_out == 4:
-            write_start_files = 1
-            write_end_files = 1
-            write_star_files = 1
-            write_mirr_files = 1
-
-        return write_start_files, write_end_files, write_star_files, write_mirr_files
 
     def dumpSettings(self):
         bkp_nlenses = copy.deepcopy(self.nlenses)
@@ -591,99 +498,9 @@ class Transfocator(ow_generic_element.GenericElement):
                                          use_ccc=self.use_ccc)
 
 
-
-    def doSpecificSetting(self, shadow_oe):
-        pass
-
     def checkFields(self):
         for index in range(len(self.crl_box_array)):
             self.crl_box_array[index].checkFields()
-
-    def completeOperations(self, shadow_oe=None):
-        self.setStatusMessage("Running SHADOW")
-
-        if self.trace_shadow:
-            grabber = TTYGrabber()
-            grabber.start()
-
-        self.progressBarSet(50)
-
-        ###########################################
-        # TODO: TO BE ADDED JUST IN CASE OF BROKEN
-        #       ENVIRONMENT: MUST BE FOUND A PROPER WAY
-        #       TO TEST SHADOW
-        self.fixWeirdShadowBug()
-        ###########################################
-
-        write_start_files, write_end_files, write_star_files, write_mirr_files = self.get_write_file_options()
-
-        beam_out = ShadowBeam.traceFromCompoundOE(self.input_beam,
-                                                  shadow_oe,
-                                                  write_start_files=write_start_files,
-                                                  write_end_files=write_end_files,
-                                                  write_star_files=write_star_files,
-                                                  write_mirr_files=write_mirr_files
-                                                  )
-
-        if self.trace_shadow:
-            grabber.stop()
-
-            for row in grabber.ttyData:
-                self.writeStdOut(row)
-
-        self.setStatusMessage("Plotting Results")
-
-        self.plot_results(beam_out)
-
-        self.setStatusMessage("")
-
-        self.send("Beam", beam_out)
-        self.send("Trigger", ShadowTriggerIn(new_beam=True))
-
-    def traceOpticalElement(self):
-        try:
-            #self.error(self.error_id)
-            self.setStatusMessage("")
-            self.progressBarInit()
-
-            if ShadowCongruence.checkEmptyBeam(self.input_beam):
-                if ShadowCongruence.checkGoodBeam(self.input_beam):
-                    sys.stdout = EmittingStream(textWritten=self.writeStdOut)
-
-                    self.checkFields()
-
-                    shadow_oe = ShadowCompoundOpticalElement.create_compound_oe()
-
-                    self.populateFields(shadow_oe)
-
-                    self.doSpecificSetting(shadow_oe)
-
-                    self.progressBarSet(10)
-
-                    self.completeOperations(shadow_oe)
-                else:
-                    raise Exception("Input Beam with no good rays")
-            else:
-                raise Exception("Empty Input Beam")
-
-        except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
-                                       str(exception),
-                                       QtGui.QMessageBox.Ok)
-
-            #self.error_id = self.error_id + 1
-            #self.error(self.error_id, "Exception occurred: " + str(exception))
-
-        self.progressBarFinished()
-
-    def setBeam(self, beam):
-        self.onReceivingInput()
-
-        if ShadowCongruence.checkEmptyBeam(beam):
-            self.input_beam = beam
-
-            if self.is_automatic_run:
-                self.traceOpticalElement()
 
     def setPreProcessorData(self, data):
         if data is not None:
@@ -951,8 +768,8 @@ class CRLBox(QtGui.QWidget):
         congruence.checkPositiveNumber(self.slots_empty, "Number of empty slots")
         congruence.checkPositiveNumber(self.thickness, "Piling thickness")
 
-        congruence.checkPositiveNumber(self.p, "P")
-        congruence.checkPositiveNumber(self.q, "Q")
+        congruence.checkNumber(self.p, "P")
+        congruence.checkNumber(self.q, "Q")
 
         if self.has_finite_diameter == 0:
             congruence.checkStrictlyPositiveNumber(self.diameter, "Diameter")

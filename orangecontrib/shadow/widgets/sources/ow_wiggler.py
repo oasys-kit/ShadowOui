@@ -1,7 +1,7 @@
 import sys
 
 from PyQt4 import QtGui
-from PyQt4.QtGui import QApplication, QPalette, QColor, QFont
+from PyQt4.QtGui import QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -14,24 +14,12 @@ from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber,
 from orangecontrib.shadow.widgets.gui import ow_source
 
 class Wiggler(ow_source.Source):
-
-    NONE_SPECIFIED = "NONE SPECIFIED"
-
     name = "Wiggler"
     description = "Shadow Source: Wiggler"
     icon = "icons/wiggler.png"
-    maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
     priority = 3
-    category = "Sources"
-    keywords = ["data", "file", "load", "read"]
 
-    inputs = [("Trigger", ShadowTriggerOut, "sendNewBeam")]
-
-    outputs = [{"name":"Beam",
-                "type":ShadowBeam,
-                "doc":"Shadow Beam",
-                "id":"beam"}]
+    NONE_SPECIFIED = "NONE SPECIFIED"
 
     number_of_rays=Setting(5000)
     seed=Setting(5676561)
@@ -68,8 +56,6 @@ class Wiggler(ow_source.Source):
     file_with_harmonics = Setting("wiggler.h")
 
     CONTROL_AREA_WIDTH = 505
-
-    want_main_area=1
 
     def __init__(self):
         super().__init__()
@@ -155,31 +141,13 @@ class Wiggler(ow_source.Source):
         pushButton = gui.button(file_box, self, "...")
         pushButton.clicked.connect(self.selectFileWithHarmonics)
 
-
         self.set_Type()
 
-        gui.separator(self.controlArea, height=10)
+        adv_other_box = oasysgui.widgetBox(self.controlArea, "Optional file output", addSpace=False, orientation="vertical")
 
-        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
-
-        button = gui.button(button_box, self, "Run Shadow/Source", callback=self.runShadowSource)
-        font = QFont(button.font())
-        font.setBold(True)
-        button.setFont(font)
-        palette = QPalette(button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Blue'))
-        button.setPalette(palette) # assign new palette
-        button.setFixedHeight(45)
-
-        button = gui.button(button_box, self, "Reset Fields", callback=self.callResetSettings)
-        font = QFont(button.font())
-        font.setItalic(True)
-        button.setFont(font)
-        palette = QPalette(button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Red'))
-        button.setPalette(palette) # assign new palette
-        button.setFixedHeight(45)
-        button.setFixedWidth(100)
+        gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=200,
+                     items=["None", "Debug (start.xx/end.xx)"],
+                     sendSelectedValue=False, orientation="horizontal")
 
         gui.rubber(self.controlArea)
 
@@ -345,7 +313,11 @@ class Wiggler(ow_source.Source):
 
             self.setStatusMessage("Running Shadow/Source")
 
-            beam_out = ShadowBeam.traceFromSource(shadow_src)
+            write_start_file, write_end_file = self.get_write_file_options()
+
+            beam_out = ShadowBeam.traceFromSource(shadow_src,
+                                                  write_start_file=write_start_file,
+                                                  write_end_file=write_end_file)
 
             if self.trace_shadow:
                 grabber.stop()
