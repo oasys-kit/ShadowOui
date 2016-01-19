@@ -283,7 +283,7 @@ class PlotXY(AutomaticElement):
 
     def replace_fig(self, beam, var_x, var_y,  title, xtitle, ytitle, xrange, yrange, nbins, nolost, xum, yum):
         if self.plot_canvas is None:
-            self.plot_canvas = ShadowPlot.DetailedPlotWidget()
+            self.plot_canvas = ShadowPlot.DetailedPlotWidget(x_scale_factor=1.1, y_scale_factor=1.1)
             self.image_box.layout().addWidget(self.plot_canvas)
 
         try:
@@ -350,10 +350,8 @@ class PlotXY(AutomaticElement):
                     x_min = numpy.array(x_to_plot[lo], float).min()
                     y_min = numpy.array(y_to_plot[lo], float).min()
 
-                temp = numpy.array([x_max, y_max, x_min, y_min], float)
-
-                xrange = [temp.min(), temp.max()]
-                yrange = [temp.min(), temp.max()]
+                xrange = [x_min, x_max]
+                yrange = [y_min, y_max]
         else:
             if self.x_range == 1:
                 if self.x_range_min >= self.x_range_max:
@@ -365,7 +363,7 @@ class PlotXY(AutomaticElement):
                 if self.y_range_min >= self.y_range_max:
                     raise Exception("Y range min cannot be greater or than Y range max")
 
-                yrange = [self.y_range_min / factor2, self.y_range_max / factor1]
+                yrange = [self.y_range_min / factor2, self.y_range_max / factor2]
 
         self.replace_fig(beam_to_plot, var_x, var_y, title, xtitle, ytitle, xrange=xrange, yrange=yrange, nbins=int(self.number_of_bins), nolost=self.rays, xum=xum, yum=yum)
 
