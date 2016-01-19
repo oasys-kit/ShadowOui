@@ -545,7 +545,7 @@ class OpticalElement(ow_generic_element.GenericElement):
             self.box_absorption_1 = oasysgui.widgetBox(box_absorption, "", addSpace=False, orientation="vertical")
             self.box_absorption_1_empty = oasysgui.widgetBox(box_absorption, "", addSpace=False, orientation="vertical")
 
-            oasysgui.lineEdit(self.box_absorption_1, self, "thickness", "Thickness [cm]", labelWidth=340, valueType=float, orientation="horizontal")
+            self.le_thickness = oasysgui.lineEdit(self.box_absorption_1, self, "thickness", "Thickness", labelWidth=340, valueType=float, orientation="horizontal")
 
             file_box = oasysgui.widgetBox(self.box_absorption_1, "", addSpace=True, orientation="horizontal", height=25)
 
@@ -875,7 +875,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     oasysgui.lineEdit(self.asymmetric_cut_box_1, self, "planes_angle", "Planes angle [deg]", labelWidth=260, valueType=float, orientation="horizontal")
                     oasysgui.lineEdit(self.asymmetric_cut_box_1, self, "below_onto_bragg_planes", "Below[-1]/onto[1] bragg planes",  labelWidth=260, valueType=float, orientation="horizontal")
-                    oasysgui.lineEdit(self.asymmetric_cut_box_1, self, "thickness", "Thickness [cm]", valueType=float, labelWidth=260, orientation="horizontal")
+                    self.le_thickness_1 = oasysgui.lineEdit(self.asymmetric_cut_box_1, self, "thickness", "Thickness", valueType=float, labelWidth=260, orientation="horizontal")
 
                     gui.separator(self.mosaic_box_1)
 
@@ -893,7 +893,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     self.mosaic_box_2 = oasysgui.widgetBox(mosaic_box, "", addSpace=False, orientation="vertical")
 
                     oasysgui.lineEdit(self.mosaic_box_2, self, "angle_spread_FWHM", "Angle spread FWHM [deg]",  labelWidth=260, valueType=float, orientation="horizontal")
-                    oasysgui.lineEdit(self.mosaic_box_2, self, "thickness", "Thickness [cm]", labelWidth=260, valueType=float, orientation="horizontal")
+                    self.le_thickness_2 = oasysgui.lineEdit(self.mosaic_box_2, self, "thickness", "Thickness", labelWidth=260, valueType=float, orientation="horizontal")
                     oasysgui.lineEdit(self.mosaic_box_2, self, "seed_for_mosaic", "Seed for mosaic [>10^5]", labelWidth=260, valueType=float, orientation="horizontal")
 
                     self.set_Mosaic()
@@ -1219,6 +1219,10 @@ class OpticalElement(ow_generic_element.GenericElement):
             label.setText(label.text() + " [" + self.workspace_units_label + "]")
             label = self.le_slit_center_zaxis.parent().layout().itemAt(0).widget()
             label.setText(label.text() + " [" + self.workspace_units_label + "]")
+            label = self.le_thickness.parent().layout().itemAt(0).widget()
+            label.setText(label.text() + " [" + self.workspace_units_label + "]")
+
+
         else:
             if self.graphical_options.is_curved:
                 if not self.graphical_options.is_conic_coefficients:
@@ -1255,6 +1259,11 @@ class OpticalElement(ow_generic_element.GenericElement):
                 label.setText(label.text() + " [" + self.workspace_units_label + "]")
                 label = self.le_d_2.parent().layout().itemAt(0).widget()
                 label.setText(label.text() + " [" + self.workspace_units_label + "]")
+                label = self.le_thickness_1.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + " [" + self.workspace_units_label + "]")
+                label = self.le_thickness_2.parent().layout().itemAt(0).widget()
+                label.setText(label.text() + " [" + self.workspace_units_label + "]")
+
             elif self.graphical_options.is_grating:
                 label = self.le_grating_hunter_monochromator_length.parent().layout().itemAt(0).widget()
                 label.setText(label.text() + " [" + self.workspace_units_label + "]")
@@ -1859,13 +1868,13 @@ class OpticalElement(ow_generic_element.GenericElement):
                         shadow_oe._oe.F_MOSAIC = 1
                         shadow_oe._oe.MOSAIC_SEED = self.seed_for_mosaic
                         shadow_oe._oe.SPREAD_MOS = self.angle_spread_FWHM
-                        shadow_oe._oe.THICKNESS = self.thickness
+                        shadow_oe._oe.THICKNESS = self.thickness*self.workspace_units_to_cm # see Issue #3
                     else:
                         if self.asymmetric_cut == 1:
                             shadow_oe._oe.F_BRAGG_A = 1
                             shadow_oe._oe.A_BRAGG = self.planes_angle
                             shadow_oe._oe.ORDER = self.below_onto_bragg_planes
-                            shadow_oe._oe.THICKNESS = self.thickness
+                            shadow_oe._oe.THICKNESS = self.thickness*self.workspace_units_to_cm
                         if self.johansson_geometry == 1:
                             shadow_oe._oe.F_JOHANSSON = 1
                             shadow_oe._oe.F_EXT = 1
@@ -1876,7 +1885,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                 if self.grating_ruling_type == 0 or self.grating_ruling_type == 1:
                     shadow_oe._oe.F_GRATING = 1
                     shadow_oe._oe.F_RULING = self.grating_ruling_type
-                    shadow_oe._oe.RULING = self.grating_ruling_density
+                    shadow_oe._oe.RULING = self.grating_ruling_density/self.workspace_units_to_cm # see Issue #3
                 elif self.grating_ruling_type == 2:
                     shadow_oe._oe.F_GRATING = 1
                     shadow_oe._oe.F_RULING = 2
@@ -1900,11 +1909,11 @@ class OpticalElement(ow_generic_element.GenericElement):
                     shadow_oe._oe.F_GRATING = 1
                     shadow_oe._oe.F_RULING = 5
                     shadow_oe._oe.F_RUL_ABS = self.grating_poly_signed_absolute
-                    shadow_oe._oe.RULING = self.grating_ruling_density
-                    shadow_oe._oe.RUL_A1 = self.grating_poly_coeff_1
-                    shadow_oe._oe.RUL_A2 = self.grating_poly_coeff_2
-                    shadow_oe._oe.RUL_A3 = self.grating_poly_coeff_3
-                    shadow_oe._oe.RUL_A4 = self.grating_poly_coeff_4
+                    shadow_oe._oe.RULING = self.grating_ruling_density/self.workspace_units_to_cm # see Issue #3
+                    shadow_oe._oe.RUL_A1 = self.grating_poly_coeff_1/(self.workspace_units_to_cm**2)
+                    shadow_oe._oe.RUL_A2 = self.grating_poly_coeff_2/(self.workspace_units_to_cm**3)
+                    shadow_oe._oe.RUL_A3 = self.grating_poly_coeff_3/(self.workspace_units_to_cm**4)
+                    shadow_oe._oe.RUL_A4 = self.grating_poly_coeff_4/(self.workspace_units_to_cm**5)
                 if self.grating_auto_setting == 0:
                     shadow_oe._oe.F_CENTRAL=0
                 else:
@@ -2576,12 +2585,12 @@ class OpticalElement(ow_generic_element.GenericElement):
                     if self.mosaic_crystal==1:
                         self.seed_for_mosaic = int(shadow_file.getProperty("MOSAIC_SEED"))
                         self.angle_spread_FWHM = float(shadow_file.getProperty("SPREAD_MOS"))
-                        self.thickness = float(shadow_file.getProperty("THICKNESS"))
+                        self.thickness = float(shadow_file.getProperty("THICKNESS"))/self.workspace_units_to_cm
                     else:
                         if self.asymmetric_cut == 1:
                             self.planes_angle = float(shadow_file.getProperty("A_BRAGG"))
                             self.below_onto_bragg_planes = float(shadow_file.getProperty("ORDER"))
-                            self.thickness = float(shadow_file.getProperty("THICKNESS"))
+                            self.thickness = float(shadow_file.getProperty("THICKNESS"))/self.workspace_units_to_cm
                         if self.johansson_geometry == 1:
                             self.johansson_radius = float(shadow_file.getProperty("R_JOHANSSON"))
                 elif self.graphical_options.is_grating:
@@ -2596,7 +2605,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                             self.grating_ruling_type = f_ruling
 
                     if self.grating_ruling_type == 0 or self.grating_ruling_type == 1:
-                        self.grating_ruling_density = float(shadow_file.getProperty("RULING"))
+                        self.grating_ruling_density = float(shadow_file.getProperty("RULING"))*self.workspace_units_to_cm
                     elif self.grating_ruling_type == 2:
                         self.grating_holo_left_distance         = float(shadow_file.getProperty("HOLO_R1"))
                         self.grating_holo_right_distance        = float(shadow_file.getProperty("HOLO_R2"))
@@ -2613,11 +2622,11 @@ class OpticalElement(ow_generic_element.GenericElement):
                         self.grating_groove_pole_distance = float(shadow_file.getProperty("DIST_FAN"))
                         self.grating_coma_correction_factor = float(shadow_file.getProperty("COMA_FAC"))
                     elif self.grating_ruling_type == 4:
-                        self.grating_ruling_density = float(shadow_file.getProperty("RULING"))
-                        self.grating_poly_coeff_1   = float(shadow_file.getProperty("RUL_A1"))
-                        self.grating_poly_coeff_2   = float(shadow_file.getProperty("RUL_A2"))
-                        self.grating_poly_coeff_3   = float(shadow_file.getProperty("RUL_A3"))
-                        self.grating_poly_coeff_4   = float(shadow_file.getProperty("RUL_A4"))
+                        self.grating_ruling_density = float(shadow_file.getProperty("RULING"))*self.workspace_units_to_cm
+                        self.grating_poly_coeff_1   = float(shadow_file.getProperty("RUL_A1"))*(self.workspace_units_to_cm**2)
+                        self.grating_poly_coeff_2   = float(shadow_file.getProperty("RUL_A2"))*(self.workspace_units_to_cm**3)
+                        self.grating_poly_coeff_3   = float(shadow_file.getProperty("RUL_A3"))*(self.workspace_units_to_cm**4)
+                        self.grating_poly_coeff_4   = float(shadow_file.getProperty("RUL_A4"))*(self.workspace_units_to_cm**5)
                         self.grating_poly_signed_absolute = int(shadow_file.getProperty("F_RUL_ABS"))
 
                     self.grating_auto_setting = int(shadow_file.getProperty("F_CENTRAL"))

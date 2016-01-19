@@ -43,8 +43,8 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
 
         lens_box = oasysgui.widgetBox(self.tab_bas, "Input Parameters", addSpace=False, orientation="vertical", height=600, width=480)
 
-        oasysgui.lineEdit(lens_box, self, "p", "Distance Source-First lens interface (P) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(lens_box, self, "q", "Distance Last lens interface-Image plane (Q) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        self.le_p = oasysgui.lineEdit(lens_box, self, "p", "Distance Source-First lens interface (P)", labelWidth=350, valueType=float, orientation="horizontal")
+        self.le_q = oasysgui.lineEdit(lens_box, self, "q", "Distance Last lens interface-Image plane (Q)", labelWidth=350, valueType=float, orientation="horizontal")
 
         gui.comboBox(lens_box, self, "has_finite_diameter", label="Lens Diameter", labelWidth=350,
                      items=["Finite", "Infinite"], callback=self.set_diameter, sendSelectedValue=False, orientation="horizontal")
@@ -52,7 +52,7 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
         self.diameter_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
         self.diameter_box_empty = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
 
-        oasysgui.lineEdit(self.diameter_box, self, "diameter", "Lens Diameter Value [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        self.le_diameter = oasysgui.lineEdit(self.diameter_box, self, "diameter", "Lens Diameter Value", labelWidth=350, valueType=float, orientation="horizontal")
 
         self.set_diameter()
 
@@ -64,11 +64,11 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
         self.surface_shape_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
         self.surface_shape_box_empty = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
 
-        oasysgui.lineEdit(self.surface_shape_box, self, "radius", "Curvature Radius [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        self.le_radius = oasysgui.lineEdit(self.surface_shape_box, self, "radius", "Curvature Radius", labelWidth=350, valueType=float, orientation="horizontal")
 
         self.set_surface_shape()
 
-        oasysgui.lineEdit(lens_box, self, "interthickness", "Lens Thickness [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        self.le_interthickness = oasysgui.lineEdit(lens_box, self, "interthickness", "Lens Thickness", labelWidth=350, valueType=float, orientation="horizontal")
 
         gui.comboBox(lens_box, self, "use_ccc", label="Use C.C.C.", labelWidth=350,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
@@ -100,7 +100,7 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
 
         self.calculation_mode_1 = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=50)
         oasysgui.lineEdit(self.calculation_mode_1, self, "refraction_index", "Refraction index", labelWidth=350, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.calculation_mode_1, self, "attenuation_coefficient", "Attenuation coefficient [cm-1]", labelWidth=350, valueType=float, orientation="horizontal")
+        self.le_attenuation_coefficient = oasysgui.lineEdit(self.calculation_mode_1, self, "attenuation_coefficient", "Attenuation coefficient", labelWidth=350, valueType=float, orientation="horizontal")
 
         self.calculation_mode_2 = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=50)
 
@@ -118,6 +118,20 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
     # GRAPHIC USER INTERFACE MANAGEMENT
     #
     ############################################################
+
+    def after_change_workspace_units(self):
+        label = self.le_p.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_q.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_diameter.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_radius.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_interthickness.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_attenuation_coefficient.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "-1]")
 
     def selectFilePrerefl(self):
         self.le_file_prerefl.setText(oasysgui.selectFileFromDialog(self, self.prerefl_file, "Select File Prerefl", file_extension_filter="*.dat"))
@@ -179,6 +193,12 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
 
 
     def populateFields(self, shadow_oe):
+
+        if self.ri_calculation_mode == 0:
+            interthickness=self.interthickness
+        else:
+            interthickness=self.interthickness*self.workspace_units_to_cm
+
         shadow_oe._oe.append_lens(p=self.p,
                                  q=self.q,
                                  surface_shape=self.get_surface_shape(),
@@ -189,7 +209,7 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
                                  refraction_index=self.refraction_index,
                                  attenuation_coefficient=self.attenuation_coefficient,
                                  radius=self.radius,
-                                 interthickness=self.interthickness,
+                                 interthickness=interthickness,
                                  use_ccc=self.use_ccc)
 
     def doSpecificSetting(self, shadow_oe):

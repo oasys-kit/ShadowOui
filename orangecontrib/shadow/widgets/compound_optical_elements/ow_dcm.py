@@ -33,10 +33,12 @@ class DCM(ow_compound_optical_element.CompoundOpticalElement):
     def __init__(self):
         super().__init__()
 
-        oasysgui.lineEdit(self.tab_bas, self, "p", "Distance Source - DCM center (P) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.tab_bas, self, "q", "Distance DCM center - Image plane (Q) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        self.tabs_setting.setFixedHeight(650)
 
-        oasysgui.lineEdit(self.tab_bas, self, "separation", "Separation between the Crystals [cm]\n(from center of 1st C. to center of 2nd C.) ", labelWidth=350, valueType=float,
+        self.le_p = oasysgui.lineEdit(self.tab_bas, self, "p", "Distance Source - DCM center (P)", labelWidth=350, valueType=float, orientation="horizontal")
+        self.le_q = oasysgui.lineEdit(self.tab_bas, self, "q", "Distance DCM center - Image plane (Q)", labelWidth=350, valueType=float, orientation="horizontal")
+
+        self.le_separation = oasysgui.lineEdit(self.tab_bas, self, "separation", "Separation between the Crystals\n(from center of 1st C. to center of 2nd C.)", labelWidth=350, valueType=float,
                            orientation="horizontal")
 
         oasysgui.lineEdit(self.tab_bas, self, "photon_energy_ev", "Photon Eneergy [eV]", labelWidth=350, valueType=float, orientation="horizontal")
@@ -65,6 +67,18 @@ class DCM(ow_compound_optical_element.CompoundOpticalElement):
                                         parent=tab_second_crystal,
                                         has_finite_dimensions=self.has_finite_dimensions[1],
                                         dimensions=self.dimensions[1])
+
+    def after_change_workspace_units(self):
+        label = self.le_p.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_q.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_separation.parent().layout().itemAt(0).widget()
+        label.setText("Separation between the Crystals [" + self.workspace_units_label + "]\n(from center of 1st C. to center of 2nd C.)")
+
+        self.crystal_1_box.after_change_workspace_units()
+        self.crystal_2_box.after_change_workspace_units()
+
 
     def selectFilePrerefl(self):
         self.le_reflectivity_file.setText(oasysgui.selectFileFromDialog(self, self.reflectivity_file, "Select Reflectivity File", file_extension_filter="*.dat"))
@@ -229,10 +243,10 @@ class CrystalBox(QtGui.QWidget):
         self.dimension_box = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=50)
         self.dimension_box_empty = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=50)
 
-        oasysgui.lineEdit(self.dimension_box, self, "mirror_width", "Crystal Width [cm]", labelWidth=350, valueType=float, orientation="horizontal",
+        self.le_mirror_width = oasysgui.lineEdit(self.dimension_box, self, "mirror_width", "Crystal Width", labelWidth=350, valueType=float, orientation="horizontal",
                            callback=self.dcm.dump_dimensions_0)
 
-        oasysgui.lineEdit(self.dimension_box, self, "mirror_length", "Crystal Length [cm]", labelWidth=350, valueType=float, orientation="horizontal",
+        self.le_mirror_length = oasysgui.lineEdit(self.dimension_box, self, "mirror_length", "Crystal Length", labelWidth=350, valueType=float, orientation="horizontal",
                            callback=self.dcm.dump_dimensions_1)
 
         self.set_dimensions()
@@ -244,6 +258,12 @@ class CrystalBox(QtGui.QWidget):
     # GRAPHIC USER INTERFACE MANAGEMENT
     #
     ############################################################
+
+    def after_change_workspace_units(self):
+        label = self.le_mirror_width.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.dcm.workspace_units_label + "]")
+        label = self.le_mirror_length.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.dcm.workspace_units_label + "]")
 
     def get_dimensions(self):
         if self.has_finite_dimensions == 0:

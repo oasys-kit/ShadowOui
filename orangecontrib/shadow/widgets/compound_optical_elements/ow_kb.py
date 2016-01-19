@@ -52,10 +52,12 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
     def __init__(self):
         super().__init__()
 
-        oasysgui.lineEdit(self.tab_bas, self, "p", "Distance Source - KB center (P) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.tab_bas, self, "q", "Distance KB center - Image plane (Q) [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        self.tabs_setting.setFixedHeight(650)
 
-        oasysgui.lineEdit(self.tab_bas, self, "separation", "Separation between the Mirrors [cm]\n(from center of V.F.M. to center of H.F.M.) ", labelWidth=350, valueType=float,
+        self.le_p = oasysgui.lineEdit(self.tab_bas, self, "p", "Distance Source - KB center (P)", labelWidth=350, valueType=float, orientation="horizontal")
+        self.le_q = oasysgui.lineEdit(self.tab_bas, self, "q", "Distance KB center - Image plane (Q)", labelWidth=350, valueType=float, orientation="horizontal")
+
+        self.le_separation = oasysgui.lineEdit(self.tab_bas, self, "separation", "Separation between the Mirrors\n(from center of V.F.M. to center of H.F.M.) ", labelWidth=350, valueType=float,
                            orientation="horizontal")
         oasysgui.lineEdit(self.tab_bas, self, "mirror_orientation_angle", "Mirror orientation angle [deg]\n(with respect to the previous o.e. for the first mirror)", labelWidth=350,
                            valueType=float, orientation="horizontal")
@@ -66,8 +68,8 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
         self.focal_positions_box = oasysgui.widgetBox(self.tab_bas, "", addSpace=False, orientation="vertical", height=45)
         self.focal_positions_empty = oasysgui.widgetBox(self.tab_bas, "", addSpace=False, orientation="vertical", height=45)
 
-        oasysgui.lineEdit(self.focal_positions_box, self, "focal_positions_p", "Focal Position P [cm]", labelWidth=350, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.focal_positions_box, self, "focal_positions_q", "Focal Position Q [cm]", labelWidth=350, valueType=float, orientation="horizontal")
+        self.le_focal_positions_p = oasysgui.lineEdit(self.focal_positions_box, self, "focal_positions_p", "Focal Position P", labelWidth=350, valueType=float, orientation="horizontal")
+        self.le_focal_positions_q = oasysgui.lineEdit(self.focal_positions_box, self, "focal_positions_q", "Focal Position Q", labelWidth=350, valueType=float, orientation="horizontal")
 
         self.set_use_different_focal_positions()
 
@@ -99,6 +101,21 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
                                reflectivity_files=self.reflectivity_files[1],
                                has_surface_error=self.has_surface_error[1],
                                surface_error_files=self.surface_error_files[1])
+
+    def after_change_workspace_units(self):
+        label = self.le_p.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_q.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_separation.parent().layout().itemAt(0).widget()
+        label.setText("Separation between the Mirrors [" + self.workspace_units_label + "]\n(ffrom center of V.F.M. to center of H.F.M.)")
+        label = self.le_focal_positions_p.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_focal_positions_q.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+
+        self.v_box.after_change_workspace_units()
+        self.h_box.after_change_workspace_units()
 
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):
@@ -480,10 +497,10 @@ class MirrorBox(QtGui.QWidget):
         self.dimension_box = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=50)
         self.dimension_box_empty = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=50)
 
-        oasysgui.lineEdit(self.dimension_box, self, "mirror_width", "Mirror Width [cm]", labelWidth=350, valueType=float, orientation="horizontal",
+        self.le_mirror_width = oasysgui.lineEdit(self.dimension_box, self, "mirror_width", "Mirror Width", labelWidth=350, valueType=float, orientation="horizontal",
                            callback=self.kb.dump_dimensions_0)
 
-        oasysgui.lineEdit(self.dimension_box, self, "mirror_length", "Mirror Length [cm]", labelWidth=350, valueType=float, orientation="horizontal",
+        self.le_mirror_length = oasysgui.lineEdit(self.dimension_box, self, "mirror_length", "Mirror Length", labelWidth=350, valueType=float, orientation="horizontal",
                            callback=self.kb.dump_dimensions_1)
 
         self.set_dimensions()
@@ -539,6 +556,12 @@ class MirrorBox(QtGui.QWidget):
     # GRAPHIC USER INTERFACE MANAGEMENT
     #
     ############################################################
+
+    def after_change_workspace_units(self):
+        label = self.le_mirror_width.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.kb.workspace_units_label + "]")
+        label = self.le_mirror_length.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.kb.workspace_units_label + "]")
 
     def selectFilePrerefl(self):
         self.le_reflectivity_files.setText(oasysgui.selectFileFromDialog(self, self.reflectivity_files, "Select Reflectivity File", file_extension_filter="*.dat"))

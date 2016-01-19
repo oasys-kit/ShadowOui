@@ -47,6 +47,8 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
     def __init__(self):
         super().__init__()
 
+        self.tabs_setting.setFixedHeight(750)
+
         tabs_button_box = oasysgui.widgetBox(self.tab_bas, "", addSpace=False, orientation="horizontal")
 
         gui.separator(tabs_button_box)
@@ -85,6 +87,10 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
                              use_ccc=self.use_ccc[index])
 
             self.crl_box_array.append(crl_box)
+
+    def after_change_workspace_units(self):
+        for box in self.crl_box_array:
+            box.after_change_workspace_units()
 
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?\n\nWarning: C.R.L. stack will be regenerated"):
@@ -130,6 +136,7 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Insertion of a new element before " + self.tab_crls.tabText(current_index) + "?"):
             tab_crl = oasysgui.widgetBox(self.tab_crls, addToLayout=0, margin=4)
             crl_box = CRLBox(transfocator=self, parent=tab_crl)
+            crl_box.after_change_workspace_units()
 
             self.tab_crls.insertTab(current_index, tab_crl, "TEMP")
             self.crl_box_array.insert(current_index, crl_box)
@@ -146,6 +153,7 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Insertion of a new element after " + self.tab_crls.tabText(current_index) + "?"):
             tab_crl = oasysgui.widgetBox(self.tab_crls, addToLayout=0, margin=4)
             crl_box = CRLBox(transfocator=self, parent=tab_crl)
+            crl_box.after_change_workspace_units()
 
             if current_index == self.tab_crls.count() - 1:  # LAST
                 self.tab_crls.addTab(tab_crl, "TEMP")
@@ -257,6 +265,8 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
             self.radius = copy.deepcopy(bkp_radius)
             self.interthickness = copy.deepcopy(bkp_interthickness)
             self.use_ccc = copy.deepcopy(bkp_use_ccc)
+
+
 
     ##############################
     # SINGLE FIELDS SIGNALS
@@ -475,17 +485,24 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
         cylinder_angle_out = []
         prerefl_file_out = []
 
-        for index in range(len(self.crl_box_array)):
-            surface_shape_out.append(self.crl_box_array[index].get_surface_shape())
-            diameter_out.append(self.crl_box_array[index].get_diameter())
-            cylinder_angle_out.append(self.crl_box_array[index].get_cylinder_angle())
-            prerefl_file_out.append(self.crl_box_array[index].get_prerefl_file())
+        for box in self.crl_box_array:
+            surface_shape_out.append(box.get_surface_shape())
+            diameter_out.append(box.get_diameter())
+            cylinder_angle_out.append(box.get_cylinder_angle())
+            prerefl_file_out.append(box.get_prerefl_file())
+
+        if self.ri_calculation_mode == 0:
+            thickness = self.thickness
+            interthickness=self.interthickness
+        else:
+            thickness = self.thickness*self.workspace_units_to_cm
+            interthickness=self.interthickness*self.workspace_units_to_cm
 
         shadow_oe._oe.append_transfocator(p0=self.p,
                                          q0=self.q,
                                          nlenses=self.nlenses,
                                          slots_empty=self.slots_empty,
-                                         thickness=self.thickness,
+                                         thickness=thickness,
                                          surface_shape=surface_shape_out,
                                          convex_to_the_beam=self.convex_to_the_beam,
                                          diameter=diameter_out,
@@ -494,24 +511,23 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
                                          refraction_index=self.refraction_index,
                                          attenuation_coefficient=self.attenuation_coefficient,
                                          radius=self.radius,
-                                         interthickness=self.interthickness,
+                                         interthickness=interthickness,
                                          use_ccc=self.use_ccc)
 
-
     def checkFields(self):
-        for index in range(len(self.crl_box_array)):
-            self.crl_box_array[index].checkFields()
+        for box in self.crl_box_array:
+            box.checkFields()
 
     def setPreProcessorData(self, data):
         if data is not None:
             if data.prerefl_data_file != ShadowPreProcessorData.NONE:
-                for index in range(len(self.crl_box_array)):
-                    self.crl_box_array[index].prerefl_file = data.prerefl_data_file
-                    self.crl_box_array[index].le_prerefl_file.setText(data.prerefl_data_file)
-                    self.crl_box_array[index].ri_calculation_mode = 1
-                    self.crl_box_array[index].ri_calculation_mode_combo.setCurrentIndex(1)
+                for box in self.crl_box_array:
+                    box.prerefl_file = data.prerefl_data_file
+                    box.le_prerefl_file.setText(data.prerefl_data_file)
+                    box.ri_calculation_mode = 1
+                    box.ri_calculation_mode_combo.setCurrentIndex(1)
 
-                    self.crl_box_array[index].set_ri_calculation_mode()
+                    box.set_ri_calculation_mode()
             else:
                 QtGui.QMessageBox.warning(self, "Warning",
                           "Incompatible Preprocessor Data",
@@ -520,8 +536,8 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
                 self.dump_prerefl_file()
 
     def setupUI(self):
-        for index in range(len(self.crl_box_array)):
-            self.crl_box_array[index].setupUI()
+        for box in self.crl_box_array:
+            box.setupUI()
 
 
 class CRLBox(QtGui.QWidget):
@@ -608,13 +624,13 @@ class CRLBox(QtGui.QWidget):
         oasysgui.lineEdit(crl_box, self, "nlenses", "Number of lenses", labelWidth=350, valueType=int, orientation="horizontal", callback=self.transfocator.dump_nlenses)
         oasysgui.lineEdit(crl_box, self, "slots_empty", "Number of empty slots", labelWidth=350, valueType=int, orientation="horizontal",
                            callback=self.transfocator.dump_slots_empty)
-        oasysgui.lineEdit(crl_box, self, "thickness", "Piling thickness [cm]", labelWidth=350, valueType=float, orientation="horizontal", callback=self.transfocator.dump_thickness)
+        self.le_thickness = oasysgui.lineEdit(crl_box, self, "thickness", "Piling thickness", labelWidth=350, valueType=float, orientation="horizontal", callback=self.transfocator.dump_thickness)
 
         lens_box = oasysgui.widgetBox(self, "Single Lens Input Parameters", addSpace=False, orientation="vertical", height=510, width=460)
 
-        oasysgui.lineEdit(lens_box, self, "p", "Distance Source-First lens interface (P) [cm]", labelWidth=350, valueType=float, orientation="horizontal",
+        self.le_p = oasysgui.lineEdit(lens_box, self, "p", "Distance Source-First lens interface (P)", labelWidth=350, valueType=float, orientation="horizontal",
                            callback=self.transfocator.dump_p)
-        oasysgui.lineEdit(lens_box, self, "q", "Distance Last lens interface-Image plane (Q) [cm]", labelWidth=350, valueType=float, orientation="horizontal",
+        self.le_q = oasysgui.lineEdit(lens_box, self, "q", "Distance Last lens interface-Image plane (Q)", labelWidth=350, valueType=float, orientation="horizontal",
                            callback=self.transfocator.dump_q)
 
         gui.separator(lens_box)
@@ -625,7 +641,7 @@ class CRLBox(QtGui.QWidget):
         self.diameter_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
         self.diameter_box_empty = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
 
-        oasysgui.lineEdit(self.diameter_box, self, "diameter", "Lens Diameter Value [cm]", labelWidth=350, valueType=float,
+        self.le_diameter = oasysgui.lineEdit(self.diameter_box, self, "diameter", "Lens Diameter Value", labelWidth=350, valueType=float,
                            orientation="horizontal", callback=self.transfocator.dump_diameter)
 
         self.set_diameter()
@@ -638,12 +654,12 @@ class CRLBox(QtGui.QWidget):
         self.surface_shape_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
         self.surface_shape_box_empty = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
 
-        oasysgui.lineEdit(self.surface_shape_box, self, "radius", "Curvature Radius [cm]", labelWidth=350, valueType=float, orientation="horizontal",
+        self.le_radius = oasysgui.lineEdit(self.surface_shape_box, self, "radius", "Curvature Radius", labelWidth=350, valueType=float, orientation="horizontal",
                            callback=self.transfocator.dump_radius)
 
         self.set_surface_shape()
 
-        oasysgui.lineEdit(lens_box, self, "interthickness", "Lens Thickness [cm]", labelWidth=350, valueType=float, orientation="horizontal",
+        self.le_interthickness = oasysgui.lineEdit(lens_box, self, "interthickness", "Lens Thickness", labelWidth=350, valueType=float, orientation="horizontal",
                            callback=self.transfocator.dump_interthickness)
 
         gui.comboBox(lens_box, self, "use_ccc", label="Use C.C.C.", labelWidth=350,
@@ -678,7 +694,7 @@ class CRLBox(QtGui.QWidget):
 
         oasysgui.lineEdit(self.calculation_mode_1, self, "refraction_index", "Refraction index", labelWidth=350, valueType=float, orientation="horizontal",
                            callback=self.transfocator.dump_refraction_index)
-        oasysgui.lineEdit(self.calculation_mode_1, self, "attenuation_coefficient", "Attenuation coefficient [cm-1]", labelWidth=350, valueType=float,
+        self.le_attenuation_coefficient = oasysgui.lineEdit(self.calculation_mode_1, self, "attenuation_coefficient", "Attenuation coefficient", labelWidth=350, valueType=float,
                            orientation="horizontal", callback=self.transfocator.dump_attenuation_coefficient)
 
         self.calculation_mode_2 = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=50)
@@ -694,6 +710,22 @@ class CRLBox(QtGui.QWidget):
         self.set_ri_calculation_mode()
 
         self.is_on_init = False
+
+    def after_change_workspace_units(self):
+        label = self.le_thickness.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.transfocator.workspace_units_label + "]")
+        label = self.le_p.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.transfocator.workspace_units_label + "]")
+        label = self.le_q.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.transfocator.workspace_units_label + "]")
+        label = self.le_diameter.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.transfocator.workspace_units_label + "]")
+        label = self.le_radius.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.transfocator.workspace_units_label + "]")
+        label = self.le_interthickness.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.transfocator.workspace_units_label + "]")
+        label = self.le_attenuation_coefficient.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.transfocator.workspace_units_label + "-1]")
 
     ############################################################
     #

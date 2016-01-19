@@ -346,18 +346,18 @@ class ShadowPlot:
             self.plot_canvas = PlotWindow.PlotWindow(roi=False, control=False, position=False, plugins=False, logx=False, logy=False)
             self.plot_canvas.setDefaultPlotLines(True)
             self.plot_canvas.setActiveCurveColor(color='darkblue')
-            self.plot_canvas.setMinimumWidth(800*x_scale_factor)
-            self.plot_canvas.setMaximumWidth(800*x_scale_factor)
+            self.plot_canvas.setMinimumWidth(600*x_scale_factor)
+            self.plot_canvas.setMaximumWidth(600*x_scale_factor)
 
             self.info_box = ShadowPlot.InfoBoxWidget(x_scale_factor, y_scale_factor, is_2d=False)
 
             layout = QGridLayout()
 
-            layout.addWidget(self.plot_canvas, 0, 0, 1, 1)
-            layout.addWidget(self.info_box, 0, 1, 1, 1)
+            layout.addWidget(self.info_box, 0, 0, 1, 1)
+            layout.addWidget(self.plot_canvas, 0, 1, 1, 1)
 
-            layout.setColumnMinimumWidth(0, 800*x_scale_factor)
-            layout.setColumnMinimumWidth(1, 250*x_scale_factor)
+            layout.setColumnMinimumWidth(0, 230*x_scale_factor)
+            layout.setColumnMinimumWidth(1, 610*x_scale_factor)
 
             self.setLayout(layout)
 
