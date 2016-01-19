@@ -27,8 +27,8 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
     inputs = [("Input Beam", ShadowBeam, "setBeam")]
 
-    IMAGE_WIDTH = 1100
-    IMAGE_HEIGHT = 650
+    IMAGE_WIDTH = 860
+    IMAGE_HEIGHT = 640
 
     want_main_area=1
     plot_canvas=None
@@ -44,7 +44,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
     x_range_min=Setting(0.0)
     x_range_max=Setting(0.0)
 
-    weight_column_index = Setting(22)
+    weight_column_index = Setting(23)
 
     number_of_bins=Setting(100)
 
@@ -55,28 +55,24 @@ class Histogram(ow_automatic_element.AutomaticElement):
     def __init__(self):
         super().__init__()
 
-        tabs_setting = gui.tabWidget(self.controlArea)
-        tabs_setting.setFixedWidth(420)
-
         gui.button(self.controlArea, self, "Refresh", callback=self.plot_results, height=45)
+        gui.separator(self.controlArea, 10)
+
+        tabs_setting = gui.tabWidget(self.controlArea)
+        tabs_setting.setFixedWidth(410)
 
         # graph tab
-        tab_gen = oasysgui.createTabPage(tabs_setting, "Histogram")
+        tab_set = oasysgui.createTabPage(tabs_setting, "Plot Settings")
+        tab_gen = oasysgui.createTabPage(tabs_setting, "Histogram Settings")
 
-        incremental_box = oasysgui.widgetBox(tab_gen, "Incremental Result", addSpace=True, orientation="horizontal", height=80)
+        screen_box = oasysgui.widgetBox(tab_set, "Screen Position Settings", addSpace=True, orientation="vertical", height=110)
 
-        gui.checkBox(incremental_box, self, "keep_result", "Keep Result")
-        gui.button(incremental_box, self, "Clear", callback=self.clearResults)
+        self.image_plane_combo = gui.comboBox(screen_box, self, "image_plane", label="Position of the Image",
+                                            items=["On Image Plane", "Retraced"],
+                                            callback=self.set_ImagePlane, sendSelectedValue=False, orientation="horizontal")
 
-        general_box = oasysgui.widgetBox(tab_gen, "General Settings", addSpace=True, orientation="vertical", height=250)
-
-        self.image_plane_combo = gui.comboBox(general_box, self, "image_plane", label="Position of the Image",
-                                              items=["On Image Plane", "Retraced"],
-                                              callback=self.set_ImagePlane, sendSelectedValue=False, orientation="horizontal")
-
-
-        self.image_plane_box = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", height=110)
-        self.image_plane_box_empty = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", height=110)
+        self.image_plane_box = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", width=390, height=110)
+        self.image_plane_box_empty = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", width=390, height=110)
 
         oasysgui.lineEdit(self.image_plane_box, self, "image_plane_new_position", "Image Plane new Position", labelWidth=220, valueType=float, orientation="horizontal")
 
@@ -84,6 +80,8 @@ class Histogram(ow_automatic_element.AutomaticElement):
                      items=["Absolute", "Relative"], sendSelectedValue=False, orientation="horizontal")
 
         self.set_ImagePlane()
+
+        general_box = oasysgui.widgetBox(tab_set, "General Settings", addSpace=True, orientation="vertical", height=250)
 
         self.x_column = gui.comboBox(general_box, self, "x_column_index", label="Column", labelWidth=80,
                                      items=["1: X",
@@ -123,7 +121,8 @@ class Histogram(ow_automatic_element.AutomaticElement):
                                      sendSelectedValue=False, orientation="horizontal")
 
         self.weight_column = gui.comboBox(general_box, self, "weight_column_index", label="Weight", labelWidth=80,
-                                         items=["1: X",
+                                         items=["0: No Weight",
+                                                "1: X",
                                                 "2: Y",
                                                 "3: Z",
                                                 "4: X'",
@@ -172,23 +171,31 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
         self.set_XRange()
 
-        histograms_box = oasysgui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=70)
+        incremental_box = oasysgui.widgetBox(tab_gen, "Incremental Result", addSpace=True, orientation="horizontal", height=80, width=395)
+
+        gui.checkBox(incremental_box, self, "keep_result", "Keep Result")
+        gui.button(incremental_box, self, "Clear", callback=self.clearResults)
+
+        histograms_box = oasysgui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=70, width=395)
 
         oasysgui.lineEdit(histograms_box, self, "number_of_bins", "Number of Bins", labelWidth=250, valueType=int, orientation="horizontal")
 
-        self.image_box = gui.widgetBox(self.mainArea, "Plot Result", addSpace=True, orientation="vertical")
+        main_tabs = gui.tabWidget(self.mainArea)
+        plot_tab = gui.createTabPage(main_tabs, "Plots")
+        out_tab = gui.createTabPage(main_tabs, "Output")
+
+        self.image_box = gui.widgetBox(plot_tab, "Plot Result", addSpace=True, orientation="vertical")
         self.image_box.setFixedHeight(self.IMAGE_HEIGHT)
         self.image_box.setFixedWidth(self.IMAGE_WIDTH)
 
         self.shadow_output = QtGui.QTextEdit()
         self.shadow_output.setReadOnly(True)
 
-        out_box = gui.widgetBox(self.mainArea, "System Output", addSpace=True, orientation="horizontal")
+        out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)
-        out_box.setFixedWidth(self.IMAGE_WIDTH)
 
-        self.shadow_output.setFixedHeight(100)
-        self.shadow_output.setFixedWidth(self.IMAGE_WIDTH-50)
+        self.shadow_output.setFixedHeight(600)
+        self.shadow_output.setFixedWidth(600)
 
     def clearResults(self):
         if ConfirmDialog.confirmed(parent=self):
@@ -205,11 +212,11 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
     def replace_fig(self, beam, var, x_range, title, xtitle, ytitle, xum):
         if self.plot_canvas is None:
-            self.plot_canvas = ShadowPlot.DetailedHistoWidget()
+            self.plot_canvas = ShadowPlot.DetailedHistoWidget(y_scale_factor=1.14)
             self.image_box.layout().addWidget(self.plot_canvas)
 
         try:
-            self.plot_canvas.plot_histo(beam, var, 1, x_range, self.weight_column_index+1, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum, conv=self.workspace_units_to_cm)
+            self.plot_canvas.plot_histo(beam, var, 1, x_range, self.weight_column_index, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum, conv=self.workspace_units_to_cm)
         except Exception:
             raise Exception("Data not plottable: No good rays or bad content")
 
@@ -321,12 +328,6 @@ class Histogram(ow_automatic_element.AutomaticElement):
                     self.input_beam = ShadowBeam.mergeBeams(self.input_beam, beam)
                 else:
                     self.input_beam = beam
-
-                if ShadowCongruence.checkEmptyBeam(self.input_beam):
-                    if (self.input_beam._oe_number == 0):  # IS THE SOURCE
-                        self.image_plane = 0
-                        self.set_ImagePlane()
-                        self.image_plane_combo.setEnabled(False)
 
                 if self.is_automatic_run:
                     self.plot_results()
