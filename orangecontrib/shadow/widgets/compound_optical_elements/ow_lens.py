@@ -194,11 +194,6 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
 
     def populateFields(self, shadow_oe):
 
-        if self.ri_calculation_mode == 0:
-            interthickness=self.interthickness
-        else:
-            interthickness=self.interthickness*self.workspace_units_to_cm
-
         shadow_oe._oe.append_lens(p=self.p,
                                  q=self.q,
                                  surface_shape=self.get_surface_shape(),
@@ -209,7 +204,7 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
                                  refraction_index=self.refraction_index,
                                  attenuation_coefficient=self.attenuation_coefficient,
                                  radius=self.radius,
-                                 interthickness=interthickness,
+                                 interthickness=self.interthickness,
                                  use_ccc=self.use_ccc)
 
     def doSpecificSetting(self, shadow_oe):

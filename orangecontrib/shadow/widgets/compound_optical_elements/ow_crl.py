@@ -203,18 +203,11 @@ class CRL(ow_compound_optical_element.CompoundOpticalElement):
     ############################################################
 
     def populateFields(self, shadow_oe):
-        if self.ri_calculation_mode == 0:
-            thickness = self.thickness
-            interthickness=self.interthickness
-        else:
-            thickness = self.thickness*self.workspace_units_to_cm
-            interthickness=self.interthickness*self.workspace_units_to_cm
-
         shadow_oe._oe.append_crl(p0=self.p,
                                  q0=self.q,
                                  nlenses=self.nlenses,
                                  slots_empty=self.slots_empty,
-                                 thickness=thickness,
+                                 thickness=self.thickness,
                                  surface_shape=self.get_surface_shape(),
                                  convex_to_the_beam=self.convex_to_the_beam,
                                  diameter=self.get_diameter(),
@@ -223,7 +216,7 @@ class CRL(ow_compound_optical_element.CompoundOpticalElement):
                                  refraction_index=self.refraction_index,
                                  attenuation_coefficient=self.attenuation_coefficient,
                                  radius=self.radius,
-                                 interthickness=interthickness,
+                                 interthickness=self.interthickness,
                                  use_ccc=self.use_ccc)
 
     def checkFields(self):

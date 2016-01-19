@@ -491,18 +491,11 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
             cylinder_angle_out.append(box.get_cylinder_angle())
             prerefl_file_out.append(box.get_prerefl_file())
 
-        if self.ri_calculation_mode == 0:
-            thickness = self.thickness
-            interthickness=self.interthickness
-        else:
-            thickness = self.thickness*self.workspace_units_to_cm
-            interthickness=self.interthickness*self.workspace_units_to_cm
-
         shadow_oe._oe.append_transfocator(p0=self.p,
                                          q0=self.q,
                                          nlenses=self.nlenses,
                                          slots_empty=self.slots_empty,
-                                         thickness=thickness,
+                                         thickness=self.thickness,
                                          surface_shape=surface_shape_out,
                                          convex_to_the_beam=self.convex_to_the_beam,
                                          diameter=diameter_out,
@@ -511,7 +504,7 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
                                          refraction_index=self.refraction_index,
                                          attenuation_coefficient=self.attenuation_coefficient,
                                          radius=self.radius,
-                                         interthickness=interthickness,
+                                         interthickness=self.interthickness,
                                          use_ccc=self.use_ccc)
 
     def checkFields(self):

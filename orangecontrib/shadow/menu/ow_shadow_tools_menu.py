@@ -572,7 +572,7 @@ class ShadowToolsMenu(OMenu):
                     slit_widget.aperturing = slits_screen_before[index].aperturing
                     slit_widget.open_slit_solid_stop = slits_screen_before[index].open_slit_solid_stop
                     slit_widget.aperture_shape = slits_screen_before[index].aperture_shape
-                    slit_widget.thickness = slits_screen_before[index].thickness/slit_widget.workspace_units_to_cm #see Issue #3
+                    slit_widget.thickness = slits_screen_before[index].thickness
                     slit_widget.opt_const_file_name = slits_screen_before[index].opt_const_file_name
 
                     if mirror_orientation_angle == 1 or mirror_orientation_angle == 3:
@@ -618,7 +618,7 @@ class ShadowToolsMenu(OMenu):
                     slit_widget.aperturing = slits_screen_after[index].aperturing
                     slit_widget.open_slit_solid_stop = slits_screen_after[index].open_slit_solid_stop
                     slit_widget.aperture_shape = slits_screen_after[index].aperture_shape
-                    slit_widget.thickness = slits_screen_after[index].thickness/slit_widget.workspace_units_to_cm #see Issue #3
+                    slit_widget.thickness = slits_screen_after[index].thickness
                     slit_widget.opt_const_file_name = slits_screen_after[index].opt_const_file_name
                     slit_widget.slit_width_xaxis = slits_screen_after[index].slit_width_xaxis
                     slit_widget.slit_height_zaxis = slits_screen_after[index].slit_height_zaxis

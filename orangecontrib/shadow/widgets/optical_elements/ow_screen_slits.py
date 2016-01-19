@@ -65,7 +65,7 @@ class ScreenSlits(OpticalElement):
                 cz_slit[0] = self.slit_center_zaxis
 
         if self.absorption == 1:
-            thick[0] = self.thickness*self.workspace_units_to_cm
+            thick[0] = self.thickness
             file_abs[0] = bytes(congruence.checkFileName(self.opt_const_file_name), 'utf-8')
 
         shadow_oe._oe.set_screens(n_screen,
