@@ -50,56 +50,65 @@ class BendingMagnet(ow_source.Source):
     def __init__(self):
         super().__init__()
 
-        left_box_1 = oasysgui.widgetBox(self.controlArea, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical")
+        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
-        oasysgui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=300, valueType=int, orientation="horizontal")
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
-        oasysgui.lineEdit(left_box_1, self, "seed", "Seed", tooltip="Seed", labelWidth=300, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(left_box_1, self, "e_min", "Minimum Energy [eV]", tooltip="Minimum Energy [eV]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_1, self, "e_max", "Maximum Energy [eV]", tooltip="Maximum Energy [eV]", labelWidth=300, valueType=float, orientation="horizontal")
-        gui.comboBox(left_box_1, self, "generate_polarization_combo", label="Generate Polarization", items=["Only Parallel", "Only Perpendicular", "Total"], labelWidth=300, orientation="horizontal")
+        tab_bas = oasysgui.createTabPage(tabs_setting, "Basic Setting")
+        tab_sou = oasysgui.createTabPage(tabs_setting, "Source Setting")
 
-        left_box_2 = oasysgui.widgetBox(self.controlArea, "Machine Parameters", addSpace=True, orientation="vertical")
 
-        self.le_sigma_x = oasysgui.lineEdit(left_box_2, self, "sigma_x", "Sigma X", labelWidth=300, tooltip="Sigma X", valueType=float, orientation="horizontal")
-        self.le_sigma_z = oasysgui.lineEdit(left_box_2, self, "sigma_z", "Sigma Z", labelWidth=300, tooltip="Sigma Z", valueType=float, orientation="horizontal")
-        self.le_emittance_x = oasysgui.lineEdit(left_box_2, self, "emittance_x", "Emittance X", labelWidth=300, tooltip="Emittance X", valueType=float, orientation="horizontal")
-        self.le_emittance_z = oasysgui.lineEdit(left_box_2, self, "emittance_z", "Emittance Z", labelWidth=300, tooltip="Emittance Z", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_2, self, "energy", "Energy [GeV]", tooltip="Energy [GeV]", labelWidth=300, valueType=float, orientation="horizontal")
-        self.le_distance_from_waist_x = oasysgui.lineEdit(left_box_2, self, "distance_from_waist_x", "Distance from Waist X", labelWidth=300, tooltip="Distance from Waist X", valueType=float, orientation="horizontal")
-        self.le_distance_from_waist_z = oasysgui.lineEdit(left_box_2, self, "distance_from_waist_z", "Distance from Waist Z", labelWidth=300, tooltip="Distance from Waist Z", valueType=float, orientation="horizontal")
+        left_box_1 = oasysgui.widgetBox(tab_bas, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical")
 
-        left_box_3 = oasysgui.widgetBox(self.controlArea, "Bending Magnet Parameters", addSpace=True, orientation="vertical")
+        oasysgui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=260, valueType=int, orientation="horizontal")
 
-        oasysgui.lineEdit(left_box_3, self, "magnetic_radius", "Magnetic Radius [m]", labelWidth=300, callback=self.calculateMagneticField, tooltip="Magnetic Radius [m]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_3, self, "magnetic_field", "Magnetic Field [T]", labelWidth=300, callback=self.calculateMagneticRadius, tooltip="Magnetic Field [T]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "seed", "Seed", tooltip="Seed", labelWidth=260, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "e_min", "Minimum Energy [eV]", tooltip="Minimum Energy [eV]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "e_max", "Maximum Energy [eV]", tooltip="Maximum Energy [eV]", labelWidth=260, valueType=float, orientation="horizontal")
+        gui.comboBox(left_box_1, self, "generate_polarization_combo", label="Generate Polarization", items=["Only Parallel", "Only Perpendicular", "Total"], labelWidth=260, orientation="horizontal")
 
-        oasysgui.lineEdit(left_box_3, self, "horizontal_half_divergence_from", "Horizontal half-divergence [rads] From [+]", labelWidth=300, tooltip="Horizontal half-divergence [rads] From [+]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_3, self, "horizontal_half_divergence_to", "Horizontal half-divergence [rads] To [-]", labelWidth=300, tooltip="Horizontal half-divergence [rads] To [-]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_3, self, "max_vertical_half_divergence_from", "Max vertical half-divergence [rads] From [+]", labelWidth=300, tooltip="Max vertical half-divergence [rads] From [+]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_3, self, "max_vertical_half_divergence_to", "Max vertical half-divergence [rads] To [-]", labelWidth=300, tooltip="Max vertical half-divergence [rads] To [-]", valueType=float, orientation="horizontal")
-        gui.comboBox(left_box_3, self, "calculation_mode_combo", label="Calculation Mode", items=["Precomputed", "Exact"], labelWidth=300, orientation="horizontal")
+        left_box_2 = oasysgui.widgetBox(tab_sou, "Machine Parameters", addSpace=True, orientation="vertical")
 
-        left_box_4 = oasysgui.widgetBox(self.controlArea, "Reject Rays", addSpace=True, orientation="vertical")
-        left_box_4.setFixedHeight(110)
+        self.le_sigma_x = oasysgui.lineEdit(left_box_2, self, "sigma_x", "Sigma X", labelWidth=260, tooltip="Sigma X", valueType=float, orientation="horizontal")
+        self.le_sigma_z = oasysgui.lineEdit(left_box_2, self, "sigma_z", "Sigma Z", labelWidth=260, tooltip="Sigma Z", valueType=float, orientation="horizontal")
+        self.le_emittance_x = oasysgui.lineEdit(left_box_2, self, "emittance_x", "Emittance X", labelWidth=260, tooltip="Emittance X", valueType=float, orientation="horizontal")
+        self.le_emittance_z = oasysgui.lineEdit(left_box_2, self, "emittance_z", "Emittance Z", labelWidth=260, tooltip="Emittance Z", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_2, self, "energy", "Energy [GeV]", tooltip="Energy [GeV]", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_distance_from_waist_x = oasysgui.lineEdit(left_box_2, self, "distance_from_waist_x", "Distance from Waist X", labelWidth=260, tooltip="Distance from Waist X", valueType=float, orientation="horizontal")
+        self.le_distance_from_waist_z = oasysgui.lineEdit(left_box_2, self, "distance_from_waist_z", "Distance from Waist Z", labelWidth=260, tooltip="Distance from Waist Z", valueType=float, orientation="horizontal")
 
-        gui.comboBox(left_box_4, self, "optimize_source", label="Optimize Source", items=["No", "Using file with phase/space volume)", "Using file with slit/acceptance"], labelWidth=200,
-                     callback=self.set_OptimizeSource, orientation="horizontal")
+        left_box_3 = oasysgui.widgetBox(tab_sou, "Bending Magnet Parameters", addSpace=True, orientation="vertical")
+
+        oasysgui.lineEdit(left_box_3, self, "magnetic_radius", "Magnetic Radius [m]", labelWidth=260, callback=self.calculateMagneticField, tooltip="Magnetic Radius [m]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_3, self, "magnetic_field", "Magnetic Field [T]", labelWidth=260, callback=self.calculateMagneticRadius, tooltip="Magnetic Field [T]", valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(left_box_3, self, "horizontal_half_divergence_from", "Horizontal half-divergence [rads] From [+]", labelWidth=260, tooltip="Horizontal half-divergence [rads] From [+]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_3, self, "horizontal_half_divergence_to", "Horizontal half-divergence [rads] To [-]", labelWidth=260, tooltip="Horizontal half-divergence [rads] To [-]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_3, self, "max_vertical_half_divergence_from", "Max vertical half-divergence [rads] From [+]", labelWidth=260, tooltip="Max vertical half-divergence [rads] From [+]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_3, self, "max_vertical_half_divergence_to", "Max vertical half-divergence [rads] To [-]", labelWidth=260, tooltip="Max vertical half-divergence [rads] To [-]", valueType=float, orientation="horizontal")
+        gui.comboBox(left_box_3, self, "calculation_mode_combo", label="Calculation Mode", items=["Precomputed", "Exact"], labelWidth=260, orientation="horizontal")
+
+        left_box_4 = oasysgui.widgetBox(tab_bas, "Reject Rays", addSpace=True, orientation="vertical", height=120)
+
+        gui.comboBox(left_box_4, self, "optimize_source", label="Optimize Source", items=["No", "Using file with phase/space volume)", "Using file with slit/acceptance"],
+                     labelWidth=120, callback=self.set_OptimizeSource, orientation="horizontal")
         self.optimize_file_name_box = oasysgui.widgetBox(left_box_4, "", addSpace=False, orientation="vertical")
 
 
         file_box = oasysgui.widgetBox(self.optimize_file_name_box, "", addSpace=True, orientation="horizontal", height=25)
 
-        self.le_optimize_file_name = oasysgui.lineEdit(file_box, self, "optimize_file_name", "File Name", labelWidth=150,  valueType=str, orientation="horizontal")
+        self.le_optimize_file_name = oasysgui.lineEdit(file_box, self, "optimize_file_name", "File Name", labelWidth=100,  valueType=str, orientation="horizontal")
 
         pushButton = gui.button(file_box, self, "...")
         pushButton.clicked.connect(self.selectOptimizeFile)
 
-        oasysgui.lineEdit(self.optimize_file_name_box, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=300,  valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.optimize_file_name_box, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=280,  valueType=int, orientation="horizontal")
 
         self.set_OptimizeSource()
 
-        adv_other_box = oasysgui.widgetBox(self.controlArea, "Optional file output", addSpace=False, orientation="vertical")
+        adv_other_box = oasysgui.widgetBox(tab_bas, "Optional file output", addSpace=False, orientation="vertical")
 
         gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=200,
                      items=["None", "Debug (start.xx/end.xx)"],

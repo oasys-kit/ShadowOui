@@ -28,6 +28,9 @@ class Source(ow_generic_element.GenericElement):
 
     want_main_area=1
 
+    TABS_AREA_HEIGHT = 618
+    CONTROL_AREA_WIDTH = 405
+
     def __init__(self, show_automatic_box=False):
         super().__init__(show_automatic_box=show_automatic_box)
 

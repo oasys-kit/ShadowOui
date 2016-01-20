@@ -55,71 +55,89 @@ class Wiggler(ow_source.Source):
     file_with_b_vs_y = Setting("wiggler.b")
     file_with_harmonics = Setting("wiggler.h")
 
-    CONTROL_AREA_WIDTH = 505
-
     def __init__(self):
         super().__init__()
 
-        left_box_1 = oasysgui.widgetBox(self.controlArea, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical", height=320, width=self.CONTROL_AREA_WIDTH)
+        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
-        oasysgui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=300, valueType=int, orientation="horizontal")
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
-        oasysgui.lineEdit(left_box_1, self, "seed", "Seed", tooltip="Seed", labelWidth=300, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(left_box_1, self, "e_min", "Minimum Photon Energy [eV]", tooltip="Minimum Energy [eV]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_1, self, "e_max", "Maximum Photon Energy [eV]", tooltip="Maximum Energy [eV]", labelWidth=300, valueType=float, orientation="horizontal")
+        tab_bas = oasysgui.createTabPage(tabs_setting, "Basic Setting")
+        tab_sou = oasysgui.createTabPage(tabs_setting, "Source Setting")
 
-        gui.comboBox(left_box_1, self, "optimize_source_combo", label="Optimize Source? (reject rays)", items=["No", "Using file with phase space volume", "Using slit/acceptance"], callback=self.set_OptimizeSource, labelWidth=280, orientation="horizontal")
+        left_box_1 = oasysgui.widgetBox(tab_bas, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical", height=130)
 
-        self.box_using_file_with_phase_space_volume = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
+        oasysgui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=260, valueType=int, orientation="horizontal")
 
-        oasysgui.lineEdit(self.box_using_file_with_phase_space_volume, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=300, tooltip="Max number of rejected rays", valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "seed", "Seed", tooltip="Seed", labelWidth=260, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "e_min", "Minimum Photon Energy [eV]", tooltip="Minimum Energy [eV]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "e_max", "Maximum Photon Energy [eV]", tooltip="Maximum Energy [eV]", labelWidth=260, valueType=float, orientation="horizontal")
 
+        ##############################
+
+        left_box_4 = oasysgui.widgetBox(tab_bas, "Reject Rays", addSpace=True, orientation="vertical", height=200)
+
+
+        gui.comboBox(left_box_4, self, "optimize_source_combo", label="Optimize Source", items=["No", "Using file with phase space volume", "Using slit/acceptance"],
+                     callback=self.set_OptimizeSource, labelWidth=120, orientation="horizontal")
+
+        self.box_using_file_with_phase_space_volume = oasysgui.widgetBox(left_box_4, "", addSpace=False, orientation="vertical")
+
+        oasysgui.lineEdit(self.box_using_file_with_phase_space_volume, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=280, tooltip="Max number of rejected rays", valueType=int, orientation="horizontal")
 
         file_box = oasysgui.widgetBox(self.box_using_file_with_phase_space_volume, "", addSpace=True, orientation="horizontal", height=25)
 
-        self.le_optimize_file_name = oasysgui.lineEdit(file_box, self, "file_with_phase_space_volume", "File with phase space volume", labelWidth=190, tooltip="File with phase space volume", valueType=str, orientation="horizontal")
+        self.le_optimize_file_name = oasysgui.lineEdit(file_box, self, "file_with_phase_space_volume", "File with phase space volume", labelWidth=210, tooltip="File with phase space volume", valueType=str, orientation="horizontal")
 
         pushButton = gui.button(file_box, self, "...")
         pushButton.clicked.connect(self.selectOptimizeFile)
 
-        self.box_using_slit_acceptance = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
+        self.box_using_slit_acceptance = oasysgui.widgetBox(left_box_4, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.box_using_slit_acceptance, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=300, tooltip="Max number of rejected rays", valueType=int, orientation="horizontal")
-        self.le_slit_distance = oasysgui.lineEdit(self.box_using_slit_acceptance, self, "slit_distance", "--", labelWidth=300, tooltip="Slit Distance", valueType=float, orientation="horizontal")
-        self.le_min_x = oasysgui.lineEdit(self.box_using_slit_acceptance, self, "min_x", "--", labelWidth=300, tooltip="Min X/Min Xp", valueType=float, orientation="horizontal")
-        self.le_max_x = oasysgui.lineEdit(self.box_using_slit_acceptance, self, "max_x", "--", labelWidth=300, tooltip="Max X/Max Xp", valueType=float, orientation="horizontal")
-        self.le_min_z = oasysgui.lineEdit(self.box_using_slit_acceptance, self, "min_z", "--", labelWidth=300, tooltip="Min Z/Min Zp", valueType=float, orientation="horizontal")
-        self.le_max_z = oasysgui.lineEdit(self.box_using_slit_acceptance, self, "max_z", "--", labelWidth=300, tooltip="Max Z/Max Zp", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_using_slit_acceptance, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=280, tooltip="Max number of rejected rays", valueType=int, orientation="horizontal")
+        self.le_slit_distance = oasysgui.lineEdit(self.box_using_slit_acceptance, self, "slit_distance", "--", labelWidth=280, tooltip="Slit Distance", valueType=float, orientation="horizontal")
+        self.le_min_x = oasysgui.lineEdit(self.box_using_slit_acceptance, self, "min_x", "--", labelWidth=280, tooltip="Min X/Min Xp", valueType=float, orientation="horizontal")
+        self.le_max_x = oasysgui.lineEdit(self.box_using_slit_acceptance, self, "max_x", "--", labelWidth=280, tooltip="Max X/Max Xp", valueType=float, orientation="horizontal")
+        self.le_min_z = oasysgui.lineEdit(self.box_using_slit_acceptance, self, "min_z", "--", labelWidth=280, tooltip="Min Z/Min Zp", valueType=float, orientation="horizontal")
+        self.le_max_z = oasysgui.lineEdit(self.box_using_slit_acceptance, self, "max_z", "--", labelWidth=280, tooltip="Max Z/Max Zp", valueType=float, orientation="horizontal")
 
         self.set_OptimizeSource()
 
-        left_box_2 = oasysgui.widgetBox(self.controlArea, "Machine Parameters", addSpace=True, orientation="vertical", height=240)
+        adv_other_box = oasysgui.widgetBox(tab_bas, "Optional file output", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(left_box_2, self, "energy", "Electron Energy [GeV]", tooltip="Energy [GeV]", labelWidth=300, valueType=float, orientation="horizontal")
+        gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=200,
+                     items=["None", "Debug (start.xx/end.xx)"],
+                     sendSelectedValue=False, orientation="horizontal")
 
-        gui.comboBox(left_box_2, self, "use_emittances_combo", label="Use Emittances?", items=["No", "Yes"], callback=self.set_UseEmittances, labelWidth=300, orientation="horizontal")
+        left_box_2 = oasysgui.widgetBox(tab_sou, "Machine Parameters", addSpace=True, orientation="vertical", height=240)
+
+        oasysgui.lineEdit(left_box_2, self, "energy", "Electron Energy [GeV]", tooltip="Energy [GeV]", labelWidth=260, valueType=float, orientation="horizontal")
+
+        gui.comboBox(left_box_2, self, "use_emittances_combo", label="Use Emittances?", items=["No", "Yes"], callback=self.set_UseEmittances, labelWidth=260, orientation="horizontal")
 
         self.box_use_emittances = oasysgui.widgetBox(left_box_2, "", addSpace=True, orientation="vertical")
 
-        self.le_sigma_x = oasysgui.lineEdit(left_box_2, self, "sigma_x", "Sigma X", labelWidth=300, tooltip="Sigma X", valueType=float, orientation="horizontal")
-        self.le_sigma_z = oasysgui.lineEdit(left_box_2, self, "sigma_z", "Sigma Z", labelWidth=300, tooltip="Sigma Z", valueType=float, orientation="horizontal")
-        self.le_emittance_x = oasysgui.lineEdit(left_box_2, self, "emittance_x", "Emittance X", labelWidth=300, tooltip="Emittance X", valueType=float, orientation="horizontal")
-        self.le_emittance_z = oasysgui.lineEdit(left_box_2, self, "emittance_z", "Emittance Z", labelWidth=300, tooltip="Emittance Z", valueType=float, orientation="horizontal")
-        self.le_distance_from_waist_x = oasysgui.lineEdit(left_box_2, self, "distance_from_waist_x", "Distance from Waist X", labelWidth=300, tooltip="Distance from Waist X", valueType=float, orientation="horizontal")
-        self.le_distance_from_waist_z = oasysgui.lineEdit(left_box_2, self, "distance_from_waist_z", "Distance from Waist Z", labelWidth=300, tooltip="Distance from Waist Z", valueType=float, orientation="horizontal")
+        self.le_sigma_x = oasysgui.lineEdit(left_box_2, self, "sigma_x", "Sigma X", labelWidth=260, tooltip="Sigma X", valueType=float, orientation="horizontal")
+        self.le_sigma_z = oasysgui.lineEdit(left_box_2, self, "sigma_z", "Sigma Z", labelWidth=260, tooltip="Sigma Z", valueType=float, orientation="horizontal")
+        self.le_emittance_x = oasysgui.lineEdit(left_box_2, self, "emittance_x", "Emittance X", labelWidth=260, tooltip="Emittance X", valueType=float, orientation="horizontal")
+        self.le_emittance_z = oasysgui.lineEdit(left_box_2, self, "emittance_z", "Emittance Z", labelWidth=260, tooltip="Emittance Z", valueType=float, orientation="horizontal")
+        self.le_distance_from_waist_x = oasysgui.lineEdit(left_box_2, self, "distance_from_waist_x", "Distance from Waist X", labelWidth=260, tooltip="Distance from Waist X", valueType=float, orientation="horizontal")
+        self.le_distance_from_waist_z = oasysgui.lineEdit(left_box_2, self, "distance_from_waist_z", "Distance from Waist Z", labelWidth=260, tooltip="Distance from Waist Z", valueType=float, orientation="horizontal")
 
         self.set_UseEmittances()
 
-        left_box_3 = oasysgui.widgetBox(self.controlArea, "Wiggler Parameters", addSpace=True, orientation="vertical", height=140)
+        left_box_3 = oasysgui.widgetBox(tab_sou, "Wiggler Parameters", addSpace=True, orientation="vertical", height=140)
 
-        gui.comboBox(left_box_3, self, "type_combo", label="Type", items=["conventional/sinusoidal", "B from file", "B from harmonics"], callback=self.set_Type, labelWidth=300, orientation="horizontal")
+        gui.comboBox(left_box_3, self, "type_combo", label="Type", items=["conventional/sinusoidal", "B from file", "B from harmonics"], callback=self.set_Type, labelWidth=260, orientation="horizontal")
 
-        oasysgui.lineEdit(left_box_3, self, "number_of_periods", "Number of Periods", labelWidth=300, tooltip="Number of Periods", valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_3, self, "number_of_periods", "Number of Periods", labelWidth=260, tooltip="Number of Periods", valueType=int, orientation="horizontal")
 
         self.conventional_sinusoidal_box = oasysgui.widgetBox(left_box_3, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.conventional_sinusoidal_box, self, "k_value", "K value", labelWidth=300, tooltip="K value", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.conventional_sinusoidal_box, self, "id_period", "ID period [m]", labelWidth=300, tooltip="ID period [m]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.conventional_sinusoidal_box, self, "k_value", "K value", labelWidth=260, tooltip="K value", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.conventional_sinusoidal_box, self, "id_period", "ID period [m]", labelWidth=260, tooltip="ID period [m]", valueType=float, orientation="horizontal")
 
         self.b_from_file_box = oasysgui.widgetBox(left_box_3, "", addSpace=False, orientation="vertical")
 
@@ -132,7 +150,7 @@ class Wiggler(ow_source.Source):
 
         self.b_from_harmonics_box = oasysgui.widgetBox(left_box_3, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.b_from_harmonics_box, self, "id_period", "ID period [m]", labelWidth=300, tooltip="ID period [m]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.b_from_harmonics_box, self, "id_period", "ID period [m]", labelWidth=260, tooltip="ID period [m]", valueType=float, orientation="horizontal")
 
         file_box = oasysgui.widgetBox(self.b_from_harmonics_box, "", addSpace=True, orientation="horizontal", height=25)
 
@@ -143,14 +161,7 @@ class Wiggler(ow_source.Source):
 
         self.set_Type()
 
-        adv_other_box = oasysgui.widgetBox(self.controlArea, "Optional file output", addSpace=False, orientation="vertical")
-
-        gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=200,
-                     items=["None", "Debug (start.xx/end.xx)"],
-                     sendSelectedValue=False, orientation="horizontal")
-
         gui.rubber(self.controlArea)
-
         gui.rubber(self.mainArea)
 
     def after_change_workspace_units(self):

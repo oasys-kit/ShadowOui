@@ -36,14 +36,23 @@ class UndulatorGaussian(ow_source.Source):
     def __init__(self):
         super().__init__()
 
-        left_box_1 = oasysgui.widgetBox(self.controlArea, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical")
+        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
+
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+
+        tab_bas = oasysgui.createTabPage(tabs_setting, "Basic Setting")
+        tab_sou = oasysgui.createTabPage(tabs_setting, "Source Setting")
+
+        left_box_1 = oasysgui.widgetBox(tab_bas, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical")
 
         oasysgui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=250, valueType=int, orientation="horizontal")
         oasysgui.lineEdit(left_box_1, self, "seed", "Seed", tooltip="Seed", labelWidth=250, valueType=int, orientation="horizontal")
         oasysgui.lineEdit(left_box_1, self, "energy", "Set undulator to energy [eV]", tooltip="Set undulator to energy [eV]", labelWidth=250, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(left_box_1, self, "delta_e", "Delta Energy [eV]", tooltip="Delta Energy [eV]", labelWidth=250, valueType=float, orientation="horizontal")
 
-        left_box_2 = oasysgui.widgetBox(self.controlArea, "Machine Parameters", addSpace=True, orientation="vertical")
+        left_box_2 = oasysgui.widgetBox(tab_sou, "Machine Parameters", addSpace=True, orientation="vertical")
 
         self.le_sigma_x = oasysgui.lineEdit(left_box_2, self, "sigma_x", "Size RMS H", labelWidth=250, tooltip="Size RMS H", valueType=float, orientation="horizontal")
         self.le_sigma_z = oasysgui.lineEdit(left_box_2, self, "sigma_z", "Size RMS V", labelWidth=250, tooltip="Size RMS V", valueType=float, orientation="horizontal")
@@ -51,11 +60,11 @@ class UndulatorGaussian(ow_source.Source):
         oasysgui.lineEdit(left_box_2, self, "sigma_divergence_x", "Divergence RMS H [rad]", labelWidth=250, tooltip="Divergence RMS H [rad]", valueType=float, orientation="horizontal")
         oasysgui.lineEdit(left_box_2, self, "sigma_divergence_z", "Divergence RMS V [rad]", labelWidth=250, tooltip="Divergence RMS V [rad]", valueType=float, orientation="horizontal")
 
-        left_box_3 = oasysgui.widgetBox(self.controlArea, "Undulator Parameters", addSpace=True, orientation="vertical")
+        left_box_3 = oasysgui.widgetBox(tab_sou, "Undulator Parameters", addSpace=True, orientation="vertical")
 
         oasysgui.lineEdit(left_box_3, self, "undulator_length", "Undulator Length [m]", labelWidth=250, tooltip="Undulator Length [m]", valueType=float, orientation="horizontal")
 
-        adv_other_box = oasysgui.widgetBox(self.controlArea, "Optional file output", addSpace=False, orientation="vertical")
+        adv_other_box = oasysgui.widgetBox(tab_bas, "Optional file output", addSpace=False, orientation="vertical")
 
         gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=150,
                      items=["None", "Debug (start.xx/end.xx)"],

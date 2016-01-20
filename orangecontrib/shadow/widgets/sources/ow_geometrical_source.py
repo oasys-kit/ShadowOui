@@ -127,16 +127,20 @@ class GeometricalSource(ow_source.Source):
     def __init__(self):
         super().__init__()
 
-        tabs = oasysgui.tabWidget(self.controlArea, width=480,  height=620)
+        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
-        tab_montecarlo = oasysgui.createTabPage(tabs, "Monte Carlo and Sampling")
-        tab_geometry = oasysgui.createTabPage(tabs, "Geometry")
-        tab_energy = oasysgui.createTabPage(tabs, "Energy and Polarization")
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+
+        tab_basic = oasysgui.createTabPage(tabs_setting, "Basic Setting")
+        tab_geometry = oasysgui.createTabPage(tabs_setting, "Geometry Setting")
+        tab_energy = oasysgui.createTabPage(tabs_setting, "Energy/Polarization Setting")
 
         ##############################
         # MONTECARLO
 
-        left_box_1 = oasysgui.widgetBox(tab_montecarlo, "Options", addSpace=True, orientation="vertical", height=280)
+        left_box_1 = oasysgui.widgetBox(tab_basic, "Montecarlo and Sampling", addSpace=True, orientation="vertical", height=280)
 
         gui.separator(left_box_1)
 
@@ -144,29 +148,29 @@ class GeometricalSource(ow_source.Source):
         #
         # OTHER THAN RANDOM/RANDOM NOT PROPERLY WORKING, DISABLED UNTIL FIXED
         #
-        #gui.comboBox(left_box_1, self, "sampling", label="Sampling (space/divergence)", labelWidth=300,
+        #gui.comboBox(left_box_1, self, "sampling", label="Sampling (space/divergence)", labelWidth=260,
         #             items=["Random/Random", "Grid/Grid", "Grid/Random", "Random/Grid"], orientation="horizontal", callback=self.set_Sampling)
 
-        gui.comboBox(left_box_1, self, "sampling", label="Sampling (space/divergence)", labelWidth=300,
+        gui.comboBox(left_box_1, self, "sampling", label="Sampling (space/divergence)", labelWidth=260,
                      items=["Random/Random"], orientation="horizontal", callback=self.set_Sampling)
 
         gui.separator(left_box_1)
 
         self.sample_box_1 = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.sample_box_1, self, "number_of_rays", "Number of Random Rays", labelWidth=300, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(self.sample_box_1, self, "seed", "Seed", labelWidth=300, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.sample_box_1, self, "number_of_rays", "Number of Random Rays", labelWidth=260, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.sample_box_1, self, "seed", "Seed", labelWidth=260, valueType=int, orientation="horizontal")
 
         self.sample_box_2 = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.sample_box_2, self, "grid_points_in_xfirst", "Grid Points in X'", labelWidth=300, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(self.sample_box_2, self, "grid_points_in_zfirst", "Grid Points in Z'",  labelWidth=300, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.sample_box_2, self, "grid_points_in_xfirst", "Grid Points in X'", labelWidth=260, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.sample_box_2, self, "grid_points_in_zfirst", "Grid Points in Z'",  labelWidth=260, valueType=int, orientation="horizontal")
 
         self.sample_box_3 = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.sample_box_3, self, "grid_points_in_x", "Grid Points in X", labelWidth=300, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(self.sample_box_3, self, "grid_points_in_y", "Grid Points in Y", labelWidth=300, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(self.sample_box_3, self, "grid_points_in_z", "Grid Points in Z",  labelWidth=300, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.sample_box_3, self, "grid_points_in_x", "Grid Points in X", labelWidth=260, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.sample_box_3, self, "grid_points_in_y", "Grid Points in Y", labelWidth=260, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.sample_box_3, self, "grid_points_in_z", "Grid Points in Z",  labelWidth=260, valueType=int, orientation="horizontal")
 
         self.set_Sampling()
 
@@ -188,18 +192,18 @@ class GeometricalSource(ow_source.Source):
 
         self.spatial_type_box_1 = oasysgui.widgetBox(spatial_type_box, "", addSpace=False, orientation="vertical")
 
-        self.le_rect_width  = oasysgui.lineEdit(self.spatial_type_box_1, self, "rect_width", "Width", labelWidth=300, valueType=float, orientation="horizontal")
-        self.le_rect_height = oasysgui.lineEdit(self.spatial_type_box_1, self, "rect_height", "Height", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_rect_width  = oasysgui.lineEdit(self.spatial_type_box_1, self, "rect_width", "Width", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_rect_height = oasysgui.lineEdit(self.spatial_type_box_1, self, "rect_height", "Height", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.spatial_type_box_2 = oasysgui.widgetBox(spatial_type_box, "", addSpace=False, orientation="vertical")
 
-        self.le_ell_semiaxis_x = oasysgui.lineEdit(self.spatial_type_box_2, self, "ell_semiaxis_x", "Semi-Axis X", labelWidth=300, valueType=float, orientation="horizontal")
-        self.le_ell_semiaxis_z = oasysgui.lineEdit(self.spatial_type_box_2, self, "ell_semiaxis_z", "Semi-Axis Z", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_ell_semiaxis_x = oasysgui.lineEdit(self.spatial_type_box_2, self, "ell_semiaxis_x", "Semi-Axis X", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_ell_semiaxis_z = oasysgui.lineEdit(self.spatial_type_box_2, self, "ell_semiaxis_z", "Semi-Axis Z", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.spatial_type_box_3 = oasysgui.widgetBox(spatial_type_box, "", addSpace=False, orientation="vertical")
 
-        self.le_gauss_sigma_x = oasysgui.lineEdit(self.spatial_type_box_3, self, "gauss_sigma_x", "Sigma X", labelWidth=300, valueType=float, orientation="horizontal")
-        self.le_gauss_sigma_z = oasysgui.lineEdit(self.spatial_type_box_3, self, "gauss_sigma_z", "Sigma Z", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_gauss_sigma_x = oasysgui.lineEdit(self.spatial_type_box_3, self, "gauss_sigma_x", "Sigma X", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_gauss_sigma_z = oasysgui.lineEdit(self.spatial_type_box_3, self, "gauss_sigma_z", "Sigma Z", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.set_SpatialType()
 
@@ -212,28 +216,28 @@ class GeometricalSource(ow_source.Source):
 
         self.angular_distribution_box_1 = oasysgui.widgetBox(angular_distribution_box, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.angular_distribution_box_1, self, "horizontal_div_x_plus", "Horizontal Divergence X(+) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.angular_distribution_box_1, self, "horizontal_div_x_minus", "Horizontal Divergence X(-) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.angular_distribution_box_1, self, "vertical_div_z_plus", "Vertical Divergence Z(+) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.angular_distribution_box_1, self, "vertical_div_z_minus", "Vertical Divergence Z(-) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.angular_distribution_box_1, self, "horizontal_div_x_plus", "Horizontal Divergence X(+) [rad]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.angular_distribution_box_1, self, "horizontal_div_x_minus", "Horizontal Divergence X(-) [rad]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.angular_distribution_box_1, self, "vertical_div_z_plus", "Vertical Divergence Z(+) [rad]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.angular_distribution_box_1, self, "vertical_div_z_minus", "Vertical Divergence Z(-) [rad]", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.angular_distribution_box_2 = oasysgui.widgetBox(angular_distribution_box, "", addSpace=False, orientation="vertical")
 
         gui.comboBox(self.angular_distribution_box_2, self, "angular_distribution_limits", label="Angular Distribution Limits", labelWidth=355,
                      items=["No Limits", "Horizontal", "Vertical", "Both"], orientation="horizontal", callback=self.set_AngularDistributionLimits)
 
-        self.le_horizontal_lim_x_plus = oasysgui.lineEdit(self.angular_distribution_box_2, self, "horizontal_lim_x_plus", "Horizontal Limit X(+) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        self.le_horizontal_lim_x_minus = oasysgui.lineEdit(self.angular_distribution_box_2, self, "horizontal_lim_x_minus", "Horizontal Limit X(-) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        self.le_vertical_lim_z_plus = oasysgui.lineEdit(self.angular_distribution_box_2, self, "vertical_lim_z_plus", "Vertical Limit Z(+) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        self.le_vertical_lim_z_minus = oasysgui.lineEdit(self.angular_distribution_box_2, self, "vertical_lim_z_minus", "Vertical Limit Z(-) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_horizontal_lim_x_plus = oasysgui.lineEdit(self.angular_distribution_box_2, self, "horizontal_lim_x_plus", "Horizontal Limit X(+) [rad]", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_horizontal_lim_x_minus = oasysgui.lineEdit(self.angular_distribution_box_2, self, "horizontal_lim_x_minus", "Horizontal Limit X(-) [rad]", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_vertical_lim_z_plus = oasysgui.lineEdit(self.angular_distribution_box_2, self, "vertical_lim_z_plus", "Vertical Limit Z(+) [rad]", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_vertical_lim_z_minus = oasysgui.lineEdit(self.angular_distribution_box_2, self, "vertical_lim_z_minus", "Vertical Limit Z(-) [rad]", labelWidth=260, valueType=float, orientation="horizontal")
 
-        oasysgui.lineEdit(self.angular_distribution_box_2, self, "horizontal_sigma_x", "Horizontal Sigma (X) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.angular_distribution_box_2, self, "vertical_sigma_z", "Vertical Sigma (Z) [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.angular_distribution_box_2, self, "horizontal_sigma_x", "Horizontal Sigma (X) [rad]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.angular_distribution_box_2, self, "vertical_sigma_z", "Vertical Sigma (Z) [rad]", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.angular_distribution_box_3 = oasysgui.widgetBox(angular_distribution_box, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.angular_distribution_box_3, self, "cone_internal_half_aperture", "Cone Internal Half-Aperture [rad]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.angular_distribution_box_3, self, "cone_external_half_aperture", "Cone External Half-Aperture [rad]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.angular_distribution_box_3, self, "cone_internal_half_aperture", "Cone Internal Half-Aperture [rad]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.angular_distribution_box_3, self, "cone_external_half_aperture", "Cone External Half-Aperture [rad]", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.set_AngularDistribution()
 
@@ -246,11 +250,11 @@ class GeometricalSource(ow_source.Source):
 
         self.depth_box_1 = oasysgui.widgetBox(depth_box, "", addSpace=False, orientation="vertical")
 
-        self.le_source_depth_y = oasysgui.lineEdit(self.depth_box_1, self, "source_depth_y", "Source Depth (Y)", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_source_depth_y = oasysgui.lineEdit(self.depth_box_1, self, "source_depth_y", "Source Depth (Y)", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.depth_box_2 = oasysgui.widgetBox(depth_box, "", addSpace=False, orientation="vertical")
 
-        self.le_sigma_y = oasysgui.lineEdit(self.depth_box_2, self, "sigma_y", "Sigma Y", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_sigma_y = oasysgui.lineEdit(self.depth_box_2, self, "sigma_y", "Sigma Y", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.set_Depth()
 
@@ -265,12 +269,12 @@ class GeometricalSource(ow_source.Source):
 
         energy_wavelength_box = oasysgui.widgetBox(left_box_3, "Energy/Wavelength", addSpace=True, orientation="vertical", height=420)
 
-        gui.comboBox(energy_wavelength_box, self, "photon_energy_distribution", label="Photon Energy Distribution", labelWidth=300,
+        gui.comboBox(energy_wavelength_box, self, "photon_energy_distribution", label="Photon Energy Distribution", labelWidth=260,
                      items=["Single Line", "Several Lines", "Uniform", "Relative Intensities", "Gaussian", "User Defined"], orientation="horizontal", callback=self.set_PhotonEnergyDistribution)
 
         gui.separator(energy_wavelength_box)
 
-        gui.comboBox(energy_wavelength_box, self, "units", label="Units", labelWidth=300,
+        gui.comboBox(energy_wavelength_box, self, "units", label="Units", labelWidth=260,
                      items=["Energy/eV", "Wavelength/Å"], orientation="horizontal", callback=self.set_PhotonEnergyDistribution)
 
         gui.separator(energy_wavelength_box)
@@ -286,7 +290,7 @@ class GeometricalSource(ow_source.Source):
 
         self.ewp_box_1 = oasysgui.widgetBox(self.container_left, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.ewp_box_1, self, "single_line_value", "Value", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_1, self, "single_line_value", "Value", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.ewp_box_2 = oasysgui.widgetBox(self.container_left, "Values", addSpace=True, orientation="vertical")
 
@@ -303,8 +307,8 @@ class GeometricalSource(ow_source.Source):
 
         self.ewp_box_3 = oasysgui.widgetBox(self.container_left, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.ewp_box_3, self, "uniform_minimum", "Minimum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.ewp_box_3, self, "uniform_maximum", "Maximum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_3, self, "uniform_minimum", "Minimum Energy/Wavelength", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_3, self, "uniform_maximum", "Maximum Energy/Wavelength", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.ewp_box_4 = oasysgui.widgetBox(self.container_right, "Relative Intensities", addSpace=True, orientation="vertical")
         
@@ -322,13 +326,13 @@ class GeometricalSource(ow_source.Source):
 
         self.ewp_box_6 = oasysgui.widgetBox(energy_wavelength_box, "Gaussian", addSpace=True, orientation="vertical")
 
-        oasysgui.lineEdit(self.ewp_box_6, self, "gaussian_central_value", "Central Value", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.ewp_box_6, self, "gaussian_sigma", "Sigma", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_6, self, "gaussian_central_value", "Central Value", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_6, self, "gaussian_sigma", "Sigma", labelWidth=260, valueType=float, orientation="horizontal")
 
         gui.separator(self.ewp_box_6)
 
-        oasysgui.lineEdit(self.ewp_box_6, self, "gaussian_minimum", "Minimum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.ewp_box_6, self, "gaussian_maximum", "Maximum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_6, self, "gaussian_minimum", "Minimum Energy/Wavelength", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_6, self, "gaussian_maximum", "Maximum Energy/Wavelength", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.ewp_box_7 = oasysgui.widgetBox(energy_wavelength_box, "User Defined", addSpace=True, orientation="vertical")
 
@@ -342,8 +346,8 @@ class GeometricalSource(ow_source.Source):
 
         gui.separator(self.ewp_box_7)
 
-        oasysgui.lineEdit(self.ewp_box_7, self, "user_defined_minimum", "Minimum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.ewp_box_7, self, "user_defined_maximum", "Maximum Energy/Wavelength", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_7, self, "user_defined_minimum", "Minimum Energy/Wavelength", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_7, self, "user_defined_maximum", "Maximum Energy/Wavelength", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.set_PhotonEnergyDistribution()
 
@@ -364,25 +368,24 @@ class GeometricalSource(ow_source.Source):
 
         ##############################
 
-        left_box_4 = oasysgui.widgetBox(self.controlArea, "Reject Rays", addSpace=True, orientation="vertical")
-        left_box_4.setFixedHeight(110)
+        left_box_4 = oasysgui.widgetBox(tab_basic, "Reject Rays", addSpace=True, orientation="vertical", height=120)
 
-        gui.comboBox(left_box_4, self, "optimize_source", label="Optimize Source", items=["No", "Using file with phase/space volume)", "Using file with slit/acceptance"], labelWidth=200,
-                     callback=self.set_OptimizeSource, orientation="horizontal")
+        gui.comboBox(left_box_4, self, "optimize_source", label="Optimize Source", items=["No", "Using file with phase/space volume)", "Using file with slit/acceptance"],
+                     labelWidth=120, callback=self.set_OptimizeSource, orientation="horizontal")
         self.optimize_file_name_box = oasysgui.widgetBox(left_box_4, "", addSpace=False, orientation="vertical")
 
         file_box = oasysgui.widgetBox(self.optimize_file_name_box, "", addSpace=True, orientation="horizontal", height=25)
 
-        self.le_optimize_file_name = oasysgui.lineEdit(file_box, self, "optimize_file_name", "File Name", labelWidth=150,  valueType=str, orientation="horizontal")
+        self.le_optimize_file_name = oasysgui.lineEdit(file_box, self, "optimize_file_name", "File Name", labelWidth=100,  valueType=str, orientation="horizontal")
 
         pushButton = gui.button(file_box, self, "...")
         pushButton.clicked.connect(self.selectOptimizeFile)
 
-        oasysgui.lineEdit(self.optimize_file_name_box, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=300,  valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.optimize_file_name_box, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=280,  valueType=int, orientation="horizontal")
 
         self.set_OptimizeSource()
 
-        adv_other_box = oasysgui.widgetBox(self.controlArea, "Optional file output", addSpace=False, orientation="vertical")
+        adv_other_box = oasysgui.widgetBox(tab_basic, "Optional file output", addSpace=False, orientation="vertical")
 
         gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=200,
                      items=["None", "Debug (start.xx/end.xx)"],
