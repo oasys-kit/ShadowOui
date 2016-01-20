@@ -30,7 +30,11 @@ class Pin(widget.OWWidget):
 
     def __init__(self):
 
-         gui.label(self.controlArea, self, "SIMPLE PASSAGE POINT", orientation="horizontal")
+         self.setFixedWidth(300)
+         self.setFixedHeight(100)
+
+         gui.separator(self.controlArea, height=20)
+         gui.label(self.controlArea, self, "         SIMPLE PASSAGE POINT", orientation="horizontal")
          gui.rubber(self.controlArea)
 
     def passTrigger(self, trigger):

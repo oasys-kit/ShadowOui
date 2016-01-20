@@ -58,6 +58,20 @@ class AccumulatingLoopPoint(AutomaticElement):
         self.setFixedWidth(570)
         self.setFixedHeight(430)
 
+        button_box = gui.widgetBox(self.controlArea, "", addSpace=True, orientation="horizontal")
+
+        self.start_button = gui.button(button_box, self, "Send Beam", callback=self.sendSignal)
+        self.start_button.setFixedHeight(45)
+
+        button = gui.button(button_box, self, "Reset Accumulation", callback=self.callResetSettings)
+        font = QFont(button.font())
+        font.setItalic(True)
+        button.setFont(font)
+        palette = QPalette(button.palette())  # make a copy of the palette
+        palette.setColor(QPalette.ButtonText, QColor('Dark Red'))
+        button.setPalette(palette)  # assign new palette
+        button.setFixedHeight(45)
+
         left_box_1 = oasysgui.widgetBox(self.controlArea, "Accumulating Loop Management", addSpace=True, orientation="vertical", height=280)
 
         gui.comboBox(left_box_1, self, "kind_of_accumulation", label="Accumulated Quantity", labelWidth=350,
@@ -114,19 +128,6 @@ class AccumulatingLoopPoint(AutomaticElement):
         palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
         le.setPalette(palette)
 
-        button_box = gui.widgetBox(self.controlArea, "", addSpace=True, orientation="horizontal")
-
-        self.start_button = gui.button(button_box, self, "Send Beam", callback=self.sendSignal)
-        self.start_button.setFixedHeight(45)
-
-        button = gui.button(button_box, self, "Reset Accumulation", callback=self.callResetSettings)
-        font = QFont(button.font())
-        font.setItalic(True)
-        button.setFont(font)
-        palette = QPalette(button.palette())  # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Red'))
-        button.setPalette(palette)  # assign new palette
-        button.setFixedHeight(45)
 
         gui.rubber(self.controlArea)
 

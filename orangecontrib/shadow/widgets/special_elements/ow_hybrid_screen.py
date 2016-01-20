@@ -59,84 +59,16 @@ class HybridScreen(AutomaticElement):
 
     input_beam = None
 
-    IMAGE_WIDTH = 1100
+    TABS_AREA_HEIGHT = 560
+    CONTROL_AREA_WIDTH = 405
+
+    IMAGE_WIDTH = 860
     IMAGE_HEIGHT = 545
 
     def __init__(self):
         super().__init__()
 
-        self.tabs = oasysgui.tabWidget(self.mainArea, height=700)
-
-        tabs_setting = oasysgui.tabWidget(self.controlArea)
-
-        tab_bas = oasysgui.createTabPage(tabs_setting, "Hybrid Setting")
-
-        box_1 = oasysgui.widgetBox(tab_bas, "Calculation Parameters", addSpace=True, orientation="vertical", height=350)
-
-        gui.comboBox(box_1, self, "ghy_diff_plane", label="Diffraction Plane", labelWidth=350,
-                     items=["X", "Z"],
-                     callback=self.set_DiffPlane,
-                     sendSelectedValue=False, orientation="horizontal")
-
-        gui.comboBox(box_1, self, "ghy_calcType", label="Calculation Type", labelWidth=200,
-                     items=["Simple Aperture", "Focusing Optical Element", "Focusing Optical Element with Slope Errors"],
-                     callback=self.set_CalculationType,
-                     sendSelectedValue=False, orientation="horizontal")
-
-        gui.separator(box_1, 10)
-
-        self.cb_focal_length_calc = gui.comboBox(box_1, self, "focal_length_calc", label="Focal Length", labelWidth=200,
-                     items=["Use O.E. Focal Distance (SIMAG)", "Specify Value"],
-                     callback=self.set_FocalLengthCalc,
-                     sendSelectedValue=False, orientation="horizontal")
-
-        self.le_focal_length = oasysgui.lineEdit(box_1, self, "ghy_focallength", "Focal Length Value", labelWidth=200, valueType=float, orientation="horizontal")
-
-        self.cb_distance_to_image_calc = gui.comboBox(box_1, self, "distance_to_image_calc", label="Distance to image", labelWidth=200,
-                     items=["Use O.E. Image Plane Distance (T_IMAGE)", "Specify Value"],
-                     callback=self.set_DistanceToImageCalc,
-                     sendSelectedValue=False, orientation="horizontal")
-
-        self.le_distance_to_image = oasysgui.lineEdit(box_1, self, "ghy_distance", "Distance to image value", labelWidth=200, valueType=float, orientation="horizontal")
-
-
-        self.cb_usemirrorfile = gui.comboBox(box_1, self, "ghy_usemirrorfile", label="Mirror figure Error", labelWidth=200,
-                                             items=["Embedded in Shadow OE", "From External File"],
-                                             callback=self.set_MirrorFile,
-                                             sendSelectedValue=False, orientation="horizontal")
-
-
-        self.select_file_box = oasysgui.widgetBox(box_1, "", addSpace=True, orientation="horizontal")
-
-
-        self.le_mirrorfile = oasysgui.lineEdit(self.select_file_box, self, "ghy_mirrorfile", "Mirror Figure Error File", labelWidth=200, valueType=str, orientation="horizontal")
-
-
-        pushButton = gui.button(self.select_file_box, self, "...")
-        pushButton.clicked.connect(self.selectFile)
-
-        self.cb_profile_dimension = gui.comboBox(box_1, self, "ghy_profile_dimension", label="Profile Dimension", labelWidth=350,
-                                                 items=["1D", "2D"],
-                                                 sendSelectedValue=False, orientation="horizontal")
-
-        gui.separator(box_1)
-
-        self.cb_nf = gui.comboBox(box_1, self, "ghy_nf", label="Near Field Calculation", labelWidth=350,
-                                             items=["No", "Yes"],
-                                             callback=self.set_MirrorFile,
-                                             sendSelectedValue=False, orientation="horizontal")
-
-
-        box_2 = oasysgui.widgetBox(tab_bas, "Numerical Control Parameters", addSpace=True, orientation="vertical", height=150)
-
-        self.le_nbins_x = oasysgui.lineEdit(box_2, self, "ghy_nbins_x", "Number of bins for I(X) histogram", labelWidth=250, valueType=float, orientation="horizontal")
-        self.le_nbins_z = oasysgui.lineEdit(box_2, self, "ghy_nbins_z", "Number of bins for I(Z) histogram", labelWidth=250, valueType=float, orientation="horizontal")
-        self.le_npeak   = oasysgui.lineEdit(box_2, self, "ghy_npeak", "Number of diffraction peaks", labelWidth=250, valueType=float, orientation="horizontal")
-        self.le_fftnpts = oasysgui.lineEdit(box_2, self, "ghy_fftnpts", "Number of points for FFT", labelWidth=250, valueType=float, orientation="horizontal")
-
-        self.set_DiffPlane()
-        self.set_DistanceToImageCalc()
-        self.set_CalculationType()
+        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
         button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
@@ -149,14 +81,94 @@ class HybridScreen(AutomaticElement):
         button.setPalette(palette) # assign new palette
         button.setFixedHeight(45)
 
+        main_tabs = gui.tabWidget(self.mainArea)
+        plot_tab = gui.createTabPage(main_tabs, "Plots")
+        out_tab = gui.createTabPage(main_tabs, "Output")
+
+        self.tabs = oasysgui.tabWidget(plot_tab)
+
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+
+        tab_bas = oasysgui.createTabPage(tabs_setting, "Hybrid Setting")
+
+        box_1 = oasysgui.widgetBox(tab_bas, "Calculation Parameters", addSpace=True, orientation="vertical", height=350)
+
+        gui.comboBox(box_1, self, "ghy_diff_plane", label="Diffraction Plane", labelWidth=310,
+                     items=["X", "Z"],
+                     callback=self.set_DiffPlane,
+                     sendSelectedValue=False, orientation="horizontal")
+
+        gui.comboBox(box_1, self, "ghy_calcType", label="Calculation Type", labelWidth=100,
+                     items=["Simple Aperture", "Focusing Optical Element", "Focusing Optical Element + Slope Errors"],
+                     callback=self.set_CalculationType,
+                     sendSelectedValue=False, orientation="horizontal")
+
+        gui.separator(box_1, 10)
+
+        self.cb_focal_length_calc = gui.comboBox(box_1, self, "focal_length_calc", label="Focal Length", labelWidth=180,
+                     items=["Use O.E. Focal Distance", "Specify Value"],
+                     callback=self.set_FocalLengthCalc,
+                     sendSelectedValue=False, orientation="horizontal")
+
+        self.le_focal_length = oasysgui.lineEdit(box_1, self, "ghy_focallength", "Focal Length Value", labelWidth=260, valueType=float, orientation="horizontal")
+
+        self.cb_distance_to_image_calc = gui.comboBox(box_1, self, "distance_to_image_calc", label="Distance to image", labelWidth=180,
+                     items=["Use O.E. Image Plane Distance", "Specify Value"],
+                     callback=self.set_DistanceToImageCalc,
+                     sendSelectedValue=False, orientation="horizontal")
+
+        self.le_distance_to_image = oasysgui.lineEdit(box_1, self, "ghy_distance", "Distance to image value", labelWidth=260, valueType=float, orientation="horizontal")
+
+
+        self.cb_usemirrorfile = gui.comboBox(box_1, self, "ghy_usemirrorfile", label="Mirror figure Error", labelWidth=180,
+                                             items=["Embedded in Shadow OE", "From External File"],
+                                             callback=self.set_MirrorFile,
+                                             sendSelectedValue=False, orientation="horizontal")
+
+
+        self.select_file_box = oasysgui.widgetBox(box_1, "", addSpace=True, orientation="horizontal")
+
+
+        self.le_mirrorfile = oasysgui.lineEdit(self.select_file_box, self, "ghy_mirrorfile", "Mirror Figure Error File", labelWidth=150, valueType=str, orientation="horizontal")
+
+
+        pushButton = gui.button(self.select_file_box, self, "...")
+        pushButton.clicked.connect(self.selectFile)
+
+        self.cb_profile_dimension = gui.comboBox(box_1, self, "ghy_profile_dimension", label="Profile Dimension", labelWidth=310,
+                                                 items=["1D", "2D"],
+                                                 sendSelectedValue=False, orientation="horizontal")
+
+        gui.separator(box_1)
+
+        self.cb_nf = gui.comboBox(box_1, self, "ghy_nf", label="Near Field Calculation", labelWidth=310,
+                                             items=["No", "Yes"],
+                                             callback=self.set_MirrorFile,
+                                             sendSelectedValue=False, orientation="horizontal")
+
+
+        box_2 = oasysgui.widgetBox(tab_bas, "Numerical Control Parameters", addSpace=True, orientation="vertical", height=150)
+
+        self.le_nbins_x = oasysgui.lineEdit(box_2, self, "ghy_nbins_x", "Number of bins for I(X) histogram", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_nbins_z = oasysgui.lineEdit(box_2, self, "ghy_nbins_z", "Number of bins for I(Z) histogram", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_npeak   = oasysgui.lineEdit(box_2, self, "ghy_npeak", "Number of diffraction peaks", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_fftnpts = oasysgui.lineEdit(box_2, self, "ghy_fftnpts", "Number of points for FFT", labelWidth=260, valueType=float, orientation="horizontal")
+
+        self.set_DiffPlane()
+        self.set_DistanceToImageCalc()
+        self.set_CalculationType()
+
+
         self.shadow_output = QtGui.QTextEdit()
         self.shadow_output.setReadOnly(True)
 
-        out_box = gui.widgetBox(self.mainArea, "System Output", addSpace=True, orientation="horizontal")
+        out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)
 
-        self.shadow_output.setFixedHeight(100)
-        self.shadow_output.setFixedWidth(850)
+        self.shadow_output.setFixedHeight(600)
+        self.shadow_output.setFixedWidth(600)
 
     def after_change_workspace_units(self):
         label = self.le_focal_length.parent().layout().itemAt(0).widget()

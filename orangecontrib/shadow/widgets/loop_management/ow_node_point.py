@@ -38,21 +38,7 @@ class LoopPoint(widget.OWWidget):
 
     def __init__(self):
         self.setFixedWidth(400)
-        self.setFixedHeight(220)
-
-        left_box_1 = oasysgui.widgetBox(self.controlArea, "Loop Management", addSpace=True, orientation="vertical", width=370, height=100)
-
-        oasysgui.lineEdit(left_box_1, self, "number_of_new_beams", "Number of new Beams", labelWidth=250, valueType=int, orientation="horizontal")
-
-        self.le_current_new_beam = oasysgui.lineEdit(left_box_1, self, "current_new_beam", "Current New Beam", labelWidth=250, valueType=int, orientation="horizontal")
-        self.le_current_new_beam.setReadOnly(True)
-        font = QtGui.QFont(self.le_current_new_beam.font())
-        font.setBold(True)
-        self.le_current_new_beam.setFont(font)
-        palette = QtGui.QPalette(self.le_current_new_beam.palette()) # make a copy of the palette
-        palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
-        palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
-        self.le_current_new_beam.setPalette(palette)
+        self.setFixedHeight(185)
 
         button_box = gui.widgetBox(self.controlArea, "", addSpace=True, orientation="horizontal")
 
@@ -68,6 +54,21 @@ class LoopPoint(widget.OWWidget):
         palette.setColor(QtGui.QPalette.ButtonText, QtGui.QColor('red'))
         stop_button.setPalette(palette) # assign new palette
 
+        left_box_1 = oasysgui.widgetBox(self.controlArea, "Loop Management", addSpace=True, orientation="vertical", width=380, height=100)
+
+        oasysgui.lineEdit(left_box_1, self, "number_of_new_beams", "Number of new Beams", labelWidth=250, valueType=int, orientation="horizontal")
+
+        self.le_current_new_beam = oasysgui.lineEdit(left_box_1, self, "current_new_beam", "Current New Beam", labelWidth=250, valueType=int, orientation="horizontal")
+        self.le_current_new_beam.setReadOnly(True)
+        font = QtGui.QFont(self.le_current_new_beam.font())
+        font.setBold(True)
+        self.le_current_new_beam.setFont(font)
+        palette = QtGui.QPalette(self.le_current_new_beam.palette()) # make a copy of the palette
+        palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
+        palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
+        self.le_current_new_beam.setPalette(palette)
+
+
         gui.rubber(self.controlArea)
 
     def startLoop(self):
@@ -80,7 +81,7 @@ class LoopPoint(widget.OWWidget):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Interruption of the Loop?"):
             self.run_loop = False
             self.setStatusMessage("Interrupted by user")
-            self.warning("Interrupted by user")
+            #self.warning("Interrupted by user")
 
     def passTrigger(self, trigger):
         if self.run_loop:
@@ -105,7 +106,7 @@ class LoopPoint(widget.OWWidget):
             self.current_new_beam = 0
             self.start_button.setEnabled(True)
             self.send("Trigger", ShadowTriggerOut(new_beam=False))
-            self.warning()
+            #self.warning()
             self.setStatusMessage("")
             self.run_loop = True
 

@@ -33,8 +33,8 @@ class CompoundOpticalElement(ow_generic_element.GenericElement):
 
     input_beam = None
 
-    CONTROL_AREA_HEIGHT = 440
-    CONTROL_AREA_WIDTH = 500
+    TABS_AREA_HEIGHT = 560
+    CONTROL_AREA_WIDTH = 405
 
     file_to_write_out = Setting(3)
 
@@ -78,18 +78,18 @@ class CompoundOpticalElement(ow_generic_element.GenericElement):
         gui.separator(self.controlArea)
         
         self.tabs_setting = gui.tabWidget(self.controlArea)
-        self.tabs_setting.setFixedWidth(495)
+        self.tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
+        self.tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
         self.tab_bas = oasysgui.createTabPage(self.tabs_setting, "Basic Setting")
         self.tab_adv = oasysgui.createTabPage(self.tabs_setting, "Advanced Setting")
 
         adv_other_box = oasysgui.widgetBox(self.tab_adv, "Optional file output", addSpace=False, orientation="vertical")
 
-        gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=310,
+        gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=150,
                      items=["All", "Mirror", "Image", "None", "Debug (All + start.xx/end.xx)"],
                      sendSelectedValue=False, orientation="horizontal")
 
-        gui.separator(self.controlArea, height=80)
 
     def traceOpticalElement(self):
         try:

@@ -37,6 +37,9 @@ class AutomaticElement(widget.OWWidget):
                                round(min(geom.width()*0.98, self.MAX_WIDTH)),
                                round(min(geom.height()*0.95, self.MAX_HEIGHT))))
 
+        self.setMaximumHeight(self.geometry().height())
+        self.setMaximumWidth(self.geometry().width())
+
         self.general_options_box = gui.widgetBox(self.controlArea, "General Options", addSpace=True, orientation="horizontal")
 
         if show_automatic_box :

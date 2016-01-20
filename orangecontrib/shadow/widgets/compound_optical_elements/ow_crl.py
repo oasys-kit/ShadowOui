@@ -41,76 +41,67 @@ class CRL(ow_compound_optical_element.CompoundOpticalElement):
     def __init__(self):
         super().__init__()
 
-        self.tabs_setting.setFixedHeight(650)
+        crl_box = oasysgui.widgetBox(self.tab_bas, "C.R.L. Input Parameters", addSpace=False, orientation="vertical", height=100)
 
-        crl_box = oasysgui.widgetBox(self.tab_bas, "C.R.L. Input Parameters", addSpace=False, orientation="vertical", height=100, width=480)
+        oasysgui.lineEdit(crl_box, self, "nlenses", "Number of lenses", labelWidth=260, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(crl_box, self, "slots_empty", "Number of empty slots", labelWidth=260, valueType=int, orientation="horizontal")
+        self.le_thickness = oasysgui.lineEdit(crl_box, self, "thickness", "Piling thickness", labelWidth=260, valueType=float, orientation="horizontal")
 
-        oasysgui.lineEdit(crl_box, self, "nlenses", "Number of lenses", labelWidth=350, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(crl_box, self, "slots_empty", "Number of empty slots", labelWidth=350, valueType=int, orientation="horizontal")
-        self.le_thickness = oasysgui.lineEdit(crl_box, self, "thickness", "Piling thickness", labelWidth=350, valueType=float, orientation="horizontal")
+        lens_box = oasysgui.widgetBox(self.tab_bas, "Single Lens Input Parameters", addSpace=False, orientation="vertical", height=400)
 
-        lens_box = oasysgui.widgetBox(self.tab_bas, "Single Lens Input Parameters", addSpace=False, orientation="vertical", height=500, width=480)
+        self.le_p = oasysgui.lineEdit(lens_box, self, "p", "Distance Source-First lens interface (P)", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_q = oasysgui.lineEdit(lens_box, self, "q", "Distance Last lens interface-Image plane (Q)", labelWidth=260, valueType=float, orientation="horizontal")
 
-        self.le_p = oasysgui.lineEdit(lens_box, self, "p", "Distance Source-First lens interface (P)", labelWidth=350, valueType=float, orientation="horizontal")
-        self.le_q = oasysgui.lineEdit(lens_box, self, "q", "Distance Last lens interface-Image plane (Q)", labelWidth=350, valueType=float, orientation="horizontal")
-
-        gui.separator(lens_box)
-
-        gui.comboBox(lens_box, self, "has_finite_diameter", label="Lens Diameter", labelWidth=350,
+        gui.comboBox(lens_box, self, "has_finite_diameter", label="Lens Diameter", labelWidth=260,
                      items=["Finite", "Infinite"], callback=self.set_diameter, sendSelectedValue=False, orientation="horizontal")
 
         self.diameter_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
         self.diameter_box_empty = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
 
-        self.le_diameter = oasysgui.lineEdit(self.diameter_box, self, "diameter", "Lens Diameter Value", labelWidth=350, valueType=float, orientation="horizontal")
+        self.le_diameter = oasysgui.lineEdit(self.diameter_box, self, "diameter", "Lens Diameter Value", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.set_diameter()
 
-        gui.separator(lens_box)
-
-        gui.comboBox(lens_box, self, "surface_shape", label="Surface Shape", labelWidth=350,
+        gui.comboBox(lens_box, self, "surface_shape", label="Surface Shape", labelWidth=260,
                      items=["Sphere", "Paraboloid", "Plane"], callback=self.set_surface_shape, sendSelectedValue=False, orientation="horizontal")
 
         self.surface_shape_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
         self.surface_shape_box_empty = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
 
-        self.le_radius = oasysgui.lineEdit(self.surface_shape_box, self, "radius", "Curvature Radius", labelWidth=350, valueType=float, orientation="horizontal")
+        self.le_radius = oasysgui.lineEdit(self.surface_shape_box, self, "radius", "Curvature Radius", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.set_surface_shape()
 
-        self.le_interthickness = oasysgui.lineEdit(lens_box, self, "interthickness", "Lens Thickness", labelWidth=350, valueType=float, orientation="horizontal")
+        self.le_interthickness = oasysgui.lineEdit(lens_box, self, "interthickness", "Lens Thickness", labelWidth=260, valueType=float, orientation="horizontal")
 
-        gui.comboBox(lens_box, self, "use_ccc", label="Use C.C.C.", labelWidth=350,
+        gui.comboBox(lens_box, self, "use_ccc", label="Use C.C.C.", labelWidth=310,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
         gui.comboBox(lens_box, self, "convex_to_the_beam", label="Convexity of the first interface exposed to the beam\n(the second interface has opposite convexity)",
-                     labelWidth=350,
+                     labelWidth=310,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
 
-        gui.separator(lens_box)
 
-        gui.comboBox(lens_box, self, "is_cylinder", label="Cylindrical", labelWidth=350,
+        gui.comboBox(lens_box, self, "is_cylinder", label="Cylindrical", labelWidth=310,
                      items=["No", "Yes"], callback=self.set_cylindrical, sendSelectedValue=False, orientation="horizontal")
 
-        self.box_cyl = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=25)
-        self.box_cyl_empty = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=25)
+        self.box_cyl = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical")
+        self.box_cyl_empty = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
 
-        gui.comboBox(self.box_cyl, self, "cylinder_angle", label="Cylinder Angle (deg)", labelWidth=350,
+        gui.comboBox(self.box_cyl, self, "cylinder_angle", label="Cylinder Angle (deg)", labelWidth=260,
                      items=["0 (Meridional)", "90 (Sagittal)"], sendSelectedValue=False, orientation="horizontal")
 
         self.set_cylindrical()
 
-        gui.separator(lens_box)
-
-        gui.comboBox(lens_box, self, "ri_calculation_mode", label="Refraction Index calculation mode", labelWidth=350,
+        gui.comboBox(lens_box, self, "ri_calculation_mode", label="Refraction Index calculation mode", labelWidth=260,
                      items=["User Parameters", "Prerefl File"], callback=self.set_ri_calculation_mode, sendSelectedValue=False, orientation="horizontal")
 
-        self.calculation_mode_1 = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=50)
-        oasysgui.lineEdit(self.calculation_mode_1, self, "refraction_index", "Refraction index", labelWidth=350, valueType=float, orientation="horizontal")
-        self.le_attenuation_coefficient = oasysgui.lineEdit(self.calculation_mode_1, self, "attenuation_coefficient", "Attenuation coefficient", labelWidth=350, valueType=float, orientation="horizontal")
+        self.calculation_mode_1 = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical")
+        oasysgui.lineEdit(self.calculation_mode_1, self, "refraction_index", "Refraction index", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_attenuation_coefficient = oasysgui.lineEdit(self.calculation_mode_1, self, "attenuation_coefficient", "Attenuation coefficient", labelWidth=260, valueType=float, orientation="horizontal")
 
-        self.calculation_mode_2 = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=50)
+        self.calculation_mode_2 = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical")
 
         file_box = oasysgui.widgetBox(self.calculation_mode_2, "", addSpace=True, orientation="horizontal", height=25)
 
