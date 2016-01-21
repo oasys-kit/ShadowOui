@@ -56,24 +56,24 @@ class CompoundOpticalElement(ow_generic_element.GenericElement):
 
         button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 
-        button = gui.button(button_box, self, "Run Shadow/Trace", callback=self.traceOpticalElement)
-        font = QFont(button.font())
+        self.button_trace = gui.button(button_box, self, "Run Shadow/Trace", callback=self.traceOpticalElement)
+        font = QFont(self.button_trace.font())
         font.setBold(True)
-        button.setFont(font)
-        palette = QPalette(button.palette()) # make a copy of the palette
+        self.button_trace.setFont(font)
+        palette = QPalette(self.button_trace.palette()) # make a copy of the palette
         palette.setColor(QPalette.ButtonText, QColor('Dark Blue'))
-        button.setPalette(palette) # assign new palette
-        button.setFixedHeight(45)
+        self.button_trace.setPalette(palette) # assign new palette
+        self.button_trace.setFixedHeight(45)
 
-        button = gui.button(button_box, self, "Reset Fields", callback=self.callResetSettings)
-        font = QFont(button.font())
+        self.button_reset = gui.button(button_box, self, "Reset Fields", callback=self.callResetSettings)
+        font = QFont(self.button_reset.font())
         font.setItalic(True)
-        button.setFont(font)
-        palette = QPalette(button.palette()) # make a copy of the palette
+        self.button_reset.setFont(font)
+        palette = QPalette(self.button_reset.palette()) # make a copy of the palette
         palette.setColor(QPalette.ButtonText, QColor('Dark Red'))
-        button.setPalette(palette) # assign new palette
-        button.setFixedHeight(45)
-        button.setFixedWidth(150)
+        self.button_reset.setPalette(palette) # assign new palette
+        self.button_reset.setFixedHeight(45)
+        self.button_reset.setFixedWidth(150)
 
         gui.separator(self.controlArea)
         

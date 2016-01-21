@@ -133,7 +133,8 @@ class Info(widget.OWWidget):
 
                 self.input_beam = beam
 
-                optical_element_list = []
+                optical_element_list_start = []
+                optical_element_list_end = []
 
                 self.sysInfo.setText("")
                 self.mirInfo.setText("")
@@ -143,9 +144,15 @@ class Info(widget.OWWidget):
 
                 for history_element in self.input_beam.getOEHistory():
                     if not history_element._shadow_source_start is None:
-                        optical_element_list.append(history_element._shadow_source_start.src)
+                        optical_element_list_start.append(history_element._shadow_source_start.src)
                     elif not history_element._shadow_oe_start is None:
-                        optical_element_list.append(history_element._shadow_oe_start._oe)
+                        optical_element_list_start.append(history_element._shadow_oe_start._oe)
+
+                    if not history_element._shadow_source_end is None:
+                        optical_element_list_end.append(history_element._shadow_source_end.src)
+                    elif not history_element._shadow_oe_end is None:
+                        optical_element_list_end.append(history_element._shadow_oe_end._oe)
+
 
                     if not history_element._shadow_source_end is None:
                         try:
@@ -161,29 +168,28 @@ class Info(widget.OWWidget):
                         except:
                             self.sourceInfo.append("Problem in calculating Mir Info for O.E. #:" + str(history_element._oe_number) + "\n" + str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]))
 
-                coe = ShadowCompoundOpticalElement.create_compound_oe()
-                for oe in optical_element_list:
-                    coe._oe.append(oe)
+                coe_end = ShadowCompoundOpticalElement.create_compound_oe()
+                for oe in optical_element_list_end:
+                    coe_end._oe.append(oe)
 
                 try:
-                    self.sysInfo.setText(coe._oe.sysinfo())
+                    self.sysInfo.setText(coe_end._oe.sysinfo())
                 except:
                     self.distancesSummary.setText("Problem in calculating SysInfo:\n" + str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]))
 
                 try:
-                    self.distancesSummary.setText(coe._oe.info())
+                    self.distancesSummary.setText(coe_end._oe.info())
                 except:
                     self.distancesSummary.setText("Problem in calculating Distance Summary:\n" + str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]))
 
                 try:
-                    self.pythonScript.setText(ST.make_python_script_from_list(optical_element_list))
+                    self.pythonScript.setText(ST.make_python_script_from_list(optical_element_list_start))
                 except:
                     self.pythonScript.setText("Problem in writing python script:\n" + str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]))
             else:
                 QtGui.QMessageBox.critical(self, "Error",
                                            "Data not displayable: No good rays or bad content",
                                            QtGui.QMessageBox.Ok)
-
 
     def writeStdOut(self, text):
         cursor = self.shadow_output.textCursor()

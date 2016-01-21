@@ -1,7 +1,7 @@
 import copy
 
 from PyQt4 import QtGui
-from PyQt4.QtCore import Qt
+from PyQt4.QtCore import Qt, QRect
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -47,17 +47,18 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
     def __init__(self):
         super().__init__()
 
-        self.tabs_setting.setFixedHeight(750)
+        self.button_trace.setFixedHeight(25)
+        self.button_reset.setFixedHeight(25)
+        self.tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT + 20)
 
         tabs_button_box = oasysgui.widgetBox(self.tab_bas, "", addSpace=False, orientation="horizontal")
 
-        gui.separator(tabs_button_box)
+        btns = [gui.button(tabs_button_box, self, "Insert C.R.L. Before", callback=self.crl_insert_before),
+                gui.button(tabs_button_box, self, "Insert C.R.L. After", callback=self.crl_insert_after),
+                gui.button(tabs_button_box, self, "Remove C.R.L.", callback=self.crl_remove)]
 
-        gui.button(tabs_button_box, self, "Insert C.R.L. Before", callback=self.crl_insert_before)
-        gui.button(tabs_button_box, self, "Insert C.R.L. After", callback=self.crl_insert_after)
-        gui.button(tabs_button_box, self, "Remove C.R.L.", callback=self.crl_remove)
-
-        gui.separator(tabs_button_box)
+        for btn in btns:
+            btn.setFixedHeight(20)
 
         self.tab_crls = gui.tabWidget(self.tab_bas)
         self.crl_box_array = []
@@ -612,87 +613,79 @@ class CRLBox(QtGui.QWidget):
         self.interthickness = interthickness
         self.use_ccc = use_ccc
 
-        crl_box = oasysgui.widgetBox(self, "C.R.L. Input Parameters", addSpace=False, orientation="vertical", height=100, width=460)
+        crl_box = oasysgui.widgetBox(self, "C.R.L. Input Parameters", addSpace=False, orientation="vertical", height=100, width=self.transfocator.CONTROL_AREA_WIDTH-40)
 
-        oasysgui.lineEdit(crl_box, self, "nlenses", "Number of lenses", labelWidth=350, valueType=int, orientation="horizontal", callback=self.transfocator.dump_nlenses)
-        oasysgui.lineEdit(crl_box, self, "slots_empty", "Number of empty slots", labelWidth=350, valueType=int, orientation="horizontal",
+        oasysgui.lineEdit(crl_box, self, "nlenses", "Number of lenses", labelWidth=260, valueType=int, orientation="horizontal", callback=self.transfocator.dump_nlenses)
+        oasysgui.lineEdit(crl_box, self, "slots_empty", "Number of empty slots", labelWidth=260, valueType=int, orientation="horizontal",
                            callback=self.transfocator.dump_slots_empty)
-        self.le_thickness = oasysgui.lineEdit(crl_box, self, "thickness", "Piling thickness", labelWidth=350, valueType=float, orientation="horizontal", callback=self.transfocator.dump_thickness)
+        self.le_thickness = oasysgui.lineEdit(crl_box, self, "thickness", "Piling thickness", labelWidth=260, valueType=float, orientation="horizontal", callback=self.transfocator.dump_thickness)
 
-        lens_box = oasysgui.widgetBox(self, "Single Lens Input Parameters", addSpace=False, orientation="vertical", height=510, width=460)
+        lens_box = oasysgui.widgetBox(self, "Single Lens Input Parameters", addSpace=False, orientation="vertical", height=360, width=self.transfocator.CONTROL_AREA_WIDTH-40)
 
-        self.le_p = oasysgui.lineEdit(lens_box, self, "p", "Distance Source-First lens interface (P)", labelWidth=350, valueType=float, orientation="horizontal",
+        self.le_p = oasysgui.lineEdit(lens_box, self, "p", "Distance Source-First lens interface (P)", labelWidth=260, valueType=float, orientation="horizontal",
                            callback=self.transfocator.dump_p)
-        self.le_q = oasysgui.lineEdit(lens_box, self, "q", "Distance Last lens interface-Image plane (Q)", labelWidth=350, valueType=float, orientation="horizontal",
+        self.le_q = oasysgui.lineEdit(lens_box, self, "q", "Distance Last lens interface-Image plane (Q)", labelWidth=260, valueType=float, orientation="horizontal",
                            callback=self.transfocator.dump_q)
 
-        gui.separator(lens_box)
-
-        gui.comboBox(lens_box, self, "has_finite_diameter", label="Lens Diameter", labelWidth=350,
+        gui.comboBox(lens_box, self, "has_finite_diameter", label="Lens Diameter", labelWidth=260,
                      items=["Finite", "Infinite"], sendSelectedValue=False, orientation="horizontal", callback=self.set_diameter)
 
         self.diameter_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
         self.diameter_box_empty = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
 
-        self.le_diameter = oasysgui.lineEdit(self.diameter_box, self, "diameter", "Lens Diameter Value", labelWidth=350, valueType=float,
+        self.le_diameter = oasysgui.lineEdit(self.diameter_box, self, "diameter", "Lens Diameter Value", labelWidth=260, valueType=float,
                            orientation="horizontal", callback=self.transfocator.dump_diameter)
 
         self.set_diameter()
 
-        gui.separator(lens_box)
-
-        gui.comboBox(lens_box, self, "surface_shape", label="Surface Shape", labelWidth=350,
+        gui.comboBox(lens_box, self, "surface_shape", label="Surface Shape", labelWidth=260,
                      items=["Sphere", "Paraboloid", "Plane"], sendSelectedValue=False, orientation="horizontal", callback=self.set_surface_shape)
 
         self.surface_shape_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
         self.surface_shape_box_empty = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
 
-        self.le_radius = oasysgui.lineEdit(self.surface_shape_box, self, "radius", "Curvature Radius", labelWidth=350, valueType=float, orientation="horizontal",
+        self.le_radius = oasysgui.lineEdit(self.surface_shape_box, self, "radius", "Curvature Radius", labelWidth=260, valueType=float, orientation="horizontal",
                            callback=self.transfocator.dump_radius)
 
         self.set_surface_shape()
 
-        self.le_interthickness = oasysgui.lineEdit(lens_box, self, "interthickness", "Lens Thickness", labelWidth=350, valueType=float, orientation="horizontal",
+        self.le_interthickness = oasysgui.lineEdit(lens_box, self, "interthickness", "Lens Thickness", labelWidth=260, valueType=float, orientation="horizontal",
                            callback=self.transfocator.dump_interthickness)
 
-        gui.comboBox(lens_box, self, "use_ccc", label="Use C.C.C.", labelWidth=350,
+        gui.comboBox(lens_box, self, "use_ccc", label="Use C.C.C.", labelWidth=310,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.transfocator.dump_use_ccc)
 
         gui.comboBox(lens_box, self, "convex_to_the_beam", label="Convexity of the first interface exposed to the beam\n(the second interface has opposite convexity)",
-                            labelWidth=350,
+                            labelWidth=310,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.transfocator.dump_convex_to_the_beam)
 
-        gui.separator(lens_box)
-
-        gui.comboBox(lens_box, self, "is_cylinder", label="Cylindrical", labelWidth=350,
+        gui.comboBox(lens_box, self, "is_cylinder", label="Cylindrical", labelWidth=310,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.set_cylindrical)
 
-        self.box_cyl = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=25)
-        self.box_cyl_empty = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=25)
+        self.box_cyl = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical")
+        self.box_cyl_empty = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
 
-        gui.comboBox(self.box_cyl, self, "cylinder_angle", label="Cylinder Angle (deg)", labelWidth=350,
+        gui.comboBox(self.box_cyl, self, "cylinder_angle", label="Cylinder Angle (deg)", labelWidth=260,
                      items=["0 (Meridional)", "90 (Sagittal)"], sendSelectedValue=False, orientation="horizontal", callback=self.transfocator.dump_cylinder_angle)
 
         self.set_cylindrical()
 
-        gui.separator(lens_box)
-
         self.ri_calculation_mode_combo = gui.comboBox(lens_box, self, "ri_calculation_mode",
-                                                      label="Refraction Index calculation mode", labelWidth=350,
+                                                      label="Refraction Index calculation mode", labelWidth=260,
                                                       items=["User Parameters", "Prerefl File"],
                                                       sendSelectedValue=False, orientation="horizontal",
                                                       callback=self.set_ri_calculation_mode)
 
-        self.calculation_mode_1 = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=50)
+        self.calculation_mode_1 = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.calculation_mode_1, self, "refraction_index", "Refraction index", labelWidth=350, valueType=float, orientation="horizontal",
+        oasysgui.lineEdit(self.calculation_mode_1, self, "refraction_index", "Refraction index", labelWidth=260, valueType=float, orientation="horizontal",
                            callback=self.transfocator.dump_refraction_index)
-        self.le_attenuation_coefficient = oasysgui.lineEdit(self.calculation_mode_1, self, "attenuation_coefficient", "Attenuation coefficient", labelWidth=350, valueType=float,
+        self.le_attenuation_coefficient = oasysgui.lineEdit(self.calculation_mode_1, self, "attenuation_coefficient", "Attenuation coefficient", labelWidth=260, valueType=float,
                            orientation="horizontal", callback=self.transfocator.dump_attenuation_coefficient)
 
-        self.calculation_mode_2 = oasysgui.widgetBox(lens_box, "", addSpace=True, orientation="vertical", height=50)
+        self.calculation_mode_2 = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical")
 
-        file_box = oasysgui.widgetBox(self.calculation_mode_2, "", addSpace=True, orientation="horizontal", height=25)
+        file_box = oasysgui.widgetBox(self.calculation_mode_2, "", addSpace=False, orientation="horizontal", height=25)
 
         self.le_prerefl_file = oasysgui.lineEdit(file_box, self, "prerefl_file", "File Prerefl", labelWidth=100, valueType=str, orientation="horizontal",
                                                   callback=self.transfocator.dump_prerefl_file)

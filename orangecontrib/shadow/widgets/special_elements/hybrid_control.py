@@ -453,6 +453,9 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
 
     calculation_parameters.gwavelength = numpy.average(calculation_parameters.wwavelength)
 
+    if input_parameters.ghy_lengthunit == 0:
+        um = "m"
+        calculation_parameters.gwavelength *= 1e-10
     if input_parameters.ghy_lengthunit == 1:
         um = "cm"
         calculation_parameters.gwavelength *= 1e-8

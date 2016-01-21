@@ -279,6 +279,7 @@ class HybridScreen(AutomaticElement):
                     sys.stdout = EmittingStream(textWritten=self.write_stdout)
 
                     input_parameters = hybrid_control.HybridInputParameters()
+                    input_parameters.ghy_lengthunit = self.workspace_units
                     input_parameters.widget = self
                     input_parameters.shadow_beam = self.input_beam
                     input_parameters.ghy_diff_plane = self.ghy_diff_plane + 1

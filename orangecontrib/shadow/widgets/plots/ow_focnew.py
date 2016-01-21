@@ -1,15 +1,14 @@
 import sys
 import numpy
 from PyQt4 import QtGui
-from PyQt4.QtCore import QRect
 from PyQt4.QtGui import QApplication
 from Shadow import ShadowTools as ST
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream
-from orangecontrib.shadow.util.shadow_util import ShadowCongruence
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam
+from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
 from orangecontrib.shadow.widgets.gui import ow_automatic_element
 
 from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
@@ -27,11 +26,8 @@ class FocNew(ow_automatic_element.AutomaticElement):
 
     inputs = [("Input Beam", ShadowBeam, "setBeam")]
 
-    WIDGET_WIDTH = 1360
-    WIDGET_HEIGHT = 720
-
-    IMAGE_WIDTH = 900
-    IMAGE_HEIGHT = 650
+    IMAGE_WIDTH = 860
+    IMAGE_HEIGHT = 675
 
     want_main_area=1
     want_control_area = 1
@@ -53,12 +49,6 @@ class FocNew(ow_automatic_element.AutomaticElement):
 
     def __init__(self, show_automatic_box=True):
         super().__init__()
-
-        geom = QApplication.desktop().availableGeometry()
-        self.setGeometry(QRect(round(geom.width()*0.05),
-                               round(geom.height()*0.05),
-                               round(min(geom.width()*0.98, self.WIDGET_WIDTH)),
-                               round(min(geom.height()*0.95, self.WIDGET_HEIGHT))))
 
         general_box = oasysgui.widgetBox(self.controlArea, "General Settings", addSpace=True, orientation="vertical", width=410, height=250)
 
@@ -96,9 +86,7 @@ class FocNew(ow_automatic_element.AutomaticElement):
 
         gui.button(self.controlArea, self, "Calculate", callback=self.calculate, height=45)
 
-        gen_box = gui.widgetBox(self.mainArea, "Focnew Output", addSpace=True, orientation="horizontal")
-
-        tabs_setting = gui.tabWidget(gen_box)
+        tabs_setting = gui.tabWidget(self.mainArea)
         tabs_setting.setFixedHeight(self.IMAGE_HEIGHT+5)
         tabs_setting.setFixedWidth(self.IMAGE_WIDTH)
 
@@ -137,8 +125,6 @@ class FocNew(ow_automatic_element.AutomaticElement):
     def setBeam(self, beam):
         if ShadowCongruence.checkEmptyBeam(beam):
             if ShadowCongruence.checkGoodBeam(beam):
-                #sys.stdout = EmittingStream(textWritten=self.writeStdOut)
-
                 self.input_beam = beam
 
                 if self.is_automatic_run:
@@ -202,29 +188,38 @@ class FocNew(ow_automatic_element.AutomaticElement):
                 else:
                     y = numpy.linspace(self.y_range_min, self.y_range_max, self.y_npoints)
 
-                self.plot_canvas_x.addCurve(y, 2.35*ST.focnew_scan(ticket["AX"], y), "x (tangential)", symbol='', color="blue", replace=True) #'+', '^', ','
+                pos = [0.25, 0.15, 0.7, 0.75]
+
+                self.plot_canvas_x.addCurve(y, 2.35*ST.focnew_scan(ticket["AX"]*ShadowPlot.get_factor(0, self.workspace_units_to_cm), y), "x (tangential)", symbol='', color="blue", replace=True) #'+', '^', ','
                 self.plot_canvas_x._plot.graph.ax.get_yaxis().get_major_formatter().set_useOffset(True)
                 self.plot_canvas_x._plot.graph.ax.get_yaxis().get_major_formatter().set_scientific(True)
-                self.plot_canvas_x.setGraphXLabel("Y [cm]")
-                self.plot_canvas_x.setGraphYLabel("2.35*<X> [cm]")
+                self.plot_canvas_x._plot.graph.ax.set_position(pos)
+                self.plot_canvas_x._plot.graph.ax2.set_position(pos)
+                self.plot_canvas_x.setGraphXLabel("Y [" + self.workspace_units_label + "]")
+                self.plot_canvas_x.setGraphYLabel("2.35*<X> [$\mu$m]")
                 self.plot_canvas_x._plot.graph.ax.set_title("X (Tangential)", horizontalalignment='left')
                 self.plot_canvas_x.replot()
 
-                self.plot_canvas_z.addCurve(y, 2.35*ST.focnew_scan(ticket["AZ"], y), "z (sagittal)", symbol='', color="red", replace=False) #'+', '^', ','
+                self.plot_canvas_z.addCurve(y, 2.35*ST.focnew_scan(ticket["AZ"]*ShadowPlot.get_factor(1, self.workspace_units_to_cm), y), "z (sagittal)", symbol='', color="red", replace=False) #'+', '^', ','
                 self.plot_canvas_z._plot.graph.ax.get_yaxis().get_major_formatter().set_useOffset(True)
                 self.plot_canvas_z._plot.graph.ax.get_yaxis().get_major_formatter().set_scientific(True)
-                self.plot_canvas_z.setGraphXLabel("Y [cm]")
-                self.plot_canvas_z.setGraphYLabel("2.35*<Z> [cm]")
+                self.plot_canvas_z._plot.graph.ax.set_position(pos)
+                self.plot_canvas_z._plot.graph.ax2.set_position(pos)
+                self.plot_canvas_z.setGraphXLabel("Y [" + self.workspace_units_label + "]")
+                self.plot_canvas_z.setGraphYLabel("2.35*<Z> [$\mu$m]")
                 self.plot_canvas_z._plot.graph.ax.set_title("Z (Sagittal)", horizontalalignment='left')
                 self.plot_canvas_z.replot()
 
-                self.plot_canvas_t.addCurve(y, 2.35*ST.focnew_scan(ticket["AT"], y), "combined x,z", symbol='', color="green", replace=True) #'+', '^', ','
+                self.plot_canvas_t.addCurve(y, 2.35*ST.focnew_scan(ticket["AT"]*ShadowPlot.get_factor(0, self.workspace_units_to_cm), y), "combined x,z", symbol='', color="green", replace=True) #'+', '^', ','
                 self.plot_canvas_t._plot.graph.ax.get_yaxis().get_major_formatter().set_useOffset(True)
                 self.plot_canvas_t._plot.graph.ax.get_yaxis().get_major_formatter().set_scientific(True)
-                self.plot_canvas_t.setGraphXLabel("Y [cm]")
-                self.plot_canvas_t.setGraphYLabel("2.35*<X,Z> [cm]")
+                self.plot_canvas_t._plot.graph.ax.set_position(pos)
+                self.plot_canvas_t._plot.graph.ax2.set_position(pos)
+                self.plot_canvas_t.setGraphXLabel("Y [" + self.workspace_units_label + "]")
+                self.plot_canvas_t.setGraphYLabel("2.35*<X,Z> [$\mu$m]")
                 self.plot_canvas_t._plot.graph.ax.set_title("X,Z (Combined)", horizontalalignment='left')
                 self.plot_canvas_t.replot()
+
 
     def writeStdOut(self, text):
         cursor = self.shadow_output.textCursor()

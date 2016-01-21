@@ -81,8 +81,6 @@ class CRL(ow_compound_optical_element.CompoundOpticalElement):
                      labelWidth=310,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
-
-
         gui.comboBox(lens_box, self, "is_cylinder", label="Cylindrical", labelWidth=310,
                      items=["No", "Yes"], callback=self.set_cylindrical, sendSelectedValue=False, orientation="horizontal")
 
@@ -98,6 +96,7 @@ class CRL(ow_compound_optical_element.CompoundOpticalElement):
                      items=["User Parameters", "Prerefl File"], callback=self.set_ri_calculation_mode, sendSelectedValue=False, orientation="horizontal")
 
         self.calculation_mode_1 = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical")
+
         oasysgui.lineEdit(self.calculation_mode_1, self, "refraction_index", "Refraction index", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_attenuation_coefficient = oasysgui.lineEdit(self.calculation_mode_1, self, "attenuation_coefficient", "Attenuation coefficient", labelWidth=260, valueType=float, orientation="horizontal")
 
