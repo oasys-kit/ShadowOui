@@ -28,6 +28,9 @@ class AutomaticElement(widget.OWWidget):
     MAX_WIDTH = 1320
     MAX_HEIGHT = 700
 
+    CONTROL_AREA_WIDTH = 405
+    TABS_AREA_HEIGHT = 560
+
     def __init__(self, show_automatic_box=True):
         super().__init__()
 
@@ -39,6 +42,8 @@ class AutomaticElement(widget.OWWidget):
 
         self.setMaximumHeight(self.geometry().height())
         self.setMaximumWidth(self.geometry().width())
+
+        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
         self.general_options_box = gui.widgetBox(self.controlArea, "General Options", addSpace=True, orientation="horizontal")
 

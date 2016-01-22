@@ -920,7 +920,7 @@ class ShadowPhysics:
 
         compound_name = compound_name.strip()
 
-        if compound_name == "Diamond":
+        if compound_name == "Diamond" or compound_name == "Graphite":
             return compound_name
         else:
             try:

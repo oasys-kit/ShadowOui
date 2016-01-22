@@ -52,11 +52,9 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     input_beam = None
 
     TABS_AREA_HEIGHT = 690
-    TABS_AREA_WIDTH = 442
-    CONTROL_AREA_WIDTH = 450
 
-    IMAGE_WIDTH = 920
-    IMAGE_HEIGHT = 815
+    IMAGE_WIDTH = 860
+    IMAGE_HEIGHT = 545
 
     capillary_diameter = Setting(0.3)
     capillary_thickness = Setting(0.01)
@@ -216,9 +214,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         self.readCapillaryMaterialConfigurationFiles()
         self.readMaterialConfigurationFiles()
 
-        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
-
-        tabs = oasysgui.tabWidget(self.controlArea, height=self.TABS_AREA_HEIGHT, width=self.TABS_AREA_WIDTH)
+        tabs = oasysgui.tabWidget(self.controlArea, height=self.TABS_AREA_HEIGHT)
 
         self.tab_simulation = oasysgui.createTabPage(tabs, "Simulation")
         self.tab_physical = oasysgui.createTabPage(tabs, "Experiment")

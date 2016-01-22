@@ -103,8 +103,6 @@ class OpticalElement(ow_generic_element.GenericElement):
     TWO_ROW_HEIGHT = 110
     THREE_ROW_HEIGHT = 170
 
-    TABS_AREA_HEIGHT = 560
-    CONTROL_AREA_WIDTH = 405
     INNER_BOX_WIDTH_L3=322
     INNER_BOX_WIDTH_L2=335
     INNER_BOX_WIDTH_L1=353
@@ -369,8 +367,6 @@ class OpticalElement(ow_generic_element.GenericElement):
         self.addAction(self.runaction)
 
         self.graphical_options = graphical_options
-
-        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
         button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
 

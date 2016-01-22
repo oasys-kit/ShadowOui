@@ -24,7 +24,6 @@ except:
     pass
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
-from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
 class OWheight_profile_simulator(OWWidget):
     name = "Height Profile Simulator"
@@ -45,8 +44,14 @@ class OWheight_profile_simulator(OWWidget):
     want_main_area = 1
     want_control_area = 1
 
-    WIDGET_WIDTH = 1100
-    WIDGET_HEIGHT = 650
+    MAX_WIDTH = 1320
+    MAX_HEIGHT = 700
+
+    IMAGE_WIDTH = 860
+    IMAGE_HEIGHT = 645
+
+    CONTROL_AREA_WIDTH = 405
+    TABS_AREA_HEIGHT = 618
 
     xx = None
     yy = None
@@ -104,18 +109,46 @@ class OWheight_profile_simulator(OWWidget):
         geom = QApplication.desktop().availableGeometry()
         self.setGeometry(QRect(round(geom.width() * 0.05),
                                round(geom.height() * 0.05),
-                               round(min(geom.width() * 0.98, self.WIDGET_WIDTH)),
-                               round(min(geom.height() * 0.95, self.WIDGET_HEIGHT))))
+                               round(min(geom.width() * 0.98, self.MAX_WIDTH)),
+                               round(min(geom.height() * 0.95, self.MAX_HEIGHT))))
 
-        gen_box = oasysgui.widgetBox(self.controlArea, "Height Profile Parameters", addSpace=True, orientation="horizontal",
-                                      width=500)
+        self.setMaximumHeight(self.geometry().height())
+        self.setMaximumWidth(self.geometry().width())
 
-        tabs_setting = gui.tabWidget(gen_box)
+        gui.separator(self.controlArea)
+
+        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
+
+        button = gui.button(button_box, self, "Calculate Height\nProfile", callback=self.calculate_heigth_profile)
+        button.setFixedHeight(45)
+
+        button = gui.button(button_box, self, "Generate Height\nProfile File", callback=self.generate_heigth_profile_file)
+        font = QFont(button.font())
+        font.setBold(True)
+        button.setFont(font)
+        palette = QPalette(button.palette())  # make a copy of the palette
+        palette.setColor(QPalette.ButtonText, QColor('Dark Blue'))
+        button.setPalette(palette)  # assign new palette
+        button.setFixedHeight(45)
+        button.setFixedWidth(150)
+
+        button = gui.button(button_box, self, "Reset Fields", callback=self.call_reset_settings)
+        font = QFont(button.font())
+        font.setItalic(True)
+        button.setFont(font)
+        palette = QPalette(button.palette())  # make a copy of the palette
+        palette.setColor(QPalette.ButtonText, QColor('Dark Red'))
+        button.setPalette(palette)  # assign new palette
+        button.setFixedHeight(45)
+
+        gui.separator(self.controlArea)
+
+        tabs_setting = gui.tabWidget(self.controlArea)
+        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
         tab_input = oasysgui.createTabPage(tabs_setting, "Input Parameters")
-
         tab_out = oasysgui.createTabPage(tabs_setting, "Output")
-
 
         tabs_input = gui.tabWidget(tab_input)
         tab_length = oasysgui.createTabPage(tabs_input, "Length")
@@ -124,7 +157,7 @@ class OWheight_profile_simulator(OWWidget):
         #/ ---------------------------------------
 
 
-        input_box_l = oasysgui.widgetBox(tab_length, "Calculation Parameters", addSpace=True, orientation="vertical", width=460)
+        input_box_l = oasysgui.widgetBox(tab_length, "Calculation Parameters", addSpace=True, orientation="vertical")
 
         gui.comboBox(input_box_l, self, "kind_of_profile_y", label="Kind of Profile", labelWidth=260,
                      items=["Fractal", "Gaussian", "User File"],
@@ -132,24 +165,24 @@ class OWheight_profile_simulator(OWWidget):
 
         gui.separator(input_box_l)
 
-        self.kind_of_profile_y_box_1 = oasysgui.widgetBox(input_box_l, "", addSpace=True, orientation="vertical", width=440, height=300)
+        self.kind_of_profile_y_box_1 = oasysgui.widgetBox(input_box_l, "", addSpace=True, orientation="vertical", height=230)
 
-        oasysgui.lineEdit(self.kind_of_profile_y_box_1, self, "dimension_y", "Dimensions [cm]                                         Y (lenght)",
-                           labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.kind_of_profile_y_box_1, self, "step_y", "Step [cm]                                                    Y (lenght)",
-                           labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.kind_of_profile_y_box_1, self, "montecarlo_seed_y", "Monte Carlo initial seed                              Y (lenght)", labelWidth=300,
+        self.le_dimension_y = oasysgui.lineEdit(self.kind_of_profile_y_box_1, self, "dimension_y", "Dimensions",
+                           labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_step_y = oasysgui.lineEdit(self.kind_of_profile_y_box_1, self, "step_y", "Step",
+                           labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.kind_of_profile_y_box_1, self, "montecarlo_seed_y", "Monte Carlo initial seed", labelWidth=260,
                            valueType=int, orientation="horizontal")
 
-        self.kind_of_profile_y_box_1_1 = oasysgui.widgetBox(self.kind_of_profile_y_box_1, "", addSpace=True, orientation="vertical", width=440)
+        self.kind_of_profile_y_box_1_1 = oasysgui.widgetBox(self.kind_of_profile_y_box_1, "", addSpace=True, orientation="vertical")
 
-        oasysgui.lineEdit(self.kind_of_profile_y_box_1_1, self, "power_law_exponent_beta_y", "Beta Value                                                  Y (lenght)",
-                           labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.kind_of_profile_y_box_1_1, self, "power_law_exponent_beta_y", "Beta Value",
+                           labelWidth=260, valueType=float, orientation="horizontal")
 
-        self.kind_of_profile_y_box_1_2 = oasysgui.widgetBox(self.kind_of_profile_y_box_1, "", addSpace=True, orientation="vertical", width=440)
+        self.kind_of_profile_y_box_1_2 = oasysgui.widgetBox(self.kind_of_profile_y_box_1, "", addSpace=True, orientation="vertical")
 
-        oasysgui.lineEdit(self.kind_of_profile_y_box_1_2, self, "correlation_length_y", "Correlation Length [cm]                              Y (lenght)",
-                           labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_correlation_length_y = oasysgui.lineEdit(self.kind_of_profile_y_box_1_2, self, "correlation_length_y", "Correlation Length",
+                           labelWidth=260, valueType=float, orientation="horizontal")
 
         gui.separator(self.kind_of_profile_y_box_1)
 
@@ -157,10 +190,10 @@ class OWheight_profile_simulator(OWWidget):
                      items=["Figure Error (nm)", "Slope Error (" + "\u03BC" + "rad)"],
                      sendSelectedValue=False, orientation="horizontal")
 
-        oasysgui.lineEdit(self.kind_of_profile_y_box_1, self, "rms_y", "Rms Value                                                   Y (lenght)",
-                           labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.kind_of_profile_y_box_1, self, "rms_y", "Rms Value",
+                           labelWidth=260, valueType=float, orientation="horizontal")
 
-        self.kind_of_profile_y_box_2 = oasysgui.widgetBox(input_box_l, "", addSpace=True, orientation="vertical", width=440, height=300)
+        self.kind_of_profile_y_box_2 = oasysgui.widgetBox(input_box_l, "", addSpace=True, orientation="vertical", height=230)
 
         select_file_box_2 = oasysgui.widgetBox(self.kind_of_profile_y_box_2, "", addSpace=True, orientation="horizontal")
 
@@ -173,31 +206,33 @@ class OWheight_profile_simulator(OWWidget):
         gui.comboBox(self.kind_of_profile_y_box_2, self, "delimiter_y", label="Fields delimiter", labelWidth=260,
                      items=["Spaces", "Tabs"], sendSelectedValue=False, orientation="horizontal")
 
-        oasysgui.lineEdit(self.kind_of_profile_y_box_2, self, "conversion_factor_y_x", "Conversion from user units to cm (Abscissa)", labelWidth=350,
-                           valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.kind_of_profile_y_box_2, self, "conversion_factor_y_x", "Conversion from file\nto workspace units(Abscissa)",
+                          labelWidth=260,
+                          valueType=float, orientation="horizontal")
 
-        oasysgui.lineEdit(self.kind_of_profile_y_box_2, self, "conversion_factor_y_y", "Conversion from user units to cm (Height Profile Values)", labelWidth=350,
-                           valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.kind_of_profile_y_box_2, self, "conversion_factor_y_y", "Conversion from file\nto workspace units (Height Profile Values)",
+                          labelWidth=260,
+                          valueType=float, orientation="horizontal")
 
         gui.separator(self.kind_of_profile_y_box_2)
 
         gui.comboBox(self.kind_of_profile_y_box_2, self, "renormalize_y", label="Renormalize to different RMS", labelWidth=260,
                      items=["No", "Yes"], callback=self.set_KindOfProfileY, sendSelectedValue=False, orientation="horizontal")
 
-        self.kind_of_profile_y_box_2_1 = oasysgui.widgetBox(self.kind_of_profile_y_box_2, "", addSpace=True, orientation="vertical", width=440)
+        self.kind_of_profile_y_box_2_1 = oasysgui.widgetBox(self.kind_of_profile_y_box_2, "", addSpace=True, orientation="vertical")
 
         gui.comboBox(self.kind_of_profile_y_box_2_1, self, "error_type_y", label="Normalization to", labelWidth=270,
                      items=["Figure Error (nm)", "Slope Error (" + "\u03BC" + "rad)"],
                      sendSelectedValue=False, orientation="horizontal")
 
-        oasysgui.lineEdit(self.kind_of_profile_y_box_2_1, self, "rms_y", "Rms Value                                                   Y (lenght)",
-                           labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.kind_of_profile_y_box_2_1, self, "rms_y", "Rms Value",
+                           labelWidth=260, valueType=float, orientation="horizontal")
 
         self.set_KindOfProfileY()
 
         #/ ---------------------------------------
 
-        input_box_w = oasysgui.widgetBox(tab_width, "Calculation Parameters", addSpace=True, orientation="vertical", width=460)
+        input_box_w = oasysgui.widgetBox(tab_width, "Calculation Parameters", addSpace=True, orientation="vertical")
 
 
         gui.comboBox(input_box_w, self, "kind_of_profile_x", label="Kind of Profile", labelWidth=260,
@@ -206,24 +241,24 @@ class OWheight_profile_simulator(OWWidget):
 
         gui.separator(input_box_w)
 
-        self.kind_of_profile_x_box_1 = oasysgui.widgetBox(input_box_w, "", addSpace=True, orientation="vertical", width=440, height=300)
+        self.kind_of_profile_x_box_1 = oasysgui.widgetBox(input_box_w, "", addSpace=True, orientation="vertical", height=230)
 
-        oasysgui.lineEdit(self.kind_of_profile_x_box_1, self, "dimension_x", "Dimensions [cm]                                         X (width)",
-                           labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.kind_of_profile_x_box_1, self, "step_x", "Step [cm]                                                    X (width)",
-                           labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.kind_of_profile_x_box_1, self, "montecarlo_seed_x", "Monte Carlo initial seed                              X (width)", labelWidth=300,
-                           valueType=int, orientation="horizontal")
+        self.le_dimension_x = oasysgui.lineEdit(self.kind_of_profile_x_box_1, self, "dimension_x", "Dimensions",
+                          labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_step_x = oasysgui.lineEdit(self.kind_of_profile_x_box_1, self, "step_x", "Step",
+                          labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.kind_of_profile_x_box_1, self, "montecarlo_seed_x", "Monte Carlo initial seed",
+                          labelWidth=260, valueType=int, orientation="horizontal")
 
-        self.kind_of_profile_x_box_1_1 = oasysgui.widgetBox(self.kind_of_profile_x_box_1, "", addSpace=True, orientation="vertical", width=440)
+        self.kind_of_profile_x_box_1_1 = oasysgui.widgetBox(self.kind_of_profile_x_box_1, "", addSpace=True, orientation="vertical")
 
-        oasysgui.lineEdit(self.kind_of_profile_x_box_1_1, self, "power_law_exponent_beta_x", "Beta Value                                                  X (width)",
-                           labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.kind_of_profile_x_box_1_1, self, "power_law_exponent_beta_x", "Beta Value",
+                           labelWidth=260, valueType=float, orientation="horizontal")
 
-        self.kind_of_profile_x_box_1_2 = oasysgui.widgetBox(self.kind_of_profile_x_box_1, "", addSpace=True, orientation="vertical", width=440)
+        self.kind_of_profile_x_box_1_2 = oasysgui.widgetBox(self.kind_of_profile_x_box_1, "", addSpace=True, orientation="vertical")
 
-        oasysgui.lineEdit(self.kind_of_profile_x_box_1_2, self, "correlation_length_x", "Correlation Length [cm]                              X (width)",
-                           labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_correlation_length_x = oasysgui.lineEdit(self.kind_of_profile_x_box_1_2, self, "correlation_length_x", "Correlation Length",
+                           labelWidth=260, valueType=float, orientation="horizontal")
 
         gui.separator(self.kind_of_profile_x_box_1)
 
@@ -231,11 +266,12 @@ class OWheight_profile_simulator(OWWidget):
                      items=["Figure Error (nm)", "Slope Error (" + "\u03BC" + "rad)"],
                      sendSelectedValue=False, orientation="horizontal")
 
-        oasysgui.lineEdit(self.kind_of_profile_x_box_1, self, "rms_x", "Rms Value                                                   X (width)",
-                           labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.kind_of_profile_x_box_1, self, "rms_x", "Rms Value",
+                           labelWidth=260, valueType=float, orientation="horizontal")
 
+        ##----------------------------------
 
-        self.kind_of_profile_x_box_2 = oasysgui.widgetBox(input_box_w, "", addSpace=True, orientation="vertical", width=440, height=300)
+        self.kind_of_profile_x_box_2 = oasysgui.widgetBox(input_box_w, "", addSpace=True, orientation="vertical", height=230)
 
         select_file_box_1 = oasysgui.widgetBox(self.kind_of_profile_x_box_2, "", addSpace=True, orientation="horizontal")
 
@@ -248,31 +284,33 @@ class OWheight_profile_simulator(OWWidget):
         gui.comboBox(self.kind_of_profile_x_box_2 , self, "delimiter_x", label="Fields delimiter", labelWidth=260,
                      items=["Spaces", "Tabs"], sendSelectedValue=False, orientation="horizontal")
 
-        oasysgui.lineEdit(self.kind_of_profile_x_box_2, self, "conversion_factor_x_x", "Conversion from user units to cm (Abscissa)", labelWidth=350,
-                           valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.kind_of_profile_x_box_2, self, "conversion_factor_x_x", "Conversion from file\nto workspace units(Abscissa)", 
+                          labelWidth=260,
+                          valueType=float, orientation="horizontal")
 
-        oasysgui.lineEdit(self.kind_of_profile_x_box_2, self, "conversion_factor_x_y", "Conversion from user units to cm (Height Profile Values)", labelWidth=350,
-                           valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.kind_of_profile_x_box_2, self, "conversion_factor_x_y", "Conversion from file\nto workspace units (Height Profile Values)", 
+                          labelWidth=260,
+                          valueType=float, orientation="horizontal")
 
         gui.separator(self.kind_of_profile_x_box_2)
 
         gui.comboBox(self.kind_of_profile_x_box_2, self, "renormalize_x", label="Renormalize to different RMS", labelWidth=260,
                      items=["No", "Yes"], callback=self.set_KindOfProfileX, sendSelectedValue=False, orientation="horizontal")
 
-        self.kind_of_profile_x_box_2_1 = oasysgui.widgetBox(self.kind_of_profile_x_box_2, "", addSpace=True, orientation="vertical", width=440)
+        self.kind_of_profile_x_box_2_1 = oasysgui.widgetBox(self.kind_of_profile_x_box_2, "", addSpace=True, orientation="vertical")
 
         gui.comboBox(self.kind_of_profile_x_box_2_1, self, "error_type_x", label="Normalization to", labelWidth=270,
                      items=["Figure Error (nm)", "Slope Error (" + "\u03BC" + "rad)"],
                      sendSelectedValue=False, orientation="horizontal")
 
-        oasysgui.lineEdit(self.kind_of_profile_x_box_2_1, self, "rms_x", "Rms Value                                                   X (width)",
-                           labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.kind_of_profile_x_box_2_1, self, "rms_x", "Rms Value",
+                           labelWidth=260, valueType=float, orientation="horizontal")
 
         self.set_KindOfProfileX()
 
         #/ ---------------------------------------
 
-        self.output_box = oasysgui.widgetBox(tab_input, "Outputs", addSpace=True, orientation="vertical", width=470)
+        self.output_box = oasysgui.widgetBox(tab_input, "Outputs", addSpace=True, orientation="vertical")
 
         self.select_file_box = oasysgui.widgetBox(self.output_box, "", addSpace=True, orientation="horizontal")
 
@@ -285,34 +323,8 @@ class OWheight_profile_simulator(OWWidget):
         self.shadow_output = QTextEdit()
         self.shadow_output.setReadOnly(True)
 
-        out_box = oasysgui.widgetBox(tab_out, "System Output", addSpace=True, orientation="horizontal", height=600)
+        out_box = oasysgui.widgetBox(tab_out, "System Output", addSpace=True, orientation="horizontal", height=580)
         out_box.layout().addWidget(self.shadow_output)
-
-        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
-
-        button = gui.button(button_box, self, "Calculate Height Profile", callback=self.calculate_heigth_profile)
-        button.setFixedHeight(45)
-        button.setFixedWidth(170)
-
-        button = gui.button(button_box, self, "Generate Height Profile File", callback=self.generate_heigth_profile_file)
-        font = QFont(button.font())
-        font.setBold(True)
-        button.setFont(font)
-        palette = QPalette(button.palette())  # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Blue'))
-        button.setPalette(palette)  # assign new palette
-        button.setFixedHeight(45)
-        button.setFixedWidth(200)
-
-        button = gui.button(button_box, self, "Reset Fields", callback=self.call_reset_settings)
-        font = QFont(button.font())
-        font.setItalic(True)
-        button.setFont(font)
-        palette = QPalette(button.palette())  # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Red'))
-        button.setPalette(palette)  # assign new palette
-        button.setFixedHeight(45)
-        button.setFixedWidth(120)
 
         gui.rubber(self.controlArea)
 
@@ -321,14 +333,33 @@ class OWheight_profile_simulator(OWWidget):
 
         self.axis = self.figure.add_subplot(111, projection='3d')
 
-        self.axis.set_xlabel("X (cm)")
-        self.axis.set_ylabel("Y (cm)")
-        self.axis.set_zlabel("Z (nm)")
+        self.axis.set_zlabel("Z [nm]")
 
         self.figure_canvas = FigureCanvasQTAgg(self.figure)
         self.mainArea.layout().addWidget(self.figure_canvas)
 
         gui.rubber(self.mainArea)
+
+    def after_change_workspace_units(self):
+        self.si_to_user_units = 1e2 / self.workspace_units_to_cm
+
+        self.axis.set_xlabel("X [" + self.workspace_units_label + "]")
+        self.axis.set_ylabel("Y [" + self.workspace_units_label + "]")
+
+        label = self.le_dimension_y.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_step_y.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_correlation_length_y.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+
+        label = self.le_dimension_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_step_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_correlation_length_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+
 
     def set_KindOfProfileX(self):
         self.kind_of_profile_x_box_1.setVisible(self.kind_of_profile_x<2)
@@ -363,16 +394,16 @@ class OWheight_profile_simulator(OWWidget):
                 else:
                     profile_1D_y_x, profile_1D_y_y = numpy.loadtxt(self.heigth_profile_1D_file_name_y, unpack=True)
 
-                profile_1D_y_x *= self.conversion_factor_y_x
-                profile_1D_y_y *= self.conversion_factor_y_y
+                profile_1D_y_x *= self.conversion_factor_y_x * self.workspace_units_to_cm # to cm
+                profile_1D_y_y *= self.conversion_factor_y_y * self.workspace_units_to_cm # to cm
 
                 if self.renormalize_y == 0:
                     rms_y = None
                 else:
                     if self.error_type_y == profiles_simulation.FIGURE_ERROR:
-                        rms_y = self.rms_y*1e-7 # from nm to cm
+                        rms_y = self.rms_y * 1e-7 # from nm to cm
                     else:
-                        rms_y = self.rms_y*1e-6 # from urad to rad
+                        rms_y = self.rms_y * 1e-6 # from urad to rad
             else:
                 if self.kind_of_profile_y == 0: combination = "F"
                 else: combination = "G"
@@ -381,9 +412,9 @@ class OWheight_profile_simulator(OWWidget):
                 profile_1D_y_y = None
 
                 if self.error_type_y == profiles_simulation.FIGURE_ERROR:
-                    rms_y = self.rms_y*1e-7 # from nm to cm
+                    rms_y = self.rms_y * 1e-7 # from nm to cm
                 else:
-                    rms_y = self.rms_y*1e-6 # from urad to rad
+                    rms_y = self.rms_y * 1e-6 # from urad to rad
 
             #### WIDTH
 
@@ -395,16 +426,16 @@ class OWheight_profile_simulator(OWWidget):
                 else:
                     profile_1D_x_x, profile_1D_x_y = numpy.loadtxt(self.heigth_profile_1D_file_name_x, unpack=True)
 
-                profile_1D_x_x *= self.conversion_factor_x_x
-                profile_1D_x_y *= self.conversion_factor_x_y
+                profile_1D_x_x *= self.conversion_factor_x_x * self.workspace_units_to_cm
+                profile_1D_x_y *= self.conversion_factor_x_y * self.workspace_units_to_cm
 
                 if self.renormalize_x == 0:
                     rms_x = None
                 else:
                     if self.error_type_x == profiles_simulation.FIGURE_ERROR:
-                        rms_x = self.rms_x*1e-7 # from nm to cm
+                        rms_x = self.rms_x * 1e-7 # from nm to cm
                     else:
-                        rms_x = self.rms_x*1e-6 # from urad to rad
+                        rms_x = self.rms_x * 1e-6 # from urad to rad
 
             else:
                 profile_1D_x_x = None
@@ -414,37 +445,39 @@ class OWheight_profile_simulator(OWWidget):
                 else: combination += "G"
 
                 if self.error_type_x == profiles_simulation.FIGURE_ERROR:
-                    rms_x = self.rms_x*1e-7 # from nm to cm
+                    rms_x = self.rms_x * 1e-7 # from nm to cm
                 else:
-                    rms_x = self.rms_x*1e-6 # from urad to rad
+                    rms_x = self.rms_x * 1e-6 # from urad to rad
+
+            print(rms_x, rms_y)
 
             xx, yy, zz = profiles_simulation.simulate_profile_2D(combination = combination,
-                                                                 mirror_length = self.dimension_y,
-                                                                 step_l = self.step_y,
+                                                                 mirror_length = self.dimension_y * self.workspace_units_to_cm, # to cm
+                                                                 step_l = self.step_y * self.workspace_units_to_cm, # to cm
                                                                  random_seed_l = self.montecarlo_seed_y,
                                                                  error_type_l = self.error_type_y,
                                                                  rms_l = rms_y,
                                                                  power_law_exponent_beta_l = self.power_law_exponent_beta_y,
-                                                                 correlation_length_l = self.correlation_length_y,
+                                                                 correlation_length_l = self.correlation_length_y * self.workspace_units_to_cm, # to cm
                                                                  x_l = profile_1D_y_x,
                                                                  y_l = profile_1D_y_y,
-                                                                 mirror_width = self.dimension_x,
-                                                                 step_w = self.step_x,
+                                                                 mirror_width = self.dimension_x * self.workspace_units_to_cm, # to cm
+                                                                 step_w = self.step_x * self.workspace_units_to_cm,
                                                                  random_seed_w = self.montecarlo_seed_x,
                                                                  error_type_w = self.error_type_x,
                                                                  rms_w = rms_x,
                                                                  power_law_exponent_beta_w = self.power_law_exponent_beta_x,
-                                                                 correlation_length_w = self.correlation_length_x,
+                                                                 correlation_length_w = self.correlation_length_x * self.workspace_units_to_cm, # to cm
                                                                  x_w = profile_1D_x_x,
                                                                  y_w = profile_1D_x_y)
-            self.xx = xx
-            self.yy = yy
-            self.zz = zz # in cm
+            self.xx = xx / self.workspace_units_to_cm # to user units
+            self.yy = yy / self.workspace_units_to_cm # to user units
+            self.zz = zz / self.workspace_units_to_cm # to user units
 
             self.axis.clear()
 
-            x_to_plot, y_to_plot = numpy.meshgrid(xx, yy)
-            z_to_plot = zz*1e7 #nm
+            x_to_plot, y_to_plot = numpy.meshgrid(self.xx, self.yy)
+            z_to_plot = self.zz * 1e9 / self.si_to_user_units # to nm
 
             self.axis.plot_surface(x_to_plot, y_to_plot, z_to_plot,
                                    rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
@@ -453,9 +486,9 @@ class OWheight_profile_simulator(OWWidget):
 
             title = ' Slope error rms in X direction: %f $\mu$rad' % (sloperms[0]*1e6) + '\n' + \
                     ' Slope error rms in Y direction: %f $\mu$rad' % (sloperms[1]*1e6)
-            self.axis.set_xlabel("X (cm)")
-            self.axis.set_ylabel("Y (cm)")
-            self.axis.set_zlabel("Z (nm)")
+            self.axis.set_xlabel("X [" + self.workspace_units_label + "]")
+            self.axis.set_ylabel("Y [" + self.workspace_units_label + "]")
+            self.axis.set_zlabel("Z [nm]")
 
             self.axis.set_title(title)
             self.axis.mouse_init()
@@ -513,8 +546,8 @@ class OWheight_profile_simulator(OWWidget):
             self.montecarlo_seed_y = congruence.checkPositiveNumber(self.montecarlo_seed_y, "Monte Carlo initial seed y")
         else:
             congruence.checkFile(self.heigth_profile_1D_file_name_y)
-            self.conversion_factor_y_x = congruence.checkStrictlyPositiveNumber(self.conversion_factor_y_x, "Conversion from user units to cm (Abscissa)")
-            self.conversion_factor_y_y = congruence.checkStrictlyPositiveNumber(self.conversion_factor_y_y, "Conversion from user units to cm (Height Profile Values)")
+            self.conversion_factor_y_x = congruence.checkStrictlyPositiveNumber(self.conversion_factor_y_x, "Conversion from file to workspace units(Abscissa)")
+            self.conversion_factor_y_y = congruence.checkStrictlyPositiveNumber(self.conversion_factor_y_y, "Conversion from file to workspace units (Height Profile Values)")
             if self.renormalize_y == 1:
                 self.rms_y = congruence.checkPositiveNumber(self.rms_y, "Rms Y")
 
@@ -527,8 +560,8 @@ class OWheight_profile_simulator(OWWidget):
             self.montecarlo_seed_x = congruence.checkPositiveNumber(self.montecarlo_seed_x, "Monte Carlo initial seed X")
         else:
             congruence.checkFile(self.heigth_profile_1D_file_name_x)
-            self.conversion_factor_x_x = congruence.checkStrictlyPositiveNumber(self.conversion_factor_x_x, "Conversion from user units to cm (Abscissa)")
-            self.conversion_factor_x_y = congruence.checkStrictlyPositiveNumber(self.conversion_factor_x_y, "Conversion from user units to cm (Height Profile Values)")
+            self.conversion_factor_x_x = congruence.checkStrictlyPositiveNumber(self.conversion_factor_x_x, "Conversion from file to workspace units(Abscissa)")
+            self.conversion_factor_x_y = congruence.checkStrictlyPositiveNumber(self.conversion_factor_x_y, "Conversion from file to workspace units (Height Profile Values)")
             if self.renormalize_x == 1:
                 self.rms_x = congruence.checkPositiveNumber(self.rms_x, "Rms X")
 

@@ -51,6 +51,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
         self.shadow_output.setFixedHeight(600)
         self.shadow_output.setFixedWidth(600)
 
+
     def initializeTabs(self):
         current_tab = self.tabs.currentIndex()
 
