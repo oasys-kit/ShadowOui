@@ -33,25 +33,21 @@ class DCM(ow_compound_optical_element.CompoundOpticalElement):
     def __init__(self):
         super().__init__()
 
-        self.tabs_setting.setFixedHeight(650)
+        self.le_p = oasysgui.lineEdit(self.tab_bas, self, "p", "Distance Source - DCM center (P)", labelWidth=280, valueType=float, orientation="horizontal")
+        self.le_q = oasysgui.lineEdit(self.tab_bas, self, "q", "Distance DCM center - Image plane (Q)", labelWidth=280, valueType=float, orientation="horizontal")
 
-        self.le_p = oasysgui.lineEdit(self.tab_bas, self, "p", "Distance Source - DCM center (P)", labelWidth=350, valueType=float, orientation="horizontal")
-        self.le_q = oasysgui.lineEdit(self.tab_bas, self, "q", "Distance DCM center - Image plane (Q)", labelWidth=350, valueType=float, orientation="horizontal")
-
-        self.le_separation = oasysgui.lineEdit(self.tab_bas, self, "separation", "Separation between the Crystals\n(from center of 1st C. to center of 2nd C.)", labelWidth=350, valueType=float,
+        self.le_separation = oasysgui.lineEdit(self.tab_bas, self, "separation", "Separation between the Crystals\n(from center of 1st C. to center of 2nd C.)", labelWidth=280, valueType=float,
                            orientation="horizontal")
 
-        oasysgui.lineEdit(self.tab_bas, self, "photon_energy_ev", "Photon Eneergy [eV]", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.tab_bas, self, "photon_energy_ev", "Photon Eneergy [eV]", labelWidth=280, valueType=float, orientation="horizontal")
 
 
-        file_box = oasysgui.widgetBox(self.tab_bas, "", addSpace=True, orientation="horizontal", height=25)
+        file_box = oasysgui.widgetBox(self.tab_bas, "", addSpace=True, orientation="horizontal", height=20)
 
         self.le_reflectivity_file = oasysgui.lineEdit(file_box, self, "reflectivity_file", "Reflectivity File", labelWidth=150, valueType=str, orientation="horizontal")
 
         pushButton = gui.button(file_box, self, "...")
         pushButton.clicked.connect(self.selectFilePrerefl)
-
-        gui.separator(self.tab_bas, height=10)
 
         self.tab_crystals = gui.tabWidget(self.tab_bas)
 
@@ -226,27 +222,28 @@ class CrystalBox(QtGui.QWidget):
 
         self.setLayout(QtGui.QVBoxLayout())
         self.layout().setAlignment(Qt.AlignTop)
-        self.setFixedWidth(470)
-        self.setFixedHeight(400)
 
         self.dcm = dcm
+
+        self.setFixedWidth(self.dcm.CONTROL_AREA_WIDTH-20)
+        self.setFixedHeight(120)
 
         self.has_finite_dimensions = has_finite_dimensions
         self.mirror_width = dimensions[0]
         self.mirror_length = dimensions[1]
 
-        mirror_box = oasysgui.widgetBox(self, "Crystal Input Parameters", addSpace=False, orientation="vertical", height=330, width=460)
+        mirror_box = oasysgui.widgetBox(self, "Crystal Input Parameters", addSpace=False, orientation="vertical", height=110)
 
-        gui.comboBox(mirror_box, self, "has_finite_dimensions", label="Dimensions", labelWidth=350,
+        gui.comboBox(mirror_box, self, "has_finite_dimensions", label="Dimensions", labelWidth=260,
                      items=["Finite", "Infinite"], sendSelectedValue=False, orientation="horizontal", callback=self.set_dimensions)
 
         self.dimension_box = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=50)
         self.dimension_box_empty = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=50)
 
-        self.le_mirror_width = oasysgui.lineEdit(self.dimension_box, self, "mirror_width", "Crystal Width", labelWidth=350, valueType=float, orientation="horizontal",
+        self.le_mirror_width = oasysgui.lineEdit(self.dimension_box, self, "mirror_width", "Crystal Width", labelWidth=260, valueType=float, orientation="horizontal",
                            callback=self.dcm.dump_dimensions_0)
 
-        self.le_mirror_length = oasysgui.lineEdit(self.dimension_box, self, "mirror_length", "Crystal Length", labelWidth=350, valueType=float, orientation="horizontal",
+        self.le_mirror_length = oasysgui.lineEdit(self.dimension_box, self, "mirror_length", "Crystal Length", labelWidth=260, valueType=float, orientation="horizontal",
                            callback=self.dcm.dump_dimensions_1)
 
         self.set_dimensions()

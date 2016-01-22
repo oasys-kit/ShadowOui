@@ -49,7 +49,7 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
         gui.comboBox(lens_box, self, "has_finite_diameter", label="Lens Diameter", labelWidth=260,
                      items=["Finite", "Infinite"], callback=self.set_diameter, sendSelectedValue=False, orientation="horizontal")
 
-        self.diameter_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
+        self.diameter_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical")
         self.diameter_box_empty = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
 
         self.le_diameter = oasysgui.lineEdit(self.diameter_box, self, "diameter", "Lens Diameter Value", labelWidth=260, valueType=float, orientation="horizontal")
@@ -59,7 +59,7 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
         gui.comboBox(lens_box, self, "surface_shape", label="Surface Shape", labelWidth=260,
                      items=["Sphere", "Paraboloid", "Plane"], callback=self.set_surface_shape, sendSelectedValue=False, orientation="horizontal")
 
-        self.surface_shape_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
+        self.surface_shape_box = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical")
         self.surface_shape_box_empty = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=20)
 
         self.le_radius = oasysgui.lineEdit(self.surface_shape_box, self, "radius", "Curvature Radius", labelWidth=260, valueType=float, orientation="horizontal")
@@ -71,7 +71,7 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
         gui.comboBox(lens_box, self, "use_ccc", label="Use C.C.C.", labelWidth=310,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
-        gui.comboBox(lens_box, self, "convex_to_the_beam", label="Convexity of the first interface exposed to the beam\n(the second interface has opposite convexity)",
+        gui.comboBox(lens_box, self, "convex_to_the_beam", label="Convexity of the 1st interface exposed to the beam\n(the 2nd interface has opposite convexity)",
                      labelWidth=310,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 

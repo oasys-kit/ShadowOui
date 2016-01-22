@@ -53,6 +53,15 @@ class OWxsh_prerefl(OWWidget):
         self.runaction.triggered.connect(self.compute)
         self.addAction(self.runaction)
 
+        box0 = gui.widgetBox(self.controlArea, "",orientation="horizontal")
+        #widget buttons: compute, set defaults, help
+        button = gui.button(box0, self, "Compute", callback=self.compute)
+        button.setFixedHeight(45)
+        button = gui.button(box0, self, "Defaults", callback=self.defaults)
+        button.setFixedHeight(45)
+        button = gui.button(box0, self, "Help", callback=self.help1)
+        button.setFixedHeight(45)
+
         box = oasysgui.widgetBox(self.controlArea, "Reflectivity Parameters", orientation="vertical")
         
         idx = -1 
@@ -109,16 +118,6 @@ class OWxsh_prerefl(OWWidget):
 
         out_box = oasysgui.widgetBox(self.controlArea, "System Output", addSpace=True, orientation="horizontal", height=150)
         out_box.layout().addWidget(self.shadow_output)
-
-        box0 = gui.widgetBox(self.controlArea, "",orientation="horizontal") 
-        #widget buttons: compute, set defaults, help
-        button = gui.button(box0, self, "Compute", callback=self.compute)
-        button.setFixedHeight(45)
-        button = gui.button(box0, self, "Defaults", callback=self.defaults)
-        button.setFixedHeight(45)
-        button = gui.button(box0, self, "Help", callback=self.help1)
-        button.setFixedHeight(45)
-
 
         gui.rubber(self.controlArea)
 

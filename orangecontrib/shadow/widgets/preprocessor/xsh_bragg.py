@@ -60,7 +60,16 @@ class OWxsh_bragg(OWWidget):
 
         idx = -1 
         
-        #widget index 0 
+        box0 = oasysgui.widgetBox(self.controlArea, "",orientation="horizontal")
+        #widget buttons: compute, set defaults, help
+        button = gui.button(box0, self, "Compute", callback=self.compute)
+        button.setFixedHeight(45)
+        button = gui.button(box0, self, "Defaults", callback=self.defaults)
+        button.setFixedHeight(45)
+        button = gui.button(box0, self, "Help", callback=self.help1)
+        button.setFixedHeight(45)
+
+        #widget index 0
         idx += 1 
         box = oasysgui.widgetBox(self.controlArea, "Crystal Parameters", orientation="vertical")
         oasysgui.lineEdit(box, self, "DESCRIPTOR",
@@ -138,14 +147,6 @@ class OWxsh_bragg(OWWidget):
 
         self.process_showers()
 
-        box0 = oasysgui.widgetBox(self.controlArea, "",orientation="horizontal")
-        #widget buttons: compute, set defaults, help
-        button = gui.button(box0, self, "Compute", callback=self.compute)
-        button.setFixedHeight(45)
-        button = gui.button(box0, self, "Defaults", callback=self.defaults)
-        button.setFixedHeight(45)
-        button = gui.button(box0, self, "Help", callback=self.help1)
-        button.setFixedHeight(45)
 
         gui.rubber(self.controlArea)
 
