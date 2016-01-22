@@ -23,7 +23,6 @@ except:
     pass
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
-from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
 class OWxsh_waviness(OWWidget):
     name = "Waviness"
@@ -44,8 +43,14 @@ class OWxsh_waviness(OWWidget):
     want_main_area = 1
     want_control_area = 1
 
-    WIDGET_WIDTH = 1100
-    WIDGET_HEIGHT = 650
+    MAX_WIDTH = 1320
+    MAX_HEIGHT = 700
+
+    IMAGE_WIDTH = 860
+    IMAGE_HEIGHT = 645
+
+    CONTROL_AREA_WIDTH = 405
+    TABS_AREA_HEIGHT = 618
 
     xx = None
     yy = None
@@ -262,46 +267,76 @@ class OWxsh_waviness(OWWidget):
         geom = QApplication.desktop().availableGeometry()
         self.setGeometry(QRect(round(geom.width() * 0.05),
                                round(geom.height() * 0.05),
-                               round(min(geom.width() * 0.98, self.WIDGET_WIDTH)),
-                               round(min(geom.height() * 0.95, self.WIDGET_HEIGHT))))
+                               round(min(geom.width() * 0.98, self.MAX_WIDTH)),
+                               round(min(geom.height() * 0.95, self.MAX_HEIGHT))))
 
-        gen_box = oasysgui.widgetBox(self.controlArea, "Waviness Parameters", addSpace=True, orientation="horizontal",
-                                      width=500)
+        self.setMaximumHeight(self.geometry().height())
+        self.setMaximumWidth(self.geometry().width())
 
-        tabs_setting = gui.tabWidget(gen_box)
+        gui.separator(self.controlArea)
+
+        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
+
+        button = gui.button(button_box, self, "Calculate\nWaviness", callback=self.calculate_waviness)
+        button.setFixedHeight(45)
+
+        button = gui.button(button_box, self, "Generate\nWaviness File", callback=self.generate_waviness_file)
+        font = QFont(button.font())
+        font.setBold(True)
+        button.setFont(font)
+        palette = QPalette(button.palette())  # make a copy of the palette
+        palette.setColor(QPalette.ButtonText, QColor('Dark Blue'))
+        button.setPalette(palette)  # assign new palette
+        button.setFixedHeight(45)
+        button.setFixedWidth(150)
+
+        button = gui.button(button_box, self, "Reset Fields", callback=self.call_reset_settings)
+        font = QFont(button.font())
+        font.setItalic(True)
+        button.setFont(font)
+        palette = QPalette(button.palette())  # make a copy of the palette
+        palette.setColor(QPalette.ButtonText, QColor('Dark Red'))
+        button.setPalette(palette)  # assign new palette
+        button.setFixedHeight(45)
+
+        gui.separator(self.controlArea)
+
+        tabs_setting = gui.tabWidget(self.controlArea)
+        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
         tab_input = oasysgui.createTabPage(tabs_setting, "Input Parameter")
         tab_harmonics = oasysgui.createTabPage(tabs_setting, "Harmonics")
         tab_out = oasysgui.createTabPage(tabs_setting, "Output")
 
-        self.input_box = oasysgui.widgetBox(tab_input, "Inputs", addSpace=True, orientation="vertical", width=470)
+        self.input_box = oasysgui.widgetBox(tab_input, "Inputs", addSpace=True, orientation="vertical")
 
         gui.button(self.input_box, self, "Load xsh_waviness input file ...", callback=self.load_inp_file)
 
         gui.separator(self.input_box)
 
-        oasysgui.lineEdit(self.input_box, self, "number_of_points_x", "Number of Points (<201)           X (width)",
-                           labelWidth=300, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.input_box, self, "number_of_points_x", "Number of Points (<201) X (width)",
+                           labelWidth=260, valueType=int, orientation="horizontal")
         oasysgui.lineEdit(self.input_box, self, "number_of_points_y",
-                           "                                                 Y (length)", labelWidth=300, valueType=int,
+                           "Number of Points (<201) Y (length)", labelWidth=260, valueType=int,
                            orientation="horizontal")
 
         gui.separator(self.input_box)
 
-        oasysgui.lineEdit(self.input_box, self, "dimension_x", "Dimensions [cm]                        X (width)",
-                           labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.input_box, self, "dimension_y",
-                           "                                                 Y (length)", labelWidth=300,
+        self.le_dimension_x = oasysgui.lineEdit(self.input_box, self, "dimension_x", "Dimensions X (width)",
+                           labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_dimension_y = oasysgui.lineEdit(self.input_box, self, "dimension_y",
+                           "Dimensions Y (length)", labelWidth=260,
                            valueType=float, orientation="horizontal")
 
         gui.separator(self.input_box)
 
         oasysgui.lineEdit(self.input_box, self, "estimated_slope_error", "Estimated slope error [arcsec]",
-                           labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.input_box, self, "montecarlo_seed", "Monte Carlo initial seed", labelWidth=300,
+                           labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.input_box, self, "montecarlo_seed", "Monte Carlo initial seed", labelWidth=260,
                            valueType=int, orientation="horizontal")
 
-        self.output_box = oasysgui.widgetBox(tab_input, "Outputs", addSpace=True, orientation="vertical", width=470)
+        self.output_box = oasysgui.widgetBox(tab_input, "Outputs", addSpace=True, orientation="vertical")
 
         gui.button(self.output_box, self, "Write xsh_waviness input file (optional) ...", callback=self.write_inp_file)
 
@@ -316,9 +351,9 @@ class OWxsh_waviness(OWWidget):
         pushButton.clicked.connect(self.selectFile)
 
         self.harmonics_box = oasysgui.widgetBox(tab_harmonics, "Harmonics", addSpace=True, orientation="vertical",
-                                                 width=470, height=690)
+                                                 height=580)
 
-        oasysgui.lineEdit(self.harmonics_box, self, "harmonic_maximum_index", "Harmonic Maximum Index", labelWidth=300,
+        oasysgui.lineEdit(self.harmonics_box, self, "harmonic_maximum_index", "Harmonic Maximum Index", labelWidth=260,
                            valueType=int, orientation="horizontal", callback=self.set_harmonics)
 
         gui.separator(self.harmonics_box)
@@ -331,34 +366,8 @@ class OWxsh_waviness(OWWidget):
         self.shadow_output = QTextEdit()
         self.shadow_output.setReadOnly(True)
 
-        out_box = oasysgui.widgetBox(tab_out, "System Output", addSpace=True, orientation="horizontal", height=600)
+        out_box = oasysgui.widgetBox(tab_out, "System Output", addSpace=True, orientation="horizontal", height=580)
         out_box.layout().addWidget(self.shadow_output)
-
-        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
-
-        button = gui.button(button_box, self, "Calculate Waviness", callback=self.calculate_waviness)
-        button.setFixedHeight(45)
-        button.setFixedWidth(170)
-
-        button = gui.button(button_box, self, "Generate Waviness File", callback=self.generate_waviness_file)
-        font = QFont(button.font())
-        font.setBold(True)
-        button.setFont(font)
-        palette = QPalette(button.palette())  # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Blue'))
-        button.setPalette(palette)  # assign new palette
-        button.setFixedHeight(45)
-        button.setFixedWidth(200)
-
-        button = gui.button(button_box, self, "Reset Fields", callback=self.call_reset_settings)
-        font = QFont(button.font())
-        font.setItalic(True)
-        button.setFont(font)
-        palette = QPalette(button.palette())  # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('Dark Red'))
-        button.setPalette(palette)  # assign new palette
-        button.setFixedHeight(45)
-        button.setFixedWidth(120)
 
         gui.rubber(self.controlArea)
 
@@ -367,14 +376,23 @@ class OWxsh_waviness(OWWidget):
 
         self.axis = self.figure.add_subplot(111, projection='3d')
 
-        self.axis.set_xlabel("X (cm)")
-        self.axis.set_ylabel("Y (cm)")
-        self.axis.set_zlabel("Z (nm)")
+        self.axis.set_zlabel("Z [nm]")
 
         self.figure_canvas = FigureCanvasQTAgg(self.figure)
         self.mainArea.layout().addWidget(self.figure_canvas)
 
         gui.rubber(self.mainArea)
+
+    def after_change_workspace_units(self):
+        self.si_to_user_units = 1e2 / self.workspace_units_to_cm
+
+        self.axis.set_xlabel("X [" + self.workspace_units_label + "]")
+        self.axis.set_ylabel("Y [" + self.workspace_units_label + "]")
+
+        label = self.le_dimension_y.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_dimension_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
     def restoreWidgetPosition(self):
         super().restoreWidgetPosition()
@@ -576,21 +594,22 @@ class OWxsh_waviness(OWWidget):
 
             xx, yy, zz = ST.waviness_calc(npointx=self.number_of_points_x,
                                           npointy=self.number_of_points_y,
-                                          width=self.dimension_x,
-                                          xlength=self.dimension_y,
+                                          width=self.dimension_x * self.workspace_units_to_cm,
+                                          xlength=self.dimension_y * self.workspace_units_to_cm,
                                           slp=self.estimated_slope_error,
                                           nharmonics=self.harmonic_maximum_index,
                                           iseed=self.montecarlo_seed,
                                           c=self.to_float_array(self.data["c"]),
                                           y=self.to_float_array(self.data["y"]),
                                           g=self.to_float_array(self.data["g"]))
-            self.xx = xx
-            self.yy = yy
-            self.zz = zz
+
+            self.xx = xx / self.workspace_units_to_cm
+            self.yy = yy / self.workspace_units_to_cm
+            self.zz = zz / self.workspace_units_to_cm
 
             self.axis.clear()
 
-            x_to_plot, y_to_plot = numpy.meshgrid(xx, yy)
+            x_to_plot, y_to_plot = numpy.meshgrid(self.xx, self.yy)
             z_to_plot = []
 
             for y_index in range(0, len(yy)):
@@ -609,9 +628,9 @@ class OWxsh_waviness(OWWidget):
             title = ' Slope error rms in X direction: %f $\mu$rad' % (sloperms[0]*1e6) + '\n' + \
                     ' Slope error rms in Y direction: %f $\mu$rad' % (sloperms[1]*1e6)
 
-            self.axis.set_xlabel("X (cm)")
-            self.axis.set_ylabel("Y (cm)")
-            self.axis.set_zlabel("Z (nm)")
+            self.axis.set_xlabel("X [" + self.workspace_units_label + "]")
+            self.axis.set_ylabel("Y [" + self.workspace_units_label + "]")
+            self.axis.set_zlabel("Z [nm]")
             self.axis.set_title(title)
             self.axis.mouse_init()
 

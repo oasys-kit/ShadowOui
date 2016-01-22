@@ -53,6 +53,9 @@ class OWxsh_prerefl(OWWidget):
         self.runaction.triggered.connect(self.compute)
         self.addAction(self.runaction)
 
+        self.setFixedWidth(500)
+        self.setFixedHeight(470)
+
         box0 = gui.widgetBox(self.controlArea, "",orientation="horizontal")
         #widget buttons: compute, set defaults, help
         button = gui.button(box0, self, "Compute", callback=self.compute)
@@ -70,16 +73,16 @@ class OWxsh_prerefl(OWWidget):
         idx += 1 
         oasysgui.lineEdit(box, self, "SYMBOL",
                      label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal", callback=self.set_Density)
-        self.show_at(self.unitFlags()[idx], box) 
-        
-        #widget index 1 
-        idx += 1 
+        self.show_at(self.unitFlags()[idx], box)
+
+        #widget index 1
+        idx += 1
         oasysgui.lineEdit(box, self, "DENSITY",
                      label=self.unitLabels()[idx], addSpace=True, valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box) 
-        
-        #widget index 2 
-        idx += 1 
+        self.show_at(self.unitFlags()[idx], box)
+
+        #widget index 2
+        idx += 1
         box_2 = oasysgui.widgetBox(box, "", addSpace=True, orientation="horizontal")
 
         self.le_SHADOW_FILE = oasysgui.lineEdit(box_2, self, "SHADOW_FILE",
@@ -89,23 +92,23 @@ class OWxsh_prerefl(OWWidget):
         pushButton.clicked.connect(self.selectFile)
 
         self.show_at(self.unitFlags()[idx], box)
-        
-        #widget index 3 
-        idx += 1 
+
+        #widget index 3
+        idx += 1
         oasysgui.lineEdit(box, self, "E_MIN",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box) 
-        
-        #widget index 4 
-        idx += 1 
+        self.show_at(self.unitFlags()[idx], box)
+
+        #widget index 4
+        idx += 1
         oasysgui.lineEdit(box, self, "E_MAX",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box) 
-        
-        #widget index 5 
-        idx += 1 
+        self.show_at(self.unitFlags()[idx], box)
+
+        #widget index 5
+        idx += 1
         oasysgui.lineEdit(box, self, "E_STEP",
                      label=self.unitLabels()[idx], addSpace=True,
                     valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")

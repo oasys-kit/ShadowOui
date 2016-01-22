@@ -156,7 +156,6 @@ class OWheight_profile_simulator(OWWidget):
 
         #/ ---------------------------------------
 
-
         input_box_l = oasysgui.widgetBox(tab_length, "Calculation Parameters", addSpace=True, orientation="vertical")
 
         gui.comboBox(input_box_l, self, "kind_of_profile_y", label="Kind of Profile", labelWidth=260,
@@ -470,6 +469,7 @@ class OWheight_profile_simulator(OWWidget):
                                                                  correlation_length_w = self.correlation_length_x * self.workspace_units_to_cm, # to cm
                                                                  x_w = profile_1D_x_x,
                                                                  y_w = profile_1D_x_y)
+
             self.xx = xx / self.workspace_units_to_cm # to user units
             self.yy = yy / self.workspace_units_to_cm # to user units
             self.zz = zz / self.workspace_units_to_cm # to user units
@@ -477,7 +477,7 @@ class OWheight_profile_simulator(OWWidget):
             self.axis.clear()
 
             x_to_plot, y_to_plot = numpy.meshgrid(self.xx, self.yy)
-            z_to_plot = self.zz * 1e9 / self.si_to_user_units # to nm
+            z_to_plot = zz * 1e7
 
             self.axis.plot_surface(x_to_plot, y_to_plot, z_to_plot,
                                    rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
@@ -486,10 +486,10 @@ class OWheight_profile_simulator(OWWidget):
 
             title = ' Slope error rms in X direction: %f $\mu$rad' % (sloperms[0]*1e6) + '\n' + \
                     ' Slope error rms in Y direction: %f $\mu$rad' % (sloperms[1]*1e6)
+
             self.axis.set_xlabel("X [" + self.workspace_units_label + "]")
             self.axis.set_ylabel("Y [" + self.workspace_units_label + "]")
             self.axis.set_zlabel("Z [nm]")
-
             self.axis.set_title(title)
             self.axis.mouse_init()
 

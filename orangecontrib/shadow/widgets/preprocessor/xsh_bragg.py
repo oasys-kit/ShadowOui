@@ -55,8 +55,8 @@ class OWxsh_bragg(OWWidget):
         self.runaction.triggered.connect(self.compute)
         self.addAction(self.runaction)
 
-        self.setFixedWidth(600)
-        self.setFixedHeight(510)
+        self.setFixedWidth(500)
+        self.setFixedHeight(500)
 
         idx = -1 
         
@@ -73,7 +73,7 @@ class OWxsh_bragg(OWWidget):
         idx += 1 
         box = oasysgui.widgetBox(self.controlArea, "Crystal Parameters", orientation="vertical")
         oasysgui.lineEdit(box, self, "DESCRIPTOR",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=450, orientation="horizontal")
+                     label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 1 
