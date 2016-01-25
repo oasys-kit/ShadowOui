@@ -54,7 +54,9 @@ class OWxsh_prerefl(OWWidget):
         self.addAction(self.runaction)
 
         self.setFixedWidth(500)
-        self.setFixedHeight(470)
+        self.setFixedHeight(485)
+
+        gui.separator(self.controlArea)
 
         box0 = gui.widgetBox(self.controlArea, "",orientation="horizontal")
         #widget buttons: compute, set defaults, help
@@ -64,6 +66,8 @@ class OWxsh_prerefl(OWWidget):
         button.setFixedHeight(45)
         button = gui.button(box0, self, "Help", callback=self.help1)
         button.setFixedHeight(45)
+
+        gui.separator(self.controlArea)
 
         box = oasysgui.widgetBox(self.controlArea, "Reflectivity Parameters", orientation="vertical")
         

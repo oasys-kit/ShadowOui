@@ -62,6 +62,11 @@ class OWxsh_pre_mlayer(OWWidget):
     AA1 = Setting(0.0)
     AA2 = Setting(0.0)
 
+    MAX_WIDTH = 700
+    MAX_HEIGHT = 700
+
+    CONTROL_AREA_WIDTH = 685
+    TABS_AREA_HEIGHT = 455
 
     def __init__(self):
         super().__init__()
@@ -70,8 +75,10 @@ class OWxsh_pre_mlayer(OWWidget):
         self.runaction.triggered.connect(self.compute)
         self.addAction(self.runaction)
 
-        self.setFixedWidth(800)
-        self.setFixedHeight(920)
+        self.setFixedWidth(self.MAX_WIDTH)
+        self.setFixedHeight(self.MAX_HEIGHT)
+
+        gui.separator(self.controlArea)
 
         box0 = gui.widgetBox(self.controlArea, "",orientation="horizontal")
         #widget buttons: compute, set defaults, help
@@ -82,7 +89,16 @@ class OWxsh_pre_mlayer(OWWidget):
         button = gui.button(box0, self, "Help", callback=self.help1)
         button.setFixedHeight(45)
 
-        box = gui.widgetBox(self.controlArea, "Multilayer Parameters",orientation="vertical")
+        gui.separator(self.controlArea)
+
+        tabs_setting = gui.tabWidget(self.controlArea)
+        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+
+        tab_input = oasysgui.createTabPage(tabs_setting, "Basic Settings")
+        tab_input_2 = oasysgui.createTabPage(tabs_setting, "Bilayer Settings")
+
+        box = gui.widgetBox(tab_input, "Multilayer Parameters",orientation="vertical")
 
         idx = -1 
         
@@ -92,7 +108,7 @@ class OWxsh_pre_mlayer(OWWidget):
         box_file = oasysgui.widgetBox(box, "", addSpace=True, orientation="horizontal")
 
         self.le_FILE = oasysgui.lineEdit(box_file, self, "FILE",
-                       label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
+                       label=self.unitLabels()[idx], addSpace=True, labelWidth=380, orientation="horizontal")
 
         pushButton = gui.button(box_file, self, "...")
         pushButton.clicked.connect(self.selectFile)
@@ -103,104 +119,106 @@ class OWxsh_pre_mlayer(OWWidget):
         idx += 1
         oasysgui.lineEdit(box, self, "E_MIN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 2
         idx += 1
         oasysgui.lineEdit(box, self, "E_MAX",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 4
         idx += 1
         oasysgui.lineEdit(box, self, "S_MATERIAL",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=450, orientation="horizontal", callback=self.set_SDensity)
+                     label=self.unitLabels()[idx], addSpace=True, labelWidth=550, orientation="horizontal", callback=self.set_SDensity)
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 3
         idx += 1
         oasysgui.lineEdit(box, self, "S_DENSITY",
-                     label=self.unitLabels()[idx], addSpace=True, valueType=float, labelWidth=450, orientation="horizontal")
+                     label=self.unitLabels()[idx], addSpace=True, valueType=float, labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 6
         idx += 1
         oasysgui.lineEdit(box, self, "E_MATERIAL",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=450, orientation="horizontal", callback=self.set_EDensity)
+                     label=self.unitLabels()[idx], addSpace=True, labelWidth=550, orientation="horizontal", callback=self.set_EDensity)
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 5
         idx += 1
         oasysgui.lineEdit(box, self, "E_DENSITY",
-                     label=self.unitLabels()[idx], addSpace=True, valueType=float, labelWidth=450, orientation="horizontal")
+                     label=self.unitLabels()[idx], addSpace=True, valueType=float, labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 8
         idx += 1
         oasysgui.lineEdit(box, self, "O_MATERIAL",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=450, orientation="horizontal", callback=self.set_ODensity)
+                     label=self.unitLabels()[idx], addSpace=True, labelWidth=550, orientation="horizontal", callback=self.set_ODensity)
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 7
         idx += 1
         oasysgui.lineEdit(box, self, "O_DENSITY",
-                     label=self.unitLabels()[idx], addSpace=True, valueType=float, labelWidth=450, orientation="horizontal")
+                     label=self.unitLabels()[idx], addSpace=True, valueType=float, labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
+
+        box_byl = gui.widgetBox(tab_input_2, "Multilayer Parameters",orientation="vertical")
 
         #widget index 9
         idx += 1
-        gui.comboBox(box, self, "GRADE_DEPTH",
+        gui.comboBox(box_byl, self, "GRADE_DEPTH",
                      label=self.unitLabels()[idx], addSpace=True,
-                     items=['No (Constant)', 'thicknesses,gamma,rough_even and rough_off from file '],
-                     valueType=int, orientation="horizontal")
+                     items=['No (Constant)', 'thicknesses, gamma, rough_even, rough_odd from file '],
+                     valueType=int, orientation="horizontal", labelWidth=270)
         self.show_at(self.unitFlags()[idx], box)
 
 
-        box_2 = oasysgui.widgetBox(box, "",orientation="vertical", height=180)
+        box_2 = oasysgui.widgetBox(box_byl, "",orientation="vertical", height=160)
 
         #widget index 10
         idx += 1
         oasysgui.lineEdit(box_2, self, "N_PAIRS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), labelWidth=450, orientation="horizontal")
+                    valueType=int, validator=QIntValidator(), labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 11
         idx += 1
         oasysgui.lineEdit(box_2, self, "THICKNESS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 12
         idx += 1
         oasysgui.lineEdit(box_2, self, "GAMMA",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 13
         idx += 1
         oasysgui.lineEdit(box_2, self, "ROUGHNESS_EVEN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 14
         idx += 1
         oasysgui.lineEdit(box_2, self, "ROUGHNESS_ODD",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 15
         idx += 1
-        box_file_depth = oasysgui.widgetBox(box, "", addSpace=True, orientation="horizontal", height=180)
+        box_file_depth = oasysgui.widgetBox(box_byl, "", addSpace=True, orientation="horizontal", height=160)
 
         self.le_FILE_DEPTH = oasysgui.lineEdit(box_file_depth, self, "FILE_DEPTH",
-                                                 label=self.unitLabels()[idx], addSpace=True, labelWidth=400, orientation="horizontal")
+                                               label=self.unitLabels()[idx], addSpace=True, labelWidth=400, orientation="horizontal")
 
         pushButton = gui.button(box_file_depth, self, "...")
         pushButton.clicked.connect(self.selectFileDepth)
@@ -209,24 +227,24 @@ class OWxsh_pre_mlayer(OWWidget):
 
         #widget index 16
         idx += 1
-        gui.comboBox(box, self, "GRADE_SURFACE",
+        gui.comboBox(box_byl, self, "GRADE_SURFACE",
                      label=self.unitLabels()[idx], addSpace=True,
                      items=['No (Constant)', 'thick and gamma graded (from spline files)', 'thickness graded (from quadratic fit)'],
-                     valueType=int, orientation="horizontal")
+                     valueType=int, orientation="horizontal", labelWidth=380)
         self.show_at(self.unitFlags()[idx], box)
 
 
-        box_3_empty = oasysgui.widgetBox(box, "", orientation="vertical", height=100)
+        box_3_empty = oasysgui.widgetBox(box_byl, "", orientation="vertical", height=100)
         self.show_at("self.GRADE_SURFACE == 0", box_3_empty)
 
-        box_3 = oasysgui.widgetBox(box, "", orientation="vertical", height=100)
+        box_3 = oasysgui.widgetBox(box_byl, "", orientation="vertical", height=100)
 
         #widget index 17
         idx += 1
         box_file_shadow = oasysgui.widgetBox(box_3, "", addSpace=True, orientation="horizontal")
 
         self.le_FILE_SHADOW = oasysgui.lineEdit(box_file_shadow, self, "FILE_SHADOW",
-                                                 label=self.unitLabels()[idx], addSpace=True, labelWidth=420, orientation="horizontal")
+                                                 label=self.unitLabels()[idx], addSpace=True, labelWidth=400, orientation="horizontal")
 
         pushButton = gui.button(box_file_shadow, self, "...")
         pushButton.clicked.connect(self.selectFileShadow)
@@ -238,7 +256,7 @@ class OWxsh_pre_mlayer(OWWidget):
         box_file_thickness = oasysgui.widgetBox(box_3, "", addSpace=True, orientation="horizontal")
 
         self.le_FILE_THICKNESS = oasysgui.lineEdit(box_file_thickness, self, "FILE_THICKNESS",
-                                                 label=self.unitLabels()[idx], addSpace=True, labelWidth=420, orientation="horizontal")
+                                                 label=self.unitLabels()[idx], addSpace=True, labelWidth=400, orientation="horizontal")
 
         pushButton = gui.button(box_file_thickness, self, "...")
         pushButton.clicked.connect(self.selectFileThickness)
@@ -250,34 +268,34 @@ class OWxsh_pre_mlayer(OWWidget):
         box_file_gamma = oasysgui.widgetBox(box_3, "", addSpace=True, orientation="horizontal")
 
         self.le_FILE_GAMMA = oasysgui.lineEdit(box_file_gamma, self, "FILE_GAMMA",
-                                                 label=self.unitLabels()[idx], addSpace=True, labelWidth=420, orientation="horizontal")
+                                                 label=self.unitLabels()[idx], addSpace=True, labelWidth=400, orientation="horizontal")
 
         pushButton = gui.button(box_file_gamma, self, "...")
         pushButton.clicked.connect(self.selectFileGamma)
 
         self.show_at(self.unitFlags()[idx], box_3)
 
-        box_4 = oasysgui.widgetBox(box, "",orientation="vertical", height=100)
+        box_4 = oasysgui.widgetBox(box_byl, "",orientation="vertical", height=100)
 
         #widget index 20
         idx += 1
         oasysgui.lineEdit(box_4, self, "AA0",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_4)
 
         #widget index 21
         idx += 1
         oasysgui.lineEdit(box_4, self, "AA1",
                      label=self.unitLabels()[idx], addSpace=True,
-                     valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
+                     valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_4)
 
         #widget index 22
         idx += 1
         oasysgui.lineEdit(box_4, self, "AA2",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=450, orientation="horizontal")
+                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_4)
 
         self.process_showers()
@@ -285,7 +303,7 @@ class OWxsh_pre_mlayer(OWWidget):
         self.shadow_output = QTextEdit()
         self.shadow_output.setReadOnly(True)
 
-        out_box = oasysgui.widgetBox(self.controlArea, "System Output", addSpace=True, orientation="horizontal", height=100)
+        out_box = oasysgui.widgetBox(self.controlArea, "System Output", addSpace=True, orientation="horizontal", height=150)
         out_box.layout().addWidget(self.shadow_output)
 
         gui.rubber(self.controlArea)
@@ -305,7 +323,7 @@ class OWxsh_pre_mlayer(OWWidget):
                  'gamma ratio [t_even/(t_odd+t_even)]',
                  'Roughness even layer [A]',
                  'Roughness odd layer [A]',
-                 'File with list of t_bilayer,gamma,roughness_even,roughness_odd',
+                 'File with list of t_bilayer, gamma, roughness_even, roughness_odd',
                  'Bilayer thicknesses/gamma graded along the surface? ',
                  'Output binary file (for SHADOW) with splines',
                  'File with bilayer thicknesses versus surface (PRESURFACE format)',

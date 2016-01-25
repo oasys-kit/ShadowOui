@@ -56,10 +56,12 @@ class OWxsh_bragg(OWWidget):
         self.addAction(self.runaction)
 
         self.setFixedWidth(500)
-        self.setFixedHeight(500)
+        self.setFixedHeight(520)
 
         idx = -1 
         
+        gui.separator(self.controlArea)
+
         box0 = oasysgui.widgetBox(self.controlArea, "",orientation="horizontal")
         #widget buttons: compute, set defaults, help
         button = gui.button(box0, self, "Compute", callback=self.compute)
@@ -68,6 +70,8 @@ class OWxsh_bragg(OWWidget):
         button.setFixedHeight(45)
         button = gui.button(box0, self, "Help", callback=self.help1)
         button.setFixedHeight(45)
+
+        gui.separator(self.controlArea)
 
         #widget index 0
         idx += 1 
@@ -151,7 +155,7 @@ class OWxsh_bragg(OWWidget):
         gui.rubber(self.controlArea)
 
     def unitLabels(self):
-         return ['Crystal descriptor','H miller index','K miller index','L miller index','Temperature factor','From Energy [eV]','To Energy [eV]','Energy step [eV]','File name (for SHADOW)']
+         return ['Crystal descriptor','H miller index','K miller index','L miller index','Temperature factor','Minimum energy [eV]','Maximum energy [eV]','Energy step [eV]','File name (for SHADOW)']
 
 
     def unitFlags(self):
@@ -189,8 +193,8 @@ class OWxsh_bragg(OWWidget):
         self.K_MILLER_INDEX = congruence.checkNumber(self.K_MILLER_INDEX, "K miller index")
         self.L_MILLER_INDEX = congruence.checkNumber(self.L_MILLER_INDEX, "L miller index")
         self.TEMPERATURE_FACTOR = congruence.checkNumber(self.TEMPERATURE_FACTOR, "Temperature factor")
-        self.E_MIN  = congruence.checkPositiveNumber(self.E_MIN , "From Energy")
-        self.E_MAX  = congruence.checkStrictlyPositiveNumber(self.E_MAX , "To Energy")
+        self.E_MIN  = congruence.checkPositiveNumber(self.E_MIN , "Minimum energy")
+        self.E_MAX  = congruence.checkStrictlyPositiveNumber(self.E_MAX , "Maximum Energy")
         self.E_STEP = congruence.checkStrictlyPositiveNumber(self.E_STEP, "Energy step")
         if self.E_MIN > self.E_MAX: raise Exception("From Energy cannot be bigger than To Energy")
         congruence.checkDir(self.SHADOW_FILE)
