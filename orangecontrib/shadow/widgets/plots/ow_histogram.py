@@ -59,7 +59,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
         gui.separator(self.controlArea, 10)
 
         tabs_setting = gui.tabWidget(self.controlArea)
-        tabs_setting.setFixedWidth(410)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
         # graph tab
         tab_set = oasysgui.createTabPage(tabs_setting, "Plot Settings")
@@ -68,11 +68,11 @@ class Histogram(ow_automatic_element.AutomaticElement):
         screen_box = oasysgui.widgetBox(tab_set, "Screen Position Settings", addSpace=True, orientation="vertical", height=110)
 
         self.image_plane_combo = gui.comboBox(screen_box, self, "image_plane", label="Position of the Image",
-                                            items=["On Image Plane", "Retraced"],
+                                            items=["On Image Plane", "Retraced"], labelWidth=260,
                                             callback=self.set_ImagePlane, sendSelectedValue=False, orientation="horizontal")
 
-        self.image_plane_box = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", width=390, height=110)
-        self.image_plane_box_empty = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", width=390, height=110)
+        self.image_plane_box = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", height=110)
+        self.image_plane_box_empty = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", height=110)
 
         oasysgui.lineEdit(self.image_plane_box, self, "image_plane_new_position", "Image Plane new Position", labelWidth=220, valueType=float, orientation="horizontal")
 
@@ -83,7 +83,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
         general_box = oasysgui.widgetBox(tab_set, "General Settings", addSpace=True, orientation="vertical", height=250)
 
-        self.x_column = gui.comboBox(general_box, self, "x_column_index", label="Column", labelWidth=80,
+        self.x_column = gui.comboBox(general_box, self, "x_column_index", label="Column", labelWidth=70,
                                      items=["1: X",
                                             "2: Y",
                                             "3: Z",
@@ -120,7 +120,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
                                      ],
                                      sendSelectedValue=False, orientation="horizontal")
 
-        self.weight_column = gui.comboBox(general_box, self, "weight_column_index", label="Weight", labelWidth=80,
+        self.weight_column = gui.comboBox(general_box, self, "weight_column_index", label="Weight", labelWidth=70,
                                          items=["0: No Weight",
                                                 "1: X",
                                                 "2: Y",
@@ -171,12 +171,12 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
         self.set_XRange()
 
-        incremental_box = oasysgui.widgetBox(tab_gen, "Incremental Result", addSpace=True, orientation="horizontal", height=80, width=395)
+        incremental_box = oasysgui.widgetBox(tab_gen, "Incremental Result", addSpace=True, orientation="horizontal", height=80)
 
         gui.checkBox(incremental_box, self, "keep_result", "Keep Result")
         gui.button(incremental_box, self, "Clear", callback=self.clearResults)
 
-        histograms_box = oasysgui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=70, width=395)
+        histograms_box = oasysgui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=70)
 
         oasysgui.lineEdit(histograms_box, self, "number_of_bins", "Number of Bins", labelWidth=250, valueType=int, orientation="horizontal")
 
