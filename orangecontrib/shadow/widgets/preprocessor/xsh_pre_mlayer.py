@@ -63,10 +63,10 @@ class OWxsh_pre_mlayer(OWWidget):
     AA2 = Setting(0.0)
 
     MAX_WIDTH = 700
-    MAX_HEIGHT = 700
+    MAX_HEIGHT = 660
 
     CONTROL_AREA_WIDTH = 685
-    TABS_AREA_HEIGHT = 455
+    TABS_AREA_HEIGHT = 415
 
     def __init__(self):
         super().__init__()

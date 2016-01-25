@@ -1201,7 +1201,7 @@ class Properties(object):
                 return getattr(self._props, name)
 
 from matplotlib import cm
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 try:
     from mpl_toolkits.mplot3d import Axes3D  # necessario per caricare i plot 3D
@@ -1209,6 +1209,42 @@ except:
     pass
 
 from PyQt4.QtGui import QApplication, QVBoxLayout
+from PyQt4.QtCore import QCoreApplication
+
+class MathTextLabel(QWidget):
+    def __init__(self, mathText, size=None, parent=None, **kwargs):
+        QWidget.__init__(self, parent, **kwargs)
+
+        l=QVBoxLayout(self)
+        l.setContentsMargins(0,0,0,0)
+
+        r,g,b,a=self.palette().base().color().getRgbF()
+
+        self._figure=Figure(edgecolor=(r,g,b), facecolor=(r,g,b))
+        self._canvas=FigureCanvas(self._figure)
+        l.addWidget(self._canvas)
+
+        self._figure.clear()
+
+        if not size:
+            size = QCoreApplication.instance().font().pointSize()
+
+        text=self._figure.suptitle(
+            mathText,
+            x=0.0,
+            y=1.0,
+            horizontalalignment='left',
+            verticalalignment='top',
+            size=size)
+        self._canvas.draw()
+
+        (x0,y0),(x1,y1)=text.get_window_extent().get_points()
+        w=x1-x0; h=y1-y0
+
+        self._figure.set_size_inches(w/80, h/80)
+        self.setFixedSize(w,h)
+
+
 
 if __name__ == "__main__":
 
