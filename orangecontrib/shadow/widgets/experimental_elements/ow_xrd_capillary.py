@@ -51,13 +51,13 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
     input_beam = None
 
-    TABS_AREA_HEIGHT = 690
+    TABS_AREA_HEIGHT = 550
 
     IMAGE_WIDTH = 860
-    IMAGE_HEIGHT = 545
+    IMAGE_HEIGHT = 645
 
     capillary_diameter = Setting(0.3)
-    capillary_thickness = Setting(0.01)
+    capillary_thickness = Setting(10.0)
     capillary_material = Setting(0)
     sample_material = Setting(0)
     packing_factor = Setting(0.6)
@@ -214,27 +214,77 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         self.readCapillaryMaterialConfigurationFiles()
         self.readMaterialConfigurationFiles()
 
-        tabs = oasysgui.tabWidget(self.controlArea, height=self.TABS_AREA_HEIGHT)
+        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal", height=30)
 
-        self.tab_simulation = oasysgui.createTabPage(tabs, "Simulation")
-        self.tab_physical = oasysgui.createTabPage(tabs, "Experiment")
-        self.tab_beam = oasysgui.createTabPage(tabs, "Beam")
-        self.tab_aberrations = oasysgui.createTabPage(tabs, "Aberrations")
-        self.tab_background = oasysgui.createTabPage(tabs, "Background")
-        self.tab_output = oasysgui.createTabPage(tabs, "Output")
+        self.start_button = gui.button(button_box, self, "Simulate Diffraction", callback=self.simulate)
+        self.start_button.setFixedHeight(25)
+
+        self.background_button = gui.button(button_box, self, "Simulate Background", callback=self.simulateBackground)
+        self.background_button.setFixedHeight(25)
+        palette = QPalette(self.background_button.palette()) # make a copy of the palette
+        palette.setColor(QPalette.ButtonText, QColor('dark blue'))
+        self.background_button.setPalette(palette) # assign new palette
+
+        stop_button = gui.button(button_box, self, "Interrupt", callback=self.stopSimulation)
+        stop_button.setFixedHeight(25)
+        font = QFont(stop_button.font())
+        font.setBold(True)
+        stop_button.setFont(font)
+        palette = QPalette(stop_button.palette()) # make a copy of the palette
+        palette.setColor(QPalette.ButtonText, QColor('red'))
+        stop_button.setPalette(palette) # assign new palette
+
+        button_box_2 = oasysgui.widgetBox(self.controlArea, "", addSpace=True, orientation="horizontal", height=25)
+
+        self.reset_fields_button = gui.button(button_box_2, self, "Reset Fields", callback=self.callResetSettings)
+        font = QFont(self.reset_fields_button.font())
+        font.setItalic(True)
+        self.reset_fields_button.setFont(font)
+        self.reset_fields_button.setFixedHeight(25)
+        self.reset_fields_button.setFixedWidth(128)
+
+        self.reset_bkg_button = gui.button(button_box_2, self, "Reset Background", callback=self.resetBackground)
+        self.reset_bkg_button.setFixedHeight(25)
+        font = QFont(self.reset_bkg_button.font())
+        font.setItalic(True)
+        self.reset_bkg_button.setFont(font)
+        palette = QPalette(self.reset_bkg_button.palette()) # make a copy of the palette
+        palette.setColor(QPalette.ButtonText, QColor('dark blue'))
+        self.reset_bkg_button.setPalette(palette) # assign new palette
+        self.reset_bkg_button.setFixedWidth(135)
+
+        self.reset_button = gui.button(button_box_2, self, "Reset Simulation", callback=self.resetSimulation)
+        self.reset_button.setFixedHeight(25)
+        font = QFont(self.reset_button.font())
+        font.setItalic(True)
+        self.reset_button.setFont(font)
+        palette = QPalette(self.reset_button.palette()) # make a copy of the palette
+        palette.setColor(QPalette.ButtonText, QColor('red'))
+        self.reset_button.setPalette(palette) # assign new palette
+
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+
+        self.tab_simulation = oasysgui.createTabPage(tabs_setting, "Simulation")
+        self.tab_physical = oasysgui.createTabPage(tabs_setting, "Experiment")
+        self.tab_beam = oasysgui.createTabPage(tabs_setting, "Beam")
+        self.tab_aberrations = oasysgui.createTabPage(tabs_setting, "Aberrations")
+        self.tab_background = oasysgui.createTabPage(tabs_setting, "Background")
+        self.tab_output = oasysgui.createTabPage(tabs_setting, "Output")
 
         #####################
 
-        box_rays = oasysgui.widgetBox(self.tab_simulation, "Rays Generation", addSpace=True, orientation="vertical")
+        box_rays = oasysgui.widgetBox(self.tab_simulation, "Rays Generation", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(box_rays, self, "number_of_origin_points", "Number of Origin Points into the Capillary", labelWidth=355, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(box_rays, self, "number_of_rotated_rays", "Number of Generated Rays in the Powder Diffraction Arc",  valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(box_rays, self, "number_of_origin_points", "Number of Origin Points into the Capillary", labelWidth=320, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(box_rays, self, "number_of_rotated_rays", "Number of Generated Rays in the XRPD Arc", labelWidth=320, valueType=int, orientation="horizontal")
 
-        gui.comboBox(box_rays, self, "normalize", label="Normalize", labelWidth=370, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
+        gui.comboBox(box_rays, self, "normalize", label="Normalize", labelWidth=320, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
-        box_simulation = oasysgui.widgetBox(self.tab_simulation, "Simulation Management", addSpace=True, orientation="vertical")
+        box_simulation = oasysgui.widgetBox(self.tab_simulation, "Simulation Management", addSpace=False, orientation="vertical")
 
-        file_box = oasysgui.widgetBox(box_simulation, "", addSpace=True, orientation="horizontal", height=25)
+        file_box = oasysgui.widgetBox(box_simulation, "", addSpace=False, orientation="horizontal", height=20)
 
         self.le_output_file_name = oasysgui.lineEdit(file_box, self, "output_file_name", "Output File Name", labelWidth=120, valueType=str, orientation="horizontal")
 
@@ -244,14 +294,15 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         gui.separator(box_simulation)
 
         gui.checkBox(box_simulation, self, "keep_result", "Keep Result")
+        gui.checkBox(box_simulation, self, "incremental", "Incremental Simulation", callback=self.setIncremental)
+
         gui.separator(box_simulation)
 
-        gui.checkBox(box_simulation, self, "incremental", "Incremental Simulation", callback=self.setIncremental)
-        self.le_number_of_executions = oasysgui.lineEdit(box_simulation, self, "number_of_executions", "Number of Executions", labelWidth=350, valueType=int, orientation="horizontal")
+        self.le_number_of_executions = oasysgui.lineEdit(box_simulation, self, "number_of_executions", "Number of Executions", labelWidth=320, valueType=int, orientation="horizontal")
 
         self.setIncremental()
 
-        self.le_current_execution = oasysgui.lineEdit(box_simulation, self, "current_execution", "Current Execution", labelWidth=350, valueType=int, orientation="horizontal")
+        self.le_current_execution = oasysgui.lineEdit(box_simulation, self, "current_execution", "Current Execution", labelWidth=320, valueType=int, orientation="horizontal")
         self.le_current_execution.setReadOnly(True)
         font = QFont(self.le_current_execution.font())
         font.setBold(True)
@@ -261,34 +312,38 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         palette.setColor(QPalette.Base, QColor(243, 240, 160))
         self.le_current_execution.setPalette(palette)
 
-        box_ray_tracing = oasysgui.widgetBox(self.tab_simulation, "Ray Tracing Management", addSpace=True, orientation="vertical")
+        box_ray_tracing = oasysgui.widgetBox(self.tab_simulation, "Ray Tracing Management", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(box_ray_tracing, self, "degrees_around_peak", "Degrees around Peak", labelWidth=355, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_ray_tracing, self, "degrees_around_peak", "Degrees around Peak", labelWidth=320, valueType=float, orientation="horizontal")
 
         gui.separator(box_ray_tracing)
 
-        gui.comboBox(box_ray_tracing, self, "beam_units_in_use", label="Units in use", labelWidth=350,
+        gui.comboBox(box_ray_tracing, self, "beam_units_in_use", label="Units in use", labelWidth=320,
                      items=["eV", "Angstroms"],
                      callback=self.setBeamUnitsInUse, sendSelectedValue=False, orientation="horizontal")
 
         self.box_ray_tracing_1 = oasysgui.widgetBox(box_ray_tracing, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.box_ray_tracing_1, self, "beam_energy", "Set Beam energy [eV]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_ray_tracing_1, self, "beam_energy", "Set Beam energy [eV]", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.box_ray_tracing_2 = oasysgui.widgetBox(box_ray_tracing, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.box_ray_tracing_2, self, "beam_wavelength", "Beam wavelength [Å]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_ray_tracing_2, self, "beam_wavelength", "Beam wavelength [Å]", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.setBeamUnitsInUse()
 
         #####################
 
-        box_sample = oasysgui.widgetBox(self.tab_physical, "Sample Parameters", addSpace=True, orientation="vertical")
+        tabs_experiment = oasysgui.tabWidget(self.tab_physical)
+        tab_exp_1 = oasysgui.createTabPage(tabs_experiment, "Diffractometer")
+        tab_exp_2 = oasysgui.createTabPage(tabs_experiment, "Scan")
+
+        box_sample = oasysgui.widgetBox(tab_exp_1, "Sample Parameters", addSpace=True, orientation="vertical")
 
         box_capillary = oasysgui.widgetBox(box_sample, "", addSpace=False, orientation="horizontal")
 
-        oasysgui.lineEdit(box_capillary, self, "capillary_diameter", "Capillary:  Diameter [mm]", labelWidth=160, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(box_capillary, self, "capillary_thickness", "          Thickness [mm]", labelWidth=140, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_capillary, self, "capillary_diameter", "Capillary:  Diameter [mm]", labelWidth=147, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_capillary, self, "capillary_thickness", "          Thickness [" + u"\u03BC" + "m]", labelWidth=130, valueType=float, orientation="horizontal")
 
         capillary_names = []
 
@@ -302,77 +357,76 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         for material in self.materials:
             chemical_formulas.append(material.chemical_formula)
 
-        gui.comboBox(box_sample, self, "sample_material", label="Sample Material", items=chemical_formulas, labelWidth=300, sendSelectedValue=False, orientation="horizontal", callback=self.setSampleMaterial)
+        gui.comboBox(box_sample, self, "sample_material", label="Sample Material", items=chemical_formulas, labelWidth=260, sendSelectedValue=False, orientation="horizontal", callback=self.setSampleMaterial)
 
-        oasysgui.lineEdit(box_sample, self, "packing_factor", "Packing Factor (0.0 ... 1.0)", labelWidth=350, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(box_sample, self, "residual_average_size", "Residual Average Size [um]", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_sample, self, "packing_factor", "Packing Factor (0.0 ... 1.0)", labelWidth=320, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_sample, self, "residual_average_size", "Residual Average Size [" + u"\u03BC" + "m]", labelWidth=300, valueType=float, orientation="horizontal")
 
-        box_2theta_arm = oasysgui.widgetBox(self.tab_physical, "2Theta Arm Parameters", addSpace=True, orientation="vertical", height=260)
 
-        gui.comboBox(box_2theta_arm, self, "diffracted_arm_type", label="Diffracted Arm Setup", items=["Slits", "Analyzer", "Area Detector"], labelWidth=300, sendSelectedValue=False, orientation="horizontal", callback=self.setDiffractedArmType)
+        box_2theta_arm = oasysgui.widgetBox(tab_exp_1, "2Theta Arm Parameters", addSpace=True, orientation="vertical", height=260)
+
+        gui.comboBox(box_2theta_arm, self, "diffracted_arm_type", label="Diffracted Arm Setup", items=["Slits", "Analyzer", "Area Detector"], labelWidth=260, sendSelectedValue=False, orientation="horizontal", callback=self.setDiffractedArmType)
 
         self.box_2theta_arm_1 = oasysgui.widgetBox(box_2theta_arm, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.box_2theta_arm_1, self, "detector_distance", "Detector Distance [cm]", labelWidth=300, tooltip="Detector Distance [cm]", valueType=float, orientation="horizontal")
+        self.le_detector_distance = oasysgui.lineEdit(self.box_2theta_arm_1, self, "detector_distance", "Detector Distance", labelWidth=260, tooltip="Detector Distance [cm]", valueType=float, orientation="horizontal")
 
         gui.separator(self.box_2theta_arm_1)
 
-        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_1_distance", "Slit 1 Distance from Goniometer Center [cm]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_1_vertical_aperture", "Slit 1 Vertical Aperture [um]",  labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_1_horizontal_aperture", "Slit 1 Horizontal Aperture [um]",  labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_slit_1_distance = oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_1_distance", "Slit 1 Distance from Goniometer Center", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_1_vertical_aperture", "Slit 1 Vertical Aperture [" + u"\u03BC" + "m]",  labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_1_horizontal_aperture", "Slit 1 Horizontal Aperture [" + u"\u03BC" + "m]",  labelWidth=260, valueType=float, orientation="horizontal")
 
         gui.separator(self.box_2theta_arm_1)
 
-        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_2_distance", "Slit 2 Distance from Goniometer Center [cm]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_2_vertical_aperture", "Slit 2 Vertical Aperture [um]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_2_horizontal_aperture", "Slit 2 Horizontal Aperture [um]", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_slit_2_distance = oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_2_distance", "Slit 2 Distance from Goniometer Center", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_2_vertical_aperture", "Slit 2 Vertical Aperture [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_2_horizontal_aperture", "Slit 2 Horizontal Aperture [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.box_2theta_arm_2 = oasysgui.widgetBox(box_2theta_arm, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.box_2theta_arm_2, self, "acceptance_slit_distance", "Slit Distance from Goniometer Center [cm]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_2, self, "acceptance_slit_vertical_aperture", "Slit Vertical Aperture [um]",  labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_2, self, "acceptance_slit_horizontal_aperture", "Slit Horizontal Aperture [um]",  labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_acceptance_slit_distance = oasysgui.lineEdit(self.box_2theta_arm_2, self, "acceptance_slit_distance", "Slit Distance from Goniometer Center", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_2, self, "acceptance_slit_vertical_aperture", "Slit Vertical Aperture [" + u"\u03BC" + "m]",  labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_2, self, "acceptance_slit_horizontal_aperture", "Slit Horizontal Aperture [" + u"\u03BC" + "m]",  labelWidth=260, valueType=float, orientation="horizontal")
 
         gui.separator(self.box_2theta_arm_2)
 
-        oasysgui.lineEdit(self.box_2theta_arm_2, self, "analyzer_distance", "Crystal Distance from Goniometer Center [cm]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_2, self, "analyzer_bragg_angle", "Analyzer Incidence Angle [deg]", labelWidth=300, valueType=float, orientation="horizontal")
-
+        self.le_analyzer_distance = oasysgui.lineEdit(self.box_2theta_arm_2, self, "analyzer_distance", "Crystal Distance from Goniometer Center", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_2, self, "analyzer_bragg_angle", "Analyzer Incidence Angle [deg]", labelWidth=260, valueType=float, orientation="horizontal")
 
         file_box_2 = oasysgui.widgetBox(self.box_2theta_arm_2, "", addSpace=True, orientation="horizontal", height=25)
 
-        self.le_rocking_curve_file = oasysgui.lineEdit(file_box_2, self, "rocking_curve_file", "File with Crystal parameter",  labelWidth=180, valueType=str, orientation="horizontal")
+        self.le_rocking_curve_file = oasysgui.lineEdit(file_box_2, self, "rocking_curve_file", "File with Crystal parameter",  labelWidth=150, valueType=str, orientation="horizontal")
 
         pushButton = gui.button(file_box_2, self, "...")
         pushButton.clicked.connect(self.selectRockingCurveFile)
 
 
-        oasysgui.lineEdit(self.box_2theta_arm_2, self, "mosaic_angle_spread_fwhm", "Mosaic Angle Spread FWHM [deg]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_2, self, "mosaic_angle_spread_fwhm", "Mosaic Angle Spread FWHM [deg]", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.box_2theta_arm_3 = oasysgui.widgetBox(box_2theta_arm, "", addSpace=False, orientation="vertical")
 
         gui.separator(self.box_2theta_arm_3)
 
-        oasysgui.lineEdit(self.box_2theta_arm_3, self, "area_detector_distance", "Detector Distance [cm]",
-                           labelWidth=300, tooltip="Detector Distance [cm]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_3, self, "area_detector_height", "Detector Height [cm]", labelWidth=300,
+        self.le_area_detector_distance = oasysgui.lineEdit(self.box_2theta_arm_3, self, "area_detector_distance", "Detector Distance",
+                           labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_area_detector_height = oasysgui.lineEdit(self.box_2theta_arm_3, self, "area_detector_height", "Detector Height", labelWidth=260,
                            tooltip="Detector Height [cm]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_3, self, "area_detector_width", "Detector Width [cm]", labelWidth=300,
+        self.le_area_detector_width = oasysgui.lineEdit(self.box_2theta_arm_3, self, "area_detector_width", "Detector Width", labelWidth=260,
                            tooltip="Detector Width [cm]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_3, self, "area_detector_pixel_size", "Pixel Size [um]", labelWidth=300,
-                           tooltip="Pixel Size [um]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_3, self, "area_detector_pixel_size", "Pixel Size [" + u"\u03BC" + "m]", labelWidth=260,
+                           tooltip="Pixel Size [" + u"\u03BC" + "m]", valueType=float, orientation="horizontal")
 
-        box_scan = oasysgui.widgetBox(self.tab_physical, "Scan Parameters", addSpace=True, orientation="vertical")
+        box_scan = oasysgui.widgetBox(tab_exp_2, "Scan Parameters", addSpace=True, orientation="vertical")
 
-        oasysgui.lineEdit(box_scan, self, "start_angle_na", "Start Angle [deg]", labelWidth=350, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(box_scan, self, "stop_angle_na", "Stop Angle [deg]", labelWidth=350, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(box_scan, self, "step", "Step [deg]", labelWidth=340, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_scan, self, "start_angle_na", "Start Angle [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_scan, self, "stop_angle_na", "Stop Angle [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_scan, self, "step", "Step [deg]", labelWidth=260, valueType=float, orientation="horizontal")
 
-        box_diffraction = oasysgui.widgetBox(self.tab_physical, "Diffraction Parameters", addSpace=True, orientation="vertical")
+        box_diffraction = oasysgui.widgetBox(tab_exp_2, "Diffraction Parameters", addSpace=True, orientation="vertical")
 
-        gui.comboBox(box_diffraction, self, "set_number_of_peaks", label="set Number of Peaks", labelWidth=370, callback=self.setNumberOfPeaks, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
-        self.le_number_of_peaks = oasysgui.lineEdit(box_diffraction, self, "number_of_peaks", "Number of Peaks", labelWidth=358, valueType=int, orientation="horizontal")
-        gui.separator(box_diffraction)
+        gui.comboBox(box_diffraction, self, "set_number_of_peaks", label="set Number of Peaks", labelWidth=350, callback=self.setNumberOfPeaks, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
+        self.le_number_of_peaks = oasysgui.lineEdit(box_diffraction, self, "number_of_peaks", "Number of Peaks", labelWidth=320, valueType=int, orientation="horizontal")
 
         self.setNumberOfPeaks()
 
@@ -380,7 +434,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         box_beam = oasysgui.widgetBox(self.tab_beam, "Lorentz-Polarization Factor", addSpace=True, orientation="vertical")
 
-        gui.comboBox(box_beam, self, "add_lorentz_polarization_factor", label="Add Lorentz-Polarization Factor", labelWidth=370, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.setPolarization)
+        gui.comboBox(box_beam, self, "add_lorentz_polarization_factor", label="Add Lorentz-Polarization Factor", labelWidth=350, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.setPolarization)
 
         gui.separator(box_beam)
 
@@ -389,9 +443,9 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         gui.comboBox(self.box_polarization, self, "pm2k_fullprof", label="Kind of Calculation", labelWidth=340, items=["PM2K", "FULLPROF"], sendSelectedValue=False, orientation="horizontal", callback=self.setKindOfCalculation)
 
         self.box_degree_of_polarization_pm2k =  oasysgui.widgetBox(self.box_polarization, "", addSpace=True, orientation="vertical")
-        oasysgui.lineEdit(self.box_degree_of_polarization_pm2k, self, "degree_of_polarization", "Q Factor [(Ih-Iv)/(Ih+Iv)]", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_degree_of_polarization_pm2k, self, "degree_of_polarization", "Q Factor [(Ih-Iv)/(Ih+Iv)]", labelWidth=320, valueType=float, orientation="horizontal")
         self.box_degree_of_polarization_fullprof =  oasysgui.widgetBox(self.box_polarization, "", addSpace=True, orientation="vertical")
-        oasysgui.lineEdit(self.box_degree_of_polarization_fullprof, self, "degree_of_polarization", "K Factor", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_degree_of_polarization_fullprof, self, "degree_of_polarization", "K Factor", labelWidth=320, valueType=float, orientation="horizontal")
 
         oasysgui.lineEdit(self.box_polarization, self, "monochromator_angle", "Monochromator Theta Angle [deg]", labelWidth=300, valueType=float, orientation="horizontal")
 
@@ -399,13 +453,13 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         box_beam_2 = oasysgui.widgetBox(self.tab_beam, "Debye-Waller Factor", addSpace=True, orientation="vertical")
 
-        gui.comboBox(box_beam_2, self, "add_debye_waller_factor", label="Add Debye-Waller Factor", labelWidth=370, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.setDebyeWallerFactor)
+        gui.comboBox(box_beam_2, self, "add_debye_waller_factor", label="Add Debye-Waller Factor", labelWidth=350, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.setDebyeWallerFactor)
 
         gui.separator(box_beam_2)
 
         self.box_debye_waller =  oasysgui.widgetBox(box_beam_2, "", addSpace=True, orientation="vertical")
 
-        gui.comboBox(self.box_debye_waller, self, "use_default_dwf", label="Use Stored D.W.F. (B) [Angstrom-2]", labelWidth=370, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.setUseDefaultDWF)
+        gui.comboBox(self.box_debye_waller, self, "use_default_dwf", label="Use Stored D.W.F. (B) [Angstrom-2]", labelWidth=350, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.setUseDefaultDWF)
 
         self.box_use_default_dwf_1 =  oasysgui.widgetBox(self.box_debye_waller, "", addSpace=True, orientation="vertical")
         oasysgui.lineEdit(self.box_use_default_dwf_1, self, "new_debye_waller_B", "Debye-Waller Factor (B)", labelWidth=300, valueType=float, orientation="horizontal")
@@ -426,67 +480,59 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         box_cap_aberrations = oasysgui.widgetBox(self.tab_aberrations, "Capillary Aberrations", addSpace=True, orientation="vertical")
 
-        oasysgui.lineEdit(box_cap_aberrations, self, "positioning_error", "Position Error % (wobbling)", labelWidth=350, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_cap_aberrations, self, "positioning_error", "Position Error % (wobbling)", labelWidth=320, valueType=float, orientation="horizontal")
         gui.separator(box_cap_aberrations)
-        oasysgui.lineEdit(box_cap_aberrations, self, "horizontal_displacement", "Horizontal Displacement [um]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(box_cap_aberrations, self, "vertical_displacement", "Vertical Displacement [um]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_cap_aberrations, self, "horizontal_displacement", "Horizontal Displacement [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_cap_aberrations, self, "vertical_displacement", "Vertical Displacement [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
         gui.separator(box_cap_aberrations)
-        gui.comboBox(box_cap_aberrations, self, "calculate_absorption", label="Calculate Absorption", labelWidth=370, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.setAbsorption)
+        gui.comboBox(box_cap_aberrations, self, "calculate_absorption", label="Calculate Absorption", labelWidth=350, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.setAbsorption)
 
         box_gon_aberrations = oasysgui.widgetBox(self.tab_aberrations, "Goniometer Aberrations", addSpace=True, orientation="vertical")
 
-        gonabb_label = gui.label(box_gon_aberrations, self, "Goniometer 2Theta Axis System misalignement respect to \ngoniometric center")
-        font = QFont(gonabb_label.font())
-        font.setBold(True)
-        gonabb_label.setFont(font)
-        gonabb_label.setAlignment(QtCore.Qt.AlignCenter)
+        oasysgui.lineEdit(box_gon_aberrations, self, "x_sour_offset", "Offset along X [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_gon_aberrations, self, "x_sour_rotation", "CW rotation around X [deg] (2Theta shift)", labelWidth=260, valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(box_gon_aberrations, self, "y_sour_offset", "Offset along Y [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_gon_aberrations, self, "y_sour_rotation", "CW rotation around Y [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+
+        oasysgui.lineEdit(box_gon_aberrations, self, "z_sour_offset", "Offset along Z [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_gon_aberrations, self, "z_sour_rotation", "CW rotation around Z [deg]", labelWidth=260, valueType=float, orientation="horizontal")
 
         gui.separator(box_gon_aberrations)
 
-        box_button = oasysgui.widgetBox(box_gon_aberrations, "", addSpace=True, orientation="horizontal")
-
-        gui.label(box_button, self, "")
-
-        axisbutton = gui.button(box_button, self, "Show Axis System", callback=self.showAxisSystem)
-        axisbutton.setFixedWidth(200)
+        gui.button(box_gon_aberrations, self, "Show Axis System", callback=self.showAxisSystem)
 
         gui.separator(box_gon_aberrations)
-
-        oasysgui.lineEdit(box_gon_aberrations, self, "x_sour_offset", "Offset along X [um]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(box_gon_aberrations, self, "x_sour_rotation", "CW rotation around X [deg] (2Theta shift)", labelWidth=300, valueType=float, orientation="horizontal")
-
-        oasysgui.lineEdit(box_gon_aberrations, self, "y_sour_offset", "Offset along Y [um]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(box_gon_aberrations, self, "y_sour_rotation", "CW rotation around Y [deg]", labelWidth=300, valueType=float, orientation="horizontal")
-
-        oasysgui.lineEdit(box_gon_aberrations, self, "z_sour_offset", "Offset along Z [um]", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(box_gon_aberrations, self, "z_sour_rotation", "CW rotation around Z [deg]", labelWidth=300, valueType=float, orientation="horizontal")
-
 
         box_det_aberrations = oasysgui.widgetBox(self.tab_aberrations, "Detector Arm Aberrations", addSpace=True, orientation="vertical")
 
         self.slit_1_vertical_displacement_le = oasysgui.lineEdit(box_det_aberrations, self,
                                                                   "slit_1_vertical_displacement",
-                                                                  "Slit 1 V Displacement [um]", labelWidth=300,
+                                                                  "Slit 1 V Displacement [" + u"\u03BC" + "m]", labelWidth=260,
                                                                   valueType=float, orientation="horizontal")
         self.slit_1_horizontal_displacement_le = oasysgui.lineEdit(box_det_aberrations, self,
                                                                     "slit_1_horizontal_displacement",
-                                                                    "Slit 1 H Displacement [um]", labelWidth=300,
+                                                                    "Slit 1 H Displacement [" + u"\u03BC" + "m]", labelWidth=260,
                                                                     valueType=float, orientation="horizontal")
         gui.separator(box_det_aberrations)
-        self.slit_2_vertical_displacement_le = oasysgui.lineEdit(box_det_aberrations, self, "slit_2_vertical_displacement", "Slit 2 V Displacement [um]", labelWidth=300, valueType=float, orientation="horizontal")
-        self.slit_2_horizontal_displacement_le = oasysgui.lineEdit(box_det_aberrations, self, "slit_2_horizontal_displacement", "Slit 2 H Displacement [um]", labelWidth=300, valueType=float, orientation="horizontal")
+        self.slit_2_vertical_displacement_le = oasysgui.lineEdit(box_det_aberrations, self,
+                                                                 "slit_2_vertical_displacement", "Slit 2 V Displacement [" + u"\u03BC" + "m]", labelWidth=260,
+                                                                 valueType=float, orientation="horizontal")
+        self.slit_2_horizontal_displacement_le = oasysgui.lineEdit(box_det_aberrations, self,
+                                                                   "slit_2_horizontal_displacement", "Slit 2 H Displacement [" + u"\u03BC" + "m]", labelWidth=260,
+                                                                   valueType=float, orientation="horizontal")
 
         #####################
 
         box_background = oasysgui.widgetBox(self.tab_background, "Background Parameters", addSpace=True,
-                                             orientation="vertical", height=630, width=420)
+                                             orientation="vertical", height=630)
 
-        gui.comboBox(box_background, self, "add_background", label="Add Background", labelWidth=370, items=["No", "Yes"],
+        gui.comboBox(box_background, self, "add_background", label="Add Background", labelWidth=350, items=["No", "Yes"],
                      callback=self.setAddBackground, sendSelectedValue=False, orientation="horizontal")
 
         gui.separator(box_background)
 
-        self.box_background_1_hidden = oasysgui.widgetBox(box_background, "", addSpace=True, orientation="vertical", width=410)
+        self.box_background_1_hidden = oasysgui.widgetBox(box_background, "", addSpace=True, orientation="vertical")
         self.box_background_1 = oasysgui.widgetBox(box_background, "", addSpace=True, orientation="vertical")
 
         gui.comboBox(self.box_background_1, self, "n_sigma", label="Noise (Nr. Sigma)", labelWidth=347, items=["0.5", "1", "1.5", "2", "2.5", "3"], sendSelectedValue=False, orientation="horizontal")
@@ -531,6 +577,8 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_4", "H4", labelWidth=70, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_5", "H5", labelWidth=70, valueType=float, orientation="horizontal")
 
+        self.setAddBackground()
+
         #####################
 
         self.shadow_output = QtGui.QTextEdit()
@@ -542,56 +590,6 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         self.shadow_output.setFixedHeight(600)
 
         #####################
-
-        gui.separator(self.controlArea, height=20)
-
-        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=True, orientation="horizontal", height=30)
-
-        self.start_button = gui.button(button_box, self, "Simulate Diffraction", callback=self.simulate)
-        self.start_button.setFixedHeight(30)
-
-        self.background_button = gui.button(button_box, self, "Simulate Background", callback=self.simulateBackground)
-        self.background_button.setFixedHeight(30)
-        palette = QPalette(self.background_button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('dark blue'))
-        self.background_button.setPalette(palette) # assign new palette
-
-        stop_button = gui.button(button_box, self, "Interrupt", callback=self.stopSimulation)
-        stop_button.setFixedHeight(30)
-        font = QFont(stop_button.font())
-        font.setBold(True)
-        stop_button.setFont(font)
-        palette = QPalette(stop_button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('red'))
-        stop_button.setPalette(palette) # assign new palette
-
-        button_box_2 = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal", height=30)
-
-        self.reset_fields_button = gui.button(button_box_2, self, "Reset Fields", callback=self.callResetSettings)
-        font = QFont(self.reset_fields_button.font())
-        font.setItalic(True)
-        self.reset_fields_button.setFont(font)
-        self.reset_fields_button.setFixedHeight(30)
-
-        self.reset_bkg_button = gui.button(button_box_2, self, "Reset Background", callback=self.resetBackground)
-        self.reset_bkg_button.setFixedHeight(30)
-        font = QFont(self.reset_bkg_button.font())
-        font.setItalic(True)
-        self.reset_bkg_button.setFont(font)
-        palette = QPalette(self.reset_bkg_button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('dark blue'))
-        self.reset_bkg_button.setPalette(palette) # assign new palette
-
-        self.reset_button = gui.button(button_box_2, self, "Reset Simulation", callback=self.resetSimulation)
-        self.reset_button.setFixedHeight(30)
-        font = QFont(self.reset_button.font())
-        font.setItalic(True)
-        self.reset_button.setFont(font)
-        palette = QPalette(self.reset_button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('red'))
-        self.reset_button.setPalette(palette) # assign new palette
-
-        self.setAddBackground()
 
         gui.rubber(self.controlArea)
 
@@ -731,6 +729,32 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         self.setDiffractedArmType()
 
         gui.rubber(self.mainArea)
+
+    def after_change_workspace_units(self):
+        self.micron_to_user_units = 1e-4 / self.workspace_units_to_cm
+        self.micron_to_cm = 1e-4
+        self.mm_to_user_units = 1e-1 / self.workspace_units_to_cm
+        self.mm_to_cm = 1e-1
+        self.mm_to_angstrom = 1e4
+
+        label = self.le_detector_distance.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_slit_1_distance.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_slit_2_distance.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        
+        label = self.le_acceptance_slit_distance.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_analyzer_distance.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        
+        label = self.le_area_detector_distance.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_area_detector_height.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_area_detector_width.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
     def setBeam(self, beam):
         if ShadowCongruence.checkEmptyBeam(beam):
@@ -888,8 +912,8 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
     def plot2DResults(self):
         if not self.area_detector_beam is None:
-            nbins_h = int(numpy.floor(self.area_detector_width / (self.area_detector_pixel_size * 1e-4)))
-            nbins_v = int(numpy.floor(self.area_detector_height / (self.area_detector_pixel_size * 1e-4)))
+            nbins_h = int(numpy.floor(self.area_detector_width / (self.area_detector_pixel_size * self.micron_to_user_units)))
+            nbins_v = int(numpy.floor(self.area_detector_height / (self.area_detector_pixel_size * self.micron_to_user_units)))
 
             ticket = self.area_detector_beam._beam.histo2(1, 3, nbins_h=nbins_h, nbins_v=nbins_v)
             normalized_data = (ticket['histogram'] / ticket['histogram'].max()) * 100000  # just for the quality of the plot
@@ -961,8 +985,6 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                     self.caglioti_U = 0.000
                     self.caglioti_V = 0.000
                     self.caglioti_W = 0.000
-
-
 
 
     ############################################################
@@ -1148,32 +1170,32 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
             # distances in CM
 
-            capillary_radius = self.capillary_diameter*(1+self.positioning_error*0.01)*0.1*0.5
-            displacement_h = self.horizontal_displacement*1e-4
-            displacement_v = self.vertical_displacement*1e-4
+            capillary_radius = self.capillary_diameter*(1+self.positioning_error*0.01)*self.mm_to_user_units*0.5
+            displacement_h = self.horizontal_displacement*self.micron_to_user_units
+            displacement_v = self.vertical_displacement*self.micron_to_user_units
 
             self.D_1 = self.slit_1_distance
             self.D_2 = self.slit_2_distance
 
-            self.horizontal_acceptance_slit_1 = self.slit_1_horizontal_aperture*1e-4
-            self.vertical_acceptance_slit_1 = self.slit_1_vertical_aperture*1e-4
-            self.horizontal_acceptance_slit_2 = self.slit_2_horizontal_aperture*1e-4
-            self.vertical_acceptance_slit_2 = self.slit_2_vertical_aperture*1e-4
+            self.horizontal_acceptance_slit_1 = self.slit_1_horizontal_aperture*self.micron_to_user_units
+            self.vertical_acceptance_slit_1 = self.slit_1_vertical_aperture*self.micron_to_user_units
+            self.horizontal_acceptance_slit_2 = self.slit_2_horizontal_aperture*self.micron_to_user_units
+            self.vertical_acceptance_slit_2 = self.slit_2_vertical_aperture*self.micron_to_user_units
 
-            self.slit_1_vertical_displacement_cm = self.slit_1_vertical_displacement*1e-4
-            self.slit_2_vertical_displacement_cm = self.slit_2_vertical_displacement*1e-4
-            self.slit_1_horizontal_displacement_cm = self.slit_1_horizontal_displacement*1e-4
-            self.slit_2_horizontal_displacement_cm = self.slit_2_horizontal_displacement*1e-4
+            self.slit_1_vertical_displacement_cm = self.slit_1_vertical_displacement*self.micron_to_user_units
+            self.slit_2_vertical_displacement_cm = self.slit_2_vertical_displacement*self.micron_to_user_units
+            self.slit_1_horizontal_displacement_cm = self.slit_1_horizontal_displacement*self.micron_to_user_units
+            self.slit_2_horizontal_displacement_cm = self.slit_2_horizontal_displacement*self.micron_to_user_units
 
-            self.x_sour_offset_cm = self.x_sour_offset*1e-4
-            self.y_sour_offset_cm = self.y_sour_offset*1e-4
-            self.z_sour_offset_cm = self.z_sour_offset*1e-4
+            self.x_sour_offset_cm = self.x_sour_offset*self.micron_to_user_units
+            self.y_sour_offset_cm = self.y_sour_offset*self.micron_to_user_units
+            self.z_sour_offset_cm = self.z_sour_offset*self.micron_to_user_units
 
-            self.horizontal_acceptance_analyzer = self.acceptance_slit_horizontal_aperture*1e-4
-            self.vertical_acceptance_analyzer = self.acceptance_slit_vertical_aperture*1e-4
+            self.horizontal_acceptance_analyzer = self.acceptance_slit_horizontal_aperture*self.micron_to_user_units
+            self.vertical_acceptance_analyzer = self.acceptance_slit_vertical_aperture*self.micron_to_user_units
 
             if self.beam_units_in_use == 0 : #eV
-                avg_wavelength = ShadowPhysics.getWavelengthFromEnergy(self.beam_energy)
+                avg_wavelength = ShadowPhysics.getWavelengthFromEnergy(self.beam_energy) # in Angstrom
             else:
                 avg_wavelength = self.beam_wavelength # in Angstrom
 
@@ -1213,9 +1235,9 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                                                                          (50/number_of_input_rays),
                                                                          reflections)
 
-                self.average_absorption_coefficient = round(numpy.array(self.absorption_coefficients).mean(), 2)
-                self.sample_transmittance = round(100*numpy.exp(-self.average_absorption_coefficient*self.capillary_diameter*0.5*0.1), 2)
-                self.muR = round(self.average_absorption_coefficient*self.capillary_diameter*0.5*0.1, 2)
+                self.average_absorption_coefficient = round(numpy.array(self.absorption_coefficients).mean(), 2) # cm-1
+                self.sample_transmittance = round(100*numpy.exp(-self.average_absorption_coefficient*self.capillary_diameter*0.5*self.mm_to_cm), 2) # distance in cm
+                self.muR = round(self.average_absorption_coefficient*self.capillary_diameter*0.5*self.mm_to_cm, 2) # distance in cm
 
                 if (self.incremental == 1 and self.number_of_executions > 1):
                     self.setStatusMessage("Running XRD Capillary Simulation on " + str(len(diffracted_rays))+ " diffracted rays: " + str(execution+1) + " of " + str(self.number_of_executions))
@@ -1317,7 +1339,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                     if (self.calculate_absorption == 1): c_2 = (
                                                                y_0 ** 2 + z_0 ** 2 + 2 * displacement_h * y_0 + 2 * displacement_v * z_0) - \
                                                                (capillary_radius + (
-                                                               self.capillary_thickness * 0.1)) ** 2 + (
+                                                               self.capillary_thickness * self.micron_to_user_units)) ** 2 + (
                                                                displacement_h ** 2 + displacement_v ** 2)
 
                     discriminant = b ** 2 - 4 * a * c
@@ -1363,10 +1385,10 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                         rotation_axis_diffraction = ShadowMath.vectorial_product(v_in, z_axis_ray)
                         rotation_axis_debye_circle = v_in
 
-                        wavelength = ShadowPhysics.getWavelengthfromShadowK(k_mod)
+                        wavelength = ShadowPhysics.getWavelengthfromShadowK(k_mod) # in Angstrom
 
                         if self.calculate_absorption == 1:
-                            mu = self.getLinearAbsorptionCoefficient(wavelength)
+                            mu = self.getLinearAbsorptionCoefficient(wavelength) # in cm-1
                             self.absorption_coefficients.append(mu)
                             random_generator_absorption = RandomGenerator(mu, path)
 
@@ -1395,7 +1417,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
                                 if self.residual_average_size > 0:
                                     delta_theta_size = 2 * numpy.random.normal(0.0, (0.94 * wavelength) / (
-                                        self.residual_average_size * 1e4), 1)  # residual size effects
+                                        self.residual_average_size * self.mm_to_angstrom), 1)  # residual size effects
                                 else:
                                     delta_theta_size = 0.0
 
@@ -1519,10 +1541,10 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         codata_r, tmp1, tmp2 = codata["classical electron radius"]
         volume = crystal['volume'] # volume of  unit cell in cm^3
 
-        cte = - (codata_r*1e10) * wavelength*wavelength/(numpy.pi * volume)
-        chiH = cte*fH
+        cte = - (codata_r * 1e10) * wavelength * wavelength / (numpy.pi * volume)
+        chiH = cte * fH
 
-        return 2*numpy.absolute(chiH)/numpy.sqrt(numpy.abs(asymmetry_factor))/numpy.sin(2*bragg_angle)
+        return 2 * numpy.absolute(chiH) / numpy.sqrt(numpy.abs(asymmetry_factor)) / numpy.sin(2 * bragg_angle)
 
     ############################################################
 
@@ -1681,15 +1703,15 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     def calculateDeltaAngles(self, twotheta_reflection):
 
         if self.diffracted_arm_type == 0:
-            width = self.slit_1_horizontal_aperture*1e-4*0.5
+            width = self.slit_1_horizontal_aperture*self.micron_to_user_units*0.5
             delta_1 = numpy.arctan(width/self.D_1)
 
-            width = self.slit_2_horizontal_aperture*1e-4*0.5
+            width = self.slit_2_horizontal_aperture*self.micron_to_user_units*0.5
             delta_2 = numpy.arctan(width/self.D_2)
 
             delta = min(delta_1, delta_2)
         elif self.diffracted_arm_type == 1:
-            width = self.acceptance_slit_horizontal_aperture*1e-4*0.5
+            width = self.acceptance_slit_horizontal_aperture*self.micron_to_user_units*0.5
             delta = numpy.arctan(width/self.acceptance_slit_distance)
         else:
             delta=numpy.pi
@@ -1841,7 +1863,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         a = (k_1**2 + k_2**2)
         b = 2*(k_1*(y_0+displacement_h) + k_2*(z_0+displacement_v))
         c = (y_0**2 + z_0**2 + 2*displacement_h*y_0 + 2*displacement_v*z_0) - capillary_radius**2 + (displacement_h**2 + displacement_v**2)
-        c_2 = (y_0**2 + z_0**2 + 2*displacement_h*y_0 + 2*displacement_v*z_0) - (capillary_radius+(self.capillary_thickness*0.1))**2 + (displacement_h**2 + displacement_v**2)
+        c_2 = (y_0**2 + z_0**2 + 2*displacement_h*y_0 + 2*displacement_v*z_0) - (capillary_radius+(self.capillary_thickness*self.micron_to_user_units))**2 + (displacement_h**2 + displacement_v**2)
 
         discriminant = b**2 - 4*a*c
         discriminant_2 = b**2 - 4*a*c_2
@@ -1903,7 +1925,9 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                 exit_point_out = [x_sol_out, y_sol_out, z_sol_out]
 
                 distance = ShadowMath.point_distance(entry_point, origin_point) + ShadowMath.point_distance(origin_point, exit_point)
+                distance *= self.workspace_units_to_cm
                 distance_out = ShadowMath.point_distance(entry_point_out, entry_point) + ShadowMath.point_distance(exit_point, exit_point_out)
+                distance_out *= self.workspace_units_to_cm
 
                 absorption = self.getCapillaryTransmittance(distance_out, wavelength)*self.getTransmittance(distance, wavelength)*self.absorption_normalization_factor
             else:
@@ -1919,17 +1943,17 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         return mu*rho
 
-    def getCapillaryLinearAbsorptionCoefficient(self, wavelength):
+    def getCapillaryLinearAbsorptionCoefficient(self, wavelength): #in cm-1
         mu = xraylib.CS_Total_CP(self.getCapillaryChemicalFormula(self.capillary_material), ShadowPhysics.getEnergyFromWavelength(wavelength)/1000) # energy in KeV
         rho = self.getCapillaryDensity(self.capillary_material)
 
         return mu*rho
 
-    def getTransmittance(self, path, wavelength):
-        return numpy.exp(-self.getLinearAbsorptionCoefficient(wavelength)*path)
+    def getTransmittance(self, path_in_cm, wavelength):
+        return numpy.exp(-self.getLinearAbsorptionCoefficient(wavelength) * path_in_cm)
 
-    def getCapillaryTransmittance(self, path, wavelength):
-        return numpy.exp(-self.getCapillaryLinearAbsorptionCoefficient(wavelength)*path)
+    def getCapillaryTransmittance(self, path_in_cm, wavelength):
+        return numpy.exp(-self.getCapillaryLinearAbsorptionCoefficient(wavelength) * path_in_cm)
 
     ############################################################
     # PM2K
