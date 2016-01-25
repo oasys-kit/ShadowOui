@@ -64,11 +64,15 @@ class Source(ow_generic_element.GenericElement):
         gui.separator(self.controlArea)
 
     def get_write_file_options(self):
+        write_begin_file = 0
         write_start_file = 0
         write_end_file = 0
 
         if self.file_to_write_out == 1:
+            write_begin_file = 1
+        if self.file_to_write_out == 2:
+            write_begin_file = 1
             write_start_file = 1
             write_end_file = 1
 
-        return write_start_file, write_end_file
+        return write_begin_file, write_start_file, write_end_file

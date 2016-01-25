@@ -107,8 +107,8 @@ class Wiggler(ow_source.Source):
 
         adv_other_box = oasysgui.widgetBox(tab_bas, "Optional file output", addSpace=False, orientation="vertical")
 
-        gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=200,
-                     items=["None", "Debug (start.xx/end.xx)"],
+        gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=120,
+                     items=["None", "Begin.dat", "Debug (begin.dat + start.xx/end.xx)"],
                      sendSelectedValue=False, orientation="horizontal")
 
         left_box_2 = oasysgui.widgetBox(tab_sou, "Machine Parameters", addSpace=True, orientation="vertical", height=240)
@@ -324,9 +324,10 @@ class Wiggler(ow_source.Source):
 
             self.setStatusMessage("Running Shadow/Source")
 
-            write_start_file, write_end_file = self.get_write_file_options()
+            write_begin_file, write_start_file, write_end_file = self.get_write_file_options()
 
             beam_out = ShadowBeam.traceFromSource(shadow_src,
+                                                  write_begin_file=write_begin_file,
                                                   write_start_file=write_start_file,
                                                   write_end_file=write_end_file)
 

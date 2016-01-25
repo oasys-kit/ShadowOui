@@ -184,7 +184,7 @@ class ShadowBeam:
             return merged_beam
 
     @classmethod
-    def traceFromSource(cls, shadow_src, write_start_file=0, write_end_file=0, history=True):
+    def traceFromSource(cls, shadow_src, write_begin_file=0, write_start_file=0, write_end_file=0, history=True):
         self = cls.__new__(ShadowBeam, beam=Shadow.Beam())
 
         shadow_source_start = shadow_src.duplicate()
@@ -193,6 +193,9 @@ class ShadowBeam:
             shadow_src.src.write("start.00")
 
         self._beam.genSource(shadow_src.src)
+
+        if write_begin_file:
+            self.writeToFile("begin.dat")
 
         shadow_src.self_repair()
 
