@@ -128,7 +128,7 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
         label.setText(label.text() + " [" + self.workspace_units_label + "-1]")
 
     def selectFilePrerefl(self):
-        self.le_file_prerefl.setText(oasysgui.selectFileFromDialog(self, self.prerefl_file, "Select File Prerefl", file_extension_filter="*.dat"))
+        self.le_file_prerefl.setText(oasysgui.selectFileFromDialog(self, self.prerefl_file, "Select File Prerefl", file_extension_filter="Data Files (*.dat)"))
 
     def get_surface_shape(self):
         if self.surface_shape == 0:

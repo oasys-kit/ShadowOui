@@ -524,58 +524,62 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         #####################
 
-        box_background = oasysgui.widgetBox(self.tab_background, "Background Parameters", addSpace=True,
-                                             orientation="vertical", height=630)
+        box_background = oasysgui.widgetBox(self.tab_background, "Background Parameters", addSpace=False,
+                                             orientation="vertical", height=515)
 
         gui.comboBox(box_background, self, "add_background", label="Add Background", labelWidth=350, items=["No", "Yes"],
                      callback=self.setAddBackground, sendSelectedValue=False, orientation="horizontal")
 
         gui.separator(box_background)
 
-        self.box_background_1_hidden = oasysgui.widgetBox(box_background, "", addSpace=True, orientation="vertical")
-        self.box_background_1 = oasysgui.widgetBox(box_background, "", addSpace=True, orientation="vertical")
-
+        self.box_background_1_hidden = oasysgui.widgetBox(box_background, "", addSpace=False, orientation="vertical")
+        self.box_background_1 = oasysgui.widgetBox(box_background, "", addSpace=False, orientation="vertical")
+        
         gui.comboBox(self.box_background_1, self, "n_sigma", label="Noise (Nr. Sigma)", labelWidth=347, items=["0.5", "1", "1.5", "2", "2.5", "3"], sendSelectedValue=False, orientation="horizontal")
 
-        self.box_background_const  = oasysgui.widgetBox(box_background, "Constant", addSpace=True, orientation="vertical")
+        tabs_background = gui.tabWidget(self.box_background_1)
+
+        tab_constant = oasysgui.createTabPage(tabs_background, "Constant")
+        tab_exponential = oasysgui.createTabPage(tabs_background, "Exponential")
+        tab_chebyshev = oasysgui.createTabPage(tabs_background, "Chebyshev")
+
+        self.box_background_const  = oasysgui.widgetBox(tab_constant, "Constant", addSpace=True, orientation="vertical")
 
         gui.checkBox(self.box_background_const, self, "add_constant", "add Background", callback=self.setConstant)
         gui.separator(self.box_background_const)
 
         self.box_background_const_2 = oasysgui.widgetBox(self.box_background_const, "", addSpace=True, orientation="vertical")
 
-        oasysgui.lineEdit(self.box_background_const_2, self, "constant_value", "Value", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_background_const_2, self, "constant_value", "Value", labelWidth=240, valueType=float, orientation="horizontal")
 
-        self.box_background_2 = oasysgui.widgetBox(box_background, "", addSpace=True, orientation="horizontal")
-
-        self.box_chebyshev = oasysgui.widgetBox(self.box_background_2, "Chebyshev", addSpace=True, orientation="vertical")
+        self.box_chebyshev = oasysgui.widgetBox(tab_chebyshev, "Chebyshev", addSpace=True, orientation="vertical")
         gui.checkBox(self.box_chebyshev, self, "add_chebyshev", "add Background", callback=self.setChebyshev)
         gui.separator(self.box_chebyshev)
         self.box_chebyshev_2 = oasysgui.widgetBox(self.box_chebyshev, "", addSpace=True, orientation="vertical")
-        oasysgui.lineEdit(self.box_chebyshev_2, self, "cheb_coeff_0", "A0", labelWidth=70, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_chebyshev_2, self, "cheb_coeff_1", "A1", labelWidth=70, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_chebyshev_2, self, "cheb_coeff_2", "A2", labelWidth=70, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_chebyshev_2, self, "cheb_coeff_3", "A3", labelWidth=70, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_chebyshev_2, self, "cheb_coeff_4", "A4", labelWidth=70, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_chebyshev_2, self, "cheb_coeff_5", "A5", labelWidth=70, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_chebyshev_2, self, "cheb_coeff_0", "A0", labelWidth=240, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_chebyshev_2, self, "cheb_coeff_1", "A1", labelWidth=240, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_chebyshev_2, self, "cheb_coeff_2", "A2", labelWidth=240, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_chebyshev_2, self, "cheb_coeff_3", "A3", labelWidth=240, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_chebyshev_2, self, "cheb_coeff_4", "A4", labelWidth=240, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_chebyshev_2, self, "cheb_coeff_5", "A5", labelWidth=240, valueType=float, orientation="horizontal")
          
-        self.box_expdecay = oasysgui.widgetBox(self.box_background_2, "Exp Decay", addSpace=True, orientation="vertical")
+        self.box_expdecay = oasysgui.widgetBox(tab_exponential, "Exponential Decay", addSpace=True, orientation="vertical")
         gui.checkBox(self.box_expdecay, self, "add_expdecay", "add Background", callback=self.setExpDecay)
         gui.separator(self.box_expdecay)
         self.box_expdecay_2 = oasysgui.widgetBox(self.box_expdecay, "", addSpace=True, orientation="vertical")
-        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_coeff_0", "A0", labelWidth=70, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_coeff_1", "A1", labelWidth=70, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_coeff_2", "A2", labelWidth=70, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_coeff_3", "A3", labelWidth=70, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_coeff_4", "A4", labelWidth=70, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_coeff_5", "A5", labelWidth=70, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_coeff_0", "A0", labelWidth=240, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_coeff_1", "A1", labelWidth=240, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_coeff_2", "A2", labelWidth=240, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_coeff_3", "A3", labelWidth=240, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_coeff_4", "A4", labelWidth=240, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_coeff_5", "A5", labelWidth=240, valueType=float, orientation="horizontal")
         gui.separator(self.box_expdecay_2)
-        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_0", "H0", labelWidth=70, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_1", "H1", labelWidth=70, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_2", "H2", labelWidth=70, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_3", "H3", labelWidth=70, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_4", "H4", labelWidth=70, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_5", "H5", labelWidth=70, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_0", "H0", labelWidth=240, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_1", "H1", labelWidth=240, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_2", "H2", labelWidth=240, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_3", "H3", labelWidth=240, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_4", "H4", labelWidth=240, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_5", "H5", labelWidth=240, valueType=float, orientation="horizontal")
 
         self.setAddBackground()
 
@@ -892,8 +896,6 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     def setAddBackground(self):
         self.box_background_1_hidden.setVisible(self.add_background == 0)
         self.box_background_1.setVisible(self.add_background == 1)
-        self.box_background_const.setVisible(self.add_background == 1)
-        self.box_background_2.setVisible(self.add_background == 1)
 
         self.setConstant()
         self.setChebyshev()

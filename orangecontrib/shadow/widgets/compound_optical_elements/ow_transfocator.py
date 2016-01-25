@@ -727,7 +727,7 @@ class CRLBox(QtGui.QWidget):
     ############################################################
 
     def selectFilePrerefl(self):
-        self.le_prerefl_file.setText(oasysgui.selectFileFromDialog(self, self.prerefl_file, "Select File Prerefl", file_extension_filter="*.dat"))
+        self.le_prerefl_file.setText(oasysgui.selectFileFromDialog(self, self.prerefl_file, "Select File Prerefl", file_extension_filter="Data Files (*.dat)"))
 
         self.prerefl_file = self.le_prerefl_file.text()
         self.transfocator.dump_prerefl_file()

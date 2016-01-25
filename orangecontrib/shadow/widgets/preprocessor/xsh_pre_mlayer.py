@@ -458,19 +458,19 @@ class OWxsh_pre_mlayer(OWWidget):
             self.AA2 = congruence.checkPositiveNumber(float(self.AA2), "2nd degree coefficient")
 
     def selectFile(self):
-        self.le_FILE.setText(oasysgui.selectFileFromDialog(self, self.FILE, "Select Output File", file_extension_filter="*.dat"))
+        self.le_FILE.setText(oasysgui.selectFileFromDialog(self, self.FILE, "Select Output File", file_extension_filter="Data Files (*.dat)"))
 
     def selectFileDepth(self):
-        self.le_FILE_DEPTH.setText(oasysgui.selectFileFromDialog(self, self.FILE_DEPTH, "Open File with list of t_bilayer,gamma,roughness_even,roughness_odd", file_extension_filter="*.dat"))
+        self.le_FILE_DEPTH.setText(oasysgui.selectFileFromDialog(self, self.FILE_DEPTH, "Open File with list of t_bilayer,gamma,roughness_even,roughness_odd", file_extension_filter="Data Files (*.dat)"))
 
     def selectFileThickness(self):
-        self.le_FILE_THICKNESS.setText(oasysgui.selectFileFromDialog(self, self.FILE_THICKNESS, "Open File with bilayer thicknesses versus surface (PRESURFACE format)", file_extension_filter="*.dat"))
+        self.le_FILE_THICKNESS.setText(oasysgui.selectFileFromDialog(self, self.FILE_THICKNESS, "Open File with bilayer thicknesses versus surface (PRESURFACE format)", file_extension_filter="Data Files (*.dat)"))
 
     def selectFileShadow(self):
-        self.le_FILE_SHADOW.setText(oasysgui.selectFileFromDialog(self, self.FILE_SHADOW, "Select Output binary file (for SHADOW) with splines", file_extension_filter="*.dat"))
+        self.le_FILE_SHADOW.setText(oasysgui.selectFileFromDialog(self, self.FILE_SHADOW, "Select Output binary file (for SHADOW) with splines", file_extension_filter="Data Files (*.dat)"))
 
     def selectFileGamma(self):
-        self.le_FILE_GAMMA.setText(oasysgui.selectFileFromDialog(self, self.FILE_GAMMA, "Open File with bilayer gamma versus surface (PRESURFACE format)", file_extension_filter="*.dat"))
+        self.le_FILE_GAMMA.setText(oasysgui.selectFileFromDialog(self, self.FILE_GAMMA, "Open File with bilayer gamma versus surface (PRESURFACE format)", file_extension_filter="Data Files (*.dat)"))
 
     def defaults(self):
          self.resetSettings()

@@ -575,13 +575,13 @@ class OWheight_profile_simulator(OWWidget):
         self.shadow_output.ensureCursorVisible()
 
     def selectFile1D_X(self):
-        self.le_heigth_profile_1D_file_name_x.setText(oasysgui.selectFileFromDialog(self, self.heigth_profile_1D_file_name_x, "Select 1D Height Profile File", file_extension_filter="*.dat; *.txt"))
+        self.le_heigth_profile_1D_file_name_x.setText(oasysgui.selectFileFromDialog(self, self.heigth_profile_1D_file_name_x, "Select 1D Height Profile File", file_extension_filter="Data Files (*.dat *.txt)"))
 
     def selectFile1D_Y(self):
-        self.le_heigth_profile_1D_file_name_y.setText(oasysgui.selectFileFromDialog(self, self.heigth_profile_1D_file_name_y, "Select 1D Height Profile File", file_extension_filter="*.dat; *.txt"))
+        self.le_heigth_profile_1D_file_name_y.setText(oasysgui.selectFileFromDialog(self, self.heigth_profile_1D_file_name_y, "Select 1D Height Profile File", file_extension_filter="Data Files (*.dat *.txt)"))
 
     def selectFile(self):
-        self.le_heigth_profile_file_name.setText(oasysgui.selectFileFromDialog(self, self.heigth_profile_file_name, "Select Output File", file_extension_filter="*.dat"))
+        self.le_heigth_profile_file_name.setText(oasysgui.selectFileFromDialog(self, self.heigth_profile_file_name, "Select Output File", file_extension_filter="Data Files (*.dat)"))
 
 
 if __name__ == "__main__":

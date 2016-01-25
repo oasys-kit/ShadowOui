@@ -228,7 +228,7 @@ class HybridScreen(AutomaticElement):
         self.progressBarSet(progressBarValue)
 
     def selectFile(self):
-        self.le_mirrorfile.setText(oasysgui.selectFileFromDialog(self, self.ghy_mirrorfile, "Select Mirror Error File", file_extension_filter="*.dat; *.txt"))
+        self.le_mirrorfile.setText(oasysgui.selectFileFromDialog(self, self.ghy_mirrorfile, "Select Mirror Error File", file_extension_filter="Data Files (*.dat *.txt)"))
 
     def setBeam(self, beam):
         if ShadowCongruence.checkEmptyBeam(beam):

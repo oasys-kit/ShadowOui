@@ -115,10 +115,10 @@ class ImageToBeamConverter(widget.OWWidget):
         gui.rubber(self.controlArea)
 
     def selectTxtFile(self):
-        self.le_image_txt_file_name.setText(oasysgui.selectFileFromDialog(self, self.image_txt_file_name, "Open Textual Image", file_extension_filter="*.txt"))
+        self.le_image_txt_file_name.setText(oasysgui.selectFileFromDialog(self, self.image_txt_file_name, "Open Textual Image", file_extension_filter="Text Files (*.txt)"))
 
     def selectFile(self):
-        self.le_image_file_name.setText(oasysgui.selectFileFromDialog(self, self.image_file_name, "Open Image", file_extension_filter="*.png;*.jpg"))
+        self.le_image_file_name.setText(oasysgui.selectFileFromDialog(self, self.image_file_name, "Open Image", file_extension_filter="Image Files (*.png *.jpg)"))
         self.loadImage()
 
     def loadImage(self):

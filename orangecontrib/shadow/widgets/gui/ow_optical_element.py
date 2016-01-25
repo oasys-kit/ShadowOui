@@ -1518,10 +1518,10 @@ class OpticalElement(ow_generic_element.GenericElement):
         self.le_opt_const_file_name.setText(oasysgui.selectFileFromDialog(self, self.opt_const_file_name, "Open Opt. Const. File"))
 
     def selectFilePrerefl(self):
-        self.le_file_prerefl.setText(oasysgui.selectFileFromDialog(self, self.file_prerefl, "Select File Prerefl", file_extension_filter="*.dat"))
+        self.le_file_prerefl.setText(oasysgui.selectFileFromDialog(self, self.file_prerefl, "Select File Prerefl", file_extension_filter="Data Files (*.dat)"))
 
     def selectFilePrereflM(self):
-        self.le_file_prerefl_m.setText(oasysgui.selectFileFromDialog(self, self.file_prerefl_m, "Select File Premlayer", file_extension_filter="*.dat"))
+        self.le_file_prerefl_m.setText(oasysgui.selectFileFromDialog(self, self.file_prerefl_m, "Select File Premlayer", file_extension_filter="Data Files (*.dat)"))
 
     def selectFileCrystalParameters(self):
         self.le_file_crystal_parameters.setText(oasysgui.selectFileFromDialog(self, self.file_crystal_parameters, "Select File With Crystal Parameters"))
@@ -1530,7 +1530,7 @@ class OpticalElement(ow_generic_element.GenericElement):
         self.le_file_diffraction_profile.setText(oasysgui.selectFileFromDialog(self, self.file_diffraction_profile, "Select File With User Defined Diffraction Profile"))
 
     def selectDefectFileName(self):
-        self.le_ms_defect_file_name.setText(oasysgui.selectFileFromDialog(self, self.ms_defect_file_name, "Select Defect File Name", file_extension_filter="*.dat; *.sha"))
+        self.le_ms_defect_file_name.setText(oasysgui.selectFileFromDialog(self, self.ms_defect_file_name, "Select Defect File Name", file_extension_filter="Data Files (*.dat *.sha)"))
 
     class ShowDefectFileDialog(QDialog):
 

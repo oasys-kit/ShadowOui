@@ -576,7 +576,7 @@ class OWdabam_height_profile(OWWidget):
         self.shadow_output.ensureCursorVisible()
 
     def selectFile(self):
-        self.le_heigth_profile_file_name.setText(oasysgui.selectFileFromDialog(self, self.heigth_profile_file_name, "Select Output File", file_extension_filter="*.dat"))
+        self.le_heigth_profile_file_name.setText(oasysgui.selectFileFromDialog(self, self.heigth_profile_file_name, "Select Output File", file_extension_filter="Data Files (*.dat)"))
 
 
 if __name__ == "__main__":

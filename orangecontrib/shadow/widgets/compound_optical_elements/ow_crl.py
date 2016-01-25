@@ -135,7 +135,7 @@ class CRL(ow_compound_optical_element.CompoundOpticalElement):
 
 
     def selectFilePrerefl(self):
-        self.le_file_prerefl.setText(oasysgui.selectFileFromDialog(self, self.prerefl_file, "Select File Prerefl", file_extension_filter="*.dat"))
+        self.le_file_prerefl.setText(oasysgui.selectFileFromDialog(self, self.prerefl_file, "Select File Prerefl", file_extension_filter="Data Files (*.dat)"))
 
     def get_surface_shape(self):
         if self.surface_shape == 0:

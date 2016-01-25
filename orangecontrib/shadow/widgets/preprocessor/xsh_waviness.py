@@ -526,7 +526,7 @@ class OWxsh_waviness(OWWidget):
             self.reload_harmonics_table()
 
     def load_inp_file(self):
-        file_name = oasysgui.selectFileFromDialog(self, None, "Select a input file for XSH_WAVINESS", file_extension_filter="*.inp")
+        file_name = oasysgui.selectFileFromDialog(self, None, "Select a input file for XSH_WAVINESS", file_extension_filter="Input Files (*.inp)")
 
         if not file_name is None:
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
@@ -713,7 +713,7 @@ class OWxsh_waviness(OWWidget):
         self.shadow_output.ensureCursorVisible()
 
     def selectFile(self):
-        self.le_waviness_file_name.setText(oasysgui.selectFileFromDialog(self, self.waviness_file_name, "Select Output File", file_extension_filter="*.dat"))
+        self.le_waviness_file_name.setText(oasysgui.selectFileFromDialog(self, self.waviness_file_name, "Select Output File", file_extension_filter="Data Files (*.dat)"))
 
 
 if __name__ == "__main__":

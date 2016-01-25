@@ -553,13 +553,13 @@ class MirrorBox(QtGui.QWidget):
         label.setText(label.text() + " [" + self.kb.workspace_units_label + "]")
 
     def selectFilePrerefl(self):
-        self.le_reflectivity_files.setText(oasysgui.selectFileFromDialog(self, self.reflectivity_files, "Select Reflectivity File", file_extension_filter="*.dat"))
+        self.le_reflectivity_files.setText(oasysgui.selectFileFromDialog(self, self.reflectivity_files, "Select Reflectivity File", file_extension_filter="Data Files (*.dat)"))
 
         self.reflectivity_files = self.le_reflectivity_files.text()
         self.kb.dump_reflectivity_files()
 
     def selectFileSurfaceError(self):
-        self.le_surface_error_files.setText(oasysgui.selectFileFromDialog(self, self.surface_error_files, "Surface Error File", file_extension_filter="*.dat; *.sha"))
+        self.le_surface_error_files.setText(oasysgui.selectFileFromDialog(self, self.surface_error_files, "Surface Error File", file_extension_filter="Data Files (*.dat *.sha)"))
 
         self.surface_error_files = self.le_surface_error_files.text()
         self.kb.dump_surface_error_files()

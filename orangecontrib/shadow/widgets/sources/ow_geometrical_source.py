@@ -515,7 +515,7 @@ class GeometricalSource(ow_source.Source):
         self.ewp_box_8.setVisible(self.polarization==1)
 
     def selectFile(self):
-        self.le_user_defined_file.setText(oasysgui.selectFileFromDialog(self, self.user_defined_file, "Open Spectrum File", file_extension_filter="*.dat; *.txt"))
+        self.le_user_defined_file.setText(oasysgui.selectFileFromDialog(self, self.user_defined_file, "Open Spectrum File", file_extension_filter="Data Files (*.dat *.txt)"))
 
     def selectOptimizeFile(self):
         self.le_optimize_file_name.setText(oasysgui.selectFileFromDialog(self, self.optimize_file_name, "Open Optimize Source Parameters File"))

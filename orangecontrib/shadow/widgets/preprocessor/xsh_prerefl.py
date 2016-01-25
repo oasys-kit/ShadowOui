@@ -135,7 +135,7 @@ class OWxsh_prerefl(OWWidget):
          return ['True','True','True','True','True','True']
 
     def selectFile(self):
-        self.le_SHADOW_FILE.setText(oasysgui.selectFileFromDialog(self, self.SHADOW_FILE, "Select Output File", file_extension_filter="*.dat"))
+        self.le_SHADOW_FILE.setText(oasysgui.selectFileFromDialog(self, self.SHADOW_FILE, "Select Output File", file_extension_filter="Data Files (*.dat)"))
 
     def set_Density(self):
         if not self.SYMBOL is None:

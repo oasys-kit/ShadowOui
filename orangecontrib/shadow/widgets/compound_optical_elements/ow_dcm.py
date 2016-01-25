@@ -77,7 +77,7 @@ class DCM(ow_compound_optical_element.CompoundOpticalElement):
 
 
     def selectFilePrerefl(self):
-        self.le_reflectivity_file.setText(oasysgui.selectFileFromDialog(self, self.reflectivity_file, "Select Reflectivity File", file_extension_filter="*.dat"))
+        self.le_reflectivity_file.setText(oasysgui.selectFileFromDialog(self, self.reflectivity_file, "Select Reflectivity File", file_extension_filter="Data Files (*.dat)"))
 
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):
