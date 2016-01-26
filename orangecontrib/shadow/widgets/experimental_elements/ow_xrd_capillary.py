@@ -360,9 +360,8 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         gui.comboBox(box_sample, self, "sample_material", label="Sample Material", items=chemical_formulas, labelWidth=260, sendSelectedValue=False, orientation="horizontal", callback=self.setSampleMaterial)
 
-        oasysgui.lineEdit(box_sample, self, "packing_factor", "Packing Factor (0.0 ... 1.0)", labelWidth=320, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_sample, self, "packing_factor", "Packing Factor (0.0 ... 1.0)", labelWidth=300, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(box_sample, self, "residual_average_size", "Residual Average Size [" + u"\u03BC" + "m]", labelWidth=300, valueType=float, orientation="horizontal")
-
 
         box_2theta_arm = oasysgui.widgetBox(tab_exp_1, "2Theta Arm Parameters", addSpace=True, orientation="vertical", height=260)
 

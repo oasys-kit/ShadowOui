@@ -105,7 +105,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     INNER_BOX_WIDTH_L3=322
     INNER_BOX_WIDTH_L2=335
-    INNER_BOX_WIDTH_L1=353
+    INNER_BOX_WIDTH_L1=358
     INNER_BOX_WIDTH_L0=375
 
     graphical_options=None
@@ -1090,7 +1090,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 self.mod_surf_err_box_1 = oasysgui.widgetBox(self.surface_error_box, "", addSpace=False, orientation="horizontal")
 
-                self.le_ms_defect_file_name = oasysgui.lineEdit(self.mod_surf_err_box_1, self, "ms_defect_file_name", "File name", labelWidth=125, valueType=str, orientation="horizontal")
+                self.le_ms_defect_file_name = oasysgui.lineEdit(self.mod_surf_err_box_1, self, "ms_defect_file_name", "File name", labelWidth=80, valueType=str, orientation="horizontal")
 
                 pushButton = gui.button(self.mod_surf_err_box_1, self, "...")
                 pushButton.clicked.connect(self.selectDefectFileName)
@@ -1330,7 +1330,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     def set_Footprint(self):
         if self.file_to_write_out == 0 or self.file_to_write_out == 1 or self.file_to_write_out == 4:
-            self.enableFootprint(True)
+            self.enableFootprint(not self.graphical_options.is_screen_slit)
         else:
             self.enableFootprint(False)
 
@@ -1538,16 +1538,15 @@ class OpticalElement(ow_generic_element.GenericElement):
             QDialog.__init__(self, parent)
             self.setWindowTitle('Defect File - Surface Error Profile')
             layout = QtGui.QVBoxLayout(self)
-            label = QtGui.QLabel("")
 
             figure = Figure(figsize=(100, 100))
             figure.patch.set_facecolor('white')
 
             axis = figure.add_subplot(111, projection='3d')
 
-            axis.set_xlabel("X (" + self.workspace_units_label + ")")
-            axis.set_ylabel("Y (" + self.workspace_units_label + ")")
-            axis.set_zlabel("Z (" + self.workspace_units_label + ")")
+            axis.set_xlabel("X [" + parent.workspace_units_label + "]")
+            axis.set_ylabel("Y [" + parent.workspace_units_label + "]")
+            axis.set_zlabel("Z [" + parent.workspace_units_label + "]")
 
             figure_canvas = FigureCanvasQTAgg(figure)
             figure_canvas.setFixedWidth(500)
