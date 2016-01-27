@@ -50,7 +50,9 @@ class FocNew(ow_automatic_element.AutomaticElement):
     def __init__(self, show_automatic_box=True):
         super().__init__()
 
-        general_box = oasysgui.widgetBox(self.controlArea, "General Settings", addSpace=True, orientation="vertical", width=410, height=250)
+        gui.button(self.controlArea, self, "Calculate", callback=self.calculate, height=45)
+
+        general_box = oasysgui.widgetBox(self.controlArea, "General Settings", addSpace=True, orientation="vertical", width=self.CONTROL_AREA_WIDTH-8, height=220)
 
         gui.comboBox(general_box, self, "mode", label="Mode", labelWidth=250,
                                      items=["Center at Origin",
@@ -58,13 +60,11 @@ class FocNew(ow_automatic_element.AutomaticElement):
                                             "Define Center..."],
                                      callback=self.set_Center, sendSelectedValue=False, orientation="horizontal")
 
-        self.center_box = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=390, height=100)
-        self.center_box_empty = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=390, height=100)
+        self.center_box = oasysgui.widgetBox(general_box, "", addSpace=False, orientation="vertical", height=50)
+        self.center_box_empty = oasysgui.widgetBox(general_box, "", addSpace=False, orientation="vertical", height=50)
 
-        gui.separator(self.center_box)
-
-        self.le_center_x = oasysgui.lineEdit(self.center_box, self, "center_x", "Center X", labelWidth=220, valueType=float, orientation="horizontal")
-        self.le_center_z = oasysgui.lineEdit(self.center_box, self, "center_z", "Center Z", labelWidth=220, valueType=float, orientation="horizontal")
+        self.le_center_x = oasysgui.lineEdit(self.center_box, self, "center_x", "Center X", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_center_z = oasysgui.lineEdit(self.center_box, self, "center_z", "Center Z", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.set_Center()
 
@@ -73,18 +73,16 @@ class FocNew(ow_automatic_element.AutomaticElement):
                                             "Set.."],
                                      callback=self.set_YRange, sendSelectedValue=False, orientation="horizontal")
 
-        self.yrange_box = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=390, height=100)
-        self.yrange_box_empty = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", width=390, height=100)
+        self.yrange_box = oasysgui.widgetBox(general_box, "", addSpace=False, orientation="vertical", height=100)
+        self.yrange_box_empty = oasysgui.widgetBox(general_box, "", addSpace=False, orientation="vertical",  height=100)
 
-        self.le_y_range_min = oasysgui.lineEdit(self.yrange_box, self, "y_range_min", "Y min", labelWidth=220, valueType=float, orientation="horizontal")
-        self.le_y_range_max = oasysgui.lineEdit(self.yrange_box, self, "y_range_max", "Y max", labelWidth=220, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.yrange_box, self, "y_npoints", "Points", labelWidth=220, valueType=float, orientation="horizontal")
+        self.le_y_range_min = oasysgui.lineEdit(self.yrange_box, self, "y_range_min", "Y min", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_y_range_max = oasysgui.lineEdit(self.yrange_box, self, "y_range_max", "Y max", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.yrange_box, self, "y_npoints", "Points", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.set_YRange()
 
-        gui.separator(self.controlArea, height=300)
-
-        gui.button(self.controlArea, self, "Calculate", callback=self.calculate, height=45)
+        gui.separator(self.controlArea, height=330)
 
         tabs_setting = gui.tabWidget(self.mainArea)
         tabs_setting.setFixedHeight(self.IMAGE_HEIGHT+5)

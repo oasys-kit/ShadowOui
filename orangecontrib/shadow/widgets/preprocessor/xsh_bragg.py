@@ -120,7 +120,7 @@ class OWxsh_bragg(OWWidget):
         box = oasysgui.widgetBox(self.controlArea, "Crystal Parameters", orientation="vertical")
         gui.comboBox(box, self, "DESCRIPTOR",
                      label=self.unitLabels()[idx], addSpace=True,
-                     items=self.crystals,
+                     items=self.crystals, sendSelectedValue=False,
                      valueType=int, orientation="horizontal", labelWidth=350)
         self.show_at(self.unitFlags()[idx], box)
         
