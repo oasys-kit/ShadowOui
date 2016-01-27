@@ -112,6 +112,9 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     source_plane_distance = Setting(10.0)
     image_plane_distance = Setting(20.0)
+
+    angles_respect_to = Setting(0.0)
+
     incidence_angle_deg = Setting(88.0)
     incidence_angle_mrad = Setting(0.0)
     reflection_angle_deg = Setting(88.0)
@@ -556,10 +559,17 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             self.set_Absorption()
         else:
-            self.incidence_angle_deg_le = oasysgui.lineEdit(upper_box, self, "incidence_angle_deg", "Incident Angle respect to the normal [deg]", labelWidth=260, callback=self.calculate_incidence_angle_mrad, valueType=float, orientation="horizontal")
-            self.incidence_angle_rad_le = oasysgui.lineEdit(upper_box, self, "incidence_angle_mrad", "... or with respect to the surface [mrad]", labelWidth=260, callback=self.calculate_incidence_angle_deg, valueType=float, orientation="horizontal")
-            self.reflection_angle_deg_le = oasysgui.lineEdit(upper_box, self, "reflection_angle_deg", "Reflection Angle respect to the normal [deg]", labelWidth=260, callback=self.calculate_reflection_angle_mrad, valueType=float, orientation="horizontal")
-            self.reflection_angle_rad_le = oasysgui.lineEdit(upper_box, self, "reflection_angle_mrad", "... or with respect to the surface [mrad]", labelWidth=260, callback=self.calculate_reflection_angle_deg, valueType=float, orientation="horizontal")
+            gui.comboBox(upper_box, self, "angles_respect_to", label="Angles in [deg] indicated with respect to the", labelWidth=260,
+                         items=["Normal", "Surface"],
+                         callback=self.set_AnglesRespectTo,
+                         sendSelectedValue=False, orientation="horizontal")
+
+            self.incidence_angle_deg_le = oasysgui.lineEdit(upper_box, self, "incidence_angle_deg", "--", labelWidth=300, callback=self.calculate_incidence_angle_mrad, valueType=float, orientation="horizontal")
+            self.incidence_angle_rad_le = oasysgui.lineEdit(upper_box, self, "incidence_angle_mrad", "Incident Angle with respect to the surface [mrad]", labelWidth=300, callback=self.calculate_incidence_angle_deg, valueType=float, orientation="horizontal")
+            self.reflection_angle_deg_le = oasysgui.lineEdit(upper_box, self, "reflection_angle_deg", "--", labelWidth=300, callback=self.calculate_reflection_angle_mrad, valueType=float, orientation="horizontal")
+            self.reflection_angle_rad_le = oasysgui.lineEdit(upper_box, self, "reflection_angle_mrad", "Reflection Angle with respect to the surface [mrad]", labelWidth=300, callback=self.calculate_reflection_angle_deg, valueType=float, orientation="horizontal")
+
+            self.set_AnglesRespectTo()
 
             self.calculate_incidence_angle_mrad()
             self.calculate_reflection_angle_mrad()
@@ -1344,6 +1354,20 @@ class OpticalElement(ow_generic_element.GenericElement):
     #
     ############################################################
 
+    def set_AnglesRespectTo(self):
+        label_1 = self.incidence_angle_deg_le.parent().layout().itemAt(0).widget()
+        label_2 = self.reflection_angle_deg_le.parent().layout().itemAt(0).widget()
+
+        if self.angles_respect_to == 0:
+            label_1.setText("Incident Angle with respect to the normal [deg]")
+            label_2.setText("Reflection Angle with respect to the normal [deg]")
+        else:
+            label_1.setText("Incident Angle with respect to the surface [deg]")
+            label_2.setText("Reflection Angle with respect to the surface [deg]")
+
+        self.calculate_incidence_angle_mrad()
+        self.calculate_reflection_angle_mrad()
+
     # TAB 1.1
 
     def set_IntExt_Parameters(self):
@@ -1600,26 +1624,37 @@ class OpticalElement(ow_generic_element.GenericElement):
     def selectPrereflImageFileName(self):
         self.le_file_prerefl_for_image_medium.setText(oasysgui.selectFileFromDialog(self, self.file_prerefl_for_image_medium, "Select File Prerefl for Image Medium"))
 
-
     def calculate_incidence_angle_mrad(self):
-        self.incidence_angle_mrad = round(math.radians(90-self.incidence_angle_deg)*1000, 2)
+        if self.angles_respect_to == 0:
+            self.incidence_angle_mrad = round(math.radians(90-self.incidence_angle_deg)*1000, 2)
+        else:
+            self.incidence_angle_mrad = round(math.radians(self.incidence_angle_deg)*1000, 2)
 
         if self.graphical_options.is_mirror:
             self.reflection_angle_deg = self.incidence_angle_deg
             self.reflection_angle_mrad = self.incidence_angle_mrad
 
     def calculate_reflection_angle_mrad(self):
-        self.reflection_angle_mrad = round(math.radians(90-self.reflection_angle_deg)*1000, 2)
+        if self.angles_respect_to == 0:
+            self.reflection_angle_mrad = round(math.radians(90-self.reflection_angle_deg)*1000, 2)
+        else:
+            self.reflection_angle_mrad = round(math.radians(self.reflection_angle_deg)*1000, 2)
 
     def calculate_incidence_angle_deg(self):
-        self.incidence_angle_deg = round(math.degrees(0.5*math.pi-(self.incidence_angle_mrad/1000)), 3)
+        if self.angles_respect_to == 0:
+            self.incidence_angle_deg = round(math.degrees(0.5*math.pi-(self.incidence_angle_mrad/1000)), 3)
+        else:
+            self.incidence_angle_deg = round(math.degrees(self.incidence_angle_mrad/1000), 3)
 
         if self.graphical_options.is_mirror:
             self.reflection_angle_deg = self.incidence_angle_deg
             self.reflection_angle_mrad = self.incidence_angle_mrad
 
     def calculate_reflection_angle_deg(self):
-        self.reflection_angle_deg = round(math.degrees(0.5*math.pi-(self.reflection_angle_mrad/1000)), 3)
+        if self.angles_respect_to == 0:
+            self.reflection_angle_deg = round(math.degrees(0.5*math.pi-(self.reflection_angle_mrad/1000)), 3)
+        else:
+            self.reflection_angle_deg = round(math.degrees(self.reflection_angle_mrad/1000), 3)
 
     def grab_dcm_value_from_oe(self):
         self.twotheta_bragg = self.incidence_angle_deg
@@ -1713,8 +1748,14 @@ class OpticalElement(ow_generic_element.GenericElement):
         else:
             shadow_oe._oe.T_SOURCE     = self.source_plane_distance
             shadow_oe._oe.T_IMAGE      = self.image_plane_distance
-            shadow_oe._oe.T_INCIDENCE  = self.incidence_angle_deg
-            shadow_oe._oe.T_REFLECTION = self.reflection_angle_deg
+
+            if self.angles_respect_to == 0:
+                shadow_oe._oe.T_INCIDENCE  = self.incidence_angle_deg
+                shadow_oe._oe.T_REFLECTION = self.reflection_angle_deg
+            else:
+                shadow_oe._oe.T_INCIDENCE  = 90-self.incidence_angle_deg
+                shadow_oe._oe.T_REFLECTION = 90-self.reflection_angle_deg
+
             shadow_oe._oe.ALPHA        = 90*self.mirror_orientation_angle
 
             #####################################
@@ -2502,6 +2543,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                 self.incidence_angle_deg = float(shadow_file.getProperty("T_INCIDENCE"))
                 self.reflection_angle_deg = float(shadow_file.getProperty("T_REFLECTION"))
                 self.mirror_orientation_angle = int(float(shadow_file.getProperty("ALPHA"))/90)
+                self.angles_respect_to = 0
 
                 if self.graphical_options.is_curved:
                     self.is_cylinder = int(shadow_file.getProperty("FCYL"))
