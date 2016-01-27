@@ -29,7 +29,7 @@ class OWxsh_bragg(OWWidget):
     maintainer_email = "srio@esrf.eu"
     priority = 1
     category = ""
-    keywords = ["xoppy", "bragg"]
+    keywords = ["oasys", "bragg"]
 
     outputs = [{"name":"PreProcessor_Data",
                 "type":ShadowPreProcessorData,
@@ -38,7 +38,7 @@ class OWxsh_bragg(OWWidget):
 
     want_main_area = False
 
-    DESCRIPTOR = Setting("Si")
+    DESCRIPTOR = Setting(0)
     H_MILLER_INDEX = Setting(1)
     K_MILLER_INDEX = Setting(1)
     L_MILLER_INDEX = Setting(1)
@@ -47,6 +47,48 @@ class OWxsh_bragg(OWWidget):
     E_MAX = Setting(15000.0)
     E_STEP = Setting(100.0)
     SHADOW_FILE = Setting("bragg.dat")
+
+    crystals = [
+        "Si",
+        "Si_NIST",
+        "Si2",
+        "Ge",
+        "Diamond",
+        "GaAs",
+        "GaSb",
+        "GaP",
+        "InAs",
+        "InP",
+        "InSb",
+        "SiC",
+        "NaCl",
+        "CsF",
+        "LiF",
+        "KCl",
+        "CsCl",
+        "Be",
+        "Graphite",
+        "PET",
+        "Beryl",
+        "KAP",
+        "RbAP",
+        "TlAP",
+        "Muscovite",
+        "AlphaQuartz",
+        "Copper",
+        "LiNbO3",
+        "Platinum",
+        "Gold",
+        "Sapphire",
+        "LaB6",
+        "LaB6_NIST",
+        "KTP",
+        "AlphaAlumina",
+        "Aluminum",
+        "Iron",
+        "Titanium"
+    ]
+
 
     def __init__(self):
         super().__init__()
@@ -76,9 +118,11 @@ class OWxsh_bragg(OWWidget):
         #widget index 0
         idx += 1 
         box = oasysgui.widgetBox(self.controlArea, "Crystal Parameters", orientation="vertical")
-        oasysgui.lineEdit(box, self, "DESCRIPTOR",
-                     label=self.unitLabels()[idx], addSpace=True, labelWidth=350, orientation="horizontal")
-        self.show_at(self.unitFlags()[idx], box) 
+        gui.comboBox(box, self, "DESCRIPTOR",
+                     label=self.unitLabels()[idx], addSpace=True,
+                     items=self.crystals,
+                     valueType=int, orientation="horizontal", labelWidth=350)
+        self.show_at(self.unitFlags()[idx], box)
         
         #widget index 1 
         idx += 1 
@@ -171,7 +215,7 @@ class OWxsh_bragg(OWWidget):
             self.checkFields()
 
             tmp = bragg(interactive=False,
-                        DESCRIPTOR=self.DESCRIPTOR,
+                        DESCRIPTOR=self.crystals[self.DESCRIPTOR],
                         H_MILLER_INDEX=self.H_MILLER_INDEX,
                         K_MILLER_INDEX=self.K_MILLER_INDEX,
                         L_MILLER_INDEX=self.L_MILLER_INDEX,
@@ -188,7 +232,7 @@ class OWxsh_bragg(OWWidget):
                                  QMessageBox.Ok)
 
     def checkFields(self):
-        self.DESCRIPTOR = ShadowPhysics.checkCompoundName(self.DESCRIPTOR)
+        #self.DESCRIPTOR = ShadowPhysics.checkCompoundName(self.DESCRIPTOR)
         self.H_MILLER_INDEX = congruence.checkNumber(self.H_MILLER_INDEX, "H miller index")
         self.K_MILLER_INDEX = congruence.checkNumber(self.K_MILLER_INDEX, "K miller index")
         self.L_MILLER_INDEX = congruence.checkNumber(self.L_MILLER_INDEX, "L miller index")

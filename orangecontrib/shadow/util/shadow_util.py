@@ -920,14 +920,11 @@ class ShadowPhysics:
 
         compound_name = compound_name.strip()
 
-        if compound_name == "Diamond" or compound_name == "Graphite":
+        try:
+            xraylib.CompoundParser(compound_name)
             return compound_name
-        else:
-            try:
-                xraylib.CompoundParser(compound_name)
-                return compound_name
-            except:
-                raise Exception("Compound Name is not correct")
+        except:
+            raise Exception("Compound Name is not correct")
 
     @classmethod
     def getMaterialDensity(cls, material_name):
