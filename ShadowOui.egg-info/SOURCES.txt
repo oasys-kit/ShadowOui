@@ -62,6 +62,7 @@ orangecontrib/shadow/widgets/experimental_elements/icons/xrd_capillary.png
 orangecontrib/shadow/widgets/experimental_elements/misc/axis.png
 orangecontrib/shadow/widgets/gui/__init__.py
 orangecontrib/shadow/widgets/gui/ow_automatic_element.py
+orangecontrib/shadow/widgets/gui/ow_compound_optical_element.py
 orangecontrib/shadow/widgets/gui/ow_conic_coefficients_element.py
 orangecontrib/shadow/widgets/gui/ow_curved_element.py
 orangecontrib/shadow/widgets/gui/ow_ellipsoid_element.py
