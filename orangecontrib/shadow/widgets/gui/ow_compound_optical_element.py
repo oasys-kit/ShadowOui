@@ -103,7 +103,7 @@ class CompoundOpticalElement(ow_generic_element.GenericElement):
 
                     self.checkFields()
 
-                    shadow_oe = ShadowCompoundOpticalElement.create_compound_oe()
+                    shadow_oe = ShadowCompoundOpticalElement.create_compound_oe(workspace_units_to_cm=self.workspace_units_to_cm)
 
                     self.populateFields(shadow_oe)
 

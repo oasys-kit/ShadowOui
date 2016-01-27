@@ -1048,8 +1048,8 @@ class ShadowCompoundOpticalElement:
         return ShadowCompoundOpticalElement(oe=self._oe.duplicate())
 
     @classmethod
-    def create_compound_oe(cls):
-        return ShadowCompoundOpticalElement(oe=Shadow.CompoundOE())
+    def create_compound_oe(cls, workspace_units_to_cm=1.0):
+        return ShadowCompoundOpticalElement(oe=Shadow.CompoundOE(user_units_to_cm=workspace_units_to_cm))
 
     ####################################################################
     # FOR WEIRD BUG ON LINUX - STRING NOT PROPERLY RETURNED BY BINDING
