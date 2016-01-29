@@ -1988,16 +1988,16 @@ class OpticalElement(ow_generic_element.GenericElement):
                     shadow_oe._oe.R_IND_IMA =self.refractive_index_in_image_medium
                     shadow_oe._oe.R_ATTENUATION_IMA = self.attenuation_in_image_medium
                 elif self.optical_constants_refraction_index == 1:
-                    shadow_oe._oe.FILE_R_IND_OBJ = self.file_prerefl_for_object_medium
+                    shadow_oe._oe.FILE_R_IND_OBJ = bytes(congruence.checkFileName(self.file_prerefl_for_object_medium), 'utf-8')
                     shadow_oe._oe.R_IND_IMA = self.refractive_index_in_image_medium
                     shadow_oe._oe.R_ATTENUATION_IMA = self.attenuation_in_image_medium
                 elif self.optical_constants_refraction_index == 2:
                     shadow_oe._oe.R_IND_OBJ = self.refractive_index_in_object_medium
                     shadow_oe._oe.R_ATTENUATION_OBJ = self.attenuation_in_object_medium
-                    shadow_oe._oe.FILE_R_IND_IMA = self.file_prerefl_for_image_medium
+                    shadow_oe._oe.FILE_R_IND_IMA = bytes(congruence.checkFileName(self.file_prerefl_for_image_medium), 'utf-8')
                 elif self.optical_constants_refraction_index == 3:
-                    shadow_oe._oe.FILE_R_IND_OBJ = self.file_prerefl_for_object_medium
-                    shadow_oe._oe.FILE_R_IND_IMA = self.file_prerefl_for_image_medium
+                    shadow_oe._oe.FILE_R_IND_OBJ = bytes(congruence.checkFileName(self.file_prerefl_for_object_medium), 'utf-8')
+                    shadow_oe._oe.FILE_R_IND_IMA = bytes(congruence.checkFileName(self.file_prerefl_for_image_medium), 'utf-8')
 
             if self.is_infinite == 0:
                 shadow_oe._oe.FHIT_C = 0
@@ -2424,7 +2424,7 @@ class OpticalElement(ow_generic_element.GenericElement):
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))
 
-            #raise exception
+            raise exception
         self.progressBarFinished()
 
     def setBeam(self, beam):
