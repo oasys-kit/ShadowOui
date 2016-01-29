@@ -1,5 +1,6 @@
 import sys
 
+from orangewidget.widget import OWAction
 from oasys.widgets import widget
 from oasys.widgets import gui as oasysgui
 from oasys.widgets.gui import ConfirmDialog
@@ -37,11 +38,11 @@ class LoopPoint(widget.OWWidget):
     #################################
 
     def __init__(self):
-        self.runaction = widget.OWAction("Start Loop", self)
+        self.runaction = OWAction("Start Loop", self)
         self.runaction.triggered.connect(self.startLoop)
         self.addAction(self.runaction)
 
-        self.runaction = widget.OWAction("Interrupt", self)
+        self.runaction = OWAction("Interrupt", self)
         self.runaction.triggered.connect(self.stopLoop)
         self.addAction(self.runaction)
 
