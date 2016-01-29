@@ -296,11 +296,15 @@ class ShadowToolsMenu(OMenu):
             elif type == ShadowFile.OE:
                 widget_name = "orangecontrib.shadow.widgets.optical_elements."
 
-                if int(shadow_file.getProperty("F_REFRAC")) != 0:
-                    if int(shadow_file.getProperty("F_CRYSTAL")) == 0:
-                        raise Exception("Refractor OE Type not supported yet")
-
                 fmirr = int(shadow_file.getProperty("FMIRR"))
+
+                if int(shadow_file.getProperty("F_REFRAC")) != 0 and int(shadow_file.getProperty("F_CRYSTAL")) == 0:
+                    if fmirr == 5:
+                        widget_name = "orangecontrib.shadow.widgets.special_elements.ow_empty_element.EmptyElement"
+                    elif fmirr == 10:
+                        widget_name = "orangecontrib.shadow.widgets.special_elements.ow_conic_coefficients_refractor.ConicCoefficientsRefractor"
+                    else:
+                        raise Exception("Only Refractor OE Type with conic coefficients are supported")
 
                 if int(shadow_file.getProperty("F_CRYSTAL")) == 0 and int(shadow_file.getProperty("F_GRATING")) == 0: # MIRRORS
                     if  fmirr == 1:

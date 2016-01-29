@@ -37,6 +37,14 @@ class LoopPoint(widget.OWWidget):
     #################################
 
     def __init__(self):
+        self.runaction = widget.OWAction("Start Loop", self)
+        self.runaction.triggered.connect(self.startLoop)
+        self.addAction(self.runaction)
+
+        self.runaction = widget.OWAction("Interrupt", self)
+        self.runaction.triggered.connect(self.stopLoop)
+        self.addAction(self.runaction)
+
         self.setFixedWidth(400)
         self.setFixedHeight(185)
 

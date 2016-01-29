@@ -1215,6 +1215,9 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
             else:
                 reflections = self.getReflections(self.sample_material, avg_wavelength=avg_wavelength)
 
+            if len(reflections) == 0:
+                raise Exception("No Bragg reflections in the angular acceptance of the scan/detector")
+
             if self.calculate_absorption == 1:
                 self.absorption_normalization_factor = 1/self.getTransmittance(capillary_radius*2, avg_wavelength)
 
@@ -1282,6 +1285,10 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
             #self.error(self.error_id, "Exception occurred: " + str(exception))
 
             QtGui.QMessageBox.critical(self, "Error", str(exception.args[0]), QtGui.QMessageBox.Ok)
+
+            self.setSimulationTabsAndButtonsEnabled(True)
+            self.setStatusMessage("")
+            self.progressBarFinished()
             #raise exception
 
     #######################################################
@@ -1600,31 +1607,32 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                 diffracted_beam = self.traceTo2DDetector(bar_value, diffracted_beam, avg_wavelength, twotheta_bragg,
                                                          normalization, debye_waller_B, statistic_factor)
                 if not diffracted_beam is None:
-                    if self.area_detector_beam is None:
-                        self.area_detector_beam = diffracted_beam
-                    else:
-                        self.area_detector_beam = ShadowBeam.mergeBeams(self.area_detector_beam, diffracted_beam)
+                    if ShadowCongruence.checkGoodBeam(diffracted_beam):
+                        if self.area_detector_beam is None:
+                            self.area_detector_beam = diffracted_beam
+                        else:
+                            self.area_detector_beam = ShadowBeam.mergeBeams(self.area_detector_beam, diffracted_beam)
 
-                    # Creation of 1D pattern: weighted (with intensity) histogram of twotheta angles
-                    x_coord = self.area_detector_beam._beam.rays[:, 0]
-                    z_coord = self.area_detector_beam._beam.rays[:, 2]
+                        # Creation of 1D pattern: weighted (with intensity) histogram of twotheta angles
+                        x_coord = self.area_detector_beam._beam.rays[:, 0]
+                        z_coord = self.area_detector_beam._beam.rays[:, 2]
 
-                    r_coord = numpy.sqrt(x_coord ** 2 + z_coord ** 2)
+                        r_coord = numpy.sqrt(x_coord ** 2 + z_coord ** 2)
 
-                    twotheta_angles = numpy.degrees(numpy.arctan(r_coord / self.detector_distance))
+                        twotheta_angles = numpy.degrees(numpy.arctan(r_coord / self.detector_distance))
 
-                    intensity = self.area_detector_beam._beam.rays[:, 6] ** 2 + self.area_detector_beam._beam.rays[:, 7] ** 2 + self.area_detector_beam._beam.rays[:, 8] ** 2 + \
-                                self.area_detector_beam._beam.rays[:, 15] ** 2 + self.area_detector_beam._beam.rays[:, 16] ** 2 + self.area_detector_beam._beam.rays[:, 17] ** 2
+                        intensity = self.area_detector_beam._beam.rays[:, 6] ** 2 + self.area_detector_beam._beam.rays[:, 7] ** 2 + self.area_detector_beam._beam.rays[:, 8] ** 2 + \
+                                    self.area_detector_beam._beam.rays[:, 15] ** 2 + self.area_detector_beam._beam.rays[:, 16] ** 2 + self.area_detector_beam._beam.rays[:, 17] ** 2
 
-                    maximum = numpy.max(intensity)
+                        maximum = numpy.max(intensity)
 
-                    weights = (intensity / maximum)
+                        weights = (intensity / maximum)
 
-                    histogram, edges = numpy.histogram(a=twotheta_angles, bins=numpy.append(self.twotheta_angles,
-                                                                                            max(self.twotheta_angles) + self.step),
-                                                       weights=weights)
+                        histogram, edges = numpy.histogram(a=twotheta_angles, bins=numpy.append(self.twotheta_angles,
+                                                                                                max(self.twotheta_angles) + self.step),
+                                                           weights=weights)
 
-                    self.counts = histogram
+                        self.counts = histogram
 
                 self.plot2DResults()
                 self.plotResult(reflections=reflections)
@@ -2483,6 +2491,11 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     def getReflections(self, material, number_of_peaks=-1, avg_wavelength=0.0):
         reflections = []
 
+        detector_angular_acceptance = 180
+        if self.diffracted_arm_type == 2:
+            detector_angular_acceptance = numpy.max(numpy.arctan((self.area_detector_height/2)/self.area_detector_distance),
+                                                    numpy.arctan((self.area_detector_width/2)/self.area_detector_distance))
+
         if material < len(self.materials):
             total_reflections = self.materials[material].reflections
             added_peak = 0
@@ -2492,10 +2505,11 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
                 twotheta_bragg = 2*ShadowPhysics.calculateBraggAngle(avg_wavelength, reflection.h, reflection.k, reflection.l, self.getLatticeParameter(material))
 
-                if numpy.degrees(twotheta_bragg) >= self.start_angle and numpy.degrees(twotheta_bragg) <= self.stop_angle:
-                    reflection.twotheta_bragg = twotheta_bragg
-                    reflections.append(reflection)
-                    added_peak = added_peak + 1
+                if numpy.degrees(twotheta_bragg) < detector_angular_acceptance:
+                    if numpy.degrees(twotheta_bragg) >= self.start_angle and numpy.degrees(twotheta_bragg) <= self.stop_angle:
+                        reflection.twotheta_bragg = twotheta_bragg
+                        reflections.append(reflection)
+                        added_peak = added_peak + 1
 
         return reflections
 

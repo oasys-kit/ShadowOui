@@ -1013,7 +1013,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                                  items=["No", "Yes"],
                                  sendSelectedValue=False, orientation="horizontal")
 
-                    gui.comboBox(refractor_box, self, "optical_constants_refraction_index", label="optical constants\n/refraction index", labelWidth=160,
+                    gui.comboBox(refractor_box, self, "optical_constants_refraction_index", label="optical constants\n/refraction index", labelWidth=120,
                                  items=["constant in both media",
                                         "from prerefl in OBJECT media",
                                         "from prerefl in IMAGE media",
