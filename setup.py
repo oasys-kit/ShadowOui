@@ -120,7 +120,7 @@ if __name__ == '__main__':
 
             for directory in site.getsitepackages():
                 if os.path.exists(directory + "/oasys"):
-                    site_packages_dir = directory
+                    site_packages_dir = directory  + "/"
                     break
 
             if not site_packages_dir is None:
@@ -131,21 +131,24 @@ if __name__ == '__main__':
                     if int(version_data[0]) < 10 or int(version_data[1]) < 8: raise Exception("MacOSX version not supported (>= 10.8)")
                     if int(version_data[1]) < 10: version_dir = "10.8"
                     else: version_dir = "10.10"
+                    
+                    libraries_dir = "libraries/darwin/"
+                    libraries_version_dir = libraries_dir + version_dir + "/"
 
-                    if not os.path.exists(site_packages_dir + "/xrayhelp.py"):
-                        shutil.copyfile("libraries/darwin/xrayhelp.py", site_packages_dir + "/xrayhelp.py")
-                    if not os.path.exists(site_packages_dir + "/xraylib.py"):
-                        shutil.copyfile("libraries/darwin/xraylib.py", site_packages_dir + "/xraylib.py")
-                    if not os.path.exists(site_packages_dir + "/xraymessages.py"):
-                        shutil.copyfile("libraries/darwin/xraymessages.py", site_packages_dir + "/xraymessages.py")
-                    if not os.path.exists(site_packages_dir + "/_xraylib.la"):
-                        shutil.copyfile("libraries/darwin/" + version_dir +"/_xraylib.la", site_packages_dir + "/_xraylib.la")
-                    if not os.path.exists(site_packages_dir + "/_xraylib.so"):
-                        shutil.copyfile("libraries/darwin/" + version_dir +"/_xraylib.so", site_packages_dir + "/_xraylib.so")
-                    if not os.path.exists(site_packages_dir + "/xraylib_np.la"):
-                        shutil.copyfile("libraries/darwin/" + version_dir +"/xraylib_np.la", site_packages_dir + "/xraylib_np.la")
-                    if not os.path.exists(site_packages_dir + "/xraylib_np.so"):
-                        shutil.copyfile("libraries/darwin/" + version_dir +"/xraylib_np.so", site_packages_dir + "/xraylib_np.so")
+                    if not os.path.exists(site_packages_dir + "xrayhelp.py"):
+                        shutil.copyfile(libraries_dir + "xrayhelp.py", site_packages_dir + "xrayhelp.py")
+                    if not os.path.exists(site_packages_dir + "xraylib.py"):
+                        shutil.copyfile(libraries_dir + "xraylib.py", site_packages_dir + "xraylib.py")
+                    if not os.path.exists(site_packages_dir + "xraymessages.py"):
+                        shutil.copyfile(libraries_dir + "xraymessages.py", site_packages_dir + "xraymessages.py")
+                    if not os.path.exists(site_packages_dir + "_xraylib.la"):
+                        shutil.copyfile(libraries_version_dir + "_xraylib.la", site_packages_dir + "_xraylib.la")
+                    if not os.path.exists(site_packages_dir + "_xraylib.so"):
+                        shutil.copyfile(libraries_version_dir + "_xraylib.so", site_packages_dir + "_xraylib.so")
+                    if not os.path.exists(site_packages_dir + "xraylib_np.la"):
+                        shutil.copyfile(libraries_version_dir + "xraylib_np.la", site_packages_dir + "xraylib_np.la")
+                    if not os.path.exists(site_packages_dir + "xraylib_np.so"):
+                        shutil.copyfile(libraries_version_dir + "xraylib_np.so", site_packages_dir + "xraylib_np.so")
                 elif platform.system() == 'Linux':
                     pass
     except Exception as exception:
