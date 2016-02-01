@@ -232,7 +232,12 @@ class OWxsh_bragg(OWWidget):
                                  QMessageBox.Ok)
 
     def checkFields(self):
-        #self.DESCRIPTOR = ShadowPhysics.checkCompoundName(self.DESCRIPTOR)
+        if type(self.DESCRIPTOR) == str: # back compatibility with old version
+            try:
+                self.DESCRIPTOR = self.crystals.index(self.DESCRIPTOR)
+            except:
+                self.DESCRIPTOR = 0
+
         self.H_MILLER_INDEX = congruence.checkNumber(self.H_MILLER_INDEX, "H miller index")
         self.K_MILLER_INDEX = congruence.checkNumber(self.K_MILLER_INDEX, "K miller index")
         self.L_MILLER_INDEX = congruence.checkNumber(self.L_MILLER_INDEX, "L miller index")
