@@ -1630,25 +1630,37 @@ class OpticalElement(ow_generic_element.GenericElement):
         else:
             self.incidence_angle_mrad = round(math.radians(self.incidence_angle_deg)*1000, 2)
 
+        if self.graphical_options.is_curved and not self.graphical_options.is_conic_coefficients:
+            if self.angles_respect_to == 0:
+                self.incidence_angle_respect_to_normal = self.incidence_angle_deg
+            else:
+                self.incidence_angle_respect_to_normal = round(90 - self.incidence_angle_deg, 3)
+
         if self.graphical_options.is_mirror:
             self.reflection_angle_deg = self.incidence_angle_deg
             self.reflection_angle_mrad = self.incidence_angle_mrad
 
     def calculate_reflection_angle_mrad(self):
         if self.angles_respect_to == 0:
-            self.reflection_angle_mrad = round(math.radians(90-self.reflection_angle_deg)*1000, 2)
+            self.reflection_angle_mrad = round(math.radians(90 - self.reflection_angle_deg)*1000, 2)
         else:
             self.reflection_angle_mrad = round(math.radians(self.reflection_angle_deg)*1000, 2)
 
     def calculate_incidence_angle_deg(self):
         if self.angles_respect_to == 0:
-            self.incidence_angle_deg = round(math.degrees(0.5*math.pi-(self.incidence_angle_mrad/1000)), 3)
+            self.incidence_angle_deg = round(math.degrees(0.5 * math.pi - (self.incidence_angle_mrad / 1000)), 3)
         else:
-            self.incidence_angle_deg = round(math.degrees(self.incidence_angle_mrad/1000), 3)
+            self.incidence_angle_deg = round(math.degrees(self.incidence_angle_mrad / 1000), 3)
 
         if self.graphical_options.is_mirror:
             self.reflection_angle_deg = self.incidence_angle_deg
             self.reflection_angle_mrad = self.incidence_angle_mrad
+
+        if self.graphical_options.is_curved and not self.graphical_options.is_conic_coefficients:
+            if self.angles_respect_to == 0:
+                self.incidence_angle_respect_to_normal = self.incidence_angle_deg
+            else:
+                self.incidence_angle_respect_to_normal = round(90 - self.incidence_angle_deg, 3)
 
     def calculate_reflection_angle_deg(self):
         if self.angles_respect_to == 0:

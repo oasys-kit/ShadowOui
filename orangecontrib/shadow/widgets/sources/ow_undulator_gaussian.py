@@ -169,8 +169,7 @@ class UndulatorGaussian(ow_source.Source):
                                                                                    sigdi_x=self.sigma_divergence_x,
                                                                                    sigdi_z=self.sigma_divergence_z,
                                                                                    undulator_E0=self.energy,
-                                                                                   undulator_length=self.undulator_length,
-                                                                                   user_unit=1)
+                                                                                   undulator_length=self.undulator_length)
         shadow_src.src.PH1 = self.energy - (self.delta_e * 0.5)
         shadow_src.src.PH2 = self.energy + (self.delta_e * 0.5)
         shadow_src.src.F_OPD = 1
@@ -180,13 +179,8 @@ class UndulatorGaussian(ow_source.Source):
         shadow_src.src.SIGDIX = new_sigdi_x
         shadow_src.src.SIGDIZ = new_sigdi_z
 
-    def getPhotonSizes(self, sigma_x=1e-4, sigma_z=1e-4, sigdi_x=1e-6, sigdi_z=1e-6, undulator_E0=15000.0, undulator_length=4.0, user_unit=1):
-        user_unit_to_m = 1.0
-
-        if user_unit == 0:
-            user_unit_to_m = 1e-3
-        elif user_unit == 1:
-            user_unit_to_m = 1e-2
+    def getPhotonSizes(self, sigma_x=1e-4, sigma_z=1e-4, sigdi_x=1e-6, sigdi_z=1e-6, undulator_E0=15000.0, undulator_length=4.0):
+        user_unit_to_m = self.workspace_units_to_cm * 1e-2
 
         lambda1 = srfunc.m2ev/undulator_E0
 
