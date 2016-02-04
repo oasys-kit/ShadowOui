@@ -207,7 +207,7 @@ class OWdabam_height_profile(OWWidget):
         self.le_step_x = oasysgui.lineEdit(output_profile_box, self, "step_x", "Step Width",
                            labelWidth=300, valueType=float, orientation="horizontal")
 
-        gui.comboBox(output_profile_box, self, "modify_y", label="Modify Length?", labelWidth=300,
+        gui.comboBox(output_profile_box, self, "modify_y", label="Modify Length?", labelWidth=240,
                      items=["No", "Rescale to new length", "Fit to new length (fill or cut)"], callback=self.set_ModifyY, sendSelectedValue=False, orientation="horizontal")
 
         self.modify_box_1 = oasysgui.widgetBox(output_profile_box, "", addSpace=False, orientation="vertical", height=50)
