@@ -693,6 +693,8 @@ class MirrorBox(QtGui.QWidget):
         if self.has_finite_dimensions == 0:
             congruence.checkStrictlyPositiveNumber(self.mirror_width, "Mirror Width")
             congruence.checkStrictlyPositiveNumber(self.mirror_length, "Mirror Length")
+        elif self.has_surface_error != 0:
+            raise Exception("With surface error file, dimensions cannot be infinite")
 
         if self.reflectivity_kind != 0:
             congruence.checkFile(self.reflectivity_files)
