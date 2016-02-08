@@ -1,5 +1,4 @@
 import copy
-import sys
 
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt
@@ -9,7 +8,7 @@ from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.gui import ConfirmDialog
 
-from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn, ShadowPreProcessorData, ShadowBeam
+from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, ShadowBeam
 from orangecontrib.shadow.widgets.gui import ow_compound_optical_element
 
 class KB(ow_compound_optical_element.CompoundOpticalElement):
@@ -85,7 +84,7 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
                                reflectivity_kind=self.reflectivity_kind[0],
                                reflectivity_files=self.reflectivity_files[0],
                                has_surface_error=self.has_surface_error[0],
-                               surface_error_files=self.surface_error_files[0])
+                               surface_error_files= self.surface_error_files[0])
 
         self.h_box = MirrorBox(kb=self,
                                parent=tab_horizontal,
@@ -96,7 +95,7 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
                                reflectivity_kind=self.reflectivity_kind[1],
                                reflectivity_files=self.reflectivity_files[1],
                                has_surface_error=self.has_surface_error[1],
-                               surface_error_files=self.surface_error_files[1])
+                               surface_error_files= self.surface_error_files[1])
 
     def after_change_workspace_units(self):
         label = self.le_p.parent().layout().itemAt(0).widget()
@@ -378,16 +377,55 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
 
                 self.dump_reflectivity_files()
 
-            if data.waviness_data_file != ShadowPreProcessorData.NONE:
-                self.v_box.surface_error_files = data.waviness_data_file
-                self.v_box.le_surface_error_files.setText(data.waviness_data_file)
+            if data.error_profile_data_file != ShadowPreProcessorData.NONE:
+                self.v_box.surface_error_files = data.error_profile_data_file
+                self.v_box.le_surface_error_files.setText(data.error_profile_data_file)
                 self.v_box.has_surface_error = 1
                 self.v_box.has_surface_error_combo.setCurrentIndex(1)
 
+                if self.v_box.has_finite_dimensions == 0: # Finite
+                    changed = False
+
+                    if self.v_box.mirror_width > data.error_profile_x_dim or \
+                       self.v_box.mirror_length > data.error_profile_y_dim:
+                        changed = True
+
+                    if changed:
+                        if QtGui.QMessageBox.information(self, "Confirm Modification",
+                                                      "Dimensions of this mirror must be changed in order to ensure congruence with the error profile surface, accept?",
+                                                      QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
+                            if self.v_box.mirror_width > data.error_profile_x_dim:
+                                self.v_box.mirror_width = data.error_profile_x_dim
+                                self.v_box.le_mirror_width.setText(str(data.error_profile_x_dim))
+                            if self.v_box.mirror_length > data.error_profile_y_dim:
+                                self.v_box.mirror_length = data.error_profile_y_dim
+                                self.v_box.le_mirror_length.setText(str(data.error_profile_y_dim))
+
+                            QtGui.QMessageBox.information(self, "QMessageBox.information()",
+                                                          "Dimensions of this mirror were changed",
+                                                          QtGui.QMessageBox.Ok)
+                else:
+                    if QtGui.QMessageBox.information(self, "Confirm Modification",
+                                                  "This mirror must become with finite dimensions in order to ensure congruence with the error surface, accept?",
+                                                  QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
+                        self.v_box.has_finite_dimensions = 0
+                        self.v_box.has_finite_dimensions_combo.setCurrentIndex(0)
+                        self.v_box.mirror_width = data.error_profile_x_dim
+                        self.v_box.le_mirror_width.setText(str(data.error_profile_x_dim))
+                        self.v_box.mirror_length = data.error_profile_y_dim
+                        self.v_box.le_mirror_length.setText(str(data.error_profile_y_dim))
+
+                        QtGui.QMessageBox.warning(self, "Warning",
+                                                      "Dimensions of this mirror were changed",
+                                                      QtGui.QMessageBox.Ok)
+
+
+                self.v_box.set_dimensions()
                 self.v_box.set_has_surface_error()
-
+                self.dump_dimensions_0()
+                self.dump_dimensions_1()
                 self.dump_surface_error_files()
-
+                
             if data.bragg_data_file != ShadowPreProcessorData.NONE:
                 QtGui.QMessageBox.warning(self, "Warning",
                           "This O.E. is not a crystal: bragg parameter will be ignored",
@@ -413,14 +451,53 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
 
                 self.h_box.set_reflectivity_kind()
 
-            if data.waviness_data_file != ShadowPreProcessorData.NONE:
-                self.h_box.surface_error_files = data.waviness_data_file
-                self.h_box.le_surface_error_files.setText(data.waviness_data_file)
+            if data.error_profile_data_file != ShadowPreProcessorData.NONE:
+                self.h_box.surface_error_files = data.error_profile_data_file
+                self.h_box.le_surface_error_files.setText(data.error_profile_data_file)
                 self.h_box.has_surface_error = 1
                 self.h_box.has_surface_error_combo.setCurrentIndex(1)
 
-                self.h_box.set_has_surface_error()
+                if self.h_box.has_finite_dimensions == 0: # Finite
+                    changed = False
 
+                    if self.h_box.mirror_width > data.error_profile_x_dim or \
+                       self.h_box.mirror_length > data.error_profile_y_dim:
+                        changed = True
+
+                    if changed:
+                        if QtGui.QMessageBox.information(self, "Confirm Modification",
+                                                      "Dimensions of this mirror must be changed in order to ensure congruence with the error profile surface, accept?",
+                                                      QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
+                            if self.h_box.mirror_width > data.error_profile_x_dim:
+                                self.h_box.mirror_width = data.error_profile_x_dim
+                                self.h_box.le_mirror_width.setText(str(data.error_profile_x_dim))
+                            if self.h_box.mirror_length > data.error_profile_y_dim:
+                                self.h_box.mirror_length = data.error_profile_y_dim
+                                self.h_box.le_mirror_length.setText(str(data.error_profile_y_dim))
+
+                            QtGui.QMessageBox.information(self, "QMessageBox.information()",
+                                                          "Dimensions of this mirror were changed",
+                                                          QtGui.QMessageBox.Ok)
+                else:
+                    if QtGui.QMessageBox.information(self, "Confirm Modification",
+                                                  "This mirror must become with finite dimensions in order to ensure congruence with the error surface, accept?",
+                                                  QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
+                        self.h_box.has_finite_dimensions = 0
+                        self.h_box.has_finite_dimensions_combo.setCurrentIndex(0)
+                        self.h_box.mirror_width = data.error_profile_x_dim
+                        self.h_box.le_mirror_width.setText(str(data.error_profile_x_dim))
+                        self.h_box.mirror_length = data.error_profile_y_dim
+                        self.h_box.le_mirror_length.setText(str(data.error_profile_y_dim))
+
+                        QtGui.QMessageBox.warning(self, "Warning",
+                                                      "Dimensions of this mirror were changed",
+                                                      QtGui.QMessageBox.Ok)
+
+
+                self.h_box.set_dimensions()
+                self.h_box.set_has_surface_error()
+                self.dump_dimensions_0()
+                self.dump_dimensions_1()
                 self.dump_surface_error_files()
 
     def setupUI(self):
@@ -484,7 +561,7 @@ class MirrorBox(QtGui.QWidget):
         gui.comboBox(mirror_box, self, "shape", label="Surface Shape", labelWidth=260,
                      items=["Sphere", "Ellipse"], sendSelectedValue=False, orientation="horizontal", callback=self.kb.dump_shape)
 
-        gui.comboBox(mirror_box, self, "has_finite_dimensions", label="Dimensions", labelWidth=260,
+        self.has_finite_dimensions_combo = gui.comboBox(mirror_box, self, "has_finite_dimensions", label="Dimensions", labelWidth=260,
                      items=["Finite", "Infinite"], sendSelectedValue=False, orientation="horizontal", callback=self.set_dimensions)
 
         self.dimension_box = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=50)
@@ -575,7 +652,7 @@ class MirrorBox(QtGui.QWidget):
     def get_dimensions(self):
         if self.has_finite_dimensions == 0:
             return [self.mirror_width, self.mirror_length]
-        elif self.has_finite_dimensions == 0:
+        elif self.has_finite_dimensions == 1:
             return [0.0, 0.0]
         else:
             raise ValueError("Dimensions")
