@@ -159,7 +159,7 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
 
     def get_prerefl_file(self):
         if self.ri_calculation_mode == 1:
-            return congruence.checkFileName(self.prerefl_file)
+            return bytes(congruence.checkFileName(self.prerefl_file), 'utf-8')
         else:
             return None
 

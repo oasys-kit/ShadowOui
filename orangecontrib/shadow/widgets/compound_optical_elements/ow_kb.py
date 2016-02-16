@@ -564,7 +564,7 @@ class MirrorBox(QtGui.QWidget):
         self.has_finite_dimensions_combo = gui.comboBox(mirror_box, self, "has_finite_dimensions", label="Dimensions", labelWidth=260,
                      items=["Finite", "Infinite"], sendSelectedValue=False, orientation="horizontal", callback=self.set_dimensions)
 
-        self.dimension_box = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=50)
+        self.dimension_box = TOoasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=50)
         self.dimension_box_empty = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=50)
 
         self.le_mirror_width = oasysgui.lineEdit(self.dimension_box, self, "mirror_width", "Mirror Width", labelWidth=260, valueType=float, orientation="horizontal",
@@ -659,13 +659,13 @@ class MirrorBox(QtGui.QWidget):
 
     def get_reflectivity_files(self):
         if self.reflectivity_kind != 0:
-            return congruence.checkFileName(self.reflectivity_files)
+            return bytes(congruence.checkFileName(self.reflectivity_files), 'utf-8')
         else:
             return ""
 
     def get_surface_error_files(self):
         if self.has_surface_error == 1:
-            return congruence.checkFileName(self.surface_error_files)
+            return bytes(congruence.checkFileName(self.surface_error_files), 'utf-8')
         else:
             return ""
 

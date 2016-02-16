@@ -172,7 +172,7 @@ class DCM(ow_compound_optical_element.CompoundOpticalElement):
                                                          separation=self.separation,
                                                          dimensions1=dimension1_out,
                                                          dimensions2=dimension2_out,
-                                                         reflectivity_file=congruence.checkFileName(self.reflectivity_file))
+                                                         reflectivity_file=bytes(congruence.checkFileName(self.reflectivity_file), 'utf-8'))
 
     def checkFields(self):
         congruence.checkPositiveNumber(self.p, "Distance Source - KB center")
