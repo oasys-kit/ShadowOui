@@ -1,9 +1,11 @@
 import sys
-
+import time
 import numpy
+import threading
+
 from PyQt4.QtCore import QRect, Qt
 from PyQt4.QtGui import QTextEdit, QTextCursor, QApplication, QFont, QPalette, QColor, \
-    QMessageBox, QScrollArea, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView
+    QMessageBox, QScrollArea, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QWidget, QPainter, QBrush, QPen
 from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
 
 from srxraylib.metrology import profiles_simulation, dabam
@@ -57,6 +59,8 @@ class OWdabam_height_profile(OWWidget):
     xx = None
     yy = None
     zz = None
+
+    entry_number = Setting(1)
 
     shape=Setting(0)
     slope_error_from = Setting(0.0)
@@ -144,6 +148,17 @@ class OWdabam_height_profile(OWWidget):
         tab_gener = oasysgui.createTabPage(tabs_setting, "DABAM Generation Setting")
         tab_out = oasysgui.createTabPage(tabs_setting, "Output")
 
+        manual_box = oasysgui.widgetBox(tab_input, "Manual Entry", addSpace=True, orientation="vertical")
+
+        oasysgui.lineEdit(manual_box, self, "entry_number", "Entry Number",
+                           labelWidth=300, valueType=int, orientation="horizontal")
+
+        gui.separator(manual_box)
+
+        button = gui.button(manual_box, self, "Retrieve Profile", callback=self.retrieve_profile)
+        button.setFixedHeight(35)
+        button.setFixedWidth(self.CONTROL_AREA_WIDTH-35)
+
         input_box = oasysgui.widgetBox(tab_input, "Search Parameters", addSpace=True, orientation="vertical")
 
         gui.comboBox(input_box, self, "shape", label="Mirror Shape", labelWidth=300,
@@ -166,11 +181,14 @@ class OWdabam_height_profile(OWWidget):
         self.le_dimension_y_to = oasysgui.lineEdit(input_box_2, self, "dimension_y_to", "To",
                            labelWidth=60, valueType=float, orientation="horizontal")
 
-        button = gui.button(input_box, self, "Search", callback=self.search_profiles)
+        table_box = oasysgui.widgetBox(tab_input, "Search Results", addSpace=True, orientation="vertical", height=290)
+
+        self.overlay_search = Overlay(table_box, self.search_profiles)
+        self.overlay_search.hide()
+
+        button = gui.button(input_box, self, "Search", callback=self.overlay_search.show)
         button.setFixedHeight(35)
         button.setFixedWidth(self.CONTROL_AREA_WIDTH-35)
-
-        table_box = oasysgui.widgetBox(tab_input, "Search Results", addSpace=True, orientation="vertical", height=400)
 
         gui.comboBox(table_box, self, "use_undetrended", label="Use Undetrended Profile", labelWidth=300,
                      items=["No", "Yes"], callback=self.table_item_clicked, sendSelectedValue=False, orientation="horizontal")
@@ -256,6 +274,12 @@ class OWdabam_height_profile(OWWidget):
         self.initializeTabs()
 
         gui.rubber(self.mainArea)
+
+        self.overlay_search.raise_()
+
+    def resizeEvent(self, event):
+        self.overlay_search.resize(self.CONTROL_AREA_WIDTH - 15, 290)
+        event.accept()
 
     def after_change_workspace_units(self):
         self.si_to_user_units = 1e2 / self.workspace_units_to_cm
@@ -385,88 +409,117 @@ class OWdabam_height_profile(OWWidget):
             if not self.table.rowCount() == 0:
                 if not self.table.item(0, 0) is None:
                     row = self.table.selectionModel().selectedRows()[0].row()
-                    entry = int(self.table.item(row, 0).text())
+                    self.entry_number = int(self.table.item(row, 0).text())
 
-                    self.server.load(entry)
+                    self.retrieve_profile()
 
-                    self.profileInfo.setText(self.server.info_profiles())
+    def retrieve_profile(self):
+        try:
+            if self.entry_number is None or self.entry_number <= 0:
+                raise Exception("Entry number should be a strictly positive integer number")
 
-                    if self.use_undetrended == 0:
-                        self.plot_canvas[0].setGraphTitle("Heights Profile. St.Dev.=%.3f nm"%(self.server.stdev_profile_heights()*1e9))
-                        self.plot_canvas[1].setGraphTitle("Slopes Profile. St.Dev.=%.3f $\mu$rad"%(self.server.stdev_profile_slopes()*1e6))
-                        self.plot_dabam_graph(0, "heights_profile", self.si_to_user_units * self.server.y, 1e9 * self.server.zHeights, "Y [" + self.workspace_units_label + "]", "Z [nm]")
-                        self.plot_dabam_graph(1, "slopes_profile", self.si_to_user_units * self.server.y, 1e6 * self.server.zSlopes, "Y [" + self.workspace_units_label + "]", "Zp [$\mu$rad]")
-                    else:
-                        self.plot_canvas[0].setGraphTitle("Heights Profile. St.Dev.=%.3f nm"%(self.server.stdev_profile_heights()*1e9))
-                        self.plot_canvas[1].setGraphTitle("Slopes Profile. St.Dev.=%.3f $\mu$rad"%(self.server.stdev_profile_slopes()*1e6))
-                        self.plot_dabam_graph(0, "heights_profile", self.si_to_user_units * self.server.y, 1e9 * self.server.zHeightsUndetrended, "Y [" + self.workspace_units_label + "]", "Z [nm]")
-                        self.plot_dabam_graph(1, "slopes_profile", self.si_to_user_units * self.server.y, 1e6 * self.server.zSlopesUndetrended, "Y [" + self.workspace_units_label + "]", "Zp [$\mu$rad]")
+            self.server.load(self.entry_number)
+            self.profileInfo.setText(self.server.info_profiles())
+            self.plot_canvas[0].setGraphTitle(
+                "Heights Profile. St.Dev.=%.3f nm" % (self.server.stdev_profile_heights() * 1e9))
+            self.plot_canvas[1].setGraphTitle(
+                "Slopes Profile. St.Dev.=%.3f $\mu$rad" % (self.server.stdev_profile_slopes() * 1e6))
+            if self.use_undetrended == 0:
+                self.plot_dabam_graph(0, "heights_profile", self.si_to_user_units * self.server.y,
+                                      1e9 * self.server.zHeights, "Y [" + self.workspace_units_label + "]", "Z [nm]")
+                self.plot_dabam_graph(1, "slopes_profile", self.si_to_user_units * self.server.y, 1e6 * self.server.zSlopes,
+                                      "Y [" + self.workspace_units_label + "]", "Zp [$\mu$rad]")
+            else:
+                self.plot_dabam_graph(0, "heights_profile", self.si_to_user_units * self.server.y,
+                                      1e9 * self.server.zHeightsUndetrended, "Y [" + self.workspace_units_label + "]",
+                                      "Z [nm]")
+                self.plot_dabam_graph(1, "slopes_profile", self.si_to_user_units * self.server.y,
+                                      1e6 * self.server.zSlopesUndetrended, "Y [" + self.workspace_units_label + "]",
+                                      "Zp [$\mu$rad]")
+            y = self.server.f ** (self.server.powerlaw["hgt_pendent"]) * 10 ** self.server.powerlaw["hgt_shift"]
+            i0 = self.server.powerlaw["index_from"]
+            i1 = self.server.powerlaw["index_to"]
+            beta = -self.server.powerlaw["hgt_pendent"]
+            self.plot_canvas[2].setGraphTitle(
+                "Power Spectral Density of Heights Profile (beta=%.2f,Df=%.2f)" % (beta, (5 - beta) / 2))
+            self.plot_dabam_graph(2, "psd_heights_2", self.server.f, self.server.psdHeights, "f [m^-1]", "PSD [m^3]")
+            self.plot_dabam_graph(2, "psd_heights_1", self.server.f, y, "f [m^-1]", "PSD [m^3]", color='green',
+                                  replace=False)
+            self.plot_dabam_graph(2, "psd_heights_3", self.server.f[i0:i1], y[i0:i1], "f [m^-1]", "PSD [m^3]", color='red',
+                                  replace=False)
+            self.plot_dabam_graph(3, "csd", self.server.f, self.server.csd_heights(), "f [m^-1]", "CSD [m^3]")
+            c1, c2, c3 = dabam.autocorrelationfunction(self.server.y, self.server.zHeights)
+            self.plot_canvas[4].setGraphTitle(
+                "Autocovariance Function of Heights Profile.\nAutocorrelation Length (ACF=0.5)=%.3f m" % (c3))
+            self.plot_dabam_graph(4, "acf", c1[0:-1], c2, "Length [m]", "Heights Autocovariance")
+            # surface error removal
+            if not self.zz is None and not self.yy is None and not self.xx is None:
+                self.xx = None
+                self.yy = None
+                self.zz = None
+                self.axis.set_title("")
+                self.axis.clear()
+                self.plot_canvas[5].draw()
 
-                    y = self.server.f**(self.server.powerlaw["hgt_pendent"])*10**self.server.powerlaw["hgt_shift"]
-                    i0 = self.server.powerlaw["index_from"]
-                    i1 = self.server.powerlaw["index_to"]
-                    beta = -self.server.powerlaw["hgt_pendent"]
-                    self.plot_canvas[2].setGraphTitle("Power Spectral Density of Heights Profile (beta=%.2f,Df=%.2f)"%(beta,(5-beta)/2))
-                    self.plot_dabam_graph(2, "psd_heights_2", self.server.f, self.server.psdHeights, "f [m^-1]", "PSD [m^3]")
-                    self.plot_dabam_graph(2, "psd_heights_1", self.server.f, y, "f [m^-1]", "PSD [m^3]", color='green', replace=False)
-                    self.plot_dabam_graph(2, "psd_heights_3", self.server.f[i0:i1], y[i0:i1], "f [m^-1]", "PSD [m^3]", color='red', replace=False)
+            if (self.tabs.currentIndex()==6): self.tabs.setCurrentIndex(1)
 
-                    self.plot_dabam_graph(3, "csd", self.server.f,self.server.csd_heights(), "f [m^-1]", "CSD [m^3]")
+        except Exception as exception:
+            QMessageBox.critical(self, "Error",
+                                 exception.args[0],
+                                 QMessageBox.Ok)
 
-                    c1,c2,c3 = dabam.autocorrelationfunction(self.server.y,self.server.zHeights)
-                    self.plot_canvas[4].setGraphTitle("Autocovariance Function of Heights Profile.\nAutocorrelation Length (ACF=0.5)=%.3f m"%(c3))
-                    self.plot_dabam_graph(4, "acf", c1[0:-1], c2, "Length [m]", "Heights Autocovariance")
-
-                    #surface error removal
-                    if not self.zz is None and not self.yy is None and not self.xx is None:
-                        self.xx = None
-                        self.yy = None
-                        self.zz = None
-                        self.axis.set_title("")
-                        self.axis.clear()
-                        self.plot_canvas[5].draw()
-
-        if (self.tabs.currentIndex()==6): self.tabs.setCurrentIndex(1)
 
     def search_profiles(self):
-        self.table.itemClicked.disconnect(self.table_item_clicked)
-        self.table.clear()
+        try:
+            self.table.itemClicked.disconnect(self.table_item_clicked)
+            self.table.clear()
 
-        row_count = self.table.rowCount()
-        for n in range(0, row_count):
-            self.table.removeRow(0)
+            row_count = self.table.rowCount()
+            for n in range(0, row_count):
+                self.table.removeRow(0)
 
-        profiles = dabam.dabam_summary_dictionary(surface=self.get_dabam_shape(),
-                                                  slp_err_from=self.slope_error_from*1e-6,
-                                                  slp_err_to=self.slope_error_to*1e-6,
-                                                  length_from=self.dimension_y_from / self.si_to_user_units,
-                                                  length_to=self.dimension_y_to / self.si_to_user_units)
+            self.table.setHorizontalHeaderLabels(self.horHeaders)
 
-        for index in range(0, len(profiles)):
-            self.table.insertRow(0)
+            profiles = dabam.dabam_summary_dictionary(surface=self.get_dabam_shape(),
+                                                      slp_err_from=self.slope_error_from*1e-6,
+                                                      slp_err_to=self.slope_error_to*1e-6,
+                                                      length_from=self.dimension_y_from / self.si_to_user_units,
+                                                      length_to=self.dimension_y_to / self.si_to_user_units)
 
-        for index in range(0, len(profiles)):
-            table_item = QTableWidgetItem(str(profiles[index]["entry"]))
-            table_item.setTextAlignment(Qt.AlignCenter)
-            self.table.setItem(index, 0, table_item)
-            table_item = QTableWidgetItem(str(profiles[index]["surface"]))
-            table_item.setTextAlignment(Qt.AlignLeft)
-            self.table.setItem(index, 1, table_item)
-            table_item = QTableWidgetItem(str(numpy.round(profiles[index]["length"]*self.si_to_user_units, 3)))
-            table_item.setTextAlignment(Qt.AlignRight)
-            self.table.setItem(index, 2, table_item)
-            table_item = QTableWidgetItem(str(numpy.round(profiles[index]["hgt_err"]*1e9, 3)))
-            table_item.setTextAlignment(Qt.AlignRight)
-            self.table.setItem(index, 3, table_item)
-            table_item = QTableWidgetItem(str(numpy.round(profiles[index]["slp_err"]*1e6, 3)))
-            table_item.setTextAlignment(Qt.AlignRight)
-            self.table.setItem(index, 4, table_item)
+            for index in range(0, len(profiles)):
+                self.table.insertRow(0)
 
-        self.table.setHorizontalHeaderLabels(self.horHeaders)
-        self.table.resizeRowsToContents()
-        self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
+            for index in range(0, len(profiles)):
+                table_item = QTableWidgetItem(str(profiles[index]["entry"]))
+                table_item.setTextAlignment(Qt.AlignCenter)
+                self.table.setItem(index, 0, table_item)
+                table_item = QTableWidgetItem(str(profiles[index]["surface"]))
+                table_item.setTextAlignment(Qt.AlignLeft)
+                self.table.setItem(index, 1, table_item)
+                table_item = QTableWidgetItem(str(numpy.round(profiles[index]["length"]*self.si_to_user_units, 3)))
+                table_item.setTextAlignment(Qt.AlignRight)
+                self.table.setItem(index, 2, table_item)
+                table_item = QTableWidgetItem(str(numpy.round(profiles[index]["hgt_err"]*1e9, 3)))
+                table_item.setTextAlignment(Qt.AlignRight)
+                self.table.setItem(index, 3, table_item)
+                table_item = QTableWidgetItem(str(numpy.round(profiles[index]["slp_err"]*1e6, 3)))
+                table_item.setTextAlignment(Qt.AlignRight)
+                self.table.setItem(index, 4, table_item)
 
-        self.table.itemClicked.connect(self.table_item_clicked)
+            self.table.setHorizontalHeaderLabels(self.horHeaders)
+            self.table.resizeRowsToContents()
+            self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
+
+            self.table.itemClicked.connect(self.table_item_clicked)
+
+            self.overlay_search.hide()
+
+        except Exception as exception:
+            self.overlay_search.hide()
+
+            QMessageBox.critical(self, "Error",
+                                 exception.args[0],
+                                 QMessageBox.Ok)
 
     def get_dabam_shape(self):
         if self.shape == 0: return None
@@ -681,9 +734,58 @@ class OWdabam_height_profile(OWWidget):
         self.le_heigth_profile_file_name.setText(oasysgui.selectFileFromDialog(self, self.heigth_profile_file_name, "Select Output File", file_extension_filter="Data Files (*.dat)"))
 
 
+class Overlay(QWidget):
+
+    def __init__(self, container_widget=None, target_method=None):
+
+        QWidget.__init__(self, container_widget)
+        self.container_widget = container_widget
+        self.target_method = target_method
+        palette = QPalette(self.palette())
+        palette.setColor(palette.Background, Qt.transparent)
+        self.setPalette(palette)
+
+    def paintEvent(self, event):
+        painter = QPainter()
+        painter.begin(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.fillRect(event.rect(), QBrush(QColor(255, 255, 255, 127)))
+        painter.setPen(QPen(Qt.NoPen))
+
+        for i in range(1, 7):
+            if self.position_index == i:
+                painter.setBrush(QBrush(QColor(255, 165, 0)))
+            else:
+                painter.setBrush(QBrush(QColor(127, 127, 127)))
+            painter.drawEllipse(
+                self.width()/2 + 30 * numpy.cos(2 * numpy.pi * i / 6.0) - 10,
+                self.height()/2 + 30 * numpy.sin(2 * numpy.pi * i / 6.0) - 10,
+                20, 20)
+
+            time.sleep(0.005)
+
+        painter.end()
+
+    def showEvent(self, event):
+        self.timer = self.startTimer(0)
+        self.counter = 0
+        self.position_index = 0
+        t = threading.Thread(target=self.target_method)
+        t.start()
+
+    def hideEvent(self, QHideEvent):
+        self.killTimer(self.timer)
+
+    def timerEvent(self, event):
+        self.counter += 1
+        self.position_index += 1
+        if self.position_index == 7: self.position_index = 1
+        self.update()
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     w = OWdabam_height_profile()
+    w.si_to_user_units = 100
     w.show()
     app.exec()
     w.saveSettings()
