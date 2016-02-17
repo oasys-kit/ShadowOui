@@ -1610,8 +1610,7 @@ class OpticalElement(ow_generic_element.GenericElement):
             QtGui.QMessageBox.critical(self, "Error",
                                        str(exception), QtGui.QMessageBox.Ok)
 
-            raise exception
-
+            #raise exception
 
     def selectFileFacetDescr(self):
         self.le_ms_file_facet_descr.setText(oasysgui.selectFileFromDialog(self, self.ms_file_facet_descr, "Select File with Facet Description"))
