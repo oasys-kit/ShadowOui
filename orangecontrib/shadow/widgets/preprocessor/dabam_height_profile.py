@@ -642,7 +642,7 @@ class OWdabam_height_profile(OWWidget):
             self.axis.plot_surface(x_to_plot, y_to_plot, z_to_plot,
                                    rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
 
-            slope, sloperms = ST.slopes(zz.T, xx, yy)
+            sloperms = profiles_simulation.slopes(zz, xx, yy, return_only_rms=1)
 
             title = ' Slope error rms in X direction: %f $\mu$rad' % (sloperms[0]*1e6) + '\n' + \
                     ' Slope error rms in Y direction: %f $\mu$rad' % (sloperms[1]*1e6)

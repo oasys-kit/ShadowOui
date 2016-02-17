@@ -26,6 +26,9 @@ from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber,
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics, ShadowPreProcessor
 from orangecontrib.shadow.widgets.gui import ow_generic_element
 
+from Shadow import ShadowTools as ST
+from srxraylib.metrology import profiles_simulation
+
 shadow_oe_to_copy = None
 
 class GraphicalOptions:
@@ -1583,6 +1586,13 @@ class OpticalElement(ow_generic_element.GenericElement):
             axis.plot_surface(x_to_plot, y_to_plot, z_values.T,
                               rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
 
+            sloperms = profiles_simulation.slopes(z_values, x_coords, y_coords, return_only_rms=1)
+
+            title = ' Slope error rms in X direction: %f $\mu$rad' % (sloperms[0]*1e6) + '\n' + \
+                    ' Slope error rms in Y direction: %f $\mu$rad' % (sloperms[1]*1e6)
+
+            axis.set_title(title)
+
             figure_canvas.draw()
 
             bbox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
@@ -1593,11 +1603,14 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     def viewDefectFileName(self):
         try:
-            dialog = OpticalElement.ShowDefectFileDialog(parent=self, filename=self.ms_defect_file_name)
+            dialog = OpticalElement.ShowDefectFileDialog(parent=self,
+                                                         filename=self.ms_defect_file_name)
             dialog.show()
         except Exception as exception:
             QtGui.QMessageBox.critical(self, "Error",
                                        str(exception), QtGui.QMessageBox.Ok)
+
+            raise exception
 
 
     def selectFileFacetDescr(self):

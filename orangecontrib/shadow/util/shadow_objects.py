@@ -44,7 +44,9 @@ class ShadowPreProcessorData:
                     prerefl_data_file=NONE,
                     error_profile_data_file=NONE,
                     error_profile_x_dim = 0.0,
-                    error_profile_y_dim=0.0):
+                    error_profile_y_dim=0.0,
+                    error_profile_x_slope=0.0,
+                    error_profile_y_slope=0.0):
         super().__init__()
 
         self.bragg_data_file=bragg_data_file
@@ -54,6 +56,8 @@ class ShadowPreProcessorData:
         self.error_profile_data_file = error_profile_data_file
         self.error_profile_x_dim = error_profile_x_dim
         self.error_profile_y_dim = error_profile_y_dim
+        self.error_profile_x_slope = error_profile_x_slope
+        self.error_profile_y_slope = error_profile_y_slope
 
 class ShadowTriggerOut:
     def __init__(self, new_beam=False):
