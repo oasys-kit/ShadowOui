@@ -34,6 +34,10 @@ class FocNew(ow_automatic_element.AutomaticElement):
 
     input_beam=None
 
+    image_plane=Setting(0)
+    image_plane_new_position=Setting(10.0)
+    image_plane_rel_abs_position=Setting(0)
+
     mode = Setting(0)
     center_x = Setting(0.0)
     center_z = Setting(0.0)
@@ -82,7 +86,23 @@ class FocNew(ow_automatic_element.AutomaticElement):
 
         self.set_YRange()
 
-        gui.separator(self.controlArea, height=330)
+        screen_box = oasysgui.widgetBox(self.controlArea, "Screen Position Settings", addSpace=True, orientation="vertical", height=110)
+
+        self.image_plane_combo = gui.comboBox(screen_box, self, "image_plane", label="Position of the Image",
+                                            items=["On Image Plane", "Retraced"], labelWidth=260,
+                                            callback=self.set_ImagePlane, sendSelectedValue=False, orientation="horizontal")
+
+        self.image_plane_box = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", height=110)
+        self.image_plane_box_empty = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", height=110)
+
+        oasysgui.lineEdit(self.image_plane_box, self, "image_plane_new_position", "Image Plane new Position", labelWidth=220, valueType=float, orientation="horizontal")
+
+        gui.comboBox(self.image_plane_box, self, "image_plane_rel_abs_position", label="Position Type", labelWidth=250,
+                     items=["Absolute", "Relative"], sendSelectedValue=False, orientation="horizontal")
+
+        self.set_ImagePlane()
+
+        gui.separator(self.controlArea, height=200)
 
         tabs_setting = gui.tabWidget(self.mainArea)
         tabs_setting.setFixedHeight(self.IMAGE_HEIGHT+5)
@@ -120,6 +140,10 @@ class FocNew(ow_automatic_element.AutomaticElement):
         self.yrange_box.setVisible(self.y_range == 1)
         self.yrange_box_empty.setVisible(self.y_range == 0)
 
+    def set_ImagePlane(self):
+        self.image_plane_box.setVisible(self.image_plane==1)
+        self.image_plane_box_empty.setVisible(self.image_plane==0)
+
     def setBeam(self, beam):
         if ShadowCongruence.checkEmptyBeam(beam):
             if ShadowCongruence.checkGoodBeam(beam):
@@ -135,6 +159,28 @@ class FocNew(ow_automatic_element.AutomaticElement):
     def calculate(self):
         if ShadowCongruence.checkEmptyBeam(self.input_beam):
             if ShadowCongruence.checkGoodBeam(self.input_beam):
+
+                beam_to_analize = self.input_beam._beam
+
+                if self.image_plane == 1:
+                    new_shadow_beam = self.input_beam.duplicate(history=False)
+                    dist = 0.0
+
+                    if self.image_plane_rel_abs_position == 1:  # relative
+                        dist = self.image_plane_new_position
+                    else:  # absolute
+                        historyItem = self.input_beam.getOEHistory(oe_number=self.input_beam._oe_number)
+
+                        if historyItem is None: image_plane = 0.0
+                        elif self.input_beam._oe_number == 0: image_plane = 0.0
+                        else: image_plane = historyItem._shadow_oe_end._oe.T_IMAGE
+
+                        dist = self.image_plane_new_position - image_plane
+
+                    new_shadow_beam._beam.retrace(dist)
+
+                    beam_to_analize = new_shadow_beam._beam
+
                 if self.mode==2:
                     center=[self.center_x, self.center_z]
                 else:
@@ -144,7 +190,7 @@ class FocNew(ow_automatic_element.AutomaticElement):
                     if self.y_range_min >= self.y_range_max:
                         raise Exception("Y range min cannot be greater or than Y range max")
 
-                ticket = ST.focnew(self.input_beam._beam, mode=self.mode, center=center)
+                ticket = ST.focnew(beam_to_analize, mode=self.mode, center=center)
 
                 self.focnewInfo.setText(ticket["text"])
 
@@ -195,7 +241,7 @@ class FocNew(ow_automatic_element.AutomaticElement):
                 self.plot_canvas_x._plot.graph.ax2.set_position(pos)
                 self.plot_canvas_x.setGraphXLabel("Y [" + self.workspace_units_label + "]")
                 self.plot_canvas_x.setGraphYLabel("2.35*<X> [$\mu$m]")
-                self.plot_canvas_x._plot.graph.ax.set_title("X (Tangential)", horizontalalignment='left')
+                self.plot_canvas_x._plot.graph.ax.set_title("X", horizontalalignment='left')
                 self.plot_canvas_x.replot()
 
                 self.plot_canvas_z.addCurve(y, 2.35*ST.focnew_scan(ticket["AZ"]*ShadowPlot.get_factor(1, self.workspace_units_to_cm), y), "z (sagittal)", symbol='', color="red", replace=False) #'+', '^', ','
@@ -205,7 +251,7 @@ class FocNew(ow_automatic_element.AutomaticElement):
                 self.plot_canvas_z._plot.graph.ax2.set_position(pos)
                 self.plot_canvas_z.setGraphXLabel("Y [" + self.workspace_units_label + "]")
                 self.plot_canvas_z.setGraphYLabel("2.35*<Z> [$\mu$m]")
-                self.plot_canvas_z._plot.graph.ax.set_title("Z (Sagittal)", horizontalalignment='left')
+                self.plot_canvas_z._plot.graph.ax.set_title("Z", horizontalalignment='left')
                 self.plot_canvas_z.replot()
 
                 self.plot_canvas_t.addCurve(y, 2.35*ST.focnew_scan(ticket["AT"]*ShadowPlot.get_factor(0, self.workspace_units_to_cm), y), "combined x,z", symbol='', color="green", replace=True) #'+', '^', ','

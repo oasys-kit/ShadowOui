@@ -56,7 +56,9 @@ class AccumulatingLoopPoint(AutomaticElement):
         super().__init__()
 
         self.setFixedWidth(570)
-        self.setFixedHeight(430)
+        self.setFixedHeight(397)
+
+        self.controlArea.setFixedWidth(560)
 
         button_box = gui.widgetBox(self.controlArea, "", addSpace=True, orientation="horizontal")
 
@@ -72,7 +74,7 @@ class AccumulatingLoopPoint(AutomaticElement):
         button.setPalette(palette)  # assign new palette
         button.setFixedHeight(45)
 
-        left_box_1 = oasysgui.widgetBox(self.controlArea, "Accumulating Loop Management", addSpace=True, orientation="vertical", height=280)
+        left_box_1 = oasysgui.widgetBox(self.controlArea, "Accumulating Loop Management", addSpace=True, orientation="vertical", height=250)
 
         gui.comboBox(left_box_1, self, "kind_of_accumulation", label="Accumulated Quantity", labelWidth=350,
                      items=["Number of Good Rays ", "Intensity of Good Rays"],

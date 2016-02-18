@@ -26,7 +26,6 @@ from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber,
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics, ShadowPreProcessor
 from orangecontrib.shadow.widgets.gui import ow_generic_element
 
-from Shadow import ShadowTools as ST
 from srxraylib.metrology import profiles_simulation
 
 shadow_oe_to_copy = None
@@ -99,6 +98,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                 "id":"Trigger"}]
 
     input_beam = None
+    output_beam = None
 
     NONE_SPECIFIED = "NONE SPECIFIED"
 
@@ -112,6 +112,8 @@ class OpticalElement(ow_generic_element.GenericElement):
     INNER_BOX_WIDTH_L0=375
 
     graphical_options=None
+
+    keep_aspect_ratio = Setting(0)
 
     source_plane_distance = Setting(10.0)
     image_plane_distance = Setting(20.0)
@@ -682,6 +684,13 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                             self.set_isCyl_Parameters()
 
+                view_shape_box = oasysgui.widgetBox(tab_bas_shape, "", addSpace=True, orientation="horizontal", width=self.INNER_BOX_WIDTH_L0)
+
+                gui.checkBox(view_shape_box, self, "keep_aspect_ratio", "Keep Aspect Ratio")
+
+                pushButton = gui.button(view_shape_box, self, "View Surface Shape")
+                pushButton.clicked.connect(self.viewSurfaceShape)
+
                 ##########################################
                 #
                 # TAB 1.2 - REFLECTIVITY/CRYSTAL
@@ -748,7 +757,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     self.le_vertical_quote = oasysgui.lineEdit(dcm_box, self, "vertical_quote", "H (Vertical Distance)", labelWidth=260, valueType=float, orientation="horizontal", callback=self.calculate_dcm_distances)
                     self.le_total_distance = oasysgui.lineEdit(dcm_box, self, "total_distance", "D (First Crystal to Next O.E.)", labelWidth=260, valueType=float, orientation="horizontal", callback=self.calculate_dcm_distances)
 
-                    dcm_box_1 = oasysgui.widgetBox(dcm_box, "", addSpace=True, orientation="horizontal")
+                    dcm_box_1 = oasysgui.widgetBox(dcm_box, "", addSpace=True, orientation="horizontal", width=(self.INNER_BOX_WIDTH_L0+3))
                     oasysgui.lineEdit(dcm_box_1, self, "twotheta_bragg", "Bragg Angle [deg]",
                                        labelWidth=190, valueType=float, orientation="horizontal", callback=self.calculate_dcm_distances)
 
@@ -1595,6 +1604,8 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             figure_canvas.draw()
 
+            axis.mouse_init()
+
             bbox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
 
             bbox.accepted.connect(self.accept)
@@ -1605,6 +1616,91 @@ class OpticalElement(ow_generic_element.GenericElement):
         try:
             dialog = OpticalElement.ShowDefectFileDialog(parent=self,
                                                          filename=self.ms_defect_file_name)
+            dialog.show()
+        except Exception as exception:
+            QtGui.QMessageBox.critical(self, "Error",
+                                       str(exception), QtGui.QMessageBox.Ok)
+
+            #raise exception
+
+    class ShowSurfaceShapeDialog(QDialog):
+
+        def __init__(self, parent=None, input_beam=None, keep_aspect_ratio=False):
+            QDialog.__init__(self, parent)
+            self.setWindowTitle('O.E. Surface Shape')
+            layout = QtGui.QVBoxLayout(self)
+
+            figure = Figure(figsize=(100, 100))
+            figure.patch.set_facecolor('white')
+
+            axis = figure.add_subplot(111, projection='3d')
+
+            axis.set_xlabel("X [" + parent.workspace_units_label + "]")
+            axis.set_ylabel("Y [" + parent.workspace_units_label + "]")
+            axis.set_zlabel("Z [" + parent.workspace_units_label + "]")
+
+            figure_canvas = FigureCanvasQTAgg(figure)
+            figure_canvas.setFixedWidth(500)
+            figure_canvas.setFixedHeight(450)
+
+            if parent.is_infinite == 0:
+                x_min = -10
+                x_max = 10
+                y_min = -10
+                y_max = 10
+            else:
+                x_min = -parent.dim_x_minus
+                x_max = parent.dim_x_plus
+                y_min = -parent.dim_y_minus
+                y_max = parent.dim_y_plus
+
+            x = numpy.linspace(x_min, x_max, 100)
+            y = numpy.linspace(y_min, y_max, 100)
+
+            if keep_aspect_ratio:
+                axis.set_xlim(min(x_min, y_min), max(x_max, y_max))
+                axis.set_ylim(min(x_min, y_min), max(x_max, y_max))
+                axis.set_zlim(0, max(x_max, y_max))
+
+            X, Y = numpy.meshgrid(x, y)
+
+            c1 = parent.conic_coefficient_0
+            c2 = parent.conic_coefficient_1
+            c3 = parent.conic_coefficient_2
+            c4 = parent.conic_coefficient_3
+            c5 = parent.conic_coefficient_4
+            c6 = parent.conic_coefficient_5
+            c7 = parent.conic_coefficient_6
+            c8 = parent.conic_coefficient_7
+            c9 = parent.conic_coefficient_8
+            c10= parent.conic_coefficient_9
+
+            c = c1*(X**2) + c2*(Y**2) + c4*X*Y + c7*X + c8*Y + c10
+            b = c5*Y + c6*X + c9
+            a = c3
+
+            z_values = (-b - numpy.sqrt(b**2 - 4*a*c))/(2*a)
+            z_values[b**2 - 4*a*c < 0] = numpy.nan
+
+            axis.plot_surface(X, Y, z_values,
+                              rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
+
+            axis.set_title("Surface from generated conic coefficients")
+
+            figure_canvas.draw()
+
+            axis.mouse_init()
+
+            bbox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
+
+            bbox.accepted.connect(self.accept)
+            layout.addWidget(figure_canvas)
+            layout.addWidget(bbox)
+
+    def viewSurfaceShape(self):
+        try:
+            dialog = OpticalElement.ShowSurfaceShapeDialog(parent=self,
+                                                           keep_aspect_ratio=self.keep_aspect_ratio)
             dialog.show()
         except Exception as exception:
             QtGui.QMessageBox.critical(self, "Error",
@@ -2305,6 +2401,17 @@ class OpticalElement(ow_generic_element.GenericElement):
             self.calculate_incidence_angle_deg()
             self.calculate_reflection_angle_deg()
 
+        self.conic_coefficient_0 = shadow_oe._oe.CCC[0]
+        self.conic_coefficient_1 = shadow_oe._oe.CCC[1]
+        self.conic_coefficient_2 = shadow_oe._oe.CCC[2]
+        self.conic_coefficient_3 = shadow_oe._oe.CCC[3]
+        self.conic_coefficient_4 = shadow_oe._oe.CCC[4]
+        self.conic_coefficient_5 = shadow_oe._oe.CCC[5]
+        self.conic_coefficient_6 = shadow_oe._oe.CCC[6]
+        self.conic_coefficient_7 = shadow_oe._oe.CCC[7]
+        self.conic_coefficient_8 = shadow_oe._oe.CCC[8]
+        self.conic_coefficient_9 = shadow_oe._oe.CCC[9]
+
     def completeOperations(self, shadow_oe=None):
         self.setStatusMessage("Running SHADOW")
 
@@ -2570,10 +2677,11 @@ class OpticalElement(ow_generic_element.GenericElement):
                 self.angles_respect_to = 0
 
                 if self.graphical_options.is_curved:
-                    self.is_cylinder = int(shadow_file.getProperty("FCYL"))
+                    if not (self.graphical_options.is_toroidal or self.graphical_options.is_conic_coefficients):
+                        self.is_cylinder = int(shadow_file.getProperty("FCYL"))
 
-                    if self.is_cylinder == 1:
-                        self.cylinder_orientation = int(float(shadow_file.getProperty("CIL_ANG"))/90)
+                        if self.is_cylinder == 1:
+                            self.cylinder_orientation = int(float(shadow_file.getProperty("CIL_ANG"))/90)
 
                     if self.graphical_options.is_conic_coefficients:
                         self.conic_coefficient_0 = float(shadow_file.getProperty("CCC(1)"))
@@ -2834,7 +2942,8 @@ class OpticalElement(ow_generic_element.GenericElement):
             if self.graphical_options.is_curved:
                 if not self.graphical_options.is_conic_coefficients:
                     self.set_IntExt_Parameters()
-                    self.set_isCyl_Parameters()
+                    if not self.graphical_options.is_toroidal:
+                        self.set_isCyl_Parameters()
 
             if self.graphical_options.is_mirror:
                 self.set_Refl_Parameters()
@@ -2852,3 +2961,4 @@ class OpticalElement(ow_generic_element.GenericElement):
 
         self.set_MirrorMovement()
         self.set_SourceMovement()
+        self.set_Footprint()
