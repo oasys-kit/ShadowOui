@@ -110,8 +110,7 @@ class OWxsh_pre_mlayer(OWWidget):
         self.le_FILE = oasysgui.lineEdit(box_file, self, "FILE",
                        label=self.unitLabels()[idx], addSpace=True, labelWidth=380, orientation="horizontal")
 
-        pushButton = gui.button(box_file, self, "...")
-        pushButton.clicked.connect(self.selectFile)
+        gui.button(box_file, self, "...", callback=self.selectFile)
 
         self.show_at(self.unitFlags()[idx], box)
 
@@ -220,8 +219,7 @@ class OWxsh_pre_mlayer(OWWidget):
         self.le_FILE_DEPTH = oasysgui.lineEdit(box_file_depth, self, "FILE_DEPTH",
                                                label=self.unitLabels()[idx], addSpace=True, labelWidth=400, orientation="horizontal")
 
-        pushButton = gui.button(box_file_depth, self, "...")
-        pushButton.clicked.connect(self.selectFileDepth)
+        gui.button(box_file_depth, self, "...", callback=self.selectFileDepth)
 
         self.show_at(self.unitFlags()[idx], box_file_depth)
 
@@ -246,8 +244,7 @@ class OWxsh_pre_mlayer(OWWidget):
         self.le_FILE_SHADOW = oasysgui.lineEdit(box_file_shadow, self, "FILE_SHADOW",
                                                  label=self.unitLabels()[idx], addSpace=True, labelWidth=400, orientation="horizontal")
 
-        pushButton = gui.button(box_file_shadow, self, "...")
-        pushButton.clicked.connect(self.selectFileShadow)
+        gui.button(box_file_shadow, self, "...", callback=self.selectFileShadow)
 
         self.show_at(self.unitFlags()[idx], box_3)
 
@@ -258,8 +255,7 @@ class OWxsh_pre_mlayer(OWWidget):
         self.le_FILE_THICKNESS = oasysgui.lineEdit(box_file_thickness, self, "FILE_THICKNESS",
                                                  label=self.unitLabels()[idx], addSpace=True, labelWidth=400, orientation="horizontal")
 
-        pushButton = gui.button(box_file_thickness, self, "...")
-        pushButton.clicked.connect(self.selectFileThickness)
+        gui.button(box_file_thickness, self, "...", callback=self.selectFileThickness)
 
         self.show_at(self.unitFlags()[idx], box_3)
 
@@ -270,8 +266,7 @@ class OWxsh_pre_mlayer(OWWidget):
         self.le_FILE_GAMMA = oasysgui.lineEdit(box_file_gamma, self, "FILE_GAMMA",
                                                  label=self.unitLabels()[idx], addSpace=True, labelWidth=400, orientation="horizontal")
 
-        pushButton = gui.button(box_file_gamma, self, "...")
-        pushButton.clicked.connect(self.selectFileGamma)
+        gui.button(box_file_gamma, self, "...", callback=self.selectFileGamma)
 
         self.show_at(self.unitFlags()[idx], box_3)
 

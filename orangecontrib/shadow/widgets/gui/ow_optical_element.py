@@ -530,8 +530,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             self.le_external_file_with_coordinate = oasysgui.lineEdit(self.box_aperturing_shape_1, self, "external_file_with_coordinate", "External file with coordinate", labelWidth=185, valueType=str, orientation="horizontal")
 
-            pushButton = gui.button(self.box_aperturing_shape_1, self, "...")
-            pushButton.clicked.connect(self.selectExternalFileWithCoordinate)
+            gui.button(self.box_aperturing_shape_1, self, "...", callback=self.selectExternalFileWithCoordinate)
 
             self.box_aperturing_shape_2 = oasysgui.widgetBox(self.box_aperturing_shape, "", addSpace=False, orientation="vertical")
 
@@ -559,8 +558,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             self.le_opt_const_file_name = oasysgui.lineEdit(file_box, self, "opt_const_file_name", "Opt. const. file name", labelWidth=130, valueType=str, orientation="horizontal")
 
-            pushButton = gui.button(file_box, self, "...")
-            pushButton.clicked.connect(self.selectOptConstFileName)
+            gui.button(file_box, self, "...", callback=self.selectOptConstFileName)
 
             self.set_Absorption()
         else:
@@ -684,12 +682,9 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                             self.set_isCyl_Parameters()
 
-                    view_shape_box = oasysgui.widgetBox(tab_bas_shape, "", addSpace=True, orientation="horizontal", width=self.INNER_BOX_WIDTH_L0)
+                    view_shape_box = oasysgui.widgetBox(tab_bas_shape, "Surface Shape Viewer", addSpace=True, orientation="vertical")
 
-                    gui.checkBox(view_shape_box, self, "keep_aspect_ratio", "Keep Aspect Ratio")
-
-                    pushButton = gui.button(view_shape_box, self, "View Surface Shape")
-                    pushButton.clicked.connect(self.viewSurfaceShape)
+                    gui.button(view_shape_box, self, "Render Surface Shape", callback=self.viewSurfaceShape)
 
                 ##########################################
                 #
@@ -721,8 +716,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     self.le_file_prerefl = oasysgui.lineEdit(file_box, self, "file_prerefl", "File Name", labelWidth=100, valueType=str, orientation="horizontal")
 
-                    pushButton = gui.button(file_box, self, "...")
-                    pushButton.clicked.connect(self.selectFilePrerefl)
+                    gui.button(file_box, self, "...", callback=self.selectFilePrerefl)
 
                     self.refl_box_pol_2 = gui.widgetBox(self.refl_box_pol, "", addSpace=False, orientation="vertical")
 
@@ -735,8 +729,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     self.le_file_prerefl_m = oasysgui.lineEdit(file_box, self, "file_prerefl_m", "File Name", labelWidth=100, valueType=str, orientation="horizontal")
 
-                    pushButton = gui.button(file_box, self, "...")
-                    pushButton.clicked.connect(self.selectFilePrereflM)
+                    gui.button(file_box, self, "...", callback=self.selectFilePrereflM)
 
                     gui.comboBox(self.refl_box_pol_3, self, "m_layer_tickness", label="Mlayer thickness vary as cosine", labelWidth=350,
                                  items=["No", "Yes"],
@@ -761,8 +754,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     oasysgui.lineEdit(dcm_box_1, self, "twotheta_bragg", "Bragg Angle [deg]",
                                        labelWidth=190, valueType=float, orientation="horizontal", callback=self.calculate_dcm_distances)
 
-                    dcm_button1 = gui.button(dcm_box_1, self, "from O.E.")
-                    dcm_button1.clicked.connect(self.grab_dcm_value_from_oe)
+                    dcm_button1 = gui.button(dcm_box_1, self, "from O.E.", callback=self.grab_dcm_value_from_oe)
 
                     gui.separator(dcm_box_1)
 
@@ -778,11 +770,9 @@ class OpticalElement(ow_generic_element.GenericElement):
                     palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
                     self.le_d_1.setPalette(palette)
 
-                    dcm_button2_1 = gui.button(dcm_box_2, self, "set as S.P.")
-                    dcm_button2_1.clicked.connect(self.set_d1_as_source_plane)
+                    dcm_button2_1 = gui.button(dcm_box_2, self, "set as S.P.", callback=self.set_d1_as_source_plane)
 
-                    dcm_button2_2 = gui.button(dcm_box_2, self, "set as I.P.")
-                    dcm_button2_2.clicked.connect(self.set_d1_as_image_plane)
+                    dcm_button2_2 = gui.button(dcm_box_2, self, "set as I.P.", callback=self.set_d1_as_image_plane)
 
                     dcm_box_3 = oasysgui.widgetBox(dcm_box, "", addSpace=True, orientation="horizontal")
 
@@ -796,11 +786,9 @@ class OpticalElement(ow_generic_element.GenericElement):
                     palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
                     self.le_d_2.setPalette(palette)
 
-                    dcm_button3_1 = gui.button(dcm_box_3, self, "set as S.P.")
-                    dcm_button3_1.clicked.connect(self.set_d2_as_source_plane)
+                    dcm_button3_1 = gui.button(dcm_box_3, self, "set as S.P.", callback=self.set_d2_as_source_plane)
 
-                    dcm_button3_2 = gui.button(dcm_box_3, self, "set as I.P.")
-                    dcm_button3_2.clicked.connect(self.set_d2_as_image_plane)
+                    dcm_button3_2 = gui.button(dcm_box_3, self, "set as I.P.", callback=self.set_d2_as_image_plane)
 
                     self.grab_dcm_value_from_oe()
                     self.calculate_dcm_distances()
@@ -835,8 +823,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     self.le_file_crystal_parameters = oasysgui.lineEdit(file_box, self, "file_crystal_parameters", "File with crystal\nparameters",
                                        labelWidth=150, valueType=str, orientation="horizontal")
 
-                    pushButton = gui.button(file_box, self, "...")
-                    pushButton.clicked.connect(self.selectFileCrystalParameters)
+                    gui.button(file_box, self, "...", callback=self.selectFileCrystalParameters)
 
                     gui.comboBox(self.crystal_box_1, self, "crystal_auto_setting", label="Auto setting", labelWidth=350,
                                  items=["No", "Yes"],
@@ -870,8 +857,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                                        "File with Diffraction\nProfile (XOP format)", labelWidth=150, valueType=str,
                                        orientation="horizontal")
 
-                    pushButton = gui.button(self.crystal_box_2, self, "...")
-                    pushButton.clicked.connect(self.selectFileDiffractionProfile)
+                    gui.button(self.crystal_box_2, self, "...", callback=self.selectFileDiffractionProfile)
 
                     self.set_DiffractionCalculation()
 
@@ -1041,8 +1027,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     self.le_file_prerefl_for_object_medium = oasysgui.lineEdit(self.refractor_object_box_2, self, "file_prerefl_for_object_medium",
                                                                                 "file prerefl for\nobject medium", labelWidth=120, valueType=str, orientation="horizontal")
 
-                    pushButton = gui.button(self.refractor_object_box_2, self, "...")
-                    pushButton.clicked.connect(self.selectPrereflObjectFileName)
+                    gui.button(self.refractor_object_box_2, self, "...", callback=self.selectPrereflObjectFileName)
 
                     self.refractor_image_box_1 = oasysgui.widgetBox(refractor_box, "IMAGE side", addSpace=False, orientation="vertical", height=100)
                     oasysgui.lineEdit(self.refractor_image_box_1, self, "refractive_index_in_image_medium", "refractive index in image medium", labelWidth=260, valueType=float, orientation="horizontal")
@@ -1052,8 +1037,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     self.le_file_prerefl_for_image_medium = oasysgui.lineEdit(self.refractor_image_box_2, self, "file_prerefl_for_image_medium",
                                                                                "file prerefl for\nimage medium", labelWidth=120, valueType=str, orientation="horizontal")
 
-                    pushButton = gui.button(self.refractor_image_box_2, self, "...")
-                    pushButton.clicked.connect(self.selectPrereflImageFileName)
+                    gui.button(self.refractor_image_box_2, self, "...", callback=self.selectPrereflImageFileName)
 
                     self.set_RefrectorOpticalConstants()
 
@@ -1114,10 +1098,8 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 self.le_ms_defect_file_name = oasysgui.lineEdit(self.mod_surf_err_box_1, self, "ms_defect_file_name", "File name", labelWidth=80, valueType=str, orientation="horizontal")
 
-                pushButton = gui.button(self.mod_surf_err_box_1, self, "...")
-                pushButton.clicked.connect(self.selectDefectFileName)
-                pushButton = gui.button(self.mod_surf_err_box_1, self, "View")
-                pushButton.clicked.connect(self.viewDefectFileName)
+                gui.button(self.mod_surf_err_box_1, self, "...", callback=self.selectDefectFileName)
+                gui.button(self.mod_surf_err_box_1, self, "View", callback=self.viewDefectFileName)
 
                 self.mod_surf_err_box_2 = oasysgui.widgetBox(self.surface_error_box, "", addSpace=False, orientation="vertical")
 
@@ -1136,8 +1118,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 self.le_ms_file_facet_descr = oasysgui.lineEdit(file_box, self, "ms_file_facet_descr", "File w/ facet descr.", labelWidth=125, valueType=str, orientation="horizontal")
 
-                pushButton = gui.button(file_box, self, "...")
-                pushButton.clicked.connect(self.selectFileFacetDescr)
+                gui.button(file_box, self, "...", callback=self.selectFileFacetDescr)
 
                 gui.comboBox(self.faceted_surface_box, self, "ms_lattice_type", label="Lattice Type", labelWidth=260,
                              items=["rectangle", "hexagonal"], sendSelectedValue=False, orientation="horizontal")
@@ -1167,8 +1148,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 self.le_ms_file_surf_roughness = oasysgui.lineEdit(file_box, self, "ms_file_surf_roughness", "Surf. Rough. File w/ PSD fn", valueType=str, orientation="horizontal")
 
-                pushButton = gui.button(file_box, self, "...")
-                pushButton.clicked.connect(self.selectFileSurfRoughness)
+                gui.button(file_box, self, "...", callback=self.selectFileSurfRoughness)
 
                 oasysgui.lineEdit(self.surface_roughness_box, self, "ms_roughness_rms_y", "Roughness RMS in Y (Å)", labelWidth=260, valueType=float, orientation="horizontal")
                 oasysgui.lineEdit(self.surface_roughness_box, self, "ms_roughness_rms_x", "Roughness RMS in X (Å)", labelWidth=260, valueType=float, orientation="horizontal")
@@ -1187,15 +1167,13 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 self.le_ms_file_with_parameters_rz = oasysgui.lineEdit(file_box, self, "ms_file_with_parameters_rz", "File with parameters (r(z))", labelWidth=185, valueType=str, orientation="horizontal")
 
-                pushButton = gui.button(file_box, self, "...")
-                pushButton.clicked.connect(self.selectFileWithParametersRz)
+                gui.button(file_box, self, "...", callback=self.selectFileWithParametersRz)
 
                 file_box = oasysgui.widgetBox(self.kumakhov_lens_box_2, "", addSpace=True, orientation="horizontal", height=25)
 
                 self.le_ms_file_with_parameters_rz2 = oasysgui.lineEdit(file_box, self, "ms_file_with_parameters_rz2", "File with parameters (r(z)^2)", labelWidth=185, valueType=str, orientation="horizontal")
 
-                pushButton = gui.button(file_box, self, "...")
-                pushButton.clicked.connect(self.selectFileWithParametersRz2)
+                gui.button(file_box, self, "...", callback=self.selectFileWithParametersRz2)
 
                 gui.comboBox(self.kumakhov_lens_box, self, "ms_save_intercept_bounces", label="Save intercept and bounces", labelWidth=350,
                              items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
@@ -1214,15 +1192,13 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 self.le_ms_file_orientations = oasysgui.lineEdit(file_box, self, "ms_file_orientations", "File w/ orientations", labelWidth=155, valueType=str, orientation="horizontal")
 
-                pushButton = gui.button(file_box, self, "...")
-                pushButton.clicked.connect(self.selectFileOrientations)
+                gui.button(file_box, self, "...", callback=self.selectFileOrientations)
 
                 file_box = oasysgui.widgetBox(self.segmented_mirror_box, "", addSpace=True, orientation="horizontal", height=25)
 
                 self.le_ms_file_polynomial = oasysgui.lineEdit(file_box, self, "ms_file_polynomial", "File w/ polynomial", labelWidth=155, valueType=str, orientation="horizontal")
 
-                pushButton = gui.button(file_box, self, "...")
-                pushButton.clicked.connect(self.selectFilePolynomial)
+                gui.button(file_box, self, "...", callback=self.selectFilePolynomial)
 
                 self.set_ModifiedSurface()
 
@@ -1625,10 +1601,24 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     class ShowSurfaceShapeDialog(QDialog):
 
-        def __init__(self, parent=None, input_beam=None, keep_aspect_ratio=False):
+        c1  = 0.0
+        c2  = 0.0
+        c3  = 0.0
+        c4  = 0.0
+        c5  = 0.0
+        c6  = 0.0
+        c7  = 0.0
+        c8  = 0.0
+        c9  = 0.0
+        c10 = 0.0
+
+        def __init__(self, parent=None, input_beam=None):
             QDialog.__init__(self, parent)
             self.setWindowTitle('O.E. Surface Shape')
-            layout = QtGui.QVBoxLayout(self)
+
+            self.setFixedWidth(750)
+
+            layout = QtGui.QGridLayout(self)
 
             figure = Figure(figsize=(100, 100))
             figure.patch.set_facecolor('white')
@@ -1657,27 +1647,22 @@ class OpticalElement(ow_generic_element.GenericElement):
             x = numpy.linspace(x_min, x_max, 100)
             y = numpy.linspace(y_min, y_max, 100)
 
-            if keep_aspect_ratio:
-                axis.set_xlim(min(x_min, y_min), max(x_max, y_max))
-                axis.set_ylim(min(x_min, y_min), max(x_max, y_max))
-                axis.set_zlim(0, max(x_max, y_max))
-
             X, Y = numpy.meshgrid(x, y)
 
-            c1 = parent.conic_coefficient_0
-            c2 = parent.conic_coefficient_1
-            c3 = parent.conic_coefficient_2
-            c4 = parent.conic_coefficient_3
-            c5 = parent.conic_coefficient_4
-            c6 = parent.conic_coefficient_5
-            c7 = parent.conic_coefficient_6
-            c8 = parent.conic_coefficient_7
-            c9 = parent.conic_coefficient_8
-            c10= parent.conic_coefficient_9
+            self.c1 = round(parent.conic_coefficient_0, 10)
+            self.c2 = round(parent.conic_coefficient_1, 10)
+            self.c3 = round(parent.conic_coefficient_2, 10)
+            self.c4 = round(parent.conic_coefficient_3, 10)
+            self.c5 = round(parent.conic_coefficient_4, 10)
+            self.c6 = round(parent.conic_coefficient_5, 10)
+            self.c7 = round(parent.conic_coefficient_6, 10)
+            self.c8 = round(parent.conic_coefficient_7, 10)
+            self.c9 = round(parent.conic_coefficient_8, 10)
+            self.c10= round(parent.conic_coefficient_9, 10)
 
-            c = c1*(X**2) + c2*(Y**2) + c4*X*Y + c7*X + c8*Y + c10
-            b = c5*Y + c6*X + c9
-            a = c3
+            c = self.c1*(X**2) + self.c2*(Y**2) + self.c4*X*Y + self.c7*X + self.c8*Y + self.c10
+            b = self.c5*Y + self.c6*X + self.c9
+            a = self.c3
 
             z_values = (-b - numpy.sqrt(b**2 - 4*a*c))/(2*a)
             z_values[b**2 - 4*a*c < 0] = numpy.nan
@@ -1685,22 +1670,111 @@ class OpticalElement(ow_generic_element.GenericElement):
             axis.plot_surface(X, Y, z_values,
                               rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
 
-            axis.set_title("Surface from generated conic coefficients")
+            title_head = "Surface from generated conic coefficients:\n"
+            title = ""
+            max_dim = 40
+            
+            if self.c1 != 0: title +=       str(self.c1) + u"\u00B7" + "X" + u"\u00B2"
+            if len(title) >=  max_dim:
+                title_head += title + "\n"
+                title = ""
+            if self.c2 < 0 or (self.c2 > 0 and title == ""): title +=       str(self.c2) + u"\u00B7" + "Y" + u"\u00B2"
+            if self.c2 > 0                                 : title += "+" + str(self.c2) + u"\u00B7" + "Y" + u"\u00B2"
+            if len(title) >=  max_dim:
+                title_head += title + "\n"
+                title = ""
+            if self.c3 < 0 or (self.c3 > 0 and title == ""): title +=       str(self.c3) + u"\u00B7" + "Z" + u"\u00B2"
+            if self.c3 > 0                                 : title += "+" + str(self.c3) + u"\u00B7" + "Z" + u"\u00B2"
+            if len(title) >=  max_dim:
+                title_head += title + "\n"
+                title = ""
+            if self.c4 < 0 or (self.c4 > 0 and title == ""): title +=       str(self.c4) + u"\u00B7" + "XY"
+            if self.c4 > 0                                 : title += "+" + str(self.c4) + u"\u00B7" + "XY"
+            if len(title) >=  max_dim:
+                title_head += title + "\n"
+                title = ""
+            if self.c5 < 0 or (self.c5 > 0 and title == ""): title +=       str(self.c5) + u"\u00B7" + "YZ"
+            if self.c5 > 0                                 : title += "+" + str(self.c5) + u"\u00B7" + "YZ"
+            if len(title) >=  max_dim:
+                title_head += title + "\n"
+                title = ""
+            if self.c6 < 0 or (self.c6 > 0 and title == ""): title +=       str(self.c6) + u"\u00B7" + "XZ"
+            if self.c6 > 0                                 : title += "+" + str(self.c6) + u"\u00B7" + "XZ"
+            if len(title) >=  max_dim:
+                title_head += title + "\n"
+                title = ""
+            if self.c7 < 0 or (self.c7 > 0 and title == ""): title +=       str(self.c7) + u"\u00B7" + "X"
+            if self.c7 > 0                                 : title += "+" + str(self.c7) + u"\u00B7" + "X"
+            if len(title) >=  max_dim:
+                title_head += title + "\n"
+                title = ""
+            if self.c8 < 0 or (self.c8 > 0 and title == ""): title +=       str(self.c8) + u"\u00B7" + "Y"
+            if self.c8 > 0                                 : title += "+" + str(self.c8) + u"\u00B7" + "Y"
+            if len(title) >=  max_dim:
+                title_head += title + "\n"
+                title = ""
+            if self.c9 < 0 or (self.c9 > 0 and title == ""): title +=       str(self.c9) + u"\u00B7" + "Z"
+            if self.c9 > 0                                 : title += "+" + str(self.c9) + u"\u00B7" + "Z"
+            if len(title) >=  max_dim:
+                title_head += title + "\n"
+                title = ""
+            if self.c10< 0 or (self.c10> 0 and title == ""): title +=       str(self.c10)
+            if self.c10> 0                                 : title += "+" + str(self.c10)
+
+            axis.set_title(title_head + title + " = 0")
+
+            print(title_head + title + " = 0")
 
             figure_canvas.draw()
 
             axis.mouse_init()
 
+            widget = QWidget(parent=self)
+
+            surface_box = oasysgui.widgetBox(widget, "Conic Coefficients", addSpace=False, orientation="vertical", width=220, height=450)
+
+            label  = "c[1]" + u"\u00B7" + "X" + u"\u00B2" + " + c[2]" + u"\u00B7" + "Y" + u"\u00B2" + " + c[3]" + u"\u00B7" + "Z" + u"\u00B2" + " +\n"
+            label += "c[4]" + u"\u00B7" + "XY" + " + c[5]" + u"\u00B7" + "YZ" + " + c[6]" + u"\u00B7" + "XZ" + " +\n"
+            label += "c[7]" + u"\u00B7" + "X" + " + c[8]" + u"\u00B7" + "Y" + " + c[9]" + u"\u00B7" + "Z" + " + c[10] = 0"
+
+            gui.label(surface_box, self, label)
+
+            gui.separator(surface_box, 10)
+
+            le_0 = oasysgui.lineEdit(surface_box, self, "c1" , "c[1]" , labelWidth=60, valueType=float, orientation="horizontal")
+            le_1 = oasysgui.lineEdit(surface_box, self, "c2" , "c[2]" , labelWidth=60, valueType=float, orientation="horizontal")
+            le_2 = oasysgui.lineEdit(surface_box, self, "c3" , "c[3]" , labelWidth=60, valueType=float, orientation="horizontal")
+            le_3 = oasysgui.lineEdit(surface_box, self, "c4" , "c[4]" , labelWidth=60, valueType=float, orientation="horizontal")
+            le_4 = oasysgui.lineEdit(surface_box, self, "c5" , "c[5]" , labelWidth=60, valueType=float, orientation="horizontal")
+            le_5 = oasysgui.lineEdit(surface_box, self, "c6" , "c[6]" , labelWidth=60, valueType=float, orientation="horizontal")
+            le_6 = oasysgui.lineEdit(surface_box, self, "c7" , "c[7]" , labelWidth=60, valueType=float, orientation="horizontal")
+            le_7 = oasysgui.lineEdit(surface_box, self, "c8" , "c[8]" , labelWidth=60, valueType=float, orientation="horizontal")
+            le_8 = oasysgui.lineEdit(surface_box, self, "c9" , "c[9]" , labelWidth=60, valueType=float, orientation="horizontal")
+            le_9 = oasysgui.lineEdit(surface_box, self, "c10", "c[10]", labelWidth=60, valueType=float, orientation="horizontal")
+
+            le_0.setReadOnly(True)
+            le_1.setReadOnly(True)
+            le_2.setReadOnly(True)
+            le_3.setReadOnly(True)
+            le_4.setReadOnly(True)
+            le_5.setReadOnly(True)
+            le_6.setReadOnly(True)
+            le_7.setReadOnly(True)
+            le_8.setReadOnly(True)
+            le_9.setReadOnly(True)
+
             bbox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
 
             bbox.accepted.connect(self.accept)
-            layout.addWidget(figure_canvas)
-            layout.addWidget(bbox)
+            layout.addWidget(figure_canvas, 0, 0)
+            layout.addWidget(widget, 0, 1)
+            layout.addWidget(bbox, 1, 0, 1, 2)
+
+            self.setLayout(layout)
 
     def viewSurfaceShape(self):
         try:
-            dialog = OpticalElement.ShowSurfaceShapeDialog(parent=self,
-                                                           keep_aspect_ratio=self.keep_aspect_ratio)
+            dialog = OpticalElement.ShowSurfaceShapeDialog(parent=self)
             dialog.show()
         except Exception as exception:
             QtGui.QMessageBox.critical(self, "Error",

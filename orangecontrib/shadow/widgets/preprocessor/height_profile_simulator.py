@@ -199,8 +199,7 @@ class OWheight_profile_simulator(OWWidget):
         self.le_heigth_profile_1D_file_name_y = oasysgui.lineEdit(select_file_box_2, self, "heigth_profile_1D_file_name_y", "1D Profile File Name",
                                                         labelWidth=120, valueType=str, orientation="horizontal")
 
-        pushButton = gui.button(select_file_box_2, self, "...")
-        pushButton.clicked.connect(self.selectFile1D_Y)
+        gui.button(select_file_box_2, self, "...", callback=self.selectFile1D_Y)
 
         gui.comboBox(self.kind_of_profile_y_box_2, self, "delimiter_y", label="Fields delimiter", labelWidth=260,
                      items=["Spaces", "Tabs"], sendSelectedValue=False, orientation="horizontal")
@@ -277,8 +276,7 @@ class OWheight_profile_simulator(OWWidget):
         self.le_heigth_profile_1D_file_name_x = oasysgui.lineEdit(select_file_box_1, self, "heigth_profile_1D_file_name_x", "1D Profile File Name",
                                                         labelWidth=120, valueType=str, orientation="horizontal")
 
-        pushButton = gui.button(select_file_box_1, self, "...")
-        pushButton.clicked.connect(self.selectFile1D_X)
+        gui.button(select_file_box_1, self, "...", callback=self.selectFile1D_X)
 
         gui.comboBox(self.kind_of_profile_x_box_2 , self, "delimiter_x", label="Fields delimiter", labelWidth=260,
                      items=["Spaces", "Tabs"], sendSelectedValue=False, orientation="horizontal")
@@ -316,8 +314,7 @@ class OWheight_profile_simulator(OWWidget):
         self.le_heigth_profile_file_name = oasysgui.lineEdit(self.select_file_box, self, "heigth_profile_file_name", "Output File Name",
                                                         labelWidth=120, valueType=str, orientation="horizontal")
 
-        pushButton = gui.button(self.select_file_box, self, "...")
-        pushButton.clicked.connect(self.selectFile)
+        gui.button(self.select_file_box, self, "...", callback=self.selectFile)
 
         self.shadow_output = QTextEdit()
         self.shadow_output.setReadOnly(True)

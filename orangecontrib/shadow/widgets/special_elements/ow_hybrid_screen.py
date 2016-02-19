@@ -127,15 +127,12 @@ class HybridScreen(AutomaticElement):
                                              callback=self.set_MirrorFile,
                                              sendSelectedValue=False, orientation="horizontal")
 
-
         self.select_file_box = oasysgui.widgetBox(box_1, "", addSpace=True, orientation="horizontal")
 
 
         self.le_mirrorfile = oasysgui.lineEdit(self.select_file_box, self, "ghy_mirrorfile", "Mirror Figure Error File", labelWidth=150, valueType=str, orientation="horizontal")
 
-
-        pushButton = gui.button(self.select_file_box, self, "...")
-        pushButton.clicked.connect(self.selectFile)
+        gui.button(self.select_file_box, self, "...", callback=self.selectFile)
 
         self.cb_profile_dimension = gui.comboBox(box_1, self, "ghy_profile_dimension", label="Profile Dimension", labelWidth=310,
                                                  items=["1D", "2D"],

@@ -347,8 +347,7 @@ class OWxsh_waviness(OWWidget):
         self.le_waviness_file_name = oasysgui.lineEdit(self.select_file_box, self, "waviness_file_name", "Output File Name",
                                                         labelWidth=120, valueType=str, orientation="horizontal")
 
-        pushButton = gui.button(self.select_file_box, self, "...")
-        pushButton.clicked.connect(self.selectFile)
+        gui.button(self.select_file_box, self, "...", callback=self.selectFile)
 
         self.harmonics_box = oasysgui.widgetBox(tab_harmonics, "Harmonics", addSpace=True, orientation="vertical",
                                                  height=580)

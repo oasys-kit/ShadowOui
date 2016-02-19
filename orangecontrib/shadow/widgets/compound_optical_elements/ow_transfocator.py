@@ -697,8 +697,7 @@ class CRLBox(QtGui.QWidget):
         self.le_prerefl_file = oasysgui.lineEdit(file_box, self, "prerefl_file", "File Prerefl", labelWidth=100, valueType=str, orientation="horizontal",
                                                   callback=self.transfocator.dump_prerefl_file)
 
-        pushButton = gui.button(file_box, self, "...")
-        pushButton.clicked.connect(self.selectFilePrerefl)
+        gui.button(file_box, self, "...", callback=self.selectFilePrerefl)
 
         self.set_ri_calculation_mode()
 

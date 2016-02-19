@@ -41,8 +41,7 @@ class BeamFileReader(widget.OWWidget):
                                                     labelWidth=120, valueType=str, orientation="horizontal")
         self.le_beam_file_name.setFixedWidth(330)
 
-        pushButton = gui.button(figure_box, self, "...")
-        pushButton.clicked.connect(self.selectFile)
+        gui.button(figure_box, self, "...", callback=self.selectFile)
 
         gui.separator(left_box_1, height=20)
 

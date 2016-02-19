@@ -92,8 +92,7 @@ class OWxsh_prerefl(OWWidget):
         self.le_SHADOW_FILE = oasysgui.lineEdit(box_2, self, "SHADOW_FILE",
                                                  label=self.unitLabels()[idx], addSpace=True, labelWidth=180, orientation="horizontal")
 
-        pushButton = gui.button(box_2, self, "...")
-        pushButton.clicked.connect(self.selectFile)
+        gui.button(box_2, self, "...", callback=self.selectFile)
 
         self.show_at(self.unitFlags()[idx], box)
 

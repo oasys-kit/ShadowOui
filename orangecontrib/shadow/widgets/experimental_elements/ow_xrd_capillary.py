@@ -289,8 +289,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         self.le_output_file_name = oasysgui.lineEdit(file_box, self, "output_file_name", "Output File Name", labelWidth=120, valueType=str, orientation="horizontal")
 
-        pushButton = gui.button(file_box, self, "...")
-        pushButton.clicked.connect(self.selectOuputFile)
+        gui.button(file_box, self, "...", callback=self.selectOuputFile)
 
         gui.separator(box_simulation)
 
@@ -398,9 +397,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         self.le_rocking_curve_file = oasysgui.lineEdit(file_box_2, self, "rocking_curve_file", "File with Crystal parameter",  labelWidth=150, valueType=str, orientation="horizontal")
 
-        pushButton = gui.button(file_box_2, self, "...")
-        pushButton.clicked.connect(self.selectRockingCurveFile)
-
+        gui.button(file_box_2, self, "...", callback=self.selectRockingCurveFile)
 
         oasysgui.lineEdit(self.box_2theta_arm_2, self, "mosaic_angle_spread_fwhm", "Mosaic Angle Spread FWHM [deg]", labelWidth=260, valueType=float, orientation="horizontal")
 

@@ -56,8 +56,7 @@ class ImageToBeamConverter(widget.OWWidget):
         self.le_image_txt_file_name = oasysgui.lineEdit(self.select_file_box_1, self, "image_file_name", "Image File Name", labelWidth=120, valueType=str, orientation="horizontal")
         self.le_image_txt_file_name.setFixedWidth(300)
 
-        pushButton = gui.button(self.select_file_box_1, self, "...")
-        pushButton.clicked.connect(self.selectTxtFile)
+        gui.button(self.select_file_box_1, self, "...", callback=self.selectTxtFile)
 
 
         self.select_file_box_2 = oasysgui.widgetBox(left_box_1, "Image Parameters", addSpace=True, orientation="vertical", height=250)
@@ -67,8 +66,7 @@ class ImageToBeamConverter(widget.OWWidget):
         self.le_image_file_name = oasysgui.lineEdit(select_file_box_2_int, self, "image_file_name", "Image File Name", labelWidth=120, valueType=str, orientation="horizontal")
         self.le_image_file_name.setFixedWidth(300)
 
-        pushButton = gui.button(select_file_box_2_int, self, "...")
-        pushButton.clicked.connect(self.selectFile)
+        gui.button(select_file_box_2_int, self, "...", callback=self.selectFile)
 
         figure_box = oasysgui.widgetBox(self.select_file_box_2, "Preview", addSpace=True, orientation="vertical", width=350, height=180)
 

@@ -264,8 +264,7 @@ class OWdabam_height_profile(OWWidget):
         self.le_heigth_profile_file_name = oasysgui.lineEdit(select_file_box, self, "heigth_profile_file_name", "Output File Name",
                                                         labelWidth=120, valueType=str, orientation="horizontal")
 
-        pushButton = gui.button(select_file_box, self, "...")
-        pushButton.clicked.connect(self.selectFile)
+        gui.button(select_file_box, self, "...", callback=self.selectFile)
 
         self.shadow_output = QTextEdit()
         self.shadow_output.setReadOnly(True)

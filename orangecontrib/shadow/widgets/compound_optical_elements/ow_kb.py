@@ -590,8 +590,7 @@ class MirrorBox(QtGui.QWidget):
                                                        labelWidth=100, valueType=str, orientation="horizontal",
                                                        callback=self.kb.dump_reflectivity_files)
 
-        pushButton = gui.button(file_box, self, "...")
-        pushButton.clicked.connect(self.selectFilePrerefl)
+        gui.button(file_box, self, "...", callback=self.selectFilePrerefl)
 
         self.set_reflectivity_kind()
 
@@ -610,8 +609,7 @@ class MirrorBox(QtGui.QWidget):
                                                         labelWidth=100, valueType=str,orientation="horizontal",
                                                         callback=self.kb.dump_surface_error_files)
 
-        pushButton = gui.button(file_box, self, "...")
-        pushButton.clicked.connect(self.selectFileSurfaceError)
+        gui.button(file_box, self, "...", callback=self.selectFileSurfaceError)
 
         self.set_has_surface_error()
 

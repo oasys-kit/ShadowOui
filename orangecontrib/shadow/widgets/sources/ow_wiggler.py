@@ -91,8 +91,7 @@ class Wiggler(ow_source.Source):
 
         self.le_optimize_file_name = oasysgui.lineEdit(file_box, self, "file_with_phase_space_volume", "File with phase space volume", labelWidth=210, tooltip="File with phase space volume", valueType=str, orientation="horizontal")
 
-        pushButton = gui.button(file_box, self, "...")
-        pushButton.clicked.connect(self.selectOptimizeFile)
+        gui.button(file_box, self, "...", callback=self.selectOptimizeFile)
 
         self.box_using_slit_acceptance = oasysgui.widgetBox(left_box_4, "", addSpace=False, orientation="vertical")
 
@@ -145,8 +144,7 @@ class Wiggler(ow_source.Source):
 
         self.le_file_with_b_vs_y = oasysgui.lineEdit(file_box, self, "file_with_b_vs_y", "File with B vs Y", labelWidth=150, tooltip="File with B vs Y", valueType=str, orientation="horizontal")
 
-        pushButton = gui.button(file_box, self, "...")
-        pushButton.clicked.connect(self.selectFileWithBvsY)
+        gui.button(file_box, self, "...", callback=self.selectFileWithBvsY)
 
         self.b_from_harmonics_box = oasysgui.widgetBox(left_box_3, "", addSpace=False, orientation="vertical")
 
@@ -156,8 +154,7 @@ class Wiggler(ow_source.Source):
 
         self.le_file_with_harmonics = oasysgui.lineEdit(file_box, self, "file_with_harmonics", "File with harmonics", labelWidth=150, tooltip="File with harmonics", valueType=str, orientation="horizontal")
 
-        pushButton = gui.button(file_box, self, "...")
-        pushButton.clicked.connect(self.selectFileWithHarmonics)
+        gui.button(file_box, self, "...", callback=self.selectFileWithHarmonics)
 
         self.set_Type()
 

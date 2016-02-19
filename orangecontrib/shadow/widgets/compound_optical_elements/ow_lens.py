@@ -102,8 +102,7 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
 
         self.le_file_prerefl = oasysgui.lineEdit(file_box, self, "prerefl_file", "File Prerefl", labelWidth=100, valueType=str, orientation="horizontal")
 
-        pushButton = gui.button(file_box, self, "...")
-        pushButton.clicked.connect(self.selectFilePrerefl)
+        gui.button(file_box, self, "...", callback=self.selectFilePrerefl)
 
         self.set_ri_calculation_mode()
 

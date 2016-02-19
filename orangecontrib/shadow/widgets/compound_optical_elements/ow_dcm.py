@@ -46,8 +46,7 @@ class DCM(ow_compound_optical_element.CompoundOpticalElement):
 
         self.le_reflectivity_file = oasysgui.lineEdit(file_box, self, "reflectivity_file", "Reflectivity File", labelWidth=150, valueType=str, orientation="horizontal")
 
-        pushButton = gui.button(file_box, self, "...")
-        pushButton.clicked.connect(self.selectFilePrerefl)
+        gui.button(file_box, self, "...", callback=self.selectFilePrerefl)
 
         self.tab_crystals = gui.tabWidget(self.tab_bas)
 

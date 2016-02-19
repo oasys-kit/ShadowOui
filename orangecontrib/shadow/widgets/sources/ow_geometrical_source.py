@@ -341,8 +341,7 @@ class GeometricalSource(ow_source.Source):
         self.le_user_defined_file = oasysgui.lineEdit(file_box, self, "user_defined_file", "Spectrum File",
                                                     labelWidth=100, valueType=str, orientation="horizontal")
 
-        pushButton = gui.button(file_box, self, "...")
-        pushButton.clicked.connect(self.selectFile)
+        gui.button(file_box, self, "...", callback=self.selectFile)
 
         gui.separator(self.ewp_box_7)
 
@@ -378,8 +377,7 @@ class GeometricalSource(ow_source.Source):
 
         self.le_optimize_file_name = oasysgui.lineEdit(file_box, self, "optimize_file_name", "File Name", labelWidth=100,  valueType=str, orientation="horizontal")
 
-        pushButton = gui.button(file_box, self, "...")
-        pushButton.clicked.connect(self.selectOptimizeFile)
+        gui.button(file_box, self, "...", callback=self.selectOptimizeFile)
 
         oasysgui.lineEdit(self.optimize_file_name_box, self, "max_number_of_rejected_rays", "Max number of rejected rays (set 0 for infinity)", labelWidth=280,  valueType=int, orientation="horizontal")
 
