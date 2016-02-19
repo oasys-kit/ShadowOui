@@ -684,12 +684,12 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                             self.set_isCyl_Parameters()
 
-                view_shape_box = oasysgui.widgetBox(tab_bas_shape, "", addSpace=True, orientation="horizontal", width=self.INNER_BOX_WIDTH_L0)
+                    view_shape_box = oasysgui.widgetBox(tab_bas_shape, "", addSpace=True, orientation="horizontal", width=self.INNER_BOX_WIDTH_L0)
 
-                gui.checkBox(view_shape_box, self, "keep_aspect_ratio", "Keep Aspect Ratio")
+                    gui.checkBox(view_shape_box, self, "keep_aspect_ratio", "Keep Aspect Ratio")
 
-                pushButton = gui.button(view_shape_box, self, "View Surface Shape")
-                pushButton.clicked.connect(self.viewSurfaceShape)
+                    pushButton = gui.button(view_shape_box, self, "View Surface Shape")
+                    pushButton.clicked.connect(self.viewSurfaceShape)
 
                 ##########################################
                 #

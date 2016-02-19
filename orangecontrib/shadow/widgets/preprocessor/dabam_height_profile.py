@@ -73,6 +73,7 @@ class OWdabam_height_profile(OWWidget):
     step_x = Setting(1.0)
     dimension_x = Setting(10.0)
 
+    center_y = Setting(1)
     modify_y = Setting(0)
     new_length = Setting(200.0)
     filler_value = Setting(0.0)
@@ -218,12 +219,15 @@ class OWdabam_height_profile(OWWidget):
         self.scrollarea.setWidget(self.table)
         self.scrollarea.setWidgetResizable(1)
 
-        output_profile_box = oasysgui.widgetBox(tab_gener, "Surface Generation Parameters", addSpace=True, orientation="vertical", height=250)
+        output_profile_box = oasysgui.widgetBox(tab_gener, "Surface Generation Parameters", addSpace=True, orientation="vertical", height=270)
 
         self.le_dimension_x = oasysgui.lineEdit(output_profile_box, self, "dimension_x", "Width",
                            labelWidth=300, valueType=float, orientation="horizontal")
         self.le_step_x = oasysgui.lineEdit(output_profile_box, self, "step_x", "Step Width",
                            labelWidth=300, valueType=float, orientation="horizontal")
+
+        gui.comboBox(output_profile_box, self, "center_y", label="Center Profile in the middle of O.E.", labelWidth=300,
+                     items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
         gui.comboBox(output_profile_box, self, "modify_y", label="Modify Length?", labelWidth=240,
                      items=["No", "Rescale to new length", "Fit to new length (fill or cut)"], callback=self.set_ModifyY, sendSelectedValue=False, orientation="horizontal")
@@ -567,21 +571,6 @@ class OWdabam_height_profile(OWWidget):
                     profile_1D_y_x = numpy.arange(n_added_points + n_points_old) * step
                     profile_1D_y_y = numpy.ones(n_added_points + n_points_old) * self.filler_value * 1e-9 * self.si_to_user_units
                     profile_1D_y_y[int(n_added_points/2) : n_points_old + int(n_added_points/2)] = profile_1D_y_y_temp
-
-                    '''
-                    profile_1D_y_x = numpy.zeros(n_added_points + n_points_old)
-                    profile_1D_y_y = numpy.ones(n_added_points + n_points_old) * self.filler_value * 1e-9 * self.si_to_user_units
-
-                    for index in range(0, int(n_added_points/2)):
-                        profile_1D_y_x[index] = index * step
-
-                    for index in range(int(n_added_points/2), n_points_old + int(n_added_points/2)):
-                        profile_1D_y_x[index] = index * step
-                        profile_1D_y_y[index] = profile_1D_y_y_temp[index - int(n_added_points/2)]
-
-                    for index in range(n_points_old + int(n_added_points/2), n_points_old + n_added_points):
-                        profile_1D_y_x[index] = index * step
-                    '''
                 elif self.new_length < length:
                     difference = length - self.new_length
 
@@ -611,7 +600,16 @@ class OWdabam_height_profile(OWWidget):
                 if self.use_undetrended == 0: profile_1D_y_y = self.si_to_user_units * self.server.zHeights
                 else: profile_1D_y_y = self.si_to_user_units * self.server.zHeightsUndetrended
 
+            if self.center_y:
+                first_coord = profile_1D_y_x[0]
+                second_coord  = profile_1D_y_x[1]
+                last_coord = profile_1D_y_x[-1]
+                step = numpy.abs(second_coord - first_coord)
+                length = numpy.abs(last_coord - first_coord)
 
+                profile_1D_y_x_temp = numpy.linspace(-length/2, length/2, len(profile_1D_y_x))
+
+                profile_1D_y_x = profile_1D_y_x_temp
 
             if self.renormalize_y == 0:
                 rms_y = None
@@ -642,7 +640,7 @@ class OWdabam_height_profile(OWWidget):
             self.axis.plot_surface(x_to_plot, y_to_plot, z_to_plot,
                                    rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
 
-            sloperms = profiles_simulation.slopes(zz, xx, yy, return_only_rms=1)
+            sloperms = profiles_simulation.slopes(zz.T, xx, yy, return_only_rms=1)
 
             title = ' Slope error rms in X direction: %f $\mu$rad' % (sloperms[0]*1e6) + '\n' + \
                     ' Slope error rms in Y direction: %f $\mu$rad' % (sloperms[1]*1e6)

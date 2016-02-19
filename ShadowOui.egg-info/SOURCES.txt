@@ -74,6 +74,7 @@ orangecontrib/shadow/widgets/gui/ow_plane_element.py
 orangecontrib/shadow/widgets/gui/ow_source.py
 orangecontrib/shadow/widgets/gui/ow_spheric_element.py
 orangecontrib/shadow/widgets/gui/ow_toroidal_element.py
+orangecontrib/shadow/widgets/gui/test.py
 orangecontrib/shadow/widgets/gui/misc/distances.png
 orangecontrib/shadow/widgets/loop_management/__init__.py
 orangecontrib/shadow/widgets/loop_management/ow_accumulating_node_point.py
