@@ -24,9 +24,9 @@ class GenericElement(ow_automatic_element.AutomaticElement):
     def __init__(self, show_automatic_box=True):
         super().__init__(show_automatic_box)
 
-        main_tabs = gui.tabWidget(self.mainArea)
-        plot_tab = gui.createTabPage(main_tabs, "Plots")
-        out_tab = gui.createTabPage(main_tabs, "Output")
+        self.main_tabs = gui.tabWidget(self.mainArea)
+        plot_tab = gui.createTabPage(self.main_tabs, "Plots")
+        out_tab = gui.createTabPage(self.main_tabs, "Output")
 
         view_box = oasysgui.widgetBox(plot_tab, "Plotting Style", addSpace=False, orientation="horizontal")
         view_box_1 = oasysgui.widgetBox(view_box, "", addSpace=False, orientation="vertical", width=350)

@@ -1,7 +1,8 @@
 import sys
-
+import numpy, matplotlib
 from PyQt4 import QtGui
 from PyQt4.QtGui import QApplication
+from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -9,8 +10,9 @@ from oasys.widgets import congruence
 
 from srxraylib.sources import srfunc
 
-from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerOut, ShadowBeam, \
+from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowBeam, \
     ShadowSource
+from orangecontrib.shadow.util.shadow_util import ShadowPlot
 from orangecontrib.shadow.widgets.gui import ow_source
 
 class Wiggler(ow_source.Source):
@@ -20,6 +22,8 @@ class Wiggler(ow_source.Source):
     priority = 3
 
     NONE_SPECIFIED = "NONE SPECIFIED"
+
+    plot_graph = Setting(0)
 
     number_of_rays=Setting(5000)
     seed=Setting(5676561)
@@ -38,6 +42,7 @@ class Wiggler(ow_source.Source):
     file_with_phase_space_volume = Setting(NONE_SPECIFIED)
 
     energy=Setting(6.04)
+    electron_current = Setting(200)
     use_emittances_combo=Setting(1)
     sigma_x=Setting(0.0078)
     sigma_z=Setting(0.0036)
@@ -110,9 +115,10 @@ class Wiggler(ow_source.Source):
                      items=["None", "Begin.dat", "Debug (begin.dat + start.xx/end.xx)"],
                      sendSelectedValue=False, orientation="horizontal")
 
-        left_box_2 = oasysgui.widgetBox(tab_sou, "Machine Parameters", addSpace=True, orientation="vertical", height=240)
+        left_box_2 = oasysgui.widgetBox(tab_sou, "Machine Parameters", addSpace=True, orientation="vertical", height=260)
 
         oasysgui.lineEdit(left_box_2, self, "energy", "Electron Energy [GeV]", tooltip="Energy [GeV]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_2, self, "electron_current", "Electron Current [mA]", tooltip="Electron Current [mA]", labelWidth=260, valueType=float, orientation="horizontal")
 
         gui.comboBox(left_box_2, self, "use_emittances_combo", label="Use Emittances?", items=["No", "Yes"], callback=self.set_UseEmittances, labelWidth=260, orientation="horizontal")
 
@@ -159,6 +165,24 @@ class Wiggler(ow_source.Source):
         self.set_Type()
 
         gui.rubber(self.controlArea)
+
+        wiggler_plot_tab = oasysgui.widgetBox(self.main_tabs, addToLayout=0, margin=4)
+
+        self.main_tabs.insertTab(1, wiggler_plot_tab, "Wiggler Plots")
+
+        view_box = oasysgui.widgetBox(wiggler_plot_tab, "Plotting Style", addSpace=False, orientation="horizontal")
+        view_box_1 = oasysgui.widgetBox(view_box, "", addSpace=False, orientation="vertical", width=350)
+
+        self.wiggler_view_type_combo = gui.comboBox(view_box_1, self, "plot_graph", label="Plot Graphs?",
+                                            labelWidth=220,
+                                            items=["No", "Yes"],
+                                            callback=self.set_PlotGraphs, sendSelectedValue=False, orientation="horizontal")
+
+        self.wiggler_tab = []
+        self.wiggler_tabs = gui.tabWidget(wiggler_plot_tab)
+
+        self.initializeWigglerTabs()
+
         gui.rubber(self.mainArea)
 
     def after_change_workspace_units(self):
@@ -187,6 +211,114 @@ class Wiggler(ow_source.Source):
         label = self.le_distance_from_waist_z.parent().layout().itemAt(0).widget()
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
+    def initializeWigglerTabs(self):
+        current_tab = self.wiggler_tabs.currentIndex()
+
+        size = len(self.wiggler_tab)
+        indexes = range(0, size)
+        for index in indexes:
+            self.wiggler_tabs.removeTab(size-1-index)
+
+        self.wiggler_tab = [gui.createTabPage(self.wiggler_tabs, "Electron Trajectory"),
+                    gui.createTabPage(self.wiggler_tabs, "Electron velocity"),
+                    gui.createTabPage(self.wiggler_tabs, "Electron curvature"),
+                    gui.createTabPage(self.wiggler_tabs, "Magnetic Field"),
+                    gui.createTabPage(self.wiggler_tabs, "Wiggler Spectrum"),
+        ]
+
+        for tab in self.wiggler_tab:
+            tab.setFixedHeight(self.IMAGE_HEIGHT)
+            tab.setFixedWidth(self.IMAGE_WIDTH)
+
+        self.wiggler_plot_canvas = [None, None, None, None, None]
+
+        self.wiggler_tabs.setCurrentIndex(current_tab)
+
+    def set_PlotGraphs(self):
+        self.progressBarInit()
+
+        if not self.plotted_beam==None:
+            try:
+                self.initializeWigglerTabs()
+
+                self.plot_wiggler_results()
+            except Exception as exception:
+                QtGui.QMessageBox.critical(self, "Error",
+                                           str(exception),
+                    QtGui.QMessageBox.Ok)
+
+        self.progressBarFinished()
+
+    def plot_wiggler_results(self):
+        if self.plot_graph == 1:
+            try:
+                try:
+                    congruence.checkFile("tmp.traj")
+                except:
+                    return
+
+                data = numpy.loadtxt("tmp.traj",skiprows=15)
+
+                energy, flux = srfunc.wiggler_spectrum(data.T,
+                                                enerMin=self.e_min,
+                                                enerMax=self.e_max,
+                                                nPoints=500,
+                                                electronCurrent=self.electron_current/1000,
+                                                outFile="spectrum.dat",
+                                                elliptical=False)
+
+                self.plot_wiggler_histo(20,  data[:, 1], data[:, 0], plot_canvas_index=0, title="Electron trajectory x(y)", xtitle=r'Y [m]', ytitle=r'X [m]')
+                self.plot_wiggler_histo(40,  data[:, 1], data[:, 3], plot_canvas_index=1, title="Electron velocity betax(y)", xtitle=r'Y [m]', ytitle=r'betaX')
+                self.plot_wiggler_histo(60,  data[:, 1], data[:, 6], plot_canvas_index=2, title="Electron curvature", xtitle=r'Y [m]', ytitle=r'curvature [m^-1]')
+                self.plot_wiggler_histo(80,  data[:, 1], data[:, 7], plot_canvas_index=3, title="Magnetic Field (in vertical) Bz(y)", xtitle=r'Y [m]', ytitle=r'B [T]')
+
+
+                self.plot_wiggler_histo(100, energy    , flux      , plot_canvas_index=4, title="Wiggler spectrum (current = " + str(self.electron_current) + " mA)",
+                                        xtitle=r'E [eV]', ytitle=r'Flux [phot/s/0.1%bw]', is_log_log=True)
+
+            except Exception as exception:
+                QtGui.QMessageBox.critical(self, "Error",
+                                           str(exception),
+                    QtGui.QMessageBox.Ok)
+
+    def plot_wiggler_histo(self, progressBarValue, x, y, plot_canvas_index, title, xtitle, ytitle, is_log_log=False):
+        if self.wiggler_plot_canvas[plot_canvas_index] is None:
+            self.wiggler_plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=False, plugins=False)
+            self.wiggler_plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
+            self.wiggler_plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
+
+            self.wiggler_tab[plot_canvas_index].layout().addWidget(self.wiggler_plot_canvas[plot_canvas_index])
+
+        matplotlib.rcParams['axes.formatter.useoffset']='False'
+
+        self.wiggler_plot_canvas[plot_canvas_index].addCurve(x, y, title, symbol='', color='blue', replace=True) #'+', '^', ','
+        self.wiggler_plot_canvas[plot_canvas_index].setDrawModeEnabled(True, 'rectangle')
+        self.wiggler_plot_canvas[plot_canvas_index].setZoomModeEnabled(True)
+
+
+        if is_log_log:
+            order_of_magnitude_min = numpy.floor(numpy.log10(min(y)))
+            order_of_magnitude_max = numpy.floor(numpy.log10(max(y)))
+
+            if numpy.abs(order_of_magnitude_max - order_of_magnitude_min) > 0:
+                factor = 1.2
+                self.wiggler_plot_canvas[plot_canvas_index].setXAxisLogarithmic(True)
+                self.wiggler_plot_canvas[plot_canvas_index].setYAxisLogarithmic(True)
+            else:
+                factor = 1.005
+                self.wiggler_plot_canvas[plot_canvas_index].setXAxisLogarithmic(False)
+                self.wiggler_plot_canvas[plot_canvas_index].setYAxisLogarithmic(False)
+        else:
+            factor = 1.0
+
+        self.wiggler_plot_canvas[plot_canvas_index].setGraphYLimits(min(y), max(y)*factor)
+
+        if not title is None: self.wiggler_plot_canvas[plot_canvas_index].setGraphTitle(title)
+        if not xtitle is None: self.wiggler_plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
+        if not ytitle is None: self.wiggler_plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
+        self.wiggler_plot_canvas[plot_canvas_index].replot()
+
+        self.progressBarSet(progressBarValue)
 
     def set_OptimizeSource(self):
         self.box_using_file_with_phase_space_volume.setVisible(self.optimize_source_combo == 1)
@@ -339,7 +471,11 @@ class Wiggler(ow_source.Source):
 
             self.progressBarSet(80)
 
-            self.plot_results(beam_out)
+            self.plot_results(beam_out, 80)
+
+            self.setStatusMessage("Plotting Wiggler Data")
+
+            self.plot_wiggler_results()
 
             #self.information()
             self.setStatusMessage("")
@@ -378,6 +514,7 @@ class Wiggler(ow_source.Source):
         self.min_z = congruence.checkNumber(self.min_z, "Min X/Min Xp")
         self.max_z = congruence.checkNumber(self.max_z, "Max X/Max Xp")
         self.energy = congruence.checkPositiveNumber(self.energy, "Energy")
+        self.electron_current = congruence.checkPositiveNumber(self.electron_current, "Electron Current")
         self.sigma_x = congruence.checkPositiveNumber(self.sigma_x, "Sigma x")
         self.sigma_z = congruence.checkPositiveNumber(self.sigma_z, "Sigma z")
         self.emittance_x = congruence.checkPositiveNumber(self.emittance_x, "Emittance x")

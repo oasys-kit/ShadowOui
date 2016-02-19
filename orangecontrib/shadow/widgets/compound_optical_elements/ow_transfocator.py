@@ -47,10 +47,6 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
     def __init__(self):
         super().__init__()
 
-        #self.button_trace.setFixedHeight(25)
-        #self.button_reset.setFixedHeight(25)
-        #self.tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT + 20)
-
         tabs_button_box = oasysgui.widgetBox(self.tab_bas, "", addSpace=False, orientation="horizontal")
 
         btns = [gui.button(tabs_button_box, self, "Insert C.R.L. Before", callback=self.crl_insert_before),

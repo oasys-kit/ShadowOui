@@ -207,6 +207,9 @@ class ShadowToolsMenu(OMenu):
                 if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
                     widget.view_type = 0
                     widget.set_PlotQuality()
+                if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
+                    widget.plot_graph = 1
+                    widget.set_PlotGraphs()
         except Exception as exception:
             QtGui.QMessageBox.critical(None, "Error",
                 exception.args[0],
@@ -220,6 +223,9 @@ class ShadowToolsMenu(OMenu):
                 if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
                     widget.view_type = 1
                     widget.set_PlotQuality()
+                if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
+                    widget.plot_graph = 1
+                    widget.set_PlotGraphs()
         except Exception as exception:
             QtGui.QMessageBox.critical(None, "Error",
                 exception.args[0],
@@ -233,6 +239,9 @@ class ShadowToolsMenu(OMenu):
                 if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
                     widget.view_type = 2
                     widget.set_PlotQuality()
+                if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
+                    widget.plot_graph = 0
+                    widget.set_PlotGraphs()
         except Exception as exception:
             QtGui.QMessageBox.critical(None, "Error",
                 exception.args[0],
