@@ -124,12 +124,12 @@ class Wiggler(ow_source.Source):
 
         self.box_use_emittances = oasysgui.widgetBox(left_box_2, "", addSpace=True, orientation="vertical")
 
-        self.le_sigma_x = oasysgui.lineEdit(left_box_2, self, "sigma_x", "Sigma X", labelWidth=260, tooltip="Sigma X", valueType=float, orientation="horizontal")
-        self.le_sigma_z = oasysgui.lineEdit(left_box_2, self, "sigma_z", "Sigma Z", labelWidth=260, tooltip="Sigma Z", valueType=float, orientation="horizontal")
-        self.le_emittance_x = oasysgui.lineEdit(left_box_2, self, "emittance_x", "Emittance X", labelWidth=260, tooltip="Emittance X", valueType=float, orientation="horizontal")
-        self.le_emittance_z = oasysgui.lineEdit(left_box_2, self, "emittance_z", "Emittance Z", labelWidth=260, tooltip="Emittance Z", valueType=float, orientation="horizontal")
-        self.le_distance_from_waist_x = oasysgui.lineEdit(left_box_2, self, "distance_from_waist_x", "Distance from Waist X", labelWidth=260, tooltip="Distance from Waist X", valueType=float, orientation="horizontal")
-        self.le_distance_from_waist_z = oasysgui.lineEdit(left_box_2, self, "distance_from_waist_z", "Distance from Waist Z", labelWidth=260, tooltip="Distance from Waist Z", valueType=float, orientation="horizontal")
+        self.le_sigma_x = oasysgui.lineEdit(self.box_use_emittances, self, "sigma_x", "Sigma X", labelWidth=260, tooltip="Sigma X", valueType=float, orientation="horizontal")
+        self.le_sigma_z = oasysgui.lineEdit(self.box_use_emittances, self, "sigma_z", "Sigma Z", labelWidth=260, tooltip="Sigma Z", valueType=float, orientation="horizontal")
+        self.le_emittance_x = oasysgui.lineEdit(self.box_use_emittances, self, "emittance_x", "Emittance X", labelWidth=260, tooltip="Emittance X", valueType=float, orientation="horizontal")
+        self.le_emittance_z = oasysgui.lineEdit(self.box_use_emittances, self, "emittance_z", "Emittance Z", labelWidth=260, tooltip="Emittance Z", valueType=float, orientation="horizontal")
+        self.le_distance_from_waist_x = oasysgui.lineEdit(self.box_use_emittances, self, "distance_from_waist_x", "Distance from Waist X", labelWidth=260, tooltip="Distance from Waist X", valueType=float, orientation="horizontal")
+        self.le_distance_from_waist_z = oasysgui.lineEdit(self.box_use_emittances, self, "distance_from_waist_z", "Distance from Waist Z", labelWidth=260, tooltip="Distance from Waist Z", valueType=float, orientation="horizontal")
 
         self.set_UseEmittances()
 
