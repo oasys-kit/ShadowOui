@@ -141,23 +141,23 @@ class Wiggler(ow_source.Source):
 
         left_box_10 = oasysgui.widgetBox(tab_sou, "Electron Beam Parameters", addSpace=True, orientation="vertical", height=140)
 
-        gui.comboBox(left_box_10, self, "shift_x_flag", label="Shift Transversal Coordinate", items=["No shift", "Half excursion", "Minimum", "Maximum", "Value at zero", "User value"], callback=self.set_ShiftXFlag, labelWidth=260, orientation="horizontal")
-
-        self.shift_x_value_box = oasysgui.widgetBox(left_box_10, "", addSpace=False, orientation="vertical", height=25)
-        self.shift_x_value_box_hidden = oasysgui.widgetBox(left_box_10, "", addSpace=False, orientation="vertical", height=25)
-        self.le_shift_x_value = oasysgui.lineEdit(self.shift_x_value_box, self, "shift_x_value", "Value", labelWidth=260, valueType=float, orientation="horizontal")
-
         gui.comboBox(left_box_10, self, "shift_betax_flag", label="Shift Transversal Velocity", items=["No shift", "Half excursion", "Minimum", "Maximum", "Value at zero", "User value"], callback=self.set_ShiftBetaXFlag, labelWidth=260, orientation="horizontal")
         self.shift_betax_value_box = oasysgui.widgetBox(left_box_10, "", addSpace=False, orientation="vertical", height=25)
         self.shift_betax_value_box_hidden = oasysgui.widgetBox(left_box_10, "", addSpace=False, orientation="vertical", height=25)
-        self.le_shift_betax_value = oasysgui.lineEdit(self.shift_betax_value_box, self, "shift_betax_value", "Value", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.shift_betax_value_box, self, "shift_betax_value", "Value", labelWidth=260, valueType=float, orientation="horizontal")
+
+        gui.comboBox(left_box_10, self, "shift_x_flag", label="Shift Transversal Coordinate", items=["No shift", "Half excursion", "Minimum", "Maximum", "Value at zero", "User value"], callback=self.set_ShiftXFlag, labelWidth=260, orientation="horizontal")
+        self.shift_x_value_box = oasysgui.widgetBox(left_box_10, "", addSpace=False, orientation="vertical", height=25)
+        self.shift_x_value_box_hidden = oasysgui.widgetBox(left_box_10, "", addSpace=False, orientation="vertical", height=25)
+        oasysgui.lineEdit(self.shift_x_value_box, self, "shift_x_value", "Value [m]", labelWidth=260, valueType=float, orientation="horizontal")
+
 
         self.set_ShiftXFlag()
         self.set_ShiftBetaXFlag()
 
         left_box_3 = oasysgui.widgetBox(tab_sou, "Wiggler Parameters", addSpace=True, orientation="vertical", height=140)
 
-        gui.comboBox(left_box_3, self, "type_combo", label="Type", items=["conventional/sinusoidal", "B from file", "B from harmonics"], callback=self.set_Type, labelWidth=260, orientation="horizontal")
+        gui.comboBox(left_box_3, self, "type_combo", label="Type", items=["conventional/sinusoidal", "B from file (y [m], Bz [T])", "B from harmonics"], callback=self.set_Type, labelWidth=220, orientation="horizontal")
 
         oasysgui.lineEdit(left_box_3, self, "number_of_periods", "Number of Periods", labelWidth=260, tooltip="Number of Periods", valueType=float, orientation="horizontal")
 
@@ -233,11 +233,6 @@ class Wiggler(ow_source.Source):
         label = self.le_distance_from_waist_z.parent().layout().itemAt(0).widget()
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
-        label = self.le_shift_x_value.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + " [" + self.workspace_units_label + "]")
-        label = self.le_shift_betax_value.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + " [" + self.workspace_units_label + "]")
-
     def initializeWigglerTabs(self):
         current_tab = self.wiggler_tabs.currentIndex()
 
@@ -246,11 +241,12 @@ class Wiggler(ow_source.Source):
         for index in indexes:
             self.wiggler_tabs.removeTab(size-1-index)
 
-        self.wiggler_tab = [gui.createTabPage(self.wiggler_tabs, "Electron Trajectory"),
-                    gui.createTabPage(self.wiggler_tabs, "Electron velocity"),
-                    gui.createTabPage(self.wiggler_tabs, "Electron curvature"),
-                    gui.createTabPage(self.wiggler_tabs, "Magnetic Field"),
-                    gui.createTabPage(self.wiggler_tabs, "Wiggler Spectrum"),
+        self.wiggler_tab = [
+            gui.createTabPage(self.wiggler_tabs, "Magnetic Field"),
+            gui.createTabPage(self.wiggler_tabs, "Electron Curvature"),
+            gui.createTabPage(self.wiggler_tabs, "Electron Velocity"),
+            gui.createTabPage(self.wiggler_tabs, "Electron Trajectory"),
+            gui.createTabPage(self.wiggler_tabs, "Wiggler Spectrum"),
         ]
 
         for tab in self.wiggler_tab:
@@ -294,12 +290,10 @@ class Wiggler(ow_source.Source):
                                                 outFile="spectrum.dat",
                                                 elliptical=False)
 
-                self.plot_wiggler_histo(20,  data[:, 1], data[:, 0], plot_canvas_index=0, title="Electron trajectory x(y)", xtitle=r'Y [m]', ytitle=r'X [m]')
-                self.plot_wiggler_histo(40,  data[:, 1], data[:, 3], plot_canvas_index=1, title="Electron velocity betax(y)", xtitle=r'Y [m]', ytitle=r'betaX')
-                self.plot_wiggler_histo(60,  data[:, 1], data[:, 6], plot_canvas_index=2, title="Electron curvature", xtitle=r'Y [m]', ytitle=r'curvature [m^-1]')
-                self.plot_wiggler_histo(80,  data[:, 1], data[:, 7], plot_canvas_index=3, title="Magnetic Field (in vertical) Bz(y)", xtitle=r'Y [m]', ytitle=r'B [T]')
-
-
+                self.plot_wiggler_histo(20,  data[:, 1], data[:, 7], plot_canvas_index=0, title="Magnetic Field (in vertical) Bz(Y)", xtitle=r'Y [m]', ytitle=r'B [T]')
+                self.plot_wiggler_histo(40,  data[:, 1], data[:, 6], plot_canvas_index=1, title="Electron Curvature", xtitle=r'Y [m]', ytitle=r'curvature [m^-1]')
+                self.plot_wiggler_histo(60,  data[:, 1], data[:, 3], plot_canvas_index=2, title="Electron Belocity BetaX(Y)", xtitle=r'Y [m]', ytitle=r'BetaX')
+                self.plot_wiggler_histo(80,  data[:, 1], data[:, 0], plot_canvas_index=3, title="Electron Trajectory X(Y)", xtitle=r'Y [m]', ytitle=r'X [m]')
                 self.plot_wiggler_histo(100, energy    , flux      , plot_canvas_index=4, title="Wiggler spectrum (current = " + str(self.electron_current) + " mA)",
                                         xtitle=r'E [eV]', ytitle=r'Flux [phot/s/0.1%bw]', is_log_log=True)
 
