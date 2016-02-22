@@ -51,6 +51,12 @@ class Wiggler(ow_source.Source):
     distance_from_waist_x=Setting(0.0)
     distance_from_waist_z=Setting(0.0)
 
+    shift_x_flag = Setting(0)
+    shift_x_value =Setting(0.0)
+
+    shift_betax_flag = Setting(0)
+    shift_betax_value = Setting(0.0)
+
     type_combo=Setting(0)
 
     number_of_periods=Setting(50)
@@ -133,11 +139,27 @@ class Wiggler(ow_source.Source):
 
         self.set_UseEmittances()
 
+        left_box_10 = oasysgui.widgetBox(tab_sou, "Electron Beam Parameters", addSpace=True, orientation="vertical", height=140)
+
+        gui.comboBox(left_box_10, self, "shift_x_flag", label="Shift Transversal Coordinate", items=["No shift", "Half excursion", "Minimum", "Maximum", "Value at zero", "User value"], callback=self.set_ShiftXFlag, labelWidth=260, orientation="horizontal")
+
+        self.shift_x_value_box = oasysgui.widgetBox(left_box_10, "", addSpace=False, orientation="vertical", height=25)
+        self.shift_x_value_box_hidden = oasysgui.widgetBox(left_box_10, "", addSpace=False, orientation="vertical", height=25)
+        self.le_shift_x_value = oasysgui.lineEdit(self.shift_x_value_box, self, "shift_x_value", "Value", labelWidth=260, valueType=float, orientation="horizontal")
+
+        gui.comboBox(left_box_10, self, "shift_betax_flag", label="Shift Transversal Velocity", items=["No shift", "Half excursion", "Minimum", "Maximum", "Value at zero", "User value"], callback=self.set_ShiftBetaXFlag, labelWidth=260, orientation="horizontal")
+        self.shift_betax_value_box = oasysgui.widgetBox(left_box_10, "", addSpace=False, orientation="vertical", height=25)
+        self.shift_betax_value_box_hidden = oasysgui.widgetBox(left_box_10, "", addSpace=False, orientation="vertical", height=25)
+        self.le_shift_betax_value = oasysgui.lineEdit(self.shift_betax_value_box, self, "shift_betax_value", "Value", labelWidth=260, valueType=float, orientation="horizontal")
+
+        self.set_ShiftXFlag()
+        self.set_ShiftBetaXFlag()
+
         left_box_3 = oasysgui.widgetBox(tab_sou, "Wiggler Parameters", addSpace=True, orientation="vertical", height=140)
 
         gui.comboBox(left_box_3, self, "type_combo", label="Type", items=["conventional/sinusoidal", "B from file", "B from harmonics"], callback=self.set_Type, labelWidth=260, orientation="horizontal")
 
-        oasysgui.lineEdit(left_box_3, self, "number_of_periods", "Number of Periods", labelWidth=260, tooltip="Number of Periods", valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_3, self, "number_of_periods", "Number of Periods", labelWidth=260, tooltip="Number of Periods", valueType=float, orientation="horizontal")
 
         self.conventional_sinusoidal_box = oasysgui.widgetBox(left_box_3, "", addSpace=False, orientation="vertical")
 
@@ -209,6 +231,11 @@ class Wiggler(ow_source.Source):
         label = self.le_distance_from_waist_x.parent().layout().itemAt(0).widget()
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_distance_from_waist_z.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+
+        label = self.le_shift_x_value.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_shift_betax_value.parent().layout().itemAt(0).widget()
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
     def initializeWigglerTabs(self):
@@ -332,6 +359,14 @@ class Wiggler(ow_source.Source):
         self.b_from_file_box.setVisible(self.type_combo == 1)
         self.b_from_harmonics_box.setVisible(self.type_combo == 2)
 
+    def set_ShiftXFlag(self):
+        self.shift_x_value_box.setVisible(self.shift_x_flag==5)
+        self.shift_x_value_box_hidden.setVisible(self.shift_x_flag!=5)
+
+    def set_ShiftBetaXFlag(self):
+        self.shift_betax_value_box.setVisible(self.shift_betax_flag==5)
+        self.shift_betax_value_box_hidden.setVisible(self.shift_betax_flag!=5)
+
     def selectOptimizeFile(self):
         self.le_optimize_file_name.setText(oasysgui.selectFileFromDialog(self, self.file_with_phase_space_volume, "Open Optimize Source Parameters File"))
 
@@ -369,7 +404,11 @@ class Wiggler(ow_source.Source):
                                                      ener_gev=self.energy,
                                                      per=self.id_period,
                                                      kValue=self.k_value,
-                                                     trajFile=congruence.checkFileName("tmp.traj"))
+                                                     trajFile=congruence.checkFileName("tmp.traj"),
+                                                     shift_x_flag=self.shift_x_flag,
+                                                     shift_x_value=self.shift_x_value,
+                                                     shift_betax_flag=self.shift_betax_flag,
+                                                     shift_betax_value=self.shift_betax_value)
 
             #
             # calculate cdf and write file for Shadow/Source
@@ -524,6 +563,8 @@ class Wiggler(ow_source.Source):
         self.number_of_periods = congruence.checkPositiveNumber(self.number_of_periods, "Number of periods")
         self.k_value = congruence.checkPositiveNumber(self.k_value, "K value")
         self.id_period = congruence.checkPositiveNumber(self.id_period, "ID period")
+
+
 
         if self.optimize_source_combo == 1:
             congruence.checkFile(self.file_with_phase_space_volume)
