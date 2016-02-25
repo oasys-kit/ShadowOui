@@ -1632,8 +1632,6 @@ class OpticalElement(ow_generic_element.GenericElement):
             QtGui.QMessageBox.critical(self, "Error",
                                        str(exception), QtGui.QMessageBox.Ok)
 
-            #raise exception
-
     class ShowSurfaceShapeDialog(QDialog):
 
         c1  = 0.0

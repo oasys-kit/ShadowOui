@@ -159,7 +159,7 @@ class Wiggler(ow_source.Source):
 
         gui.comboBox(left_box_3, self, "type_combo", label="Type", items=["conventional/sinusoidal", "B from file (y [m], Bz [T])", "B from harmonics"], callback=self.set_Type, labelWidth=220, orientation="horizontal")
 
-        oasysgui.lineEdit(left_box_3, self, "number_of_periods", "Number of Periods", labelWidth=260, tooltip="Number of Periods", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_3, self, "number_of_periods", "Number of Periods", labelWidth=260, tooltip="Number of Periods", valueType=int, orientation="horizontal")
 
         self.conventional_sinusoidal_box = oasysgui.widgetBox(left_box_3, "", addSpace=False, orientation="vertical")
 
@@ -554,11 +554,9 @@ class Wiggler(ow_source.Source):
         self.emittance_z = congruence.checkPositiveNumber(self.emittance_z, "Emittance z")
         self.distance_from_waist_x = congruence.checkNumber(self.distance_from_waist_x, "Distance from waist x")
         self.distance_from_waist_z = congruence.checkNumber(self.distance_from_waist_z, "Distance from waist z")
-        self.number_of_periods = congruence.checkPositiveNumber(self.number_of_periods, "Number of periods")
-        self.k_value = congruence.checkPositiveNumber(self.k_value, "K value")
-        self.id_period = congruence.checkPositiveNumber(self.id_period, "ID period")
-
-
+        self.number_of_periods = congruence.checkStrictlyPositiveNumber(self.number_of_periods, "Number of periods")
+        self.k_value = congruence.checkStrictlyPositiveNumber(self.k_value, "K value")
+        self.id_period = congruence.checkStrictlyPositiveNumber(self.id_period, "ID period")
 
         if self.optimize_source_combo == 1:
             congruence.checkFile(self.file_with_phase_space_volume)
@@ -567,7 +565,6 @@ class Wiggler(ow_source.Source):
             congruence.checkFile(self.file_with_b_vs_y)
         elif self.type_combo == 2:
             congruence.checkFile(self.file_with_harmonics)
-
 
     def deserialize(self, shadow_file):
         if not shadow_file is None:
