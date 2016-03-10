@@ -652,9 +652,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                         self.w_incidence_angle_respect_to_normal = oasysgui.lineEdit(self.surface_box_int_2, self, "incidence_angle_respect_to_normal", "Incidence Angle Respect to Normal [deg]", labelWidth=260, valueType=float, orientation="horizontal")
 
                         if self.graphical_options.is_paraboloid:
-                            gui.comboBox(self.surface_box_int, self, "focus_location", label="Focus location", labelWidth=280, items=["Image", "Source"], sendSelectedValue=False, orientation="horizontal")
-
-                        self.set_IntExt_Parameters()
+                            gui.comboBox(self.surface_box_int, self, "focus_location", label="Focus location", labelWidth=220, items=["Image is at Infinity", "Source is at Infinity"], sendSelectedValue=False, orientation="horizontal")
 
                         if self.graphical_options.is_toroidal:
                             surface_box_thorus = oasysgui.widgetBox(surface_box, "", addSpace=True, orientation="vertical")
@@ -684,7 +682,30 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     view_shape_box = oasysgui.widgetBox(tab_bas_shape, "Surface Shape Viewer", addSpace=True, orientation="vertical")
 
-                    gui.button(view_shape_box, self, "Render Surface Shape", callback=self.viewSurfaceShape)
+                    if not self.graphical_options.is_conic_coefficients:
+                        if self.graphical_options.is_spheric:
+                            self.le_spherical_radius_2 = oasysgui.lineEdit(view_shape_box, self, "spherical_radius", "Calculated Radius", labelWidth=260, valueType=float, orientation="horizontal")
+                            self.le_spherical_radius_2.setReadOnly(True)
+                        elif self.graphical_options.is_toroidal:
+                            self.le_torus_major_radius_2 = oasysgui.lineEdit(view_shape_box, self, "torus_major_radius", "Calculated Major Radius", labelWidth=260, valueType=float, orientation="horizontal")
+                            self.le_torus_minor_radius_2 = oasysgui.lineEdit(view_shape_box, self, "torus_minor_radius", "Calculated Minor Radius", labelWidth=260, valueType=float, orientation="horizontal")
+                            self.le_torus_major_radius_2.setReadOnly(True)
+                            self.le_torus_minor_radius_2.setReadOnly(True)
+                        elif self.graphical_options.is_hyperboloid or self.graphical_options.is_ellipsoidal:
+                            self.le_ellipse_hyperbola_semi_major_axis_2 = oasysgui.lineEdit(view_shape_box, self, "ellipse_hyperbola_semi_major_axis", "Calculated semi-major Axis",  labelWidth=260, valueType=float, orientation="horizontal")
+                            self.le_ellipse_hyperbola_semi_minor_axis_2 = oasysgui.lineEdit(view_shape_box, self, "ellipse_hyperbola_semi_minor_axis", "Calculated semi-minor Axis", labelWidth=260, valueType=float, orientation="horizontal")
+                            self.le_ellipse_hyperbola_semi_major_axis_2.setReadOnly(True)
+                            self.le_ellipse_hyperbola_semi_minor_axis_2.setReadOnly(True)
+                        elif self.graphical_options.is_paraboloid:
+                            self.le_paraboloid_parameter_2 = oasysgui.lineEdit(view_shape_box, self, "paraboloid_parameter", "Calculater Paraboloid Parameter", labelWidth=260, valueType=float, orientation="horizontal")
+                            self.le_paraboloid_parameter_2.setReadOnly(True)
+
+
+                    self.render_surface_button = gui.button(view_shape_box, self, "Render Surface Shape", callback=self.viewSurfaceShape)
+
+                    if not self.graphical_options.is_conic_coefficients:
+                        self.set_IntExt_Parameters()
+
 
                 ##########################################
                 #
@@ -1228,18 +1249,30 @@ class OpticalElement(ow_generic_element.GenericElement):
                     if self.graphical_options.is_spheric:
                         label = self.le_spherical_radius.parent().layout().itemAt(0).widget()
                         label.setText(label.text() + " [" + self.workspace_units_label + "]")
+                        label = self.le_spherical_radius_2.parent().layout().itemAt(0).widget()
+                        label.setText(label.text() + " [" + self.workspace_units_label + "]")
                     elif self.graphical_options.is_toroidal:
                         label = self.le_torus_major_radius.parent().layout().itemAt(0).widget()
                         label.setText(label.text() + " [" + self.workspace_units_label + "]")
                         label = self.le_torus_minor_radius.parent().layout().itemAt(0).widget()
+                        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+                        label = self.le_torus_major_radius_2.parent().layout().itemAt(0).widget()
+                        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+                        label = self.le_torus_minor_radius_2.parent().layout().itemAt(0).widget()
                         label.setText(label.text() + " [" + self.workspace_units_label + "]")
                     elif self.graphical_options.is_hyperboloid or self.graphical_options.is_ellipsoidal:
                         label = self.le_ellipse_hyperbola_semi_major_axis.parent().layout().itemAt(0).widget()
                         label.setText(label.text() + " [" + self.workspace_units_label + "]")
                         label = self.le_ellipse_hyperbola_semi_minor_axis.parent().layout().itemAt(0).widget()
                         label.setText(label.text() + " [" + self.workspace_units_label + "]")
+                        label = self.le_ellipse_hyperbola_semi_major_axis_2.parent().layout().itemAt(0).widget()
+                        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+                        label = self.le_ellipse_hyperbola_semi_minor_axis_2.parent().layout().itemAt(0).widget()
+                        label.setText(label.text() + " [" + self.workspace_units_label + "]")
                     elif self.graphical_options.is_paraboloid:
                         label = self.le_paraboloid_parameter.parent().layout().itemAt(0).widget()
+                        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+                        label = self.le_paraboloid_parameter_2.parent().layout().itemAt(0).widget()
                         label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
                     label = self.w_object_side_focal_distance.parent().layout().itemAt(0).widget()
@@ -1362,6 +1395,8 @@ class OpticalElement(ow_generic_element.GenericElement):
         self.surface_box_int.setVisible(self.surface_shape_parameters == 0)
         self.surface_box_ext.setVisible(self.surface_shape_parameters == 1)
         if self.surface_shape_parameters == 0: self.set_FociiCont_Parameters()
+
+        self.render_surface_button.setEnabled(self.surface_shape_parameters == 0)
 
     def set_FociiCont_Parameters(self):
         self.surface_box_int_2.setVisible(self.focii_and_continuation_plane == 1)
@@ -1596,8 +1631,6 @@ class OpticalElement(ow_generic_element.GenericElement):
         except Exception as exception:
             QtGui.QMessageBox.critical(self, "Error",
                                        str(exception), QtGui.QMessageBox.Ok)
-
-            #raise exception
 
     class ShowSurfaceShapeDialog(QDialog):
 
@@ -2458,16 +2491,16 @@ class OpticalElement(ow_generic_element.GenericElement):
     def writeCalculatedFields(self, shadow_oe):
         if self.surface_shape_parameters == 0:
             if self.graphical_options.is_spheric:
-                self.spherical_radius = shadow_oe._oe.RMIRR
+                self.spherical_radius = round(shadow_oe._oe.RMIRR, 4)
             elif self.graphical_options.is_toroidal:
-                self.torus_major_radius = shadow_oe._oe.R_MAJ
-                self.torus_minor_radius = shadow_oe._oe.R_MIN
+                self.torus_major_radius = round(shadow_oe._oe.R_MAJ, 4)
+                self.torus_minor_radius = round(shadow_oe._oe.R_MIN, 4)
             elif self.graphical_options.is_hyperboloid or self.graphical_options.is_ellipsoidal:
-                self.ellipse_hyperbola_semi_major_axis = shadow_oe._oe.AXMAJ
-                self.ellipse_hyperbola_semi_minor_axis = shadow_oe._oe.AXMIN
+                self.ellipse_hyperbola_semi_major_axis = round(shadow_oe._oe.AXMAJ, 4)
+                self.ellipse_hyperbola_semi_minor_axis = round(shadow_oe._oe.AXMIN, 4)
                 self.angle_of_majax_and_pole = shadow_oe._oe.ELL_THE
             elif self.graphical_options.is_paraboloid:
-                self.paraboloid_parameter = shadow_oe._oe.PARAM
+                self.paraboloid_parameter = round(shadow_oe._oe.PARAM, 4)
 
         if self.diffraction_calculation == 0 and self.crystal_auto_setting == 1:
             self.incidence_angle_mrad = round((math.pi*0.5-shadow_oe._oe.T_INCIDENCE)*1000, 2)

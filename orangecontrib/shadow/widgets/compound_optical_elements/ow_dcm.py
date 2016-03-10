@@ -39,7 +39,7 @@ class DCM(ow_compound_optical_element.CompoundOpticalElement):
         self.le_separation = oasysgui.lineEdit(self.tab_bas, self, "separation", "Separation between the Crystals\n(from center of 1st C. to center of 2nd C.)", labelWidth=280, valueType=float,
                            orientation="horizontal")
 
-        oasysgui.lineEdit(self.tab_bas, self, "photon_energy_ev", "Photon Eneergy [eV]", labelWidth=280, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.tab_bas, self, "photon_energy_ev", "Photon Energy [eV]", labelWidth=280, valueType=float, orientation="horizontal")
 
 
         file_box = oasysgui.widgetBox(self.tab_bas, "", addSpace=True, orientation="horizontal", height=20)

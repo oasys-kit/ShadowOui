@@ -51,6 +51,12 @@ class Wiggler(ow_source.Source):
     distance_from_waist_x=Setting(0.0)
     distance_from_waist_z=Setting(0.0)
 
+    shift_x_flag = Setting(0)
+    shift_x_value =Setting(0.0)
+
+    shift_betax_flag = Setting(0)
+    shift_betax_value = Setting(0.0)
+
     type_combo=Setting(0)
 
     number_of_periods=Setting(50)
@@ -133,9 +139,25 @@ class Wiggler(ow_source.Source):
 
         self.set_UseEmittances()
 
+        left_box_10 = oasysgui.widgetBox(tab_sou, "Electron Beam Parameters", addSpace=True, orientation="vertical", height=140)
+
+        gui.comboBox(left_box_10, self, "shift_betax_flag", label="Shift Transversal Velocity", items=["No shift", "Half excursion", "Minimum", "Maximum", "Value at zero", "User value"], callback=self.set_ShiftBetaXFlag, labelWidth=260, orientation="horizontal")
+        self.shift_betax_value_box = oasysgui.widgetBox(left_box_10, "", addSpace=False, orientation="vertical", height=25)
+        self.shift_betax_value_box_hidden = oasysgui.widgetBox(left_box_10, "", addSpace=False, orientation="vertical", height=25)
+        oasysgui.lineEdit(self.shift_betax_value_box, self, "shift_betax_value", "Value", labelWidth=260, valueType=float, orientation="horizontal")
+
+        gui.comboBox(left_box_10, self, "shift_x_flag", label="Shift Transversal Coordinate", items=["No shift", "Half excursion", "Minimum", "Maximum", "Value at zero", "User value"], callback=self.set_ShiftXFlag, labelWidth=260, orientation="horizontal")
+        self.shift_x_value_box = oasysgui.widgetBox(left_box_10, "", addSpace=False, orientation="vertical", height=25)
+        self.shift_x_value_box_hidden = oasysgui.widgetBox(left_box_10, "", addSpace=False, orientation="vertical", height=25)
+        oasysgui.lineEdit(self.shift_x_value_box, self, "shift_x_value", "Value [m]", labelWidth=260, valueType=float, orientation="horizontal")
+
+
+        self.set_ShiftXFlag()
+        self.set_ShiftBetaXFlag()
+
         left_box_3 = oasysgui.widgetBox(tab_sou, "Wiggler Parameters", addSpace=True, orientation="vertical", height=140)
 
-        gui.comboBox(left_box_3, self, "type_combo", label="Type", items=["conventional/sinusoidal", "B from file", "B from harmonics"], callback=self.set_Type, labelWidth=260, orientation="horizontal")
+        gui.comboBox(left_box_3, self, "type_combo", label="Type", items=["conventional/sinusoidal", "B from file (y [m], Bz [T])", "B from harmonics"], callback=self.set_Type, labelWidth=220, orientation="horizontal")
 
         oasysgui.lineEdit(left_box_3, self, "number_of_periods", "Number of Periods", labelWidth=260, tooltip="Number of Periods", valueType=int, orientation="horizontal")
 
@@ -219,11 +241,12 @@ class Wiggler(ow_source.Source):
         for index in indexes:
             self.wiggler_tabs.removeTab(size-1-index)
 
-        self.wiggler_tab = [gui.createTabPage(self.wiggler_tabs, "Electron Trajectory"),
-                    gui.createTabPage(self.wiggler_tabs, "Electron velocity"),
-                    gui.createTabPage(self.wiggler_tabs, "Electron curvature"),
-                    gui.createTabPage(self.wiggler_tabs, "Magnetic Field"),
-                    gui.createTabPage(self.wiggler_tabs, "Wiggler Spectrum"),
+        self.wiggler_tab = [
+            gui.createTabPage(self.wiggler_tabs, "Magnetic Field"),
+            gui.createTabPage(self.wiggler_tabs, "Electron Curvature"),
+            gui.createTabPage(self.wiggler_tabs, "Electron Velocity"),
+            gui.createTabPage(self.wiggler_tabs, "Electron Trajectory"),
+            gui.createTabPage(self.wiggler_tabs, "Wiggler Spectrum"),
         ]
 
         for tab in self.wiggler_tab:
@@ -267,12 +290,10 @@ class Wiggler(ow_source.Source):
                                                 outFile="spectrum.dat",
                                                 elliptical=False)
 
-                self.plot_wiggler_histo(20,  data[:, 1], data[:, 0], plot_canvas_index=0, title="Electron trajectory x(y)", xtitle=r'Y [m]', ytitle=r'X [m]')
-                self.plot_wiggler_histo(40,  data[:, 1], data[:, 3], plot_canvas_index=1, title="Electron velocity betax(y)", xtitle=r'Y [m]', ytitle=r'betaX')
-                self.plot_wiggler_histo(60,  data[:, 1], data[:, 6], plot_canvas_index=2, title="Electron curvature", xtitle=r'Y [m]', ytitle=r'curvature [m^-1]')
-                self.plot_wiggler_histo(80,  data[:, 1], data[:, 7], plot_canvas_index=3, title="Magnetic Field (in vertical) Bz(y)", xtitle=r'Y [m]', ytitle=r'B [T]')
-
-
+                self.plot_wiggler_histo(20,  data[:, 1], data[:, 7], plot_canvas_index=0, title="Magnetic Field (in vertical) Bz(Y)", xtitle=r'Y [m]', ytitle=r'B [T]')
+                self.plot_wiggler_histo(40,  data[:, 1], data[:, 6], plot_canvas_index=1, title="Electron Curvature", xtitle=r'Y [m]', ytitle=r'curvature [m^-1]')
+                self.plot_wiggler_histo(60,  data[:, 1], data[:, 3], plot_canvas_index=2, title="Electron Belocity BetaX(Y)", xtitle=r'Y [m]', ytitle=r'BetaX')
+                self.plot_wiggler_histo(80,  data[:, 1], data[:, 0], plot_canvas_index=3, title="Electron Trajectory X(Y)", xtitle=r'Y [m]', ytitle=r'X [m]')
                 self.plot_wiggler_histo(100, energy    , flux      , plot_canvas_index=4, title="Wiggler spectrum (current = " + str(self.electron_current) + " mA)",
                                         xtitle=r'E [eV]', ytitle=r'Flux [phot/s/0.1%bw]', is_log_log=True)
 
@@ -332,6 +353,14 @@ class Wiggler(ow_source.Source):
         self.b_from_file_box.setVisible(self.type_combo == 1)
         self.b_from_harmonics_box.setVisible(self.type_combo == 2)
 
+    def set_ShiftXFlag(self):
+        self.shift_x_value_box.setVisible(self.shift_x_flag==5)
+        self.shift_x_value_box_hidden.setVisible(self.shift_x_flag!=5)
+
+    def set_ShiftBetaXFlag(self):
+        self.shift_betax_value_box.setVisible(self.shift_betax_flag==5)
+        self.shift_betax_value_box_hidden.setVisible(self.shift_betax_flag!=5)
+
     def selectOptimizeFile(self):
         self.le_optimize_file_name.setText(oasysgui.selectFileFromDialog(self, self.file_with_phase_space_volume, "Open Optimize Source Parameters File"))
 
@@ -369,7 +398,11 @@ class Wiggler(ow_source.Source):
                                                      ener_gev=self.energy,
                                                      per=self.id_period,
                                                      kValue=self.k_value,
-                                                     trajFile=congruence.checkFileName("tmp.traj"))
+                                                     trajFile=congruence.checkFileName("tmp.traj"),
+                                                     shift_x_flag=self.shift_x_flag,
+                                                     shift_x_value=self.shift_x_value,
+                                                     shift_betax_flag=self.shift_betax_flag,
+                                                     shift_betax_value=self.shift_betax_value)
 
             #
             # calculate cdf and write file for Shadow/Source
@@ -521,9 +554,9 @@ class Wiggler(ow_source.Source):
         self.emittance_z = congruence.checkPositiveNumber(self.emittance_z, "Emittance z")
         self.distance_from_waist_x = congruence.checkNumber(self.distance_from_waist_x, "Distance from waist x")
         self.distance_from_waist_z = congruence.checkNumber(self.distance_from_waist_z, "Distance from waist z")
-        self.number_of_periods = congruence.checkPositiveNumber(self.number_of_periods, "Number of periods")
-        self.k_value = congruence.checkPositiveNumber(self.k_value, "K value")
-        self.id_period = congruence.checkPositiveNumber(self.id_period, "ID period")
+        self.number_of_periods = congruence.checkStrictlyPositiveNumber(self.number_of_periods, "Number of periods")
+        self.k_value = congruence.checkStrictlyPositiveNumber(self.k_value, "K value")
+        self.id_period = congruence.checkStrictlyPositiveNumber(self.id_period, "ID period")
 
         if self.optimize_source_combo == 1:
             congruence.checkFile(self.file_with_phase_space_volume)
@@ -532,7 +565,6 @@ class Wiggler(ow_source.Source):
             congruence.checkFile(self.file_with_b_vs_y)
         elif self.type_combo == 2:
             congruence.checkFile(self.file_with_harmonics)
-
 
     def deserialize(self, shadow_file):
         if not shadow_file is None:
