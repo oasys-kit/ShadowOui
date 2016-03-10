@@ -378,6 +378,13 @@ class Wiggler(ow_source.Source):
         try:
             self.checkFields()
 
+            ###########################################
+            # TODO: TO BE ADDED JUST IN CASE OF BROKEN
+            #       ENVIRONMENT: MUST BE FOUND A PROPER WAY
+            #       TO TEST SHADOW
+            self.fixWeirdShadowBug()
+            ###########################################
+
             wigFile = bytes(congruence.checkFileName("xshwig.sha"), 'utf-8')
 
             if self.type_combo == 0:
