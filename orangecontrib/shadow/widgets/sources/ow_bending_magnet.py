@@ -153,6 +153,13 @@ class BendingMagnet(ow_source.Source):
         try:
             self.checkFields()
 
+            ###########################################
+            # TODO: TO BE ADDED JUST IN CASE OF BROKEN
+            #       ENVIRONMENT: MUST BE FOUND A PROPER WAY
+            #       TO TEST SHADOW
+            self.fixWeirdShadowBug()
+            ###########################################
+
             shadow_src = ShadowSource.create_bm_src()
 
             self.populateFields(shadow_src)
