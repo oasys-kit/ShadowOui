@@ -154,10 +154,12 @@ class ShadowToolsMenu(OMenu):
                         isinstance(widget, xsh_prerefl.OWxsh_prerefl) or \
                         isinstance(widget, xsh_pre_mlayer.OWxsh_pre_mlayer):
                     widget.compute()
-                elif isinstance(widget, xsh_waviness.OWxsh_waviness) or \
-                        isinstance(widget, height_profile_simulator.OWheight_profile_simulator):
+                elif isinstance(widget, xsh_waviness.OWxsh_waviness):
                     widget.calculate_error_profile(not_interactive_mode=True)
                     widget.generate_error_profile_file(not_interactive_mode=True)
+                elif isinstance(widget, height_profile_simulator.OWheight_profile_simulator):
+                    widget.calculate_heigth_profile(not_interactive_mode=True)
+                    widget.generate_heigth_profile_file(not_interactive_mode=True)
                 elif isinstance(widget, dabam_height_profile.OWdabam_height_profile):
                     QtGui.QMessageBox.warning(None, "Warning",
                         "DABAM Widget must be executed interactively",
