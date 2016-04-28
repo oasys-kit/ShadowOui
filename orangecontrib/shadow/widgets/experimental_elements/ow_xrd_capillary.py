@@ -1760,7 +1760,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
             if (self.add_constant==1):
                 background = ShadowPhysics.ConstatoBackgroundNoised(constant_value=self.constant_value,
-                                                                    sigma=self.n_sigma,
+                                                                    n_sigma=self.n_sigma,
                                                                     random_generator=self.random_generator_flat)
 
             if (self.add_chebyshev==1):
