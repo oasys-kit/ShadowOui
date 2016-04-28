@@ -943,6 +943,17 @@ class ShadowPhysics:
             return 0.0
 
     @classmethod
+    def ConstatoBackgroundNoised(cls, constant_value=0, n_sigma=1.0, random_generator=random.Random()):
+        sigma = numpy.sqrt(constant_value) # poisson statistic
+        noise = (n_sigma*sigma)*random_generator.random()
+        sign_marker = random_generator.random()
+
+        if sign_marker > 0.5:
+            return int(round(constant_value+noise, 0))
+        else:
+            return int(round(constant_value-noise, 0))
+
+    @classmethod
     def Chebyshev(cls, n, x):
         if n==0: return 1
         elif n==1: return x

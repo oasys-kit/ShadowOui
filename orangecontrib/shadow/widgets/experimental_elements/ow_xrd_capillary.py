@@ -1247,8 +1247,8 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                                                                          reflections)
 
                 self.average_absorption_coefficient = round(numpy.array(self.absorption_coefficients).mean(), 2) # cm-1
-                self.sample_transmittance = round(100*numpy.exp(-self.average_absorption_coefficient*self.capillary_diameter*0.5*self.mm_to_cm), 2) # distance in cm
                 self.muR = round(self.average_absorption_coefficient*self.capillary_diameter*0.5*self.mm_to_cm, 2) # distance in cm
+                self.sample_transmittance = round(100*numpy.exp(-2 * self.muR), 2) # distance in cm
 
                 if (self.incremental == 1 and self.number_of_executions > 1):
                     self.setStatusMessage("Running XRD Capillary Simulation on " + str(len(diffracted_rays))+ " diffracted rays: " + str(execution+1) + " of " + str(self.number_of_executions))
@@ -1757,6 +1757,12 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         for angle_index in cursor:
             background = 0
+
+            if (self.add_constant==1):
+                background = ShadowPhysics.ConstatoBackgroundNoised(constant_value=self.constant_value,
+                                                                    sigma=self.n_sigma,
+                                                                    random_generator=self.random_generator_flat)
+
             if (self.add_chebyshev==1):
                 coefficients = [self.cheb_coeff_0, self.cheb_coeff_1, self.cheb_coeff_2, self.cheb_coeff_3, self.cheb_coeff_4, self.cheb_coeff_5]
                 
