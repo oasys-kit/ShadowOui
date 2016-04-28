@@ -2084,7 +2084,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         crystal._oe.F_REFLEC = 0
         crystal._oe.F_CRYSTAL = 1
-        crystal._oe.FILE_REFL = bytes(congruence.checkFileName(self.rocking_curve_file, 'utf-8'))
+        crystal._oe.FILE_REFL = bytes(congruence.checkFileName(self.rocking_curve_file), 'utf-8')
         crystal._oe.F_REFLECT = 0
         crystal._oe.F_BRAGG_A = 0
         crystal._oe.A_BRAGG = 0.0
