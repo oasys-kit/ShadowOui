@@ -237,7 +237,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
         if input_parameters.ghy_calcType == 3:
             if shadow_oe._oe.FWRITE > 1 or shadow_oe._oe.F_ANGLE == 0:
-                shadow_oe._oe.FWRITE = 1 # mirror
+                shadow_oe._oe.FWRITE = 0 # all
                 shadow_oe._oe.F_ANGLE = 1 # angles
 
         # need to rerun simulation
