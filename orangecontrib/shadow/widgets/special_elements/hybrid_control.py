@@ -186,6 +186,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         calculation_parameters.original_beam_history = input_parameters.shadow_beam.getOEHistory()
 
         shadow_oe_original = input_parameters.shadow_beam.getOEHistory(input_parameters.shadow_beam._oe_number)._shadow_oe_start
+        input_beam = input_parameters.shadow_beam.getOEHistory(input_parameters.shadow_beam._oe_number)._input_beam
         shadow_oe = shadow_oe_original.duplicate() # no changes to the original object!
 
 
@@ -242,23 +243,13 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
         # need to rerun simulation
 
-        incident_beam = None
-
         input_parameters.widget.status_message("Creating HYBRID screen: redo simulation with modified O.E.")
 
-        for index in range(0, input_parameters.shadow_beam._oe_number):
-            if index == 0: # source
-                incident_beam = ShadowBeam.traceFromSource(input_parameters.shadow_beam.getOEHistory(index)._shadow_source_start.duplicate(),
-                                                           history=False)
-            else:
-                incident_beam = ShadowBeam.traceFromOE(incident_beam, input_parameters.shadow_beam.getOEHistory(index)._shadow_oe_start.duplicate(),
-                                                       history=False)
-
-        shadow_beam_at_image_plane = ShadowBeam.traceFromOE(incident_beam, shadow_oe, history=False)
+        shadow_beam_at_image_plane = ShadowBeam.traceFromOE(input_beam, shadow_oe, history=False)
 
         input_parameters.shadow_beam = shadow_beam_at_image_plane
 
-        image_beam, cursor = read_shadow_beam(shadow_beam_at_image_plane, 1)
+        image_beam, cursor = read_shadow_beam(shadow_beam_at_image_plane, 0) # all rays
 
         calculation_parameters.shadow_oe_end = shadow_oe
 
@@ -282,7 +273,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
             else:
                 fileShadowScreen = "screen." + str_n_oe + str_n_screen
 
-        image_beam, cursor = sh_readsh(fileShadowStar, 1)
+        image_beam, cursor = sh_readsh(fileShadowStar, 0)
 
         calculation_parameters.shadow_oe_end = sh_read_gfile("end." + str_n_oe)
 
@@ -293,7 +284,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
     calculation_parameters.zz_star = image_beam._beam.rays[:, 2]
 
     # read shadow screen file
-    screen_beam, cursor = sh_readsh(fileShadowScreen, 1)
+    screen_beam, cursor = sh_readsh(fileShadowScreen, 0)
 
     calculation_parameters.screen_plane_beam = screen_beam
     calculation_parameters.screen_plane_cursor = cursor
@@ -324,14 +315,14 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
  	# calculates the function of the "incident angle" and the "mirror height" versus the Z coordinate in the screen.
 
     if input_parameters.ghy_calcType == 3:
-        mirror_beam, cursor = sh_readsh("mirr." + str_n_oe, 1)
+        mirror_beam, cursor = sh_readsh("mirr." + str_n_oe, 0)
 
         calculation_parameters.xx_mirr = mirror_beam._beam.rays[:, 0]
         calculation_parameters.yy_mirr = mirror_beam._beam.rays[:, 1]
         calculation_parameters.zz_mirr = mirror_beam._beam.rays[:, 2]
 
         # read in angle files
-        angle_flag, angle_index, angle_inc, angle_ref = sh_readangle("angle." + str_n_oe, 1, mirror_beam)
+        angle_flag, angle_index, angle_inc, angle_ref = sh_readangle("angle." + str_n_oe, 0, mirror_beam)
 
         calculation_parameters.angle_inc = (90.0 - angle_inc)/180.0*1e3*numpy.pi
 
@@ -922,10 +913,12 @@ def sh_readangle(filename, flag=0, mirror_beam=None):
         angle_ref = copy.deepcopy(values[:, 2])
         angle_flag = copy.deepcopy(values[:, 3])
     elif good_only or lost_only:
-        angle_index = numpy.zeros(len( mirror_beam._beam.rays))
-        angle_inc = numpy.zeros(len( mirror_beam._beam.rays))
-        angle_ref = numpy.zeros(len( mirror_beam._beam.rays))
-        angle_flag = numpy.zeros(len( mirror_beam._beam.rays))
+        dimension = len(mirror_beam._beam.rays)
+
+        angle_index = numpy.zeros(dimension)
+        angle_inc = numpy.zeros(dimension)
+        angle_ref = numpy.zeros(dimension)
+        angle_flag = numpy.zeros(dimension)
 
         index = 0
         for ray in mirror_beam._beam.rays:
@@ -935,6 +928,8 @@ def sh_readangle(filename, flag=0, mirror_beam=None):
             angle_inc[index] = values[ray_index, 1]
             angle_ref[index] = values[ray_index, 2]
             angle_flag[index] = values[ray_index, 3]
+
+            print (index, dimension, ray_index, len(values[:, 0]))
 
             index+=1
     else:
