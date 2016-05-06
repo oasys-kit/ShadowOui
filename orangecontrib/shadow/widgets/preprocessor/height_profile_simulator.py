@@ -518,9 +518,17 @@ class OWheight_profile_simulator(OWWidget):
                                             "Height Profile file " + self.heigth_profile_file_name + " written on disk",
                                             QMessageBox.Ok)
 
+                dimension_x = self.dimension_x
+                dimension_y = self.dimension_y
+
+                if self.kind_of_profile_x == 2: #user defined
+                    dimension_x = (self.xx[-1] - self.xx[0])
+                if self.kind_of_profile_y == 2: #user defined
+                    dimension_y = (self.yy[-1] - self.yy[0])
+
                 self.send("PreProcessor_Data", ShadowPreProcessorData(error_profile_data_file=self.heigth_profile_file_name,
-                                                                      error_profile_x_dim=self.dimension_x,
-                                                                      error_profile_y_dim=self.dimension_y))
+                                                                      error_profile_x_dim=dimension_x,
+                                                                      error_profile_y_dim=dimension_y))
             except Exception as exception:
                 QMessageBox.critical(self, "Error",
                                      exception.args[0],
