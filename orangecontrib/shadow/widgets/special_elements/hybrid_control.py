@@ -189,23 +189,6 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         input_beam = input_parameters.shadow_beam.getOEHistory(input_parameters.shadow_beam._oe_number)._input_beam
         shadow_oe = shadow_oe_original.duplicate() # no changes to the original object!
 
-
-        if input_parameters.ghy_calcType == 3:
-            if input_parameters.ghy_usemirrorfile == 0: # use EMBEDDED one in OE
-                if shadow_oe._oe.F_RIPPLE == 1 and shadow_oe._oe.F_G_S == 2:
-                    input_parameters.ghy_mirrorfile = shadow_oe._oe.FILE_RIP
-
-                    # disable slope error calculation for OE, must be done by HYBRID!
-                    shadow_oe._oe.F_RIPPLE = 0
-                else:
-                    raise Exception("O.E. has not Surface Error file (setup Advanced Option->Modified Surface:\n\nModification Type = Surface Error\nType of Defect: external spline)")
-            else:
-                if shadow_oe._oe.F_RIPPLE != 0:
-                    if QMessageBox.No == showConfirmMessage("Possible incongruence", "Hybrid is going to make calculations using and externally inputed Heights Error Profile,\n" + \
-                                                                "but the Shadow O.E. already has a Modified Surface option active:\n\n" + \
-                                                                "Proceed anyway?"):
-                        raise Exception("Procedure Interrupted")
-
         n_screen = 1
         i_screen = numpy.zeros(10)  # after
         i_abs = numpy.zeros(10)
@@ -220,6 +203,46 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         file_scr_ext = numpy.array(['', '', '', '', '', '', '', '', '', ''])
         cx_slit = numpy.zeros(10)
         cz_slit = numpy.zeros(10)
+
+        if input_parameters.ghy_calcType == 1: # simple aperture
+            if (shadow_oe._oe.FMIRR == 5 and shadow_oe._oe.F_CRYSTAL == 0 and shadow_oe._oe.F_REFRAC == 2 and
+                        shadow_oe._oe.F_SCREEN==1 and shadow_oe._oe.N_SCREEN==1):
+
+                i_abs[0] = shadow_oe._oe.I_ABS[0]
+                i_slit[0] = shadow_oe._oe.I_SLIT[0]
+
+                if shadow_oe._oe.I_SLIT[0] == 1:
+                    i_stop[0] = shadow_oe._oe.I_STOP[0]
+                    k_slit[0] = shadow_oe._oe.K_SLIT[0]
+
+                    if shadow_oe._oe.K_SLIT[0] == 2:
+                        file_scr_ext[0] = shadow_oe._oe.FILE_SCR_EXT[0]
+                    else:
+                        rx_slit[0] = shadow_oe._oe.RX_SLIT[0]
+                        rz_slit[0] = shadow_oe._oe.RZ_SLIT[0]
+                        cx_slit[0] = shadow_oe._oe.CX_SLIT[0]
+                        cz_slit[0] = shadow_oe._oe.CZ_SLIT[0]
+
+                if shadow_oe._oe.I_ABS[0] == 1:
+                    thick[0] = shadow_oe._oe.THICK[0]
+                    file_abs[0] = shadow_oe._oe.FILE_ABS[0]
+            else:
+                raise Exception("Connected O.E. is not a Screen-Slit widget!")
+        elif input_parameters.ghy_calcType == 3: # mirror + figure error
+            if input_parameters.ghy_usemirrorfile == 0: # use EMBEDDED one in OE
+                if shadow_oe._oe.F_RIPPLE == 1 and shadow_oe._oe.F_G_S == 2:
+                    input_parameters.ghy_mirrorfile = shadow_oe._oe.FILE_RIP
+
+                    # disable slope error calculation for OE, must be done by HYBRID!
+                    shadow_oe._oe.F_RIPPLE = 0
+                else:
+                    raise Exception("O.E. has not Surface Error file (setup Advanced Option->Modified Surface:\n\nModification Type = Surface Error\nType of Defect: external spline)")
+            else:
+                if shadow_oe._oe.F_RIPPLE != 0:
+                    if QMessageBox.No == showConfirmMessage("Possible incongruence", "Hybrid is going to make calculations using and externally inputed Heights Error Profile,\n" + \
+                                                                "but the Shadow O.E. already has a Modified Surface option active:\n\n" + \
+                                                                "Proceed anyway?"):
+                        raise Exception("Procedure Interrupted")
 
         shadow_oe._oe.set_screens(n_screen,
                                 i_screen,
