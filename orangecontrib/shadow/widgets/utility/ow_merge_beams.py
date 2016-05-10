@@ -56,6 +56,10 @@ class MergeBeams(widget.OWWidget):
     def __init__(self, show_automatic_box=True):
         super().__init__()
 
+        self.runaction = widget.OWAction("Merge Beams", self)
+        self.runaction.triggered.connect(self.merge_beams)
+        self.addAction(self.runaction)
+
         geom = QApplication.desktop().availableGeometry()
         self.setGeometry(QRect(round(geom.width()*0.05),
                                round(geom.height()*0.05),

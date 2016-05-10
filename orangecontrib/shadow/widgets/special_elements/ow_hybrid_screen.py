@@ -1,9 +1,8 @@
 __author__ = 'labx'
 
 import sys
-import numpy
 from oasys.widgets import gui as oasysgui
-from orangewidget import gui
+from orangewidget import gui, widget
 from orangewidget.settings import Setting
 
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
@@ -67,6 +66,10 @@ class HybridScreen(AutomaticElement):
 
     def __init__(self):
         super().__init__()
+
+        self.runaction = widget.OWAction("Run Hybrid", self)
+        self.runaction.triggered.connect(self.run_hybrid)
+        self.addAction(self.runaction)
 
         self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
