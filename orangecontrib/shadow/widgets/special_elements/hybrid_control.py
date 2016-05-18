@@ -620,7 +620,7 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
     input_parameters.widget.status_message("FF: creating plane wave begin, fftsize = " +  str(fftsize))
 
 
-    wavefront = Wavefront1D.initialize_wavefront_from_range(wavelenght=calculation_parameters.gwavelength,
+    wavefront = Wavefront1D.initialize_wavefront_from_range(wavelength=calculation_parameters.gwavelength,
                                                             number_of_points=fftsize,
                                                             x_min=calculation_parameters.ghy_x_min,
                                                             x_max=calculation_parameters.ghy_x_max)
@@ -676,7 +676,7 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
         input_parameters.widget.status_message("NF: creating plane wave begin, fftsize = " +  str(fftsize))
         input_parameters.widget.set_progress_bar(55)
 
-        wavefront = Wavefront1D.initialize_wavefront_from_range(wavelenght=calculation_parameters.gwavelength,
+        wavefront = Wavefront1D.initialize_wavefront_from_range(wavelength=calculation_parameters.gwavelength,
                                                                 number_of_points=fftsize,
                                                                 x_min=calculation_parameters.ghy_x_min,
                                                                 x_max=calculation_parameters.ghy_x_max)
@@ -760,7 +760,7 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
     else: input_parameters.widget.set_progress_bar(30)
     input_parameters.widget.status_message("FF: creating plane wave begin, fftsize = " +  str(fftsize))
 
-    wavefront = Wavefront1D.initialize_wavefront_from_range(wavelenght=calculation_parameters.gwavelength,
+    wavefront = Wavefront1D.initialize_wavefront_from_range(wavelength=calculation_parameters.gwavelength,
                                                             number_of_points=fftsize,
                                                             x_min=calculation_parameters.ghy_z_min,
                                                             x_max=calculation_parameters.ghy_z_max)
@@ -814,7 +814,7 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
         input_parameters.widget.status_message("NF: creating plane wave begin, fftsize = " +  str(fftsize))
         input_parameters.widget.set_progress_bar(55)
 
-        wavefront = Wavefront1D.initialize_wavefront_from_range(wavelenght=calculation_parameters.gwavelength,
+        wavefront = Wavefront1D.initialize_wavefront_from_range(wavelength=calculation_parameters.gwavelength,
                                                                 number_of_points=fftsize,
                                                                 x_min=calculation_parameters.ghy_z_min,
                                                                 x_max=calculation_parameters.ghy_z_max)
