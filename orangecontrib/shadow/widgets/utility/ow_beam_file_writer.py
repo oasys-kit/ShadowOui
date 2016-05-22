@@ -1,8 +1,7 @@
 import os
 
 from PyQt4 import QtGui
-from oasys.widgets import widget
-from orangewidget import gui
+from orangewidget import gui, widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
 
@@ -34,6 +33,12 @@ class BeamFileWriter(widget.OWWidget):
     input_beam = None
 
     def __init__(self):
+        super().__init__()
+
+        self.runaction = widget.OWAction("Write Shadow File", self)
+        self.runaction.triggered.connect(self.write_file)
+        self.addAction(self.runaction)
+
         self.setFixedWidth(590)
         self.setFixedHeight(180)
 

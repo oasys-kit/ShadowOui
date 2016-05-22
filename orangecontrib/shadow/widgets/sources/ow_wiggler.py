@@ -292,9 +292,9 @@ class Wiggler(ow_source.Source):
 
                 self.plot_wiggler_histo(20,  data[:, 1], data[:, 7], plot_canvas_index=0, title="Magnetic Field (in vertical) Bz(Y)", xtitle=r'Y [m]', ytitle=r'B [T]')
                 self.plot_wiggler_histo(40,  data[:, 1], data[:, 6], plot_canvas_index=1, title="Electron Curvature", xtitle=r'Y [m]', ytitle=r'curvature [m^-1]')
-                self.plot_wiggler_histo(60,  data[:, 1], data[:, 3], plot_canvas_index=2, title="Electron Belocity BetaX(Y)", xtitle=r'Y [m]', ytitle=r'BetaX')
+                self.plot_wiggler_histo(60,  data[:, 1], data[:, 3], plot_canvas_index=2, title="Electron Velocity BetaX(Y)", xtitle=r'Y [m]', ytitle=r'BetaX')
                 self.plot_wiggler_histo(80,  data[:, 1], data[:, 0], plot_canvas_index=3, title="Electron Trajectory X(Y)", xtitle=r'Y [m]', ytitle=r'X [m]')
-                self.plot_wiggler_histo(100, energy    , flux      , plot_canvas_index=4, title="Wiggler spectrum (current = " + str(self.electron_current) + " mA)",
+                self.plot_wiggler_histo(100, energy    , flux      , plot_canvas_index=4, title="Wiggler Spectrum (current = " + str(self.electron_current) + " mA)",
                                         xtitle=r'E [eV]', ytitle=r'Flux [phot/s/0.1%bw]', is_log_log=True)
 
             except Exception as exception:

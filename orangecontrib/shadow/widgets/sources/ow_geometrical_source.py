@@ -945,7 +945,7 @@ class GeometricalSource(ow_source.Source):
             shadow_src.src.CONE_MIN = self.cone_internal_half_aperture
             shadow_src.src.CONE_MAX = self.cone_external_half_aperture
 
-        shadow_src.src.FSOURCE_DEPTH = self.depth
+        shadow_src.src.FSOURCE_DEPTH = self.depth + 1
 
         if self.depth == 1:
             shadow_src.src.WYSOU = self.source_depth_y

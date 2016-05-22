@@ -87,8 +87,9 @@ def adjust_shadow_string(string_to_adjust):
 
 class ShadowOEHistoryItem(object):
 
-    def __init__(self, oe_number=0, shadow_source_start=None, shadow_source_end=None, shadow_oe_start=None, shadow_oe_end=None):
+    def __init__(self, oe_number=0, input_beam=None, shadow_source_start=None, shadow_source_end=None, shadow_oe_start=None, shadow_oe_end=None):
         self._oe_number = oe_number
+        self._input_beam = input_beam
         self._shadow_source_start = shadow_source_start
         self._shadow_source_end = shadow_source_end
         self._shadow_oe_start = shadow_oe_start
@@ -96,6 +97,7 @@ class ShadowOEHistoryItem(object):
 
     def duplicate(self):
         return ShadowOEHistoryItem(oe_number=self._oe_number,
+                                   input_beam=self._input_beam,
                                    shadow_source_start=self._shadow_source_start,
                                    shadow_source_end=self._shadow_source_end,
                                    shadow_oe_start=self._shadow_oe_start,
@@ -237,9 +239,9 @@ class ShadowBeam:
             #N.B. history[0] = Source
             if not self._oe_number == 0:
                 if len(self.history) - 1 < self._oe_number:
-                    self.history.append(ShadowOEHistoryItem(oe_number=self._oe_number, shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end))
+                    self.history.append(ShadowOEHistoryItem(oe_number=self._oe_number, input_beam=input_beam.duplicate(), shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end))
                 else:
-                    self.history[self._oe_number]=ShadowOEHistoryItem(oe_number=self._oe_number, shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end)
+                    self.history[self._oe_number]=ShadowOEHistoryItem(oe_number=self._oe_number, input_beam=input_beam.duplicate(), shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end)
 
         return self
 
@@ -272,9 +274,9 @@ class ShadowBeam:
             # N.B. history[0] = Source
             if not self._oe_number == 0:
                 if len(self.history) - 1 < self._oe_number:
-                    self.history.append(ShadowOEHistoryItem(oe_number=self._oe_number, shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end))
+                    self.history.append(ShadowOEHistoryItem(oe_number=self._oe_number, input_beam=input_beam.duplicate(), shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end))
                 else:
-                    self.history[self._oe_number] = ShadowOEHistoryItem(oe_number=self._oe_number, shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end)
+                    self.history[self._oe_number] = ShadowOEHistoryItem(oe_number=self._oe_number, input_beam=input_beam.duplicate(), shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end)
 
         return self
 

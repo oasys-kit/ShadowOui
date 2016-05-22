@@ -1,9 +1,8 @@
 __author__ = 'labx'
 
 import sys
-import numpy
 from oasys.widgets import gui as oasysgui
-from orangewidget import gui
+from orangewidget import gui, widget
 from orangewidget.settings import Setting
 
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
@@ -67,6 +66,10 @@ class HybridScreen(AutomaticElement):
 
     def __init__(self):
         super().__init__()
+
+        self.runaction = widget.OWAction("Run Hybrid", self)
+        self.runaction.triggered.connect(self.run_hybrid)
+        self.addAction(self.runaction)
 
         self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
@@ -364,7 +367,7 @@ class HybridScreen(AutomaticElement):
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))
 
-            QtGui.QMessageBox.critical(self, "Error", str(exception.args[0]), QtGui.QMessageBox.Ok)
+            QtGui.QMessageBox.critical(self, "Error", str(exception), QtGui.QMessageBox.Ok)
 
             #raise exception
 

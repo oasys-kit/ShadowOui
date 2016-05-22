@@ -234,7 +234,7 @@ class FocNew(ow_automatic_element.AutomaticElement):
 
                 pos = [0.25, 0.15, 0.7, 0.75]
 
-                self.plot_canvas_x.addCurve(y, 2.35*ST.focnew_scan(ticket["AX"]*ShadowPlot.get_factor(0, self.workspace_units_to_cm), y), "x (tangential)", symbol='', color="blue", replace=True) #'+', '^', ','
+                self.plot_canvas_x.addCurve(y, 2.35*ST.focnew_scan(ticket["AX"], y)*ShadowPlot.get_factor(1, self.workspace_units_to_cm), "x (tangential)", symbol='', color="blue", replace=True) #'+', '^', ','
                 self.plot_canvas_x._plot.graph.ax.get_yaxis().get_major_formatter().set_useOffset(True)
                 self.plot_canvas_x._plot.graph.ax.get_yaxis().get_major_formatter().set_scientific(True)
                 self.plot_canvas_x._plot.graph.ax.set_position(pos)
@@ -244,7 +244,7 @@ class FocNew(ow_automatic_element.AutomaticElement):
                 self.plot_canvas_x._plot.graph.ax.set_title("X", horizontalalignment='left')
                 self.plot_canvas_x.replot()
 
-                self.plot_canvas_z.addCurve(y, 2.35*ST.focnew_scan(ticket["AZ"]*ShadowPlot.get_factor(1, self.workspace_units_to_cm), y), "z (sagittal)", symbol='', color="red", replace=False) #'+', '^', ','
+                self.plot_canvas_z.addCurve(y, 2.35*ST.focnew_scan(ticket["AZ"], y)*ShadowPlot.get_factor(3, self.workspace_units_to_cm), "z (sagittal)", symbol='', color="red", replace=False) #'+', '^', ','
                 self.plot_canvas_z._plot.graph.ax.get_yaxis().get_major_formatter().set_useOffset(True)
                 self.plot_canvas_z._plot.graph.ax.get_yaxis().get_major_formatter().set_scientific(True)
                 self.plot_canvas_z._plot.graph.ax.set_position(pos)
@@ -254,7 +254,7 @@ class FocNew(ow_automatic_element.AutomaticElement):
                 self.plot_canvas_z._plot.graph.ax.set_title("Z", horizontalalignment='left')
                 self.plot_canvas_z.replot()
 
-                self.plot_canvas_t.addCurve(y, 2.35*ST.focnew_scan(ticket["AT"]*ShadowPlot.get_factor(0, self.workspace_units_to_cm), y), "combined x,z", symbol='', color="green", replace=True) #'+', '^', ','
+                self.plot_canvas_t.addCurve(y, 2.35*ST.focnew_scan(ticket["AT"], y)*ShadowPlot.get_factor(1, self.workspace_units_to_cm), "combined x,z", symbol='', color="green", replace=True) #'+', '^', ','
                 self.plot_canvas_t._plot.graph.ax.get_yaxis().get_major_formatter().set_useOffset(True)
                 self.plot_canvas_t._plot.graph.ax.get_yaxis().get_major_formatter().set_scientific(True)
                 self.plot_canvas_t._plot.graph.ax.set_position(pos)

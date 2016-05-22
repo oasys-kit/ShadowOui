@@ -32,17 +32,22 @@ class ShadowToolsMenu(OMenu):
     def __init__(self):
         super().__init__(name="Shadow Tools")
 
+        self.openContainer()
+        self.addContainer("Import")
         self.addSubMenu("Import Shadow File")
         self.addSubMenu("Import Shadow Workspace")
-        self.addSeparator()
-        self.addSubMenu("Execute all the Preprocessor widgets")
-        self.addSeparator()
+        self.closeContainer()
+        self.openContainer()
+        self.addContainer("Plotting")
         self.addSubMenu("Enable all the Plotting widgets")
         self.addSubMenu("Disable all the Plotting widgets")
         self.addSeparator()
         self.addSubMenu("Select Detailed Plots on all Source and O.E. widgets")
         self.addSubMenu("Select Preview Plots on all Source and O.E. widgets")
         self.addSubMenu("Select No Plots on all Source and O.E. widgets")
+        self.closeContainer()
+        self.addSeparator()
+        self.addSubMenu("Execute all the Preprocessor widgets")
 
     def fixWeirdShadowBug(self):
         if not self.is_weird_shadow_bug_fixed:
@@ -143,7 +148,87 @@ class ShadowToolsMenu(OMenu):
                 exception.args[0],
                 QtGui.QMessageBox.Ok)
 
+
+    #ENABLE PLOTS
+    def executeAction_3(self, action):
+        try:
+            for link in self.canvas_main_window.current_document().scheme().links:
+                if not link.enabled:
+                    widget = self.canvas_main_window.current_document().scheme().widget_for_node(link.sink_node)
+
+                    if isinstance(widget, ow_plot_xy.PlotXY) or \
+                       isinstance(widget, ow_histogram.Histogram) or \
+                       isinstance(widget, ow_info.Info):
+                        link.set_enabled(True)
+        except Exception as exception:
+            QtGui.QMessageBox.critical(None, "Error",
+                exception.args[0],
+                QtGui.QMessageBox.Ok)
+
     def executeAction_4(self, action):
+        try:
+            for link in self.canvas_main_window.current_document().scheme().links:
+                if link.enabled:
+                    widget = self.canvas_main_window.current_document().scheme().widget_for_node(link.sink_node)
+
+                    if isinstance(widget, ow_plot_xy.PlotXY) or \
+                       isinstance(widget, ow_histogram.Histogram) or \
+                       isinstance(widget, ow_info.Info):
+                        link.set_enabled(False)
+        except Exception as exception:
+            QtGui.QMessageBox.critical(None, "Error",
+                exception.args[0],
+                QtGui.QMessageBox.Ok)
+
+    def executeAction_5(self, action):
+        try:
+            for node in self.canvas_main_window.current_document().scheme().nodes:
+                widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
+
+                if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
+                    widget.view_type = 0
+                    widget.set_PlotQuality()
+                if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
+                    widget.plot_graph = 1
+                    widget.set_PlotGraphs()
+        except Exception as exception:
+            QtGui.QMessageBox.critical(None, "Error",
+                exception.args[0],
+                QtGui.QMessageBox.Ok)
+
+    def executeAction_6(self, action):
+        try:
+            for node in self.canvas_main_window.current_document().scheme().nodes:
+                widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
+
+                if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
+                    widget.view_type = 1
+                    widget.set_PlotQuality()
+                if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
+                    widget.plot_graph = 1
+                    widget.set_PlotGraphs()
+        except Exception as exception:
+            QtGui.QMessageBox.critical(None, "Error",
+                exception.args[0],
+                QtGui.QMessageBox.Ok)
+
+    def executeAction_7(self, action):
+        try:
+            for node in self.canvas_main_window.current_document().scheme().nodes:
+                widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
+
+                if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
+                    widget.view_type = 2
+                    widget.set_PlotQuality()
+                if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
+                    widget.plot_graph = 0
+                    widget.set_PlotGraphs()
+        except Exception as exception:
+            QtGui.QMessageBox.critical(None, "Error",
+                exception.args[0],
+                QtGui.QMessageBox.Ok)
+
+    def executeAction_8(self, action):
         try:
             self.fixWeirdShadowBug()
 
@@ -165,85 +250,6 @@ class ShadowToolsMenu(OMenu):
                         "DABAM Widget must be executed interactively",
                         QtGui.QMessageBox.Ok)
 
-        except Exception as exception:
-            QtGui.QMessageBox.critical(None, "Error",
-                exception.args[0],
-                QtGui.QMessageBox.Ok)
-
-    #ENABLE PLOTS
-    def executeAction_6(self, action):
-        try:
-            for link in self.canvas_main_window.current_document().scheme().links:
-                if not link.enabled:
-                    widget = self.canvas_main_window.current_document().scheme().widget_for_node(link.sink_node)
-
-                    if isinstance(widget, ow_plot_xy.PlotXY) or \
-                       isinstance(widget, ow_histogram.Histogram) or \
-                       isinstance(widget, ow_info.Info):
-                        link.set_enabled(True)
-        except Exception as exception:
-            QtGui.QMessageBox.critical(None, "Error",
-                exception.args[0],
-                QtGui.QMessageBox.Ok)
-
-    def executeAction_7(self, action):
-        try:
-            for link in self.canvas_main_window.current_document().scheme().links:
-                if link.enabled:
-                    widget = self.canvas_main_window.current_document().scheme().widget_for_node(link.sink_node)
-
-                    if isinstance(widget, ow_plot_xy.PlotXY) or \
-                       isinstance(widget, ow_histogram.Histogram) or \
-                       isinstance(widget, ow_info.Info):
-                        link.set_enabled(False)
-        except Exception as exception:
-            QtGui.QMessageBox.critical(None, "Error",
-                exception.args[0],
-                QtGui.QMessageBox.Ok)
-
-    def executeAction_9(self, action):
-        try:
-            for node in self.canvas_main_window.current_document().scheme().nodes:
-                widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
-
-                if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
-                    widget.view_type = 0
-                    widget.set_PlotQuality()
-                if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
-                    widget.plot_graph = 1
-                    widget.set_PlotGraphs()
-        except Exception as exception:
-            QtGui.QMessageBox.critical(None, "Error",
-                exception.args[0],
-                QtGui.QMessageBox.Ok)
-
-    def executeAction_10(self, action):
-        try:
-            for node in self.canvas_main_window.current_document().scheme().nodes:
-                widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
-
-                if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
-                    widget.view_type = 1
-                    widget.set_PlotQuality()
-                if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
-                    widget.plot_graph = 1
-                    widget.set_PlotGraphs()
-        except Exception as exception:
-            QtGui.QMessageBox.critical(None, "Error",
-                exception.args[0],
-                QtGui.QMessageBox.Ok)
-
-    def executeAction_11(self, action):
-        try:
-            for node in self.canvas_main_window.current_document().scheme().nodes:
-                widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
-
-                if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
-                    widget.view_type = 2
-                    widget.set_PlotQuality()
-                if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
-                    widget.plot_graph = 0
-                    widget.set_PlotGraphs()
         except Exception as exception:
             QtGui.QMessageBox.critical(None, "Error",
                 exception.args[0],
