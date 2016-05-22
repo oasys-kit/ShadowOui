@@ -21,7 +21,6 @@ class BendingMagnet(ow_source.Source):
     seed=Setting(6775431)
     e_min=Setting(5000)
     e_max=Setting(100000)
-    store_optical_paths=Setting(1) # REMOVED FROM GUI: 1 AS DEFAULT
     sample_distribution_combo=Setting(0) # REMOVED FROM GUI: 0 AS DEFAULT
     generate_polarization_combo=Setting(2)
 
@@ -249,7 +248,7 @@ class BendingMagnet(ow_source.Source):
         shadow_src.src.ISTAR1 = self.seed
         shadow_src.src.PH1 = self.e_min
         shadow_src.src.PH2 = self.e_max
-        shadow_src.src.F_OPD = self.store_optical_paths
+        shadow_src.src.F_OPD = 1
         shadow_src.src.F_SR_TYPE = self.sample_distribution_combo
         shadow_src.src.F_POL = 1 + self.generate_polarization_combo
         shadow_src.src.SIGMAX = self.sigma_x
@@ -278,7 +277,6 @@ class BendingMagnet(ow_source.Source):
                 self.seed=int(shadow_file.getProperty("ISTAR1"))
                 self.e_min=float(shadow_file.getProperty("PH1"))
                 self.e_max=float(shadow_file.getProperty("PH2"))
-                self.store_optical_paths=int(shadow_file.getProperty("F_OPD"))
                 self.sample_distribution_combo=int(shadow_file.getProperty("F_SR_TYPE"))
                 self.generate_polarization_combo=int(shadow_file.getProperty("F_POL"))-1
 
