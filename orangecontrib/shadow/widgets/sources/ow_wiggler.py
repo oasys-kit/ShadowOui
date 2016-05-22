@@ -447,6 +447,7 @@ class Wiggler(ow_source.Source):
             shadow_src.src.PH1=self.e_min
             shadow_src.src.PH2=self.e_max
 
+            shadow_src.src.F_OPD=1
             shadow_src.src.F_BOUND_SOUR = self.optimize_source_combo
             shadow_src.src.NTOTALPOINT = self.max_number_of_rejected_rays
 

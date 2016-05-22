@@ -745,7 +745,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         self.micron_to_cm = 1e-4
         self.mm_to_user_units = 1e-1 / self.workspace_units_to_cm
         self.mm_to_cm = 1e-1
-        self.mm_to_angstrom = 1e4
+        self.micron_to_angstrom = 1e4
 
         label = self.le_detector_distance.parent().layout().itemAt(0).widget()
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
@@ -1431,8 +1431,8 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                                     reflection, wavelength, ray_bragg_angle)  # darwin width fluctuations
 
                                 if self.residual_average_size > 0:
-                                    delta_theta_size = 2 * numpy.random.normal(0.0, (0.94 * wavelength) / (
-                                        self.residual_average_size * self.mm_to_angstrom), 1)  # residual size effects
+                                    fwhm_size = (0.94 * wavelength * 4 / 3) / (self.residual_average_size * self.micron_to_angstrom * numpy.cos(ray_bragg_angle))
+                                    delta_theta_size = 2 * numpy.random.normal(0.0, fwhm_size, 1)  # residual size effects
                                 else:
                                     delta_theta_size = 0.0
 
