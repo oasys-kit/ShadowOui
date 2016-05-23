@@ -118,8 +118,6 @@ class GeometricalSource(ow_source.Source):
     phase_diff = Setting(0.0)
     polarization_degree = Setting(1.0)
 
-    store_optical_paths=Setting(1) # REMOVED FROM GUI: 1 AS DEFAULT
-
     optimize_source=Setting(0)
     optimize_file_name = Setting("NONESPECIFIED")
     max_number_of_rejected_rays = Setting(10000000)
@@ -1004,7 +1002,7 @@ class GeometricalSource(ow_source.Source):
             shadow_src.src.POL_ANGLE = self.phase_diff
             shadow_src.src.POL_DEG = self.polarization_degree
 
-        shadow_src.src.F_OPD = self.store_optical_paths
+        shadow_src.src.F_OPD = 1
         shadow_src.src.F_BOUND_SOUR = self.optimize_source
         if self.optimize_source > 0:
             shadow_src.src.FILE_BOUND = bytes(congruence.checkFileName(self.optimize_file_name), 'utf-8')
@@ -1137,8 +1135,6 @@ class GeometricalSource(ow_source.Source):
                     self.coherent_beam = float(shadow_file.getProperty("F_COHER"))
                     self.phase_diff = float(shadow_file.getProperty("POL_ANGLE"))
                     self.polarization_degree = float(shadow_file.getProperty("POL_DEG"))
-
-                self.store_optical_paths = int(shadow_file.getProperty("F_OPD"))
 
                 self.optimize_source = int(shadow_file.getProperty("F_BOUND_SOUR"))
                 self.optimize_file_name = str(shadow_file.getProperty("FILE_BOUND"))

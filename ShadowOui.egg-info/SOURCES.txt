@@ -122,6 +122,7 @@ orangecontrib/shadow/widgets/optical_elements/icons/paraboloid_mirror.png
 orangecontrib/shadow/widgets/optical_elements/icons/plane_crystal.png
 orangecontrib/shadow/widgets/optical_elements/icons/plane_grating.png
 orangecontrib/shadow/widgets/optical_elements/icons/plane_mirror.png
+orangecontrib/shadow/widgets/optical_elements/icons/refractor_interface.png
 orangecontrib/shadow/widgets/optical_elements/icons/screen_slits.png
 orangecontrib/shadow/widgets/optical_elements/icons/spherical_crystal.png
 orangecontrib/shadow/widgets/optical_elements/icons/spherical_grating.png
