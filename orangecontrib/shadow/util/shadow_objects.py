@@ -297,10 +297,14 @@ class ShadowSource:
     def __new__(cls, src=None):
         self = super().__new__(cls)
         self.src = src
+        self.source_type = None
         return self
 
     def set_src(self, src):
         self.src = src
+
+    def set_source_type(self, type):
+        self.source_type = type
 
     ####################################################################
     # FOR WEIRD BUG ON LINUX - STRING NOT PROPERLY RETURNED BY BINDING
