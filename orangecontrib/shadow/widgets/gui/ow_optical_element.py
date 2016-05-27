@@ -826,7 +826,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     gui.comboBox(crystal_box, self, "diffraction_geometry", label="Diffraction Geometry", labelWidth=250,
                                  items=["Bragg", "Laue"],
-                                 sendSelectedValue=False, orientation="horizontal")
+                                 sendSelectedValue=False, orientation="horizontal", callback=self.set_BraggLaue)
 
                     gui.comboBox(crystal_box, self, "diffraction_calculation", label="Diffraction Profile", labelWidth=250,
                                  items=["Calculated", "User Defined"],
@@ -903,8 +903,12 @@ class OpticalElement(ow_generic_element.GenericElement):
                     self.asymmetric_cut_box_1_empty = oasysgui.widgetBox(self.asymmetric_cut_box, "", addSpace=False, orientation="vertical")
 
                     oasysgui.lineEdit(self.asymmetric_cut_box_1, self, "planes_angle", "Planes angle [deg]", labelWidth=260, valueType=float, orientation="horizontal")
-                    oasysgui.lineEdit(self.asymmetric_cut_box_1, self, "below_onto_bragg_planes", "Below[-1]/onto[1] bragg planes",  labelWidth=260, valueType=float, orientation="horizontal")
+                    self.asymmetric_cut_box_1_order = oasysgui.widgetBox(self.asymmetric_cut_box_1, "", addSpace=False, orientation="vertical")
+                    oasysgui.lineEdit(self.asymmetric_cut_box_1_order, self, "below_onto_bragg_planes", "Below[-1]/onto[1] bragg planes",  labelWidth=260, valueType=float, orientation="horizontal")
+
                     self.le_thickness_1 = oasysgui.lineEdit(self.asymmetric_cut_box_1, self, "thickness", "Thickness", valueType=float, labelWidth=260, orientation="horizontal")
+
+                    self.set_BraggLaue()
 
                     gui.separator(self.mosaic_box_1)
 
@@ -1448,6 +1452,8 @@ class OpticalElement(ow_generic_element.GenericElement):
         else:
             self.set_Autosetting()
 
+    def set_BraggLaue(self):
+        self.asymmetric_cut_box_1_order.setVisible(self.diffraction_geometry==1) #LAUE
 
     def set_UnitsInUse(self):
         self.autosetting_box_units_1.setVisible(self.units_in_use == 0)
@@ -2182,6 +2188,9 @@ class OpticalElement(ow_generic_element.GenericElement):
                     shadow_oe._oe.RUL_A2 = self.grating_poly_coeff_2
                     shadow_oe._oe.RUL_A3 = self.grating_poly_coeff_3
                     shadow_oe._oe.RUL_A4 = self.grating_poly_coeff_4
+
+                shadow_oe._oe.ORDER = self.grating_diffraction_order
+
                 if self.grating_auto_setting == 0:
                     shadow_oe._oe.F_CENTRAL=0
                 else:
@@ -2320,7 +2329,10 @@ class OpticalElement(ow_generic_element.GenericElement):
                  shadow_oe._oe.Y_SOUR_ROT=self.sm_rotation_around_y
                  shadow_oe._oe.Z_SOUR_ROT=self.sm_rotation_around_z
 
-            shadow_oe._oe.FWRITE=self.file_to_write_out
+            if self.file_to_write_out == 4:
+                shadow_oe._oe.FWRITE=0
+            else:
+                shadow_oe._oe.FWRITE=self.file_to_write_out
 
             if self.graphical_options.is_crystal and self.diffraction_calculation == 1:
                 shadow_oe._oe.F_ANGLE = 1
@@ -3056,6 +3068,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                 self.set_Refl_Parameters()
             elif self.graphical_options.is_crystal:
                 self.set_Mosaic()
+                self.set_BraggLaue()
                 self.set_DiffractionCalculation()
             elif self.graphical_options.is_grating:
                 self.set_GratingAutosetting()
