@@ -103,11 +103,18 @@ class ShadowPlotData(ShadowStatisticData):
 
 class ShadowPlot:
 
+    _is_conversione_active = True
+
     #########################################################################################
     #
     # FOR TEMPORARY USE: FIX AN ERROR IN PYMCA.PLOT.IMAGEWIEW
     #
     #########################################################################################
+
+
+    @classmethod
+    def set_conversion_active(cls, is_active=True):
+        ShadowPlot._is_conversione_active = is_active
 
     """Sample code to add 2D dataset saving as text to ImageView."""
 
@@ -627,10 +634,11 @@ class ShadowPlot:
     def get_factor(cls, var, conv):
         factor = 1.0
 
-        if var == 1 or var == 2 or var == 3:
-            factor = 1e4*conv # cm to micron
-        elif var == 4 or var == 5 or var == 6:
-            factor = 1e6 # rad to urad
+        if ShadowPlot._is_conversione_active:
+            if var == 1 or var == 2 or var == 3:
+                factor = 1e4*conv # cm to micron
+            elif var == 4 or var == 5 or var == 6:
+                factor = 1e6 # rad to urad
 
         return factor
 

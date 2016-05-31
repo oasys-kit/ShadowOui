@@ -60,6 +60,8 @@ class PlotXY(AutomaticElement):
 
     keep_result=Setting(0)
 
+    is_conversion_active = Setting(1)
+
     def __init__(self):
         super().__init__()
 
@@ -246,9 +248,12 @@ class PlotXY(AutomaticElement):
         gui.checkBox(incremental_box, self, "keep_result", "Keep Result")
         gui.button(incremental_box, self, "Clear", callback=self.clearResults)
 
-        histograms_box = oasysgui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=70)
+        histograms_box = oasysgui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=90)
 
         oasysgui.lineEdit(histograms_box, self, "number_of_bins", "Number of Bins", labelWidth=250, valueType=int, orientation="horizontal")
+        gui.comboBox(histograms_box, self, "is_conversion_active", label="Is U.M. conversion active", labelWidth=250,
+                                         items=["No", "Yes"],
+                                         sendSelectedValue=False, orientation="horizontal")
 
         main_tabs = gui.tabWidget(self.mainArea)
         plot_tab = gui.createTabPage(main_tabs, "Plots")
@@ -312,7 +317,7 @@ class PlotXY(AutomaticElement):
 
                 dist = self.image_plane_new_position - image_plane
 
-            new_shadow_beam._beam.retrace(dist)
+            self.retrace_beam(new_shadow_beam, dist)
 
             beam_to_plot = new_shadow_beam._beam
 
@@ -380,6 +385,8 @@ class PlotXY(AutomaticElement):
                 grabber.start()
 
             if ShadowCongruence.checkEmptyBeam(self.input_beam):
+                ShadowPlot.set_conversion_active(self.getConversionActive())
+
                 self.number_of_bins = congruence.checkPositiveNumber(self.number_of_bins, "Number of Bins")
 
                 auto_x_title = self.x_column.currentText().split(":", 2)[1]
@@ -393,11 +400,19 @@ class PlotXY(AutomaticElement):
                 x = self.x_column_index + 1
 
                 if x == 1 or x == 2 or x == 3:
-                    xum = xum + "[" + u"\u03BC" + "m]"
-                    auto_x_title = auto_x_title + " [$\mu$m]"
+                    if self.getConversionActive():
+                        xum = xum + "[" + u"\u03BC" + "m]"
+                        auto_x_title = auto_x_title + " [$\mu$m]"
+                    else:
+                        xum = xum + " [" + self.workspace_units_label + "]"
+                        auto_x_title = auto_x_title + " [" + self.workspace_units_label + "]"
                 elif x == 4 or x == 5 or x == 6:
-                    xum = xum + "[" + u"\u03BC" + "rad]"
-                    auto_x_title = auto_x_title + " [$\mu$rad]"
+                    if self.getConversionActive():
+                        xum = xum + "[" + u"\u03BC" + "rad]"
+                        auto_x_title = auto_x_title + " [$\mu$rad]"
+                    else:
+                        xum = xum + " [rad]"
+                        auto_x_title = auto_x_title + " [rad]"
                 elif x == 11:
                     xum = xum + "[eV]"
                     auto_x_title = auto_x_title + " [eV]"
@@ -426,11 +441,19 @@ class PlotXY(AutomaticElement):
                 y = self.y_column_index + 1
 
                 if y == 1 or y == 2 or y == 3:
-                    yum = yum + "[" + u"\u03BC" + "m]"
-                    auto_y_title = auto_y_title + " [$\mu$m]"
+                    if self.getConversionActive():
+                        yum = yum + "[" + u"\u03BC" + "m]"
+                        auto_y_title = auto_y_title + " [$\mu$m]"
+                    else:
+                        yum = yum + " [" + self.workspace_units_label + "]"
+                        auto_y_title = auto_y_title + " [" + self.workspace_units_label + "]"
                 elif y == 4 or y == 5 or y == 6:
-                    yum = yum + "[" + u"\u03BC" + "rad]"
-                    auto_y_title = auto_y_title + " [$\mu$rad]"
+                    if self.getConversionActive():
+                        yum = yum + "[" + u"\u03BC" + "rad]"
+                        auto_y_title = auto_y_title + " [$\mu$rad]"
+                    else:
+                        yum = yum + " [rad]"
+                        auto_y_title = auto_y_title + " [rad]"
                 elif y == 11:
                     yum = yum + "[eV]"
                     auto_y_title = auto_y_title + " [eV]"
@@ -497,3 +520,9 @@ class PlotXY(AutomaticElement):
         cursor.insertText(text)
         self.shadow_output.setTextCursor(cursor)
         self.shadow_output.ensureCursorVisible()
+
+    def retrace_beam(self, new_shadow_beam, dist):
+            new_shadow_beam._beam.retrace(dist)
+
+    def getConversionActive(self):
+        return self.is_conversion_active==1

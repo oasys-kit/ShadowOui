@@ -62,11 +62,13 @@ class GenericElement(ow_automatic_element.AutomaticElement):
         for index in indexes:
             self.tabs.removeTab(size-1-index)
 
-        self.tab = [gui.createTabPage(self.tabs, "X,Z"),
-                    gui.createTabPage(self.tabs, "X',Z'"),
-                    gui.createTabPage(self.tabs, "X,X'"),
-                    gui.createTabPage(self.tabs, "Z,Z'"),
-                    gui.createTabPage(self.tabs, "Energy"),
+        titles = self.getTitles()
+
+        self.tab = [gui.createTabPage(self.tabs, titles[0]),
+                    gui.createTabPage(self.tabs, titles[1]),
+                    gui.createTabPage(self.tabs, titles[2]),
+                    gui.createTabPage(self.tabs, titles[3]),
+                    gui.createTabPage(self.tabs, titles[4]),
         ]
 
         for tab in self.tab:
@@ -168,6 +170,8 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                 if ShadowCongruence.checkGoodBeam(beam_out):
                     self.view_type_combo.setEnabled(False)
 
+                    ShadowPlot.set_conversion_active(self.getConversionActive())
+
                     if self.isFootprintEnabled():
                         beam_foot_print = ShadowBeam()
                         if beam_out._oe_number < 10:
@@ -175,28 +179,31 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                         else:
                             beam_foot_print.loadFromFile(file_name="mirr." + str(beam_out._oe_number))
 
+                    variables = self.getVariablestoPlot()
+                    titles = self.getTitles()
+                    xtitles = self.getXTitles()
+                    ytitles = self.getYTitles()
+                    xums = self.getXUM()
+                    yums = self.getYUM()
+
                     try:
                         if self.view_type == 1:
-                            self.plot_xy_fast(beam_out, progressBarValue + 4, 1, 3, plot_canvas_index=0, title="X,Z", xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]')
-                            self.plot_xy_fast(beam_out, progressBarValue + 8, 4, 6, plot_canvas_index=1, title="X',Z'", xtitle="X' [$\mu$rad]", ytitle="Z' [$\mu$rad]")
-                            self.plot_xy_fast(beam_out, progressBarValue + 12, 1, 4, plot_canvas_index=2, title="X,X'", xtitle=r'X [$\mu$m]', ytitle="X' [$\mu$rad]")
-                            self.plot_xy_fast(beam_out, progressBarValue + 16, 3, 6, plot_canvas_index=3, title="Z,Z'", xtitle=r'Z [$\mu$m]', ytitle="Z' [$\mu$rad]")
-                            self.plot_histo_fast(beam_out, progressBarValue + 20, 11, plot_canvas_index=4, title="Energy", xtitle="Energy [eV]", ytitle="Number of Rays")
+                            self.plot_xy_fast(beam_out, progressBarValue + 4,  variables[0][0], variables[0][1], plot_canvas_index=0, title=titles[0], xtitle=xtitles[0], ytitle=ytitles[0])
+                            self.plot_xy_fast(beam_out, progressBarValue + 8,  variables[1][0], variables[1][1], plot_canvas_index=1, title=titles[1], xtitle=xtitles[1], ytitle=ytitles[1])
+                            self.plot_xy_fast(beam_out, progressBarValue + 12, variables[2][0], variables[2][1], plot_canvas_index=2, title=titles[2], xtitle=xtitles[2], ytitle=ytitles[2])
+                            self.plot_xy_fast(beam_out, progressBarValue + 16, variables[3][0], variables[3][1], plot_canvas_index=3, title=titles[3], xtitle=xtitles[3], ytitle=ytitles[3])
+                            self.plot_histo_fast(beam_out, progressBarValue + 20, variables[4],                  plot_canvas_index=4, title=titles[4], xtitle=xtitles[4], ytitle=ytitles[4])
 
                             if self.isFootprintEnabled():
                                 self.plot_xy_fast(beam_foot_print, progressBarValue + 20, 2, 1, plot_canvas_index=5, title="Footprint", xtitle="Y [" + self.workspace_units_label +"]", ytitle="X [" + self.workspace_units_label +"]", is_footprint=True)
 
 
                         elif self.view_type == 0:
-                            self.plot_xy(beam_out, progressBarValue + 4, 1, 3, plot_canvas_index=0, title="X,Z", xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]',
-                                         xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
-                            self.plot_xy(beam_out, progressBarValue + 8, 4, 6, plot_canvas_index=1, title="X',Z'", xtitle="X' [$\mu$rad]", ytitle="Z' [$\mu$rad]",
-                                         xum="X' [" + u"\u03BC" + "rad]", yum="Z' [" + u"\u03BC" + "rad]")
-                            self.plot_xy(beam_out, progressBarValue + 12, 1, 4, plot_canvas_index=2, title="X,X'", xtitle=r'X [$\mu$m]', ytitle="X' [$\mu$rad]",
-                                         xum=("X [" + u"\u03BC" + "m]"), yum="X' [" + u"\u03BC" + "rad]")
-                            self.plot_xy(beam_out, progressBarValue + 16, 3, 6, plot_canvas_index=3, title="Z,Z'", xtitle=r'Z [$\mu$m]', ytitle="Z' [$\mu$rad]",
-                                         xum=("Z [" + u"\u03BC" + "m]"), yum="Z' [" + u"\u03BC" + "rad]")
-                            self.plot_histo(beam_out, progressBarValue + 20, 11, plot_canvas_index=4, title="Energy", xtitle="Energy [eV]", ytitle="Number of Rays", xum="[eV]")
+                            self.plot_xy(beam_out, progressBarValue + 4,  variables[0][0], variables[0][1], plot_canvas_index=0, title=titles[0], xtitle=xtitles[0], ytitle=ytitles[0], xum=xums[0], yum=yums[0])
+                            self.plot_xy(beam_out, progressBarValue + 8,  variables[1][0], variables[1][1], plot_canvas_index=1, title=titles[1], xtitle=xtitles[1], ytitle=ytitles[1], xum=xums[1], yum=yums[1])
+                            self.plot_xy(beam_out, progressBarValue + 12, variables[2][0], variables[2][1], plot_canvas_index=2, title=titles[2], xtitle=xtitles[2], ytitle=ytitles[2], xum=xums[2], yum=yums[2])
+                            self.plot_xy(beam_out, progressBarValue + 16, variables[3][0], variables[3][1], plot_canvas_index=3, title=titles[3], xtitle=xtitles[3], ytitle=ytitles[3], xum=xums[3], yum=yums[3])
+                            self.plot_histo(beam_out, progressBarValue + 20, variables[4],                  plot_canvas_index=4, title=titles[4], xtitle=xtitles[4], ytitle=ytitles[4], xum=xums[4] )
 
                             if self.isFootprintEnabled():
                                 self.plot_xy(beam_foot_print, progressBarValue + 20, 2, 1, plot_canvas_index=5, title="Footprint", xtitle="Y [" + self.workspace_units_label +"]", ytitle="X [" + self.workspace_units_label +"]",
@@ -227,6 +234,27 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
     def deserialize(self, shadow_file):
         pass
+
+    def getVariablestoPlot(self):
+        return [[1, 3], [4, 6], [1, 4], [3, 6], 11]
+
+    def getTitles(self):
+        return ["X,Z", "X',Z'", "X,X'", "Z,Z'", "Energy"]
+
+    def getXTitles(self):
+        return [r'X [$\mu$m]', "X' [$\mu$rad]", r'X [$\mu$m]', r'Z [$\mu$m]', "Energy [eV]"]
+
+    def getYTitles(self):
+        return [r'Z [$\mu$m]', "Z' [$\mu$rad]", "X' [$\mu$rad]", "Z' [$\mu$rad]", "Number of Rays"]
+
+    def getXUM(self):
+        return ["X [" + u"\u03BC" + "m]", "X' [" + u"\u03BC" + "rad]", "X [" + u"\u03BC" + "m]", "Z [" + u"\u03BC" + "m]", "[eV]"]
+
+    def getYUM(self):
+        return ["Z [" + u"\u03BC" + "m]", "Z' [" + u"\u03BC" + "rad]", "X' [" + u"\u03BC" + "rad]", "Z' [" + u"\u03BC" + "rad]", None]
+
+    def getConversionActive(self):
+        return True
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)

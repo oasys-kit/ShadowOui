@@ -52,6 +52,8 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
     keep_result=Setting(0)
 
+    is_conversion_active = Setting(1)
+
     def __init__(self):
         super().__init__()
 
@@ -176,9 +178,13 @@ class Histogram(ow_automatic_element.AutomaticElement):
         gui.checkBox(incremental_box, self, "keep_result", "Keep Result")
         gui.button(incremental_box, self, "Clear", callback=self.clearResults)
 
-        histograms_box = oasysgui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=70)
+        histograms_box = oasysgui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=90)
 
         oasysgui.lineEdit(histograms_box, self, "number_of_bins", "Number of Bins", labelWidth=250, valueType=int, orientation="horizontal")
+
+        gui.comboBox(histograms_box, self, "is_conversion_active", label="Is U.M. conversion active", labelWidth=250,
+                                         items=["No", "Yes"],
+                                         sendSelectedValue=False, orientation="horizontal")
 
         main_tabs = gui.tabWidget(self.mainArea)
         plot_tab = gui.createTabPage(main_tabs, "Plots")
@@ -223,6 +229,8 @@ class Histogram(ow_automatic_element.AutomaticElement):
     def plot_histo(self, var_x, title, xtitle, ytitle, xum):
         beam_to_plot = self.input_beam._beam
 
+
+
         if self.image_plane == 1:
             new_shadow_beam = self.input_beam.duplicate(history=False)
             dist = 0.0
@@ -238,7 +246,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
                 dist = self.image_plane_new_position - image_plane
 
-            new_shadow_beam._beam.retrace(dist)
+            self.retrace_beam(new_shadow_beam, dist)
 
             beam_to_plot = new_shadow_beam._beam
 
@@ -266,6 +274,8 @@ class Histogram(ow_automatic_element.AutomaticElement):
             if ShadowCongruence.checkEmptyBeam(self.input_beam):
                 self.number_of_bins = congruence.checkPositiveNumber(self.number_of_bins, "Number of Bins")
 
+                ShadowPlot.set_conversion_active(self.getConversionActive())
+
                 auto_title = self.x_column.currentText().split(":", 2)[1]
                 xum = auto_title + " "
 
@@ -274,11 +284,19 @@ class Histogram(ow_automatic_element.AutomaticElement):
                 x = self.x_column_index + 1
 
                 if x == 1 or x == 2 or x == 3:
-                    xum = xum + "[" + u"\u03BC" + "m]"
-                    auto_title = auto_title + " [$\mu$m]"
+                    if self.getConversionActive():
+                        xum = xum + "[" + u"\u03BC" + "m]"
+                        auto_title = auto_title + " [$\mu$m]"
+                    else:
+                        xum = xum + " [" + self.workspace_units_label + "]"
+                        auto_title = auto_title + " [" + self.workspace_units_label + "]"
                 elif x == 4 or x == 5 or x == 6:
-                    xum = xum + "[" + u"\u03BC" + "rad]"
-                    auto_title = auto_title + " [$\mu$rad]"
+                    if self.getConversionActive():
+                        xum = xum + "[" + u"\u03BC" + "rad]"
+                        auto_title = auto_title + " [$\mu$rad]"
+                    else:
+                        xum = xum + " [rad]"
+                        auto_title = auto_title + " [rad]"
                 elif x == 11:
                     xum = xum + "[eV]"
                     auto_title = auto_title + " [eV]"
@@ -343,3 +361,9 @@ class Histogram(ow_automatic_element.AutomaticElement):
         cursor.insertText(text)
         self.shadow_output.setTextCursor(cursor)
         self.shadow_output.ensureCursorVisible()
+
+    def retrace_beam(self, new_shadow_beam, dist):
+            new_shadow_beam._beam.retrace(dist)
+
+    def getConversionActive(self):
+        return self.is_conversion_active==1
