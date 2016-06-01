@@ -68,12 +68,12 @@ class PlotXY(AutomaticElement):
         gui.button(self.controlArea, self, "Refresh", callback=self.plot_results, height=45)
         gui.separator(self.controlArea, 10)
 
-        tabs_setting = gui.tabWidget(self.controlArea)
-        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+        self.tabs_setting = gui.tabWidget(self.controlArea)
+        self.tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
         # graph tab
-        tab_set = oasysgui.createTabPage(tabs_setting, "Plot Settings")
-        tab_gen = oasysgui.createTabPage(tabs_setting, "Histogram Settings")
+        tab_set = oasysgui.createTabPage(self.tabs_setting, "Plot Settings")
+        tab_gen = oasysgui.createTabPage(self.tabs_setting, "Histogram Settings")
 
         screen_box = oasysgui.widgetBox(tab_set, "Screen Position Settings", addSpace=True, orientation="vertical", height=110)
 
@@ -255,9 +255,9 @@ class PlotXY(AutomaticElement):
                                          items=["No", "Yes"],
                                          sendSelectedValue=False, orientation="horizontal")
 
-        main_tabs = gui.tabWidget(self.mainArea)
-        plot_tab = gui.createTabPage(main_tabs, "Plots")
-        out_tab = gui.createTabPage(main_tabs, "Output")
+        self.main_tabs = gui.tabWidget(self.mainArea)
+        plot_tab = gui.createTabPage(self.main_tabs, "Plots")
+        out_tab = gui.createTabPage(self.main_tabs, "Output")
 
         self.image_box = gui.widgetBox(plot_tab, "Plot Result", addSpace=True, orientation="vertical")
         self.image_box.setFixedHeight(self.IMAGE_HEIGHT)
@@ -275,7 +275,12 @@ class PlotXY(AutomaticElement):
     def clearResults(self):
         if ConfirmDialog.confirmed(parent=self):
             self.input_beam = None
-            self.plot_canvas.clear()
+            if not self.plot_canvas is None:
+                self.plot_canvas.clear()
+
+            return True
+        else:
+            return False
 
     def set_ImagePlane(self):
         self.image_plane_box.setVisible(self.image_plane==1)
@@ -321,9 +326,13 @@ class PlotXY(AutomaticElement):
 
             beam_to_plot = new_shadow_beam._beam
 
+        xrange, yrange = self.get_ranges(beam_to_plot, var_x, var_y)
+
+        self.replace_fig(beam_to_plot, var_x, var_y, title, xtitle, ytitle, xrange=xrange, yrange=yrange, nbins=int(self.number_of_bins), nolost=self.rays, xum=xum, yum=yum)
+
+    def get_ranges(self, beam_to_plot, var_x, var_y):
         xrange = None
         yrange = None
-
         factor1 = ShadowPlot.get_factor(var_x, self.workspace_units_to_cm)
         factor2 = ShadowPlot.get_factor(var_y, self.workspace_units_to_cm)
 
@@ -372,8 +381,7 @@ class PlotXY(AutomaticElement):
                     raise Exception("Y range min cannot be greater or than Y range max")
 
                 yrange = [self.y_range_min / factor2, self.y_range_max / factor2]
-
-        self.replace_fig(beam_to_plot, var_x, var_y, title, xtitle, ytitle, xrange=xrange, yrange=yrange, nbins=int(self.number_of_bins), nolost=self.rays, xum=xum, yum=yum)
+        return xrange, yrange
 
     def plot_results(self):
         #self.error(self.error_id)
@@ -387,97 +395,9 @@ class PlotXY(AutomaticElement):
             if ShadowCongruence.checkEmptyBeam(self.input_beam):
                 ShadowPlot.set_conversion_active(self.getConversionActive())
 
-                self.number_of_bins = congruence.checkPositiveNumber(self.number_of_bins, "Number of Bins")
+                self.number_of_bins = congruence.checkStrictlyPositiveNumber(self.number_of_bins, "Number of Bins")
 
-                auto_x_title = self.x_column.currentText().split(":", 2)[1]
-                auto_y_title = self.y_column.currentText().split(":", 2)[1]
-
-                xum = auto_x_title + " "
-                yum = auto_y_title + " "
-
-                self.title = auto_x_title + "," + auto_y_title
-
-                x = self.x_column_index + 1
-
-                if x == 1 or x == 2 or x == 3:
-                    if self.getConversionActive():
-                        xum = xum + "[" + u"\u03BC" + "m]"
-                        auto_x_title = auto_x_title + " [$\mu$m]"
-                    else:
-                        xum = xum + " [" + self.workspace_units_label + "]"
-                        auto_x_title = auto_x_title + " [" + self.workspace_units_label + "]"
-                elif x == 4 or x == 5 or x == 6:
-                    if self.getConversionActive():
-                        xum = xum + "[" + u"\u03BC" + "rad]"
-                        auto_x_title = auto_x_title + " [$\mu$rad]"
-                    else:
-                        xum = xum + " [rad]"
-                        auto_x_title = auto_x_title + " [rad]"
-                elif x == 11:
-                    xum = xum + "[eV]"
-                    auto_x_title = auto_x_title + " [eV]"
-                elif x == 13:
-                    xum = xum + "[" + self.workspace_units_label + "]"
-                    auto_x_title = auto_x_title + " [" + self.workspace_units_label + "]"
-                elif x == 14:
-                    xum = xum + "[rad]"
-                    auto_x_title = auto_x_title + " [rad]"
-                elif x == 15:
-                    xum = xum + "[rad]"
-                    auto_x_title = auto_x_title + " [rad]"
-                elif x == 19:
-                    xum = xum + "[Å]"
-                    auto_x_title = auto_x_title + " [Å]"
-                elif x == 20:
-                    xum = xum + "[" + self.workspace_units_label + "]"
-                    auto_x_title = auto_x_title + " [" + self.workspace_units_label + "]"
-                elif x == 21:
-                    xum = xum + "[rad]"
-                    auto_x_title = auto_x_title + " [rad]"
-                elif x >= 25 and x <= 28:
-                    xum = xum + "[Å-1]"
-                    auto_x_title = auto_x_title + " [Å-1]"
-
-                y = self.y_column_index + 1
-
-                if y == 1 or y == 2 or y == 3:
-                    if self.getConversionActive():
-                        yum = yum + "[" + u"\u03BC" + "m]"
-                        auto_y_title = auto_y_title + " [$\mu$m]"
-                    else:
-                        yum = yum + " [" + self.workspace_units_label + "]"
-                        auto_y_title = auto_y_title + " [" + self.workspace_units_label + "]"
-                elif y == 4 or y == 5 or y == 6:
-                    if self.getConversionActive():
-                        yum = yum + "[" + u"\u03BC" + "rad]"
-                        auto_y_title = auto_y_title + " [$\mu$rad]"
-                    else:
-                        yum = yum + " [rad]"
-                        auto_y_title = auto_y_title + " [rad]"
-                elif y == 11:
-                    yum = yum + "[eV]"
-                    auto_y_title = auto_y_title + " [eV]"
-                elif y == 13:
-                    yum = yum + "[" + self.workspace_units_label + "]"
-                    auto_y_title = auto_y_title + " [" + self.workspace_units_label + "]"
-                elif y == 14:
-                    yum = yum + "[rad]"
-                    auto_y_title = auto_y_title + " [rad]"
-                elif y == 15:
-                    yum = yum + "[rad]"
-                    auto_y_title = auto_y_title + " [rad]"
-                elif y == 19:
-                    yum = yum + "[Å]"
-                    auto_y_title = auto_y_title + " [Å]"
-                elif y == 20:
-                    yum = yum + "[" + self.workspace_units_label + "]"
-                    auto_y_title = auto_y_title + " [" + self.workspace_units_label + "]"
-                elif y == 21:
-                    yum = yum + "[rad]"
-                    auto_y_title = auto_y_title + " [rad]"
-                elif y >= 25 and y <= 28:
-                    yum = yum + "[Å-1]"
-                    auto_y_title = auto_y_title + " [Å-1]"
+                x, y, auto_x_title, auto_y_title, xum, yum = self.get_titles()
 
                 self.plot_xy(x, y, title=self.title, xtitle=auto_x_title, ytitle=auto_y_title, xum=xum, yum=yum)
 
@@ -488,6 +408,8 @@ class PlotXY(AutomaticElement):
                     self.writeStdOut(row)
 
             time.sleep(0.5)  # prevents a misterious dead lock in the Orange cycle when refreshing the histogram
+
+            return True
         except Exception as exception:
             QtGui.QMessageBox.critical(self, "Error",
                                        str(exception),
@@ -495,8 +417,94 @@ class PlotXY(AutomaticElement):
 
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))
+            return False
 
+    def get_titles(self):
+        auto_x_title = self.x_column.currentText().split(":", 2)[1]
+        auto_y_title = self.y_column.currentText().split(":", 2)[1]
+        xum = auto_x_title + " "
+        yum = auto_y_title + " "
+        self.title = auto_x_title + "," + auto_y_title
+        x = self.x_column_index + 1
+        if x == 1 or x == 2 or x == 3:
+            if self.getConversionActive():
+                xum = xum + "[" + u"\u03BC" + "m]"
+                auto_x_title = auto_x_title + " [$\mu$m]"
+            else:
+                xum = xum + " [" + self.workspace_units_label + "]"
+                auto_x_title = auto_x_title + " [" + self.workspace_units_label + "]"
+        elif x == 4 or x == 5 or x == 6:
+            if self.getConversionActive():
+                xum = xum + "[" + u"\u03BC" + "rad]"
+                auto_x_title = auto_x_title + " [$\mu$rad]"
+            else:
+                xum = xum + " [rad]"
+                auto_x_title = auto_x_title + " [rad]"
+        elif x == 11:
+            xum = xum + "[eV]"
+            auto_x_title = auto_x_title + " [eV]"
+        elif x == 13:
+            xum = xum + "[" + self.workspace_units_label + "]"
+            auto_x_title = auto_x_title + " [" + self.workspace_units_label + "]"
+        elif x == 14:
+            xum = xum + "[rad]"
+            auto_x_title = auto_x_title + " [rad]"
+        elif x == 15:
+            xum = xum + "[rad]"
+            auto_x_title = auto_x_title + " [rad]"
+        elif x == 19:
+            xum = xum + "[Å]"
+            auto_x_title = auto_x_title + " [Å]"
+        elif x == 20:
+            xum = xum + "[" + self.workspace_units_label + "]"
+            auto_x_title = auto_x_title + " [" + self.workspace_units_label + "]"
+        elif x == 21:
+            xum = xum + "[rad]"
+            auto_x_title = auto_x_title + " [rad]"
+        elif x >= 25 and x <= 28:
+            xum = xum + "[Å-1]"
+            auto_x_title = auto_x_title + " [Å-1]"
+        y = self.y_column_index + 1
+        if y == 1 or y == 2 or y == 3:
+            if self.getConversionActive():
+                yum = yum + "[" + u"\u03BC" + "m]"
+                auto_y_title = auto_y_title + " [$\mu$m]"
+            else:
+                yum = yum + " [" + self.workspace_units_label + "]"
+                auto_y_title = auto_y_title + " [" + self.workspace_units_label + "]"
+        elif y == 4 or y == 5 or y == 6:
+            if self.getConversionActive():
+                yum = yum + "[" + u"\u03BC" + "rad]"
+                auto_y_title = auto_y_title + " [$\mu$rad]"
+            else:
+                yum = yum + " [rad]"
+                auto_y_title = auto_y_title + " [rad]"
+        elif y == 11:
+            yum = yum + "[eV]"
+            auto_y_title = auto_y_title + " [eV]"
+        elif y == 13:
+            yum = yum + "[" + self.workspace_units_label + "]"
+            auto_y_title = auto_y_title + " [" + self.workspace_units_label + "]"
+        elif y == 14:
+            yum = yum + "[rad]"
+            auto_y_title = auto_y_title + " [rad]"
+        elif y == 15:
+            yum = yum + "[rad]"
+            auto_y_title = auto_y_title + " [rad]"
+        elif y == 19:
+            yum = yum + "[Å]"
+            auto_y_title = auto_y_title + " [Å]"
+        elif y == 20:
+            yum = yum + "[" + self.workspace_units_label + "]"
+            auto_y_title = auto_y_title + " [" + self.workspace_units_label + "]"
+        elif y == 21:
+            yum = yum + "[rad]"
+            auto_y_title = auto_y_title + " [rad]"
+        elif y >= 25 and y <= 28:
+            yum = yum + "[Å-1]"
+            auto_y_title = auto_y_title + " [Å-1]"
 
+        return x, y, auto_x_title, auto_y_title, xum, yum
 
     def setBeam(self, beam):
         if ShadowCongruence.checkEmptyBeam(beam):

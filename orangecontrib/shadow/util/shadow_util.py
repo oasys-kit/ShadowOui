@@ -374,7 +374,7 @@ class ShadowPlot:
 
             factor=ShadowPlot.get_factor(col, conv)
 
-            if ref != 0 and not ytitle is None:  ytitle = ytitle + ' weighted by ' + (stp.getLabel(ref-1))[0]
+            if ref != 0 and not ytitle is None:  ytitle = ytitle + ' weighted by ' + ShadowPlot.get_shadow_label(ref)
 
             histogram = ticket['histogram_path']
             bins = ticket['bin_path']*factor
@@ -482,8 +482,8 @@ class ShadowPlot:
 
             self.plot_canvas.setImage(numpy.array(data_to_plot), origin=origin, scale=scale)
 
-            if xtitle is None: xtitle=(stp.getLabel(var_x-1))[0]
-            if ytitle is None: ytitle=(stp.getLabel(var_y-1))[0]
+            if xtitle is None: xtitle=ShadowPlot.get_shadow_label(var_x)
+            if ytitle is None: ytitle=ShadowPlot.get_shadow_label(var_y)
 
             self.plot_canvas.setGraphXLabel(xtitle)
             self.plot_canvas.setGraphYLabel(ytitle)
@@ -593,8 +593,8 @@ class ShadowPlot:
             factor1 = ShadowPlot.get_factor(var_x, conv)
             factor2 = ShadowPlot.get_factor(var_y, conv)
 
-        if xtitle is None: xtitle=(stp.getLabel(var_x-1))[0]
-        if ytitle is None: ytitle=(stp.getLabel(var_y-1))[0]
+        if xtitle is None: xtitle=ShadowPlot.get_shadow_label(var_x)
+        if ytitle is None: ytitle=ShadowPlot.get_shadow_label(var_y)
 
         plot_window.addCurve(col1*factor1, col2*factor2, title, symbol='.', color='blue', replace=True) #'+', '^', ','
 
@@ -613,7 +613,7 @@ class ShadowPlot:
 
         ticket = beam.histo1(col, nbins=100, xrange=None, nolost=nolost, ref=ref)
 
-        if ref != 0 and not ytitle is None:  ytitle = ytitle + ' weighted by ' + (stp.getLabel(ref-1))[0]
+        if ref != 0 and not ytitle is None:  ytitle = ytitle + ' weighted by ' + ShadowPlot.get_shadow_label(ref)
 
         histogram = ticket['histogram_path']
         bins = ticket['bin_path']*factor
@@ -641,6 +641,10 @@ class ShadowPlot:
                 factor = 1e6 # rad to urad
 
         return factor
+
+    @classmethod
+    def get_shadow_label(cls, var):
+        return (stp.getLabel(var-1))[0]
 
 class ShadowPreProcessor:
 

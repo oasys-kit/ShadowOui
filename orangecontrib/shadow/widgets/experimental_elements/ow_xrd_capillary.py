@@ -1518,7 +1518,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                                         diffracted_ray_circle[9] = go_input_beam._beam.rays[ray_index, 9]  # good/lost
                                         diffracted_ray_circle[10] = k_mod  # |k|
                                         diffracted_ray_circle[11] = go_input_beam._beam.rays[ray_index, 11]  # ray index
-                                        diffracted_ray_circle[12] = 1  # good only
+                                        diffracted_ray_circle[12] = go_input_beam._beam.rays[ray_index, 12]  # optical path
                                         diffracted_ray_circle[13] = Es_phi
                                         diffracted_ray_circle[14] = Ep_phi
                                         diffracted_ray_circle[15] = Ep_x * reduction_factor
