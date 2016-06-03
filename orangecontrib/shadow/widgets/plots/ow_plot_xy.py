@@ -381,12 +381,15 @@ class PlotXY(AutomaticElement):
                     raise Exception("Y range min cannot be greater or than Y range max")
 
                 yrange = [self.y_range_min / factor2, self.y_range_max / factor2]
+
         return xrange, yrange
 
     def plot_results(self):
         #self.error(self.error_id)
 
         try:
+            plotted = False
+
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
             if self.trace_shadow:
                 grabber = TTYGrabber()
@@ -401,6 +404,7 @@ class PlotXY(AutomaticElement):
 
                 self.plot_xy(x, y, title=self.title, xtitle=auto_x_title, ytitle=auto_y_title, xum=xum, yum=yum)
 
+                plotted = True
             if self.trace_shadow:
                 grabber.stop()
 
@@ -409,7 +413,7 @@ class PlotXY(AutomaticElement):
 
             time.sleep(0.5)  # prevents a misterious dead lock in the Orange cycle when refreshing the histogram
 
-            return True
+            return plotted
         except Exception as exception:
             QtGui.QMessageBox.critical(self, "Error",
                                        str(exception),

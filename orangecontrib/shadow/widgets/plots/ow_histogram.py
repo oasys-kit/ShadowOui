@@ -1,5 +1,7 @@
 import sys
 import time
+import copy
+import numpy
 
 from PyQt4 import QtGui
 from orangewidget import gui
@@ -8,11 +10,9 @@ from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.gui import ConfirmDialog
 
-
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream, TTYGrabber
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
 from orangecontrib.shadow.widgets.gui import ow_automatic_element
-
 
 class Histogram(ow_automatic_element.AutomaticElement):
 
@@ -45,6 +45,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
     x_range_max=Setting(0.0)
 
     weight_column_index = Setting(23)
+    rays=Setting(1)
 
     number_of_bins=Setting(100)
 
@@ -60,12 +61,12 @@ class Histogram(ow_automatic_element.AutomaticElement):
         gui.button(self.controlArea, self, "Refresh", callback=self.plot_results, height=45)
         gui.separator(self.controlArea, 10)
 
-        tabs_setting = gui.tabWidget(self.controlArea)
-        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+        self.tabs_setting = gui.tabWidget(self.controlArea)
+        self.tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
         # graph tab
-        tab_set = oasysgui.createTabPage(tabs_setting, "Plot Settings")
-        tab_gen = oasysgui.createTabPage(tabs_setting, "Histogram Settings")
+        tab_set = oasysgui.createTabPage(self.tabs_setting, "Plot Settings")
+        tab_gen = oasysgui.createTabPage(self.tabs_setting, "Histogram Settings")
 
         screen_box = oasysgui.widgetBox(tab_set, "Screen Position Settings", addSpace=True, orientation="vertical", height=110)
 
@@ -122,6 +123,19 @@ class Histogram(ow_automatic_element.AutomaticElement):
                                      ],
                                      sendSelectedValue=False, orientation="horizontal")
 
+        gui.comboBox(general_box, self, "x_range", label="X Range", labelWidth=250,
+                                     items=["<Default>",
+                                            "Set.."],
+                                     callback=self.set_XRange, sendSelectedValue=False, orientation="horizontal")
+
+        self.xrange_box = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", height=100)
+        self.xrange_box_empty = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", height=100)
+
+        oasysgui.lineEdit(self.xrange_box, self, "x_range_min", "X min", labelWidth=220, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.xrange_box, self, "x_range_max", "X max", labelWidth=220, valueType=float, orientation="horizontal")
+
+        self.set_XRange()
+
         self.weight_column = gui.comboBox(general_box, self, "weight_column_index", label="Weight", labelWidth=70,
                                          items=["0: No Weight",
                                                 "1: X",
@@ -160,19 +174,11 @@ class Histogram(ow_automatic_element.AutomaticElement):
                                          ],
                                          sendSelectedValue=False, orientation="horizontal")
 
-        gui.comboBox(general_box, self, "x_range", label="X Range", labelWidth=250,
-                                     items=["<Default>",
-                                            "Set.."],
-                                     callback=self.set_XRange, sendSelectedValue=False, orientation="horizontal")
-
-        self.xrange_box = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", height=100)
-        self.xrange_box_empty = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", height=100)
-
-        oasysgui.lineEdit(self.xrange_box, self, "x_range_min", "X min", labelWidth=220, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.xrange_box, self, "x_range_max", "X max", labelWidth=220, valueType=float, orientation="horizontal")
-
-        self.set_XRange()
-
+        gui.comboBox(general_box, self, "rays", label="Rays", labelWidth=250,
+                                     items=["All rays",
+                                            "Good Only",
+                                            "Lost Only"],
+                                     sendSelectedValue=False, orientation="horizontal")
         incremental_box = oasysgui.widgetBox(tab_gen, "Incremental Result", addSpace=True, orientation="horizontal", height=80)
 
         gui.checkBox(incremental_box, self, "keep_result", "Keep Result")
@@ -186,9 +192,9 @@ class Histogram(ow_automatic_element.AutomaticElement):
                                          items=["No", "Yes"],
                                          sendSelectedValue=False, orientation="horizontal")
 
-        main_tabs = gui.tabWidget(self.mainArea)
-        plot_tab = gui.createTabPage(main_tabs, "Plots")
-        out_tab = gui.createTabPage(main_tabs, "Output")
+        self.main_tabs = gui.tabWidget(self.mainArea)
+        plot_tab = gui.createTabPage(self.main_tabs, "Plots")
+        out_tab = gui.createTabPage(self.main_tabs, "Output")
 
         self.image_box = gui.widgetBox(plot_tab, "Plot Result", addSpace=True, orientation="vertical")
         self.image_box.setFixedHeight(self.IMAGE_HEIGHT)
@@ -207,6 +213,9 @@ class Histogram(ow_automatic_element.AutomaticElement):
         if ConfirmDialog.confirmed(parent=self):
             self.input_beam = ShadowBeam()
             self.plot_canvas.clear()
+            return True
+        else:
+            return False
 
     def set_XRange(self):
         self.xrange_box.setVisible(self.x_range == 1)
@@ -216,20 +225,18 @@ class Histogram(ow_automatic_element.AutomaticElement):
         self.image_plane_box.setVisible(self.image_plane==1)
         self.image_plane_box_empty.setVisible(self.image_plane==0)
 
-    def replace_fig(self, beam, var, x_range, title, xtitle, ytitle, xum):
+    def replace_fig(self, beam, var, xrange, title, xtitle, ytitle, xum):
         if self.plot_canvas is None:
             self.plot_canvas = ShadowPlot.DetailedHistoWidget(y_scale_factor=1.14)
             self.image_box.layout().addWidget(self.plot_canvas)
 
         try:
-            self.plot_canvas.plot_histo(beam, var, 1, x_range, self.weight_column_index, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum, conv=self.workspace_units_to_cm)
+            self.plot_canvas.plot_histo(beam, var, self.rays, xrange, self.weight_column_index, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum, conv=self.workspace_units_to_cm)
         except Exception:
             raise Exception("Data not plottable: No good rays or bad content")
 
     def plot_histo(self, var_x, title, xtitle, ytitle, xum):
         beam_to_plot = self.input_beam._beam
-
-
 
         if self.image_plane == 1:
             new_shadow_beam = self.input_beam.duplicate(history=False)
@@ -250,21 +257,49 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
             beam_to_plot = new_shadow_beam._beam
 
-        if self.x_range == 1:
-            if self.x_range_min >= self.x_range_max: raise Exception("X range min cannot be greater or equal than X range max")
+        xrange = self.get_range(beam_to_plot, var_x)
+
+        self.replace_fig(beam_to_plot, var_x, xrange, title, xtitle, ytitle, xum)
+
+    def get_range(self, beam_to_plot, var_x):
+        if self.x_range == 0 :
+            x_max = 0
+            x_min = 0
+
+            x, good_only = beam_to_plot.getshcol((var_x, 10))
+
+            x_to_plot = copy.deepcopy(x)
+
+            go = numpy.where(good_only == 1)
+            lo = numpy.where(good_only != 1)
+
+            if self.rays == 0:
+                x_max = numpy.array(x_to_plot[0:], float).max()
+                x_min = numpy.array(x_to_plot[0:], float).min()
+            elif self.rays == 1:
+                x_max = numpy.array(x_to_plot[go], float).max()
+                x_min = numpy.array(x_to_plot[go], float).min()
+            elif self.rays == 2:
+                x_max = numpy.array(x_to_plot[lo], float).max()
+                x_min = numpy.array(x_to_plot[lo], float).min()
+
+            xrange = [x_min, x_max]
+        else:
+            if self.x_range_min >= self.x_range_max: raise Exception(
+                "X range min cannot be greater or equal than X range max")
 
             factor1 = ShadowPlot.get_factor(var_x, self.workspace_units_to_cm)
 
-            x_range = [self.x_range_min/factor1, self.x_range_max/factor1]
-        else:
-            x_range = None
+            xrange = [self.x_range_min / factor1, self.x_range_max / factor1]
 
-        self.replace_fig(beam_to_plot, var_x, x_range, title, xtitle, ytitle, xum)
+        return xrange
 
     def plot_results(self):
         #self.error(self.error_id)
 
         try:
+            plotted = False
+
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
             if self.trace_shadow:
@@ -272,58 +307,15 @@ class Histogram(ow_automatic_element.AutomaticElement):
                 grabber.start()
 
             if ShadowCongruence.checkEmptyBeam(self.input_beam):
-                self.number_of_bins = congruence.checkPositiveNumber(self.number_of_bins, "Number of Bins")
-
                 ShadowPlot.set_conversion_active(self.getConversionActive())
 
-                auto_title = self.x_column.currentText().split(":", 2)[1]
-                xum = auto_title + " "
+                self.number_of_bins = congruence.checkPositiveNumber(self.number_of_bins, "Number of Bins")
 
-                self.title = auto_title
-
-                x = self.x_column_index + 1
-
-                if x == 1 or x == 2 or x == 3:
-                    if self.getConversionActive():
-                        xum = xum + "[" + u"\u03BC" + "m]"
-                        auto_title = auto_title + " [$\mu$m]"
-                    else:
-                        xum = xum + " [" + self.workspace_units_label + "]"
-                        auto_title = auto_title + " [" + self.workspace_units_label + "]"
-                elif x == 4 or x == 5 or x == 6:
-                    if self.getConversionActive():
-                        xum = xum + "[" + u"\u03BC" + "rad]"
-                        auto_title = auto_title + " [$\mu$rad]"
-                    else:
-                        xum = xum + " [rad]"
-                        auto_title = auto_title + " [rad]"
-                elif x == 11:
-                    xum = xum + "[eV]"
-                    auto_title = auto_title + " [eV]"
-                elif x == 13:
-                    xum = xum + " [" + self.workspace_units_label + "]"
-                    auto_title = auto_title + " [" + self.workspace_units_label + "]"
-                elif x == 14:
-                    xum = xum + "[rad]"
-                    auto_title = auto_title + " [rad]"
-                elif x == 15:
-                    xum = xum + "[rad]"
-                    auto_title = auto_title + " [rad]"
-                elif x == 19:
-                    xum = xum + "[Å]"
-                    auto_title = auto_title + " [Å]"
-                elif x == 20:
-                    xum = xum + " [" + self.workspace_units_label + "]"
-                    auto_title = auto_title + " [" + self.workspace_units_label + "]"
-                elif x == 21:
-                    xum = xum + "[rad]"
-                    auto_title = auto_title + " [rad]"
-                elif x >= 25 and x <= 28:
-                    xum = xum + "[Å-1]"
-                    auto_title = auto_title + " [Å-1]"
+                x, auto_title, xum = self.get_titles()
 
                 self.plot_histo(x, title=self.title, xtitle=auto_title, ytitle="Number of Rays", xum=xum)
 
+                plotted = True
             if self.trace_shadow:
                 grabber.stop()
 
@@ -331,6 +323,8 @@ class Histogram(ow_automatic_element.AutomaticElement):
                     self.writeStdOut(row)
 
             time.sleep(0.5)  # prevents a misterious dead lock in the Orange cycle when refreshing the histogram
+
+            return plotted
         except Exception as exception:
             QtGui.QMessageBox.critical(self, "Error",
                                        str(exception),
@@ -338,6 +332,56 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))
+
+            return False
+
+    def get_titles(self):
+        auto_title = self.x_column.currentText().split(":", 2)[1]
+
+        xum = auto_title + " "
+        self.title = auto_title
+        x = self.x_column_index + 1
+
+        if x == 1 or x == 2 or x == 3:
+            if self.getConversionActive():
+                xum = xum + "[" + u"\u03BC" + "m]"
+                auto_title = auto_title + " [$\mu$m]"
+            else:
+                xum = xum + " [" + self.workspace_units_label + "]"
+                auto_title = auto_title + " [" + self.workspace_units_label + "]"
+        elif x == 4 or x == 5 or x == 6:
+            if self.getConversionActive():
+                xum = xum + "[" + u"\u03BC" + "rad]"
+                auto_title = auto_title + " [$\mu$rad]"
+            else:
+                xum = xum + " [rad]"
+                auto_title = auto_title + " [rad]"
+        elif x == 11:
+            xum = xum + "[eV]"
+            auto_title = auto_title + " [eV]"
+        elif x == 13:
+            xum = xum + " [" + self.workspace_units_label + "]"
+            auto_title = auto_title + " [" + self.workspace_units_label + "]"
+        elif x == 14:
+            xum = xum + "[rad]"
+            auto_title = auto_title + " [rad]"
+        elif x == 15:
+            xum = xum + "[rad]"
+            auto_title = auto_title + " [rad]"
+        elif x == 19:
+            xum = xum + "[Å]"
+            auto_title = auto_title + " [Å]"
+        elif x == 20:
+            xum = xum + " [" + self.workspace_units_label + "]"
+            auto_title = auto_title + " [" + self.workspace_units_label + "]"
+        elif x == 21:
+            xum = xum + "[rad]"
+            auto_title = auto_title + " [rad]"
+        elif x >= 25 and x <= 28:
+            xum = xum + "[Å-1]"
+            auto_title = auto_title + " [Å-1]"
+
+        return x, auto_title, xum
 
     def setBeam(self, beam):
         if ShadowCongruence.checkEmptyBeam(beam):
