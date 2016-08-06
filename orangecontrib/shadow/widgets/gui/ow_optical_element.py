@@ -325,7 +325,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     #####
 
-    file_to_write_out = Setting(3)
+    file_to_write_out = Setting(1) # Mirror: users found difficoult to activate the "Footprint" option.
     write_out_inc_ref_angles = Setting(0)
 
     ##########################################
@@ -2730,7 +2730,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                               QtGui.QMessageBox.Ok)
 
             if data.error_profile_data_file != ShadowPreProcessorData.NONE:
-                if self.graphical_options.is_mirror:
+                if self.graphical_options.is_mirror or self.graphical_options.is_grating:
                     self.ms_defect_file_name = data.error_profile_data_file
                     self.modified_surface = 1
                     self.ms_type_of_defect = 2
@@ -2748,7 +2748,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                         if changed:
                             if QtGui.QMessageBox.information(self, "Confirm Modification",
-                                                          "Dimensions of this mirror must be changed in order to ensure congruence with the error profile surface, accept?",
+                                                          "Dimensions of this O.E. must be changed in order to ensure congruence with the error profile surface, accept?",
                                                           QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
                                 if self.dim_x_plus > data.error_profile_x_dim/2:
                                     self.dim_x_plus = data.error_profile_x_dim/2
@@ -2760,11 +2760,11 @@ class OpticalElement(ow_generic_element.GenericElement):
                                     self.dim_y_minus = data.error_profile_y_dim/2
 
                                 QtGui.QMessageBox.information(self, "QMessageBox.information()",
-                                                              "Dimensions of this mirror were changed",
+                                                              "Dimensions of this O.E. were changed",
                                                               QtGui.QMessageBox.Ok)
                     else:
                         if QtGui.QMessageBox.information(self, "Confirm Modification",
-                                                      "This mirror must become rectangular with finite dimensions in order to ensure congruence with the error surface, accept?",
+                                                      "This O.E. must become rectangular with finite dimensions in order to ensure congruence with the error surface, accept?",
                                                       QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
                             self.is_infinite = 1
                             self.mirror_shape = 0
@@ -2774,13 +2774,13 @@ class OpticalElement(ow_generic_element.GenericElement):
                             self.dim_y_minus = data.error_profile_y_dim/2
 
                             QtGui.QMessageBox.warning(self, "Warning",
-                                                          "Dimensions of this mirror were changed",
+                                                          "Dimensions of this O.E. were changed",
                                                           QtGui.QMessageBox.Ok)
 
                     self.set_Dim_Parameters()
                 else:
                     QtGui.QMessageBox.warning(self, "Warning",
-                              "This O.E. is not a mirror: surface error file will be ignored",
+                              "This O.E. is not a mirror or grating: surface error file will be ignored",
                               QtGui.QMessageBox.Ok)
 
     def deserialize(self, shadow_file):
