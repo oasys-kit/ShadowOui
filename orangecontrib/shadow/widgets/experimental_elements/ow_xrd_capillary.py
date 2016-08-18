@@ -2508,7 +2508,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
                 twotheta_bragg = 2*ShadowPhysics.calculateBraggAngle(avg_wavelength, reflection.h, reflection.k, reflection.l, self.getLatticeParameter(material))
 
-                if numpy.degrees(twotheta_bragg) < detector_angular_acceptance:
+                if twotheta_bragg < detector_angular_acceptance:
                     if numpy.degrees(twotheta_bragg) >= self.start_angle and numpy.degrees(twotheta_bragg) <= self.stop_angle:
                         reflection.twotheta_bragg = twotheta_bragg
                         reflections.append(reflection)
