@@ -2032,6 +2032,8 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         empty_element = ShadowOpticalElement.create_empty_oe()
 
+        empty_element._oe.DUMMY = self.workspace_units_to_cm
+
         empty_element._oe.T_SOURCE     = 0.0
         empty_element._oe.T_IMAGE      = self.analyzer_distance
         empty_element._oe.T_INCIDENCE  = 0.0
@@ -2083,6 +2085,8 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         crystal = ShadowOpticalElement.create_plane_crystal()
 
+        crystal._oe.DUMMY = self.workspace_units_to_cm
+
         crystal._oe.T_SOURCE     = 0
         crystal._oe.T_IMAGE      = 1
         crystal._oe.T_INCIDENCE  = 90-self.analyzer_bragg_angle
@@ -2125,6 +2129,8 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         input_beam = diffracted_beam.duplicate(history=False)
 
         empty_element = ShadowOpticalElement.create_empty_oe()
+
+        empty_element._oe.DUMMY = self.workspace_units_to_cm
 
         empty_element._oe.T_SOURCE     = 0.0
         empty_element._oe.T_IMAGE      = self.analyzer_distance
@@ -2185,6 +2191,8 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         input_beam = diffracted_beam.duplicate(history=False)
 
         empty_element = ShadowOpticalElement.create_empty_oe()
+
+        empty_element._oe.DUMMY = self.workspace_units_to_cm
 
         empty_element._oe.T_SOURCE     = 0.0
         empty_element._oe.T_IMAGE = self.area_detector_distance
