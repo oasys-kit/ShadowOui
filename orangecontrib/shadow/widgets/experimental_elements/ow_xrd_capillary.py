@@ -1036,6 +1036,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                 self.noise[angle_index] = 0
 
             self.plotResult()
+            self.plot_canvas_area.setImageData(None)
             self.writeOutFile()
 
             self.setTabsAndButtonsEnabled(True)
