@@ -2,23 +2,13 @@ __author__ = 'labx'
 
 import math, random, numpy
 
-class RandomGenerator:
-    def __init__(self, alpha, path, bins=1000):
+class AbstractRandom:
+    def __init__(self, bins=1000):
         self.random_generator = random.Random()
         self.random_generator.seed()
 
-        step = path/bins
-
         self.prefix = numpy.zeros(bins+1)
         self.points = numpy.zeros(bins+1)
-
-        for index in range (0, bins+1):
-            self.points[index] = index*step
-
-            if index == 0:
-                self.prefix[0] = self.getFrequency(alpha, 0)
-            else:
-                self.prefix[index] = self.prefix[index-1] + self.getFrequency(alpha, index*step)
 
     def random(self):
         n = len(self.prefix)
@@ -26,9 +16,6 @@ class RandomGenerator:
 
         # Find index of ceiling of r in prefix array
         return self.points[self.findCeil(r, 0, n-1)]
-
-    def getFrequency(self, alpha, x):
-        return math.floor(10000*math.exp(-alpha*x))
 
     def findCeil(self, r, l, h):
         while (l < h):
@@ -44,13 +31,62 @@ class RandomGenerator:
         else:
             return -1
 
+class LorentzianRandom(AbstractRandom):
+    def __init__(self, beta, bins=1000):
+        super().__init__(bins=bins)
+
+        fwhm = beta * (2 / numpy.pi)
+        gamma = fwhm / 2
+
+        step = 40*fwhm/bins
+
+        for index in range (0, bins+1):
+            x = -20*fwhm + index*step
+
+            self.points[index] = x
+
+            if index == 0:
+                self.prefix[0] = self.getFrequency(gamma, x)
+            else:
+                self.prefix[index] = self.prefix[index-1] + self.getFrequency(gamma, x)
+
+    def getFrequency(self, gamma, x):
+        return 1 / ((numpy.pi*gamma)*(1 + (x/gamma)**2))
+
+
+class AbsorptionRandom(AbstractRandom):
+    def __init__(self, alpha, path, bins=1000):
+        super().__init__(bins=bins)
+
+        step = path/bins
+
+        for index in range (0, bins+1):
+            self.points[index] = index*step
+
+            if index == 0:
+                self.prefix[0] = self.getFrequency(alpha, 0)
+            else:
+                self.prefix[index] = self.prefix[index-1] + self.getFrequency(alpha, index*step)
+
+    def getFrequency(self, alpha, x):
+        return math.floor(10000*math.exp(-alpha*x))
+
+import matplotlib.pyplot as plt
+
 if __name__ == "__main__":
 
-    random = RandomGenerator(264, 0.01)
+    random = AbsorptionRandom(264, 0.01)
+    #random = LorentzianRandom(0.001)
 
-    #for i in range(0, 1001):
-    #    print(random.prefix[i])
+    s = []
 
+    for i in range(0, 1000000):
+        s.append(random.random())
 
-    for i in range(0, 1000):
-        print(random.random())
+    plt.hist(s, bins=1000)
+    plt.show()
+
+#    s = numpy.random.standard_cauchy(100000000)
+#    s = s[(s>-50) & (s<50)]  # truncate distribution so it plots well
+#    plt.hist(s, bins=1000)
+#    plt.show()

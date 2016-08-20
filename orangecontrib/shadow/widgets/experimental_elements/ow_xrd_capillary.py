@@ -23,7 +23,7 @@ from oasys.widgets.gui import ConfirmDialog
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowOpticalElement, EmittingStream, TTYGrabber, ShadowPreProcessorData
 from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowMath, ShadowPhysics, MathTextLabel
-from orangecontrib.shadow.widgets.experimental_elements.random_generator import RandomGenerator
+from orangecontrib.shadow.widgets.experimental_elements.random_generator import AbsorptionRandom, LorentzianRandom
 from orangecontrib.shadow.widgets.gui import ow_automatic_element
 
 
@@ -1406,7 +1406,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                         if self.calculate_absorption == 1:
                             mu = self.getLinearAbsorptionCoefficient(wavelength) # in cm-1
                             self.absorption_coefficients.append(mu)
-                            random_generator_absorption = RandomGenerator(mu, path)
+                            random_generator_absorption = AbsorptionRandom(mu, path)
 
                         for origin_point_index in range(0, int(self.number_of_origin_points)):
 
@@ -1428,16 +1428,15 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
                                 ray_bragg_angle = self.calculateBraggAngle(reflection, wavelength)
 
-                                delta_theta_darwin = (2 * numpy.random.random() - 1) * self.calculateDarwinWidth(
-                                    reflection, wavelength, ray_bragg_angle)  # darwin width fluctuations
+                                delta_theta_darwin = (numpy.random.random() - 0.5) * self.calculateDarwinWidth(reflection, wavelength, ray_bragg_angle)  # darwin width fluctuations
 
                                 if self.residual_average_size > 0:
-                                    fwhm_size = (0.94 * wavelength * 4 / 3) / (self.residual_average_size * self.micron_to_angstrom * numpy.cos(ray_bragg_angle))
-                                    delta_theta_size = 2 * numpy.random.normal(0.0, fwhm_size, 1)  # residual size effects
+                                    random_generator_size = LorentzianRandom(self.calculateBetaSize(wavelength, ray_bragg_angle))
+                                    delta_theta_size = random_generator_size.random() # residual size effects
                                 else:
                                     delta_theta_size = 0.0
 
-                                twotheta_reflection = 2 * ray_bragg_angle + delta_theta_darwin + delta_theta_size
+                                twotheta_reflection = 2 * (ray_bragg_angle + delta_theta_darwin + delta_theta_size)
 
                                 # rotazione del vettore d'onda pari all'angolo di bragg
                                 #
@@ -1561,6 +1560,10 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         chiH = cte * fH
 
         return 2 * numpy.absolute(chiH) / numpy.sqrt(numpy.abs(asymmetry_factor)) / numpy.sin(2 * bragg_angle)
+
+    def calculateBetaSize(self, wavelength, bragg_angle):
+        return (wavelength * 4 / 3) / (self.residual_average_size * self.micron_to_angstrom * numpy.cos(bragg_angle))
+
 
     ############################################################
 
