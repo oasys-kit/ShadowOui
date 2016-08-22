@@ -179,6 +179,10 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     caglioti_V = 0.0
     caglioti_W = 0.0
 
+    caglioti_a = 0.0
+    caglioti_b = 0.0
+    caglioti_c = 0.0
+
     run_simulation=True
     reset_button_pressed=False
 
@@ -196,6 +200,8 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     caglioti_angles = []
     caglioti_fwhm = []
     caglioti_fwhm_fit = []
+    caglioti_eta = []
+    caglioti_eta_fit = []
     caglioti_shift = []
     materials = []
     capillary_materials = []
@@ -626,6 +632,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         tab_results = gui.createTabPage(self.plot_tabs, "XRD Pattern")
         tab_caglioti_fwhm = gui.createTabPage(self.plot_tabs, "Instrumental Broadening")
+        tab_caglioti_eta = gui.createTabPage(self.plot_tabs, "Instrumental Peak Shape")
         tab_caglioti_shift = gui.createTabPage(self.plot_tabs, "Instrumental Peak Shift")
 
         self.image_box = gui.widgetBox(tab_results, "", addSpace=True, orientation="vertical")
@@ -685,9 +692,9 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         self.caglioti_fwhm_coefficient_box.setFixedWidth(200)
 
         gui.separator(self.caglioti_fwhm_coefficient_box)
-        c_U = oasysgui.lineEdit(self.caglioti_fwhm_coefficient_box, self, "caglioti_U", "U [deg]", labelWidth=100, valueType=float, orientation="horizontal")
-        c_V = oasysgui.lineEdit(self.caglioti_fwhm_coefficient_box, self, "caglioti_V", "V [deg-1]", labelWidth=100, valueType=float, orientation="horizontal")
-        c_W = oasysgui.lineEdit(self.caglioti_fwhm_coefficient_box, self, "caglioti_W", "W [deg-2]", labelWidth=100, valueType=float, orientation="horizontal")
+        c_U = oasysgui.lineEdit(self.caglioti_fwhm_coefficient_box, self, "caglioti_U", "U", labelWidth=50, valueType=float, orientation="horizontal")
+        c_V = oasysgui.lineEdit(self.caglioti_fwhm_coefficient_box, self, "caglioti_V", "V", labelWidth=50, valueType=float, orientation="horizontal")
+        c_W = oasysgui.lineEdit(self.caglioti_fwhm_coefficient_box, self, "caglioti_W", "W", labelWidth=50, valueType=float, orientation="horizontal")
 
         c_U.setReadOnly(True)
         font = QFont(c_U.font())
@@ -723,6 +730,57 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         self.caglioti_fwhm_canvas.setActiveCurveColor(color='darkblue')
 
         self.caglioti_fwhm_image_box.layout().addWidget(self.caglioti_fwhm_canvas)
+        
+        # --------------------------------------
+
+        self.caglioti_eta_image_box = gui.widgetBox(tab_caglioti_eta, "", addSpace=True, orientation="vertical")
+        self.caglioti_eta_image_box.setFixedHeight(self.IMAGE_HEIGHT)
+        self.caglioti_eta_image_box.setFixedWidth(self.IMAGE_WIDTH)
+
+        self.caglioti_eta_coefficient_box = gui.widgetBox(self.caglioti_eta_image_box, "", addSpace=True, orientation="vertical")
+        self.caglioti_eta_coefficient_box.setFixedWidth(200)
+
+        gui.separator(self.caglioti_eta_coefficient_box)
+        c_a = oasysgui.lineEdit(self.caglioti_eta_coefficient_box, self, "caglioti_a", "a", labelWidth=50, valueType=float, orientation="horizontal")
+        c_b = oasysgui.lineEdit(self.caglioti_eta_coefficient_box, self, "caglioti_b", "b", labelWidth=50, valueType=float, orientation="horizontal")
+        c_c = oasysgui.lineEdit(self.caglioti_eta_coefficient_box, self, "caglioti_c", "c", labelWidth=50, valueType=float, orientation="horizontal")
+
+        c_a.setReadOnly(True)
+        font = QFont(c_a.font())
+        font.setBold(True)
+        c_a.setFont(font)
+        palette = QPalette(c_a.palette())
+        palette.setColor(QPalette.Text, QColor('dark blue'))
+        palette.setColor(QPalette.Base, QColor(243, 240, 160))
+        c_a.setPalette(palette)
+
+        c_b.setReadOnly(True)
+        font = QFont(c_b.font())
+        font.setBold(True)
+        c_b.setFont(font)
+        palette = QPalette(c_b.palette())
+        palette.setColor(QPalette.Text, QColor('dark blue'))
+        palette.setColor(QPalette.Base, QColor(243, 240, 160))
+        c_b.setPalette(palette)
+
+        c_c.setReadOnly(True)
+        font = QFont(c_c.font())
+        font.setBold(True)
+        c_c.setFont(font)
+        palette = QPalette(c_c.palette())
+        palette.setColor(QPalette.Text, QColor('dark blue'))
+        palette.setColor(QPalette.Base, QColor(243, 240, 160))
+        c_c.setPalette(palette)
+
+        self.caglioti_eta_canvas = PlotWindow(roi=False, control=False, position=False, plugins=False)
+        self.caglioti_eta_canvas.setGraphXLabel("2Theta [deg]")
+        self.caglioti_eta_canvas.setGraphYLabel("Eta")
+        self.caglioti_eta_canvas.setDefaultPlotLines(True)
+        self.caglioti_eta_canvas.setActiveCurveColor(color='darkblue')
+
+        self.caglioti_eta_image_box.layout().addWidget(self.caglioti_eta_canvas)
+
+        # ----------------------------------------
 
         self.caglioti_shift_image_box = gui.widgetBox(tab_caglioti_shift, "", addSpace=True, orientation="vertical")
         self.caglioti_shift_image_box.setFixedHeight(self.IMAGE_HEIGHT)
@@ -847,9 +905,9 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         self.slit_2_horizontal_displacement_le.setEnabled(self.diffracted_arm_type == 0)
 
         if self.diffracted_arm_type != 2:
-            if (self.plot_tabs.count() == 4): self.plot_tabs.removeTab(0)
+            if (self.plot_tabs.count() == 5): self.plot_tabs.removeTab(0)
         else:
-            if (self.plot_tabs.count() == 3): self.plot_tabs.insertTab(0, self.tab_results_area, "XRD Pattern 2D")
+            if (self.plot_tabs.count() == 4): self.plot_tabs.insertTab(0, self.tab_results_area, "XRD Pattern 2D")
 
     def setNumberOfPeaks(self):
         self.le_number_of_peaks.setEnabled(self.set_number_of_peaks == 1)
@@ -953,26 +1011,27 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
             if clear_caglioti:
                 self.caglioti_fwhm_canvas.clearCurves()
+                self.caglioti_eta_canvas.clearCurves()
                 self.caglioti_shift_canvas.clearCurves()
 
             if not reflections is None:
-                self.caglioti_angles, self.caglioti_fwhm, self.caglioti_shift = self.getCagliotisData(reflections)
+                self.populateCagliotisData(reflections)
 
                 self.plot_canvas.addCurve(self.twotheta_angles, self.caglioti_fits, "Caglioti Fits", symbol=',', color='red', linestyle="dashed") #'+', '^',
 
-                self.caglioti_fwhm_canvas.addCurve(self.caglioti_angles, self.caglioti_fwhm, "FWHM (Gaussian)", symbol=',', color='blue', replace=True) #'+', '^',
+                self.caglioti_fwhm_canvas.addCurve(self.caglioti_angles, self.caglioti_fwhm, "FWHM (p.V.)", symbol=',', color='blue', replace=True) #'+', '^',
+                self.caglioti_eta_canvas.addCurve(self.caglioti_angles, self.caglioti_eta, "p.V. Mixing Factor", symbol=',', color='blue', replace=True) #'+', '^',
                 self.caglioti_shift_canvas.addCurve(self.caglioti_angles, self.caglioti_shift, "Peak Shift", symbol=',', color='blue', replace=True) #'+', '^',
                 self.caglioti_fwhm_canvas.setGraphXLabel("2Theta [deg]")
                 self.caglioti_fwhm_canvas.setGraphYLabel("FWHM [deg]")
+                self.caglioti_eta_canvas.setGraphXLabel("2Theta [deg]")
+                self.caglioti_eta_canvas.setGraphYLabel("Eta")
                 self.caglioti_shift_canvas.setGraphXLabel("2Theta [deg]")
                 self.caglioti_shift_canvas.setGraphYLabel("(2Theta_Bragg - 2Theta) [deg]")
 
                 if not (len(self.caglioti_angles) < 3):
                     try:
                         parameters, covariance_matrix = ShadowMath.caglioti_broadening_fit(data_x=self.caglioti_angles, data_y=self.caglioti_fwhm)
-
-                        def caglioti_broadening_function(x, U, V, W):
-                            return numpy.sqrt(W + V * (numpy.tan(x*numpy.pi/360)) + U * (numpy.tan(x*numpy.pi/360))**2)
 
                         self.caglioti_U = round(parameters[0], 7)
                         self.caglioti_V = round(parameters[1], 7)
@@ -981,19 +1040,42 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                         self.caglioti_fwhm_fit = numpy.zeros(len(self.caglioti_angles))
 
                         for index in range(0, len(self.caglioti_angles)):
-                            self.caglioti_fwhm_fit[index] = caglioti_broadening_function(self.caglioti_angles[index], parameters[0], parameters[1], parameters[2])
+                            self.caglioti_fwhm_fit[index] = ShadowMath.caglioti_broadening_function(self.caglioti_angles[index], parameters[0], parameters[1], parameters[2])
 
                         self.caglioti_fwhm_canvas.addCurve(self.caglioti_angles, self.caglioti_fwhm_fit, symbol=',', color='red', linestyle="dashed") #'+', '^',
-
                     except:
                         self.caglioti_U = -1.000
                         self.caglioti_V = -1.000
                         self.caglioti_W = -1.000
+
+                    try:
+                        parameters, covariance_matrix = ShadowMath.caglioti_shape_fit(data_x=self.caglioti_angles, data_y=self.caglioti_eta)
+
+                        self.caglioti_a = round(parameters[0], 7)
+                        self.caglioti_b = round(parameters[1], 7)
+                        self.caglioti_c = round(parameters[2], 7)
+
+                        self.caglioti_eta_fit = numpy.zeros(len(self.caglioti_angles))
+
+                        for index in range(0, len(self.caglioti_angles)):
+                            self.caglioti_eta_fit[index] = ShadowMath.caglioti_shape_function(self.caglioti_angles[index], parameters[0], parameters[1], parameters[2])
+
+                        self.caglioti_eta_canvas.addCurve(self.caglioti_angles, self.caglioti_eta_fit, symbol=',', color='red', linestyle="dashed") #'+', '^',
+                    except:
+                        self.caglioti_U = -1.000
+                        self.caglioti_V = -1.000
+                        self.caglioti_W = -1.000
+
+                        self.caglioti_a = -1.000
+                        self.caglioti_b = -1.000
+                        self.caglioti_c = -1.000
                 else:
                     self.caglioti_U = 0.000
                     self.caglioti_V = 0.000
                     self.caglioti_W = 0.000
-
+                    self.caglioti_a = 0.000
+                    self.caglioti_b = 0.000
+                    self.caglioti_c = 0.000
 
     ############################################################
     # EVENT MANAGEMENT METHODS
@@ -1806,9 +1888,10 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         return numpy.sqrt(error_on_counts**2 + error_on_noise**2)
 
 
-    def getCagliotisData(self, reflections):
+    def populateCagliotisData(self, reflections):
         angles = []
         data_fwhm = []
+        data_eta = []
         data_shift = []
 
         max_position = len(self.twotheta_angles) - 1
@@ -1837,25 +1920,26 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                 angles.append(twotheta_bragg)
 
                 try:
-                    parameters, covariance_matrix_g = ShadowMath.gaussian_fit(angles_for_fit, counts_for_fit)
+                    parameters, covariance_matrix_pv = ShadowMath.pseudovoigt_IPF_fit(angles_for_fit, counts_for_fit)
 
-                    data_fwhm.append(numpy.abs(parameters[3]))
+                    data_fwhm.append(parameters[2])
+                    data_eta.append(parameters[3])
                     data_shift.append(twotheta_bragg-parameters[1])
-
-                    def gaussian_function(x, A, x0, sigma):
-                        return A*numpy.exp(-(x-x0)**2/(2*sigma**2))
 
                     for step in range(0, n_steps):
                         angle_index = min(n_steps_inf + step, max_position)
 
-                        self.caglioti_fits[angle_index] = gaussian_function(self.twotheta_angles[angle_index], parameters[0], parameters[1], parameters[2])
+                        self.caglioti_fits[angle_index] = ShadowMath.pseudovoigt_IPF_function(self.twotheta_angles[angle_index], parameters[0], parameters[1], parameters[2], parameters[3])
 
                 except:
                     data_fwhm.append(-1.0)
+                    data_eta.append(-1.0)
                     data_shift.append(0.0)
 
-
-        return angles, data_fwhm, data_shift
+            self.caglioti_angles = angles
+            self.caglioti_fwhm = data_fwhm
+            self.caglioti_eta = data_eta
+            self.caglioti_shift = data_shift
 
     ############################################################
     # PHYSICAL CALCULATIONS

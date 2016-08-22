@@ -729,26 +729,6 @@ class ShadowPreProcessor:
 class ShadowMath:
 
     @classmethod
-    def pseudo_voigt_fit(cls, data_x, data_y):
-        x = asarray(data_x)
-        y = asarray(data_y)
-        y_norm = y/sum(y)
-
-        mean = sum(x*y_norm)
-        sigma = numpy.sqrt(sum(y_norm*(x-mean)**2)/len(x))
-        amplitude = max(data_y)
-        eta = 0.01
-
-        def pseudo_voigt_function(x, A, x0, sigma, eta):
-            return A*(((1-eta)*numpy.exp(-(x-x0)**2/(2*sigma**2))) + (eta*(1/(1+((x-x0)**2/(2*sigma**2))))))
-
-        parameters, covariance_matrix = optimize.curve_fit(pseudo_voigt_function, x, y, p0 = [amplitude, mean, sigma, eta])
-        parameters.resize(5)
-        parameters[4] = (2.355*parameters[2]) # FWHM
-
-        return parameters, covariance_matrix
-
-    @classmethod
     def gaussian_fit(cls, data_x, data_y):
         x = asarray(data_x)
         y = asarray(data_y)
@@ -758,26 +738,111 @@ class ShadowMath:
         sigma = numpy.sqrt(sum(y_norm*(x-mean)**2)/len(x))
         amplitude = max(data_y)
 
-        def gaussian_function(x, A, x0, sigma):
-            return A*numpy.exp(-(x-x0)**2/(2*sigma**2))
-
-        parameters, covariance_matrix = optimize.curve_fit(gaussian_function, x, y, p0 = [amplitude, mean, sigma])
+        parameters, covariance_matrix = optimize.curve_fit(ShadowMath.gaussian_function, x, y, p0 = [amplitude, mean, sigma])
         parameters.resize(4)
         parameters[3] = 2.355*parameters[2]# FWHM
 
         return parameters, covariance_matrix
 
     @classmethod
+    def gaussian_function(cls, x, A, x0, sigma):
+        return A*numpy.exp(-(x-x0)**2/(2*sigma**2))
+
+    @classmethod
+    def pseudovoigt_fit(cls, data_x, data_y):
+        x = asarray(data_x)
+        y = asarray(data_y)
+        y_norm = y/sum(y)
+
+        mean = sum(x*y_norm)
+        amplitude = max(data_y)
+        sigma = numpy.sqrt(sum(y_norm*(x-mean)**2)/len(x))
+        gamma = numpy.sqrt(2*numpy.log(2)) * sigma # extimate as gaussian FWHM/2
+        mixing = 0.1
+
+        parameters, covariance_matrix = optimize.curve_fit(ShadowMath.pseudovoigt_function,
+                                                           x, y,
+                                                           p0 = [amplitude, mean, sigma, gamma, mixing],
+                                                           bounds = ([0.5*amplitude, 0.9*mean,  0.1*sigma,  0.1*gamma, 0.0],
+                                                                     [2.0*amplitude, 1.1*mean, 10.0*sigma, 10.0*gamma, 1.0]))
+
+        sigma = parameters[2]
+        gamma = parameters[3]
+
+        parameters.resize(6)
+        parameters[5] =  (sigma**5 + 2.69269*(sigma**4)*gamma + 2.42843*(sigma**3)*(gamma**2) + 4.47163*(sigma**2)*(gamma**3) + 0.07842*sigma*(gamma**4))**(1/5) # PV FWHM
+
+        return parameters, covariance_matrix
+
+    @classmethod
+    def pseudovoigt_function(cls, x, A, x0, sigma, gamma, mixing):
+        gaussian_fraction = (1/(sigma*numpy.sqrt(2*numpy.pi)))*numpy.exp(-(x-x0)**2/(2*sigma**2))
+        lorentzian_fraction = 1 / ((numpy.pi*gamma)*(1 + ((x-x0)/gamma)**2))
+
+        return A*(mixing*gaussian_fraction + (1-mixing)*lorentzian_fraction)
+
+    @classmethod
+    def pseudovoigt_IPF_fit(cls, data_x, data_y):
+        x = asarray(data_x)
+        y = asarray(data_y)
+        y_norm = y/sum(y)
+
+        mean = sum(x*y_norm)
+        amplitude = max(data_y)
+        sigma = numpy.sqrt(sum(y_norm*(x-mean)**2)/len(x))
+        beta = 2*numpy.sqrt(2*numpy.log(2))*sigma # extimate as gaussian FWHM
+        mixing = 0.1
+
+        parameters, covariance_matrix = optimize.curve_fit(ShadowMath.pseudovoigt_IPF_function,
+                                                           x, y,
+                                                           p0 = [amplitude, mean, beta, mixing],
+                                                           bounds = ([0.5*amplitude, 0.9*mean,  0.1*beta, 0.0],
+                                                                     [2.0*amplitude, 1.1*mean, 10.0*beta, 1.0]))
+        print (parameters)
+
+        return parameters, covariance_matrix
+
+    @classmethod
+    def pseudovoigt_IPF_function(cls, x, A, x0, beta, mixing):
+        gaussian_fraction = numpy.exp((-numpy.pi*(x-x0)**2)/beta**2)
+        lorentzian_fraction = 1 / (1 + (numpy.pi*(x-x0)/beta)**2)
+
+        return A*(mixing*gaussian_fraction + (1-mixing)*lorentzian_fraction)
+
+    @classmethod
     def caglioti_broadening_fit(cls, data_x, data_y):
         x = asarray(data_x)
         y = asarray(data_y)
 
-        def caglioti_broadening_function(x, U, V, W):
-            return numpy.sqrt(W + V * (numpy.tan(x*numpy.pi/360)) + U * (numpy.tan(x*numpy.pi/360))**2)
-
-        parameters, covariance_matrix = optimize.curve_fit(caglioti_broadening_function, x, y, p0=[0.0001, 0.0001, 0.0001])
+        parameters, covariance_matrix = optimize.curve_fit(ShadowMath.caglioti_broadening_function,
+                                                           x, y,
+                                                           p0=[0.0001, 0.0001, 0.0001],
+                                                           bounds = ([ 0.0, -1.0, -1.0],
+                                                                     [ 1.0,  1.0,  1.0]))
 
         return parameters, covariance_matrix
+
+    @classmethod
+    def caglioti_broadening_function(cls, x, U, V, W):
+        return numpy.sqrt(W + V * (numpy.tan(x*numpy.pi/360)) + U * (numpy.tan(x*numpy.pi/360))**2)
+
+    @classmethod
+    def caglioti_shape_fit(cls, data_x, data_y):
+        x = asarray(data_x)
+        y = asarray(data_y)
+
+        parameters, covariance_matrix = optimize.curve_fit(ShadowMath.caglioti_shape_function,
+                                                           x, y,
+                                                           p0=[0.0001, 0.0001, 0.0001],
+                                                           bounds = ([ 0.0, -1.0, -1.0],
+                                                                     [ 1.0,  1.0,  1.0]))
+
+        return parameters, covariance_matrix
+
+    @classmethod
+    def caglioti_shape_function(cls, x, a, b, c):
+        return a + b*(x*numpy.pi/360) + c*(x*numpy.pi/360)**2
+
 
     @classmethod
     def vectorial_product(cls, vector1, vector2):
