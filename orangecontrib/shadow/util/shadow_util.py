@@ -798,7 +798,6 @@ class ShadowMath:
                                                            p0 = [amplitude, mean, beta, mixing],
                                                            bounds = ([0.5*amplitude, 0.9*mean,  0.1*beta, 0.0],
                                                                      [2.0*amplitude, 1.1*mean, 10.0*beta, 1.0]))
-        print (parameters)
 
         return parameters, covariance_matrix
 
@@ -833,7 +832,7 @@ class ShadowMath:
 
         parameters, covariance_matrix = optimize.curve_fit(ShadowMath.caglioti_shape_function,
                                                            x, y,
-                                                           p0=[0.0001, 0.0001, 0.0001],
+                                                           p0=[0.1, 0.0, 0.0],
                                                            bounds = ([ 0.0, -1.0, -1.0],
                                                                      [ 1.0,  1.0,  1.0]))
 
