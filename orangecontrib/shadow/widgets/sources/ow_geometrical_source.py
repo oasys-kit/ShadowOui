@@ -718,6 +718,13 @@ class GeometricalSource(ow_source.Source):
                         self.user_defined_file = "xoppy_xtubes_flux"
                         index_flux = 1
                         no_bandwidth = True
+                    elif exchangeData.get_widget_name() =="XTUBE_W" :
+                        self.user_defined_file = "xoppy_xtube_w_flux"
+                        index_flux = 1
+                        no_bandwidth = True
+                    elif exchangeData.get_widget_name() =="BLACK_BODY" :
+                        self.user_defined_file = "xoppy_black_body_flux"
+                        index_flux = 2
                     else:
                         raise Exception("Xoppy Source not recognized")
 

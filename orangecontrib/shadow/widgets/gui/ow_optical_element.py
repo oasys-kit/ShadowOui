@@ -18,6 +18,7 @@ from orangewidget import gui, widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
+from oasys.widgets.exchange import DataExchangeObject
 
 import orangecanvas.resources as resources
 
@@ -86,7 +87,8 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     inputs = [("Input Beam", ShadowBeam, "setBeam"),
               ("PreProcessor Data #1", ShadowPreProcessorData, "setPreProcessorData"),
-              ("PreProcessor Data #2", ShadowPreProcessorData, "setPreProcessorData")]
+              ("PreProcessor Data #2", ShadowPreProcessorData, "setPreProcessorData"),
+              ("ExchangeData", DataExchangeObject, "acceptExchangeData")]
 
     outputs = [{"name":"Beam",
                 "type":ShadowBeam,
@@ -2622,15 +2624,15 @@ class OpticalElement(ow_generic_element.GenericElement):
                 refl_up = []
                 refl_up.append(crystal_reflectivities[0])
             else:
-                refl_up = crystal_reflectivities[numpy.where(crystal_incident_angles == values_up[-1])]
+                refl_up = crystal_reflectivities[numpy.where(crystal_incident_angles == values_up[0])]
 
             if len(values_down) == 0:
                 refl_down = []
                 refl_down.append(crystal_reflectivities[-1])
             else:
-                refl_down = crystal_reflectivities[numpy.where(crystal_incident_angles == values_down[0])]
+                refl_down = crystal_reflectivities[numpy.where(crystal_incident_angles == values_down[-1])]
 
-            interpolated_weight.append(numpy.sqrt((refl_up[0] + refl_down[0]) / 2))
+            interpolated_weight.append(numpy.sqrt((refl_up[0] + refl_down[-1]) / 2))
 
         output_beam = input_beam.duplicate()
 
@@ -2782,6 +2784,43 @@ class OpticalElement(ow_generic_element.GenericElement):
                     QtGui.QMessageBox.warning(self, "Warning",
                               "This O.E. is not a mirror or grating: surface error file will be ignored",
                               QtGui.QMessageBox.Ok)
+
+
+    def acceptExchangeData(self, exchangeData):
+        try:
+            if not exchangeData is None:
+                if exchangeData.get_program_name() == "XOPPY":
+                    if exchangeData.get_widget_name() =="XCRYSTAL" :
+                        self.file_diffraction_profile = "xoppy_xcrystal" + "_" + str(id(self)) + ".dat"
+                        x_index = exchangeData.get_content("plot_x_col")
+                        y_index = exchangeData.get_content("plot_y_col")
+                    elif exchangeData.get_widget_name() =="XINPRO" :
+                        self.file_diffraction_profile = "xoppy_xinpro" + "_" + str(id(self)) + ".dat"
+                        x_index = 0
+                        y_index = 1
+                    else:
+                        raise Exception("Xoppy data not recognized")
+
+
+                    diffraction_profile = exchangeData.get_content("xoppy_data")
+                    conversion_factor = exchangeData.get_content("units_to_degrees")
+
+                    file = open(self.file_diffraction_profile, "w")
+
+                    for index in range(0, diffraction_profile.shape[0]):
+                        file.write(str(conversion_factor*diffraction_profile[index, x_index]) + " " + str(diffraction_profile[index, y_index]) + "\n")
+
+                    file.close()
+
+                    self.diffraction_calculation = 1
+                    self.set_DiffractionCalculation()
+
+        except Exception as exception:
+            QtGui.QMessageBox.critical(self, "Error",
+                                       str(exception),
+                QtGui.QMessageBox.Ok)
+
+            #raise exception
 
     def deserialize(self, shadow_file):
         if self.graphical_options.is_screen_slit:
