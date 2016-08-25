@@ -2814,6 +2814,29 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     self.diffraction_calculation = 1
                     self.set_DiffractionCalculation()
+                elif exchangeData.get_program_name() == "XRAYSERVER":
+                    if exchangeData.get_widget_name() =="X0H" :
+                        self.file_diffraction_profile = "xrayserver_x0h" + "_" + str(id(self)) + ".dat"
+
+                        diffraction_profile = exchangeData.get_content("x-ray_diffraction_profile_sigma")
+                        conversion_factor = exchangeData.get_content("x-ray_diffraction_profile_sigma_units_to_degrees")
+                    elif exchangeData.get_widget_name() =="GID_SL" :
+                        self.file_diffraction_profile = "xrayserver_gid_sl" + "_" + str(id(self)) + ".dat"
+
+                        diffraction_profile = exchangeData.get_content("x-ray_diffraction_profile")
+                        conversion_factor = exchangeData.get_content("x-ray_diffraction_profile_units_to_degrees")
+                    else:
+                        raise Exception("X-Ray Server data not recognized")
+
+                    file = open(self.file_diffraction_profile, "w")
+
+                    for index in range(0, len(diffraction_profile[0])):
+                        file.write(str(conversion_factor*diffraction_profile[0][index]) + " " + str(diffraction_profile[1][index]) + "\n")
+
+                    file.close()
+
+                    self.diffraction_calculation = 1
+                    self.set_DiffractionCalculation()
 
         except Exception as exception:
             QtGui.QMessageBox.critical(self, "Error",
