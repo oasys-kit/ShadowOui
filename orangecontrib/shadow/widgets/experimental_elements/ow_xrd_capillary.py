@@ -133,6 +133,8 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
     output_file_name = Setting('XRD_Profile.xy')
 
+    kind_of_fit = Setting(0)
+
     add_lorentz_polarization_factor = Setting(1)
     pm2k_fullprof = Setting(0)
     degree_of_polarization = Setting(0.95)
@@ -337,6 +339,15 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         oasysgui.lineEdit(self.box_ray_tracing_2, self, "beam_wavelength", "Beam wavelength [Å]", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.setBeamUnitsInUse()
+
+        box_ipf = oasysgui.widgetBox(self.tab_simulation, "IPF Calculation Management", addSpace=False, orientation="vertical")
+
+        gui.comboBox(box_ipf, self, "kind_of_fit", label="Fitting function to calculate FWHM of peaks", labelWidth=320,
+                     items=["Gaussian", "Pseudo-Voigt"],
+                     sendSelectedValue=False, orientation="horizontal")
+
+
+
 
         #####################
 
@@ -603,7 +614,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         out_box = gui.widgetBox(self.tab_output, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)
 
-        self.shadow_output.setFixedHeight(600)
+        self.shadow_output.setFixedHeight(400)
 
         #####################
 
@@ -1004,8 +1015,15 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     def plotResult(self, clear_caglioti=True, reflections=None):
         if not len(self.twotheta_angles)==0:
             data = numpy.add(self.counts, self.noise)
+
+            if self.kind_of_fit == 0:
+                fitting_function = "Gaussian"
+            elif self.kind_of_fit == 1:
+                fitting_function = "Pseudo-Voigt"
+
             self.plot_canvas.clearCurves()
             self.plot_canvas.addCurve(self.twotheta_angles, data, "XRD Diffraction pattern", symbol=',', color='blue', replace=True) #'+', '^',
+            self.plot_canvas.setGraphTitle("Peaks fitting function: " + fitting_function)
             self.plot_canvas.setGraphXLabel("2Theta [deg]")
             self.plot_canvas.setGraphYLabel("Intensity (arbitrary units)")
 
@@ -1018,8 +1036,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                 self.populateCagliotisData(reflections)
 
                 self.plot_canvas.addCurve(self.twotheta_angles, self.caglioti_fits, "Caglioti Fits", symbol=',', color='red', linestyle="dashed") #'+', '^',
-
-                self.caglioti_fwhm_canvas.addCurve(self.caglioti_angles, self.caglioti_fwhm, "FWHM (p.V.)", symbol=',', color='blue', replace=True) #'+', '^',
+                self.caglioti_fwhm_canvas.addCurve(self.caglioti_angles, self.caglioti_fwhm, "FWHM", symbol=',', color='blue', replace=True) #'+', '^',
                 self.caglioti_eta_canvas.addCurve(self.caglioti_angles, self.caglioti_eta, "p.V. Mixing Factor", symbol=',', color='blue', replace=True) #'+', '^',
                 self.caglioti_shift_canvas.addCurve(self.caglioti_angles, self.caglioti_shift, "Peak Shift", symbol=',', color='blue', replace=True) #'+', '^',
                 self.caglioti_fwhm_canvas.setGraphXLabel("2Theta [deg]")
@@ -1369,6 +1386,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
             self.setSimulationTabsAndButtonsEnabled(True)
             self.setStatusMessage("")
             self.progressBarFinished()
+
             #raise exception
 
     #######################################################
@@ -1920,16 +1938,30 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                 angles.append(twotheta_bragg)
 
                 try:
-                    parameters, covariance_matrix_pv = ShadowMath.pseudovoigt_IPF_fit(angles_for_fit, counts_for_fit)
+                    if self.kind_of_fit == 0: # gaussian
+                        parameters, covariance_matrix_pv = ShadowMath.gaussian_fit(angles_for_fit, counts_for_fit)
 
-                    data_fwhm.append(parameters[2])
-                    data_eta.append(parameters[3])
-                    data_shift.append(twotheta_bragg-parameters[1])
+                        data_fwhm.append(parameters[3])
+                        data_eta.append(0.0)
+                        data_shift.append(twotheta_bragg-parameters[1])
 
-                    for step in range(0, n_steps):
-                        angle_index = min(n_steps_inf + step, max_position)
+                        for step in range(0, n_steps):
+                            angle_index = min(n_steps_inf + step, max_position)
 
-                        self.caglioti_fits[angle_index] = ShadowMath.pseudovoigt_IPF_function(self.twotheta_angles[angle_index], parameters[0], parameters[1], parameters[2], parameters[3])
+                            self.caglioti_fits[angle_index] = ShadowMath.gaussian_function(self.twotheta_angles[angle_index], parameters[0], parameters[1], parameters[2])
+                    elif self.kind_of_fit == 1: # pseudo-voigt
+                        parameters, covariance_matrix_pv = ShadowMath.pseudovoigt_fit(angles_for_fit, counts_for_fit)
+
+                        data_fwhm.append(parameters[2])
+                        data_eta.append(parameters[3])
+                        data_shift.append(twotheta_bragg-parameters[1])
+
+                        print(parameters)
+
+                        for step in range(0, n_steps):
+                            angle_index = min(n_steps_inf + step, max_position)
+
+                            self.caglioti_fits[angle_index] = ShadowMath.pseudovoigt_function(self.twotheta_angles[angle_index], parameters[0], parameters[1], parameters[2], parameters[3])
 
                 except:
                     data_fwhm.append(-1.0)
@@ -2477,15 +2509,25 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         caglioti_1_out_file.close()
 
-        caglioti_2_out_file = open(base_name + "_InstrumentalPeakShift.dat","w")
-        caglioti_2_out_file.write("tth peak_shift\n")
+        caglioti_2_out_file = open(base_name + "_InstrumentalEta.dat","w")
+        caglioti_2_out_file.write("tth eta\n")
 
         for angle_index in range(0, len(self.caglioti_angles)):
             caglioti_2_out_file.write(str(self.caglioti_angles[angle_index]) + " "
-                           + str(self.caglioti_shift[angle_index]) + "\n")
+                           + str(self.caglioti_eta[angle_index]) + "\n")
             caglioti_2_out_file.flush()
 
         caglioti_2_out_file.close()
+
+        caglioti_3_out_file = open(base_name + "_InstrumentalPeakShift.dat","w")
+        caglioti_3_out_file.write("tth peak_shift\n")
+
+        for angle_index in range(0, len(self.caglioti_angles)):
+            caglioti_3_out_file.write(str(self.caglioti_angles[angle_index]) + " "
+                           + str(self.caglioti_shift[angle_index]) + "\n")
+            caglioti_3_out_file.flush()
+
+        caglioti_3_out_file.close()
 
     ############################################################
 
