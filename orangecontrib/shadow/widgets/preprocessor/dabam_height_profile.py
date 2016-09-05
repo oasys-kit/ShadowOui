@@ -471,6 +471,8 @@ class OWdabam_height_profile(OWWidget):
                                  exception.args[0],
                                  QMessageBox.Ok)
 
+            #raise exception
+
 
     def search_profiles(self):
         try:
@@ -611,7 +613,7 @@ class OWdabam_height_profile(OWWidget):
                 profile_1D_y_x = profile_1D_y_x_temp
 
             if self.renormalize_y == 0:
-                rms_y = None
+                rms_y = 0.0
             else:
                 if self.error_type_y == profiles_simulation.FIGURE_ERROR:
                     rms_y = self.si_to_user_units * self.rms_y * 1e-9   # from nm to user units
@@ -666,6 +668,7 @@ class OWdabam_height_profile(OWWidget):
             QMessageBox.critical(self, "Error",
                                  exception.args[0],
                                  QMessageBox.Ok)
+
             #raise exception
 
     def generate_heigth_profile_file_ni(self):
