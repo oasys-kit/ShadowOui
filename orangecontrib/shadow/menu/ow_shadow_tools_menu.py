@@ -18,6 +18,7 @@ import orangecontrib.shadow.widgets.preprocessor.dabam_height_profile as dabam_h
 import orangecontrib.shadow.widgets.plots.ow_plot_xy as ow_plot_xy
 import orangecontrib.shadow.widgets.plots.ow_histogram as ow_histogram
 import orangecontrib.shadow.widgets.plots.ow_info as ow_info
+import orangecontrib.shadow.widgets.plots.ow_focnew as ow_focnew
 
 from orangecontrib.shadow.util.shadow_objects import ShadowFile
 
@@ -158,6 +159,7 @@ class ShadowToolsMenu(OMenu):
 
                     if isinstance(widget, ow_plot_xy.PlotXY) or \
                        isinstance(widget, ow_histogram.Histogram) or \
+                       isinstance(widget, ow_focnew.FocNew) or \
                        isinstance(widget, ow_info.Info):
                         link.set_enabled(True)
         except Exception as exception:
@@ -173,6 +175,7 @@ class ShadowToolsMenu(OMenu):
 
                     if isinstance(widget, ow_plot_xy.PlotXY) or \
                        isinstance(widget, ow_histogram.Histogram) or \
+                       isinstance(widget, ow_focnew.FocNew) or \
                        isinstance(widget, ow_info.Info):
                         link.set_enabled(False)
         except Exception as exception:

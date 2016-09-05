@@ -1149,7 +1149,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         if self.incremental == 1:
             self.number_of_executions = congruence.checkStrictlyPositiveNumber(self.number_of_executions, "Number of Executions")
 
-        self.output_file_name = congruence.checkDir(self.output_file_name)
+        congruence.checkDir(self.output_file_name)
 
         self.degrees_around_peak = congruence.checkStrictlyPositiveNumber(self.degrees_around_peak, "Degrees around Peak")
 
