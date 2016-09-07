@@ -445,8 +445,6 @@ class OWheight_profile_simulator(OWWidget):
                 else:
                     rms_x = self.rms_x * 1e-6 # from urad to rad
 
-            print(rms_x, rms_y)
-
             xx, yy, zz = profiles_simulation.simulate_profile_2D(combination = combination,
                                                                  mirror_length = self.dimension_y * self.workspace_units_to_cm, # to cm
                                                                  step_l = self.step_y * self.workspace_units_to_cm, # to cm
@@ -545,7 +543,7 @@ class OWheight_profile_simulator(OWWidget):
         if self.kind_of_profile_y < 2:
             self.dimension_y = congruence.checkStrictlyPositiveNumber(self.dimension_y, "Dimension Y")
             self.step_y = congruence.checkStrictlyPositiveNumber(self.step_y, "Step Y")
-            if self.kind_of_profile_x == 0: self.power_law_exponent_beta_y = congruence.checkPositiveNumber(self.power_law_exponent_beta_y, "Beta Value Y")
+            if self.kind_of_profile_y == 0: self.power_law_exponent_beta_y = congruence.checkPositiveNumber(self.power_law_exponent_beta_y, "Beta Value Y")
             if self.kind_of_profile_y == 1: self.correlation_length_y = congruence.checkStrictlyPositiveNumber(self.correlation_length_y, "Correlation Length Y")
             self.rms_y = congruence.checkPositiveNumber(self.rms_y, "Rms Y")
             self.montecarlo_seed_y = congruence.checkPositiveNumber(self.montecarlo_seed_y, "Monte Carlo initial seed y")
