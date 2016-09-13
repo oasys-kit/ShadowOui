@@ -13,7 +13,8 @@ NAME = "Optical Elements"
 
 DESCRIPTION = "Widgets for Shadow Optical Elements."
 
-BACKGROUND = "#bcf7ff"
+#BACKGROUND = "#bcf7ff"
+BACKGROUND = "#A9D0F5"
 
 ICON = "icons/opticalElements.png"
 

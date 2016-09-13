@@ -15,7 +15,8 @@ NAME = "Compound Optical Elements"
 
 DESCRIPTION = "Widgets for Shadow Optical Elements."
 
-BACKGROUND = "#FBEFFB"
+#BACKGROUND = "#FBEFFB"
+BACKGROUND = "#A9D0F5"
 
 ICON = "icons/compoundOpticalElements.png"
 

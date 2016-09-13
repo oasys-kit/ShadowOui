@@ -13,7 +13,8 @@ NAME = "PreProcessor"
 
 DESCRIPTION = "Widgets for Shadow Preprocessor."
 
-BACKGROUND = "#b8bcdb"
+#BACKGROUND = "#b8bcdb"
+BACKGROUND = "#A9D0F5"
 
 ICON = "icons/ingranaggio.png"
 

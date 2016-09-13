@@ -15,7 +15,8 @@ NAME = "Utility"
 
 DESCRIPTION = "Widgets for Shadow - Utility."
 
-BACKGROUND = "#FFFFFF"
+#BACKGROUND = "#FFFFFF"
+BACKGROUND = "#A9D0F5"
 
 ICON = "icons/utility.png"
 
