@@ -601,6 +601,7 @@ class OWdabam_height_profile(OWWidget):
                 if self.use_undetrended == 0: profile_1D_y_y = self.si_to_user_units * self.server.zHeights
                 else: profile_1D_y_y = self.si_to_user_units * self.server.zHeightsUndetrended
 
+
             if self.center_y:
                 first_coord = profile_1D_y_x[0]
                 second_coord  = profile_1D_y_x[1]
@@ -613,7 +614,7 @@ class OWdabam_height_profile(OWWidget):
                 profile_1D_y_x = profile_1D_y_x_temp
 
             if self.renormalize_y == 0:
-                rms_y = 0.0
+                rms_y = None
             else:
                 if self.error_type_y == profiles_simulation.FIGURE_ERROR:
                     rms_y = self.si_to_user_units * self.rms_y * 1e-9   # from nm to user units
@@ -632,6 +633,9 @@ class OWdabam_height_profile(OWWidget):
             self.xx = xx
             self.yy = yy
             self.zz = zz # in user units
+
+
+            print(self.workspace_units_label, max(profile_1D_y_y), ", NM ", max(self.server.zHeights) * 1e9, " dopo calcolo, in " + self.workspace_units_label, numpy.max(self.zz))
 
             self.axis.clear()
 
