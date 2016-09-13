@@ -634,9 +634,6 @@ class OWdabam_height_profile(OWWidget):
             self.yy = yy
             self.zz = zz # in user units
 
-
-            print(self.workspace_units_label, max(profile_1D_y_y), ", NM ", max(self.server.zHeights) * 1e9, " dopo calcolo, in " + self.workspace_units_label, numpy.max(self.zz))
-
             self.axis.clear()
 
             x_to_plot, y_to_plot = numpy.meshgrid(xx, yy)
