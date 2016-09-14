@@ -18,7 +18,6 @@ except SystemError:
     pass
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
-from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics
 
 class OWxsh_bragg(OWWidget):
     name = "Bragg"
