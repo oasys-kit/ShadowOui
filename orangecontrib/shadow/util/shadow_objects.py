@@ -193,6 +193,8 @@ class ShadowBeam:
     def traceFromSource(cls, shadow_src, write_begin_file=0, write_start_file=0, write_end_file=0, history=True):
         self = cls.__new__(ShadowBeam, beam=Shadow.Beam())
 
+        shadow_src.self_repair()
+
         shadow_source_start = shadow_src.duplicate()
 
         if write_start_file == 1:
@@ -200,10 +202,10 @@ class ShadowBeam:
 
         self._beam.genSource(shadow_src.src)
 
+        shadow_src.self_repair()
+
         if write_begin_file:
             self.writeToFile("begin.dat")
-
-        shadow_src.self_repair()
 
         if write_end_file == 1:
             shadow_src.src.write("end.00")
@@ -219,6 +221,8 @@ class ShadowBeam:
     def traceFromOE(cls, input_beam, shadow_oe, write_start_file=0, write_end_file=0, history=True):
 
         self = cls.initializeFromPreviousBeam(input_beam)
+
+        shadow_oe.self_repair()
 
         if history:
             history_shadow_oe_start = shadow_oe.duplicate()
@@ -256,10 +260,11 @@ class ShadowBeam:
                             history=True):
         self = cls.initializeFromPreviousBeam(input_beam)
 
+        shadow_oe.self_repair()
+
         if history:
             history_shadow_oe_start = shadow_oe.duplicate()
 
-        shadow_oe.self_repair()
 
         self._beam.traceCompoundOE(shadow_oe._oe,
                                    from_oe=self._oe_number,
@@ -267,6 +272,8 @@ class ShadowBeam:
                                    write_end_files=write_end_files,
                                    write_star_files=write_star_files,
                                    write_mirr_files=write_mirr_files)
+
+        shadow_oe.self_repair()
 
         if history:
             history_shadow_oe_end = shadow_oe.duplicate()

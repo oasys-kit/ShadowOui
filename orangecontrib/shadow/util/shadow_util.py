@@ -51,6 +51,108 @@ class ShadowCongruence():
             return False
         else:
             return True
+    @classmethod
+    def checkBraggFile(cls, file_name):
+        file = open(file_name, "r")
+
+        try:
+            rows = file.readlines()
+
+            if len(rows) < 10: raise Exception("Bragg file malformed, please check input")
+
+            first_row = rows[0].strip().split(" ")
+            if not len(first_row) == 3: raise Exception("Bragg file malformed, please check input")
+
+            second_row = rows[1].strip().split(" ")
+            if not len(second_row) == 3: raise Exception("Bragg file malformed, please check input")
+
+            if not (rows[2].startswith("(") and rows[3].startswith("(") and rows[4].startswith("(") and rows[5].startswith("(")):
+                raise Exception("Bragg file malformed, please check input")
+
+            seventh_row = rows[6].strip().split(" ")
+            if not len(seventh_row) == 3: raise Exception("Bragg file malformed, please check input")
+
+            eighth_row = rows[7].strip().split(" ")
+            if not len(eighth_row) == 3: raise Exception("Bragg file malformed, please check input")
+
+            nineth_row = rows[8].strip().split(" ")
+            if not len(nineth_row) == 1: raise Exception("Bragg file malformed, please check input")
+        except Exception as e:
+            file.close()
+
+            raise e
+
+    @classmethod
+    def checkPreReflFile(cls, file_name):
+        file = open(file_name, "r")
+
+        try:
+            rows = file.readlines()
+
+            if len(rows) < 3: raise Exception("PreRefl file malformed, please check input")
+
+            first_row = rows[0].strip().split("   ")
+            if not len(first_row) == 4: raise Exception("PreRefl file malformed, please check input")
+
+            second_row = rows[1].strip().split(" ")
+            if not len(second_row) == 1: raise Exception("PreRefl file malformed, please check input")
+
+            try:
+                elements = int(second_row[0])
+            except:
+                raise Exception("PreRefl file malformed, please check input")
+
+            print(str(len(rows)), str(elements+2))
+            if len(rows) != (elements*2) + 2: raise Exception("PreRefl file malformed, please check input")
+        except Exception as e:
+            file.close()
+
+            raise e
+
+    @classmethod
+    def checkPreMLayerFile(cls, file_name):
+        file = open(file_name, "r")
+
+        try:
+            rows = file.readlines()
+
+            if len(rows) < 2: raise Exception("PreMLayer file malformed, please check input")
+
+            first_row = rows[0].strip().split(" ")
+            if not len(first_row) == 1: raise Exception("PreMLayer file malformed, please check input")
+
+            try:
+                elements = int(first_row[0])
+            except:
+                raise Exception("PreRefl file malformed, please check input")
+
+            second_row = rows[1].strip().split(" ")
+            if not len(second_row) == int(elements): raise Exception("PreMLayer file malformed, please check input")
+
+            try:
+                separator_row = rows[2 + elements*3].strip().split(" ")
+                if not len(separator_row) == 1: raise Exception("PreMLayer file malformed, please check input")
+            except:
+                raise Exception("PreRefl file malformed, please check input")
+
+            next_row = rows[2 + elements*3 + 1].strip().split("   ")
+            if not len(next_row) == 4: raise Exception("PreMLayer file malformed, please check input")
+        except Exception as e:
+            file.close()
+
+            raise e
+
+    @classmethod
+    def checkXOPDiffractionProfileFile(cls, file_name):
+        try:
+            if file_name.startswith('/'):
+                values = numpy.loadtxt(os.path.abspath(file_name))
+            else:
+                values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/" + file_name))
+        except:
+            raise Exception("Diffraction Profile File malformed (should be 2 or more columns of numbers, separated by spaces), please check input")
+
+        if len(values) < 2: raise Exception("Diffraction Profile File malformed (should be 2 or more columns of numbers, separated by spaces), please check input")
 
 class ShadowStatisticData:
     intensity = 0.0
@@ -1309,6 +1411,14 @@ if __name__ == "__main__":
     #print(congruence.checkFileName("Files/pippo.dat"))
     #print(congruence.checkFileName("/Users/labx/Desktop/pippo.dat"))
 
+    print("Bragg")
+    ShadowCongruence.checkBraggFile("/Users/admin/Oasys/bragg.dat")
+    print("PreRefl")
+    ShadowCongruence.checkPreReflFile("/Users/admin/Oasys/reflec.dat")
+    print("PreMLayer")
+    ShadowCongruence.checkPreMLayerFile("/Users/admin/Oasys/mlayer.dat")
+
+    ShadowCongruence.checkXOPDiffractionProfileFile("/Users/admin/Oasys/mlayer.dat")
 
     '''
     print(ShadowPhysics.A2EV)
@@ -1346,7 +1456,6 @@ if __name__ == "__main__":
     fig.colorbar(surf, shrink=0.5, aspect=5)
 
     plt.show()
-    '''
 
     app = QApplication(sys.argv)
 
@@ -1379,3 +1488,4 @@ if __name__ == "__main__":
     widget.show()
 
     app.exec()
+    '''

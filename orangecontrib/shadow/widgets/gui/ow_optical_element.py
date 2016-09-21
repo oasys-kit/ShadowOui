@@ -148,7 +148,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     torus_major_radius = Setting(0.0)
     torus_minor_radius = Setting(0.0)
-    toroidal_mirror_pole_location=Setting(0.0)
+    toroidal_mirror_pole_location=Setting(0)
 
     ellipse_hyperbola_semi_major_axis=Setting(0.0)
     ellipse_hyperbola_semi_minor_axis=Setting(0.0)
@@ -184,7 +184,7 @@ class OpticalElement(ow_generic_element.GenericElement):
     diffraction_geometry = Setting(0)
     diffraction_calculation = Setting(0)
     file_diffraction_profile = Setting("diffraction_profile.dat")
-    file_crystal_parameters = Setting("reflec.dat")
+    file_crystal_parameters = Setting("bragg.dat")
     crystal_auto_setting = Setting(0)
     units_in_use = Setting(0)
     photon_energy = Setting(5.0)
@@ -2375,31 +2375,32 @@ class OpticalElement(ow_generic_element.GenericElement):
                             self.focus_location = congruence.checkNumber(self.focus_location, "Focus location")
                 else:
                    if self.graphical_options.is_spheric:
-                       self.spherical_radius = congruence.checkPositiveNumber(self.spherical_radius, "Spherical radius")
+                       self.spherical_radius = congruence.checkStrictlyPositiveNumber(self.spherical_radius, "Spherical radius")
                    elif self.graphical_options.is_toroidal:
-                       self.torus_major_radius = congruence.checkPositiveNumber(self.torus_major_radius, "Torus major radius")
-                       self.torus_minor_radius = congruence.checkPositiveNumber(self.torus_minor_radius, "Torus minor radius")
+                       self.torus_major_radius = congruence.checkStrictlyPositiveNumber(self.torus_major_radius, "Torus major radius")
+                       self.torus_minor_radius = congruence.checkStrictlyPositiveNumber(self.torus_minor_radius, "Torus minor radius")
                    elif self.graphical_options.is_hyperboloid or self.graphical_options.is_ellipsoidal:
-                       self.ellipse_hyperbola_semi_major_axis = congruence.checkPositiveNumber(self.ellipse_hyperbola_semi_major_axis, "Semi major axis")
-                       self.ellipse_hyperbola_semi_minor_axis = congruence.checkPositiveNumber(self.ellipse_hyperbola_semi_minor_axis, "Semi minor axis")
+                       self.ellipse_hyperbola_semi_major_axis = congruence.checkStrictlyPositiveNumber(self.ellipse_hyperbola_semi_major_axis, "Semi major axis")
+                       self.ellipse_hyperbola_semi_minor_axis = congruence.checkStrictlyPositiveNumber(self.ellipse_hyperbola_semi_minor_axis, "Semi minor axis")
                        self.angle_of_majax_and_pole = congruence.checkPositiveNumber(self.angle_of_majax_and_pole, "Angle of MajAx and Pole")
                    elif self.graphical_options.is_paraboloid:
                        self.paraboloid_parameter = congruence.checkNumber(self.paraboloid_parameter, "Paraboloid parameter")
 
-                if self.graphical_options.is_toroidal:
-                    self.toroidal_mirror_pole_location = congruence.checkPositiveNumber(self.toroidal_mirror_pole_location, "Toroidal mirror pole location")
-
             if self.graphical_options.is_mirror:
                 if not self.reflectivity_type == 0:
                     if self.source_of_reflectivity == 0:
-                        congruence.checkFile(self.file_prerefl)
+                        file = congruence.checkFile(self.file_prerefl)
+                        ShadowCongruence.checkPreReflFile(file)
                     elif self.source_of_reflectivity == 2:
-                        congruence.checkFile(self.file_prerefl_m)
+                        file = congruence.checkFile(self.file_prerefl_m)
+                        ShadowCongruence.checkPreMLayerFile(file)
             elif self.graphical_options.is_crystal:
                 if self.diffraction_calculation == 1:
-                    congruence.checkFile(self.file_diffraction_profile)
+                    file = congruence.checkFile(self.file_diffraction_profile)
+                    ShadowCongruence.checkXOPDiffractionProfileFile(file)
                 else:
-                    congruence.checkFile(self.file_crystal_parameters)
+                    file = congruence.checkFile(self.file_crystal_parameters)
+                    ShadowCongruence.checkBraggFile(file)
 
                     if not self.crystal_auto_setting == 0:
                         if self.units_in_use == 0:

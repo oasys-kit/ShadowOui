@@ -5,7 +5,7 @@ import os
 from setuptools import find_packages, setup
 
 NAME = 'ShadowOui'
-VERSION = '1.3.53'
+VERSION = '1.3.54'
 ISRELEASED = False
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
@@ -41,9 +41,9 @@ INSTALL_REQUIRES = (
     'numpy',
     'scipy>=0.17.0',
     'matplotlib==1.4.3', #problems found with 1.5.0
-    'srxraylib>=1.0.6',
+    'srxraylib>=1.0.7',
     'orange-widget-core>=0.0.2',
-    'oasys>=0.1.21',
+    'oasys>=0.1.22',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
