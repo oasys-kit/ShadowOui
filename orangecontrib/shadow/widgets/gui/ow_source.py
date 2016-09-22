@@ -1,6 +1,6 @@
 __author__ = 'labx'
 
-import os
+import os, sys
 
 from PyQt4.QtGui import QPalette, QColor, QFont, QMessageBox
 from orangewidget import gui
@@ -82,8 +82,12 @@ class Source(ow_generic_element.GenericElement):
             write_begin_file = 1
         if self.file_to_write_out == 2:
             write_begin_file = 1
-            write_start_file = 1
-            write_end_file = 1
+
+            if sys.platform == 'linux':
+                QMessageBox.warning(self, "Warning", "Debug Mode is not yet available for sources in Linux platforms", QMessageBox.Ok)
+            else:
+                write_start_file = 1
+                write_end_file = 1
 
         return write_begin_file, write_start_file, write_end_file
 
