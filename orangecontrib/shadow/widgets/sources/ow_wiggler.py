@@ -547,6 +547,8 @@ class Wiggler(ow_source.Source):
         self.seed = congruence.checkPositiveNumber(self.seed, "Seed")
         self.e_min = congruence.checkPositiveNumber(self.e_min, "Minimum energy")
         self.e_max = congruence.checkPositiveNumber(self.e_max, "Maximum energy")
+        congruence.checkLessThan(self.e_min, self.e_max,  "Minimum energy",  "Maximum energy")
+
         self.max_number_of_rejected_rays = congruence.checkPositiveNumber(self.max_number_of_rejected_rays,
                                                                          "Max Number of Rejected Rays")
         self.slit_distance = congruence.checkPositiveNumber(self.slit_distance, "Horizontal half-divergence from [+]")

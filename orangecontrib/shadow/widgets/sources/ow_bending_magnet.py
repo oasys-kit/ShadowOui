@@ -221,7 +221,8 @@ class BendingMagnet(ow_source.Source):
         self.seed = congruence.checkPositiveNumber(self.seed, "Seed")
         self.e_min = congruence.checkPositiveNumber(self.e_min, "Minimum energy")
         self.e_max = congruence.checkPositiveNumber(self.e_max, "Maximum energy")
-        if self.e_min > self.e_max: raise Exception("Energy min should be <= Energy max")
+        congruence.checkLessThan(self.e_min, self.e_max,  "Minimum energy",  "Maximum energy")
+
         self.sigma_x = congruence.checkPositiveNumber(self.sigma_x, "Sigma x")
         self.sigma_z = congruence.checkPositiveNumber(self.sigma_z, "Sigma z")
         self.emittance_x = congruence.checkPositiveNumber(self.emittance_x, "Emittance x")

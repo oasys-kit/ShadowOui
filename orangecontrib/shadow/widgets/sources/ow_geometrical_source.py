@@ -849,7 +849,7 @@ class GeometricalSource(ow_source.Source):
             self.uniform_minimum = congruence.checkPositiveNumber(self.uniform_minimum, "Minimum Energy/Wavelength")
             self.uniform_maximum = congruence.checkStrictlyPositiveNumber(self.uniform_maximum, "Maximum Energy/Wavelength")
 
-            if self.uniform_minimum >= self.uniform_maximum: raise Exception("Minimum Energy/Wavelength should be less than Maximum Energy/Wavelength")
+            congruence.checkLessThan(self.uniform_minimum, self.uniform_maximum, "Minimum Energy/Wavelength", "Maximum Energy/Wavelength")
         elif self.photon_energy_distribution == 3:
             if self.number_of_lines >= 1:
                 self.line_value_1 = congruence.checkPositiveNumber(self.line_value_1, "Line 1")
@@ -887,12 +887,14 @@ class GeometricalSource(ow_source.Source):
             self.gaussian_minimum = congruence.checkPositiveNumber(self.gaussian_minimum, "Minimum Energy/Wavelength")
             self.gaussian_maximum = congruence.checkStrictlyPositiveNumber(self.gaussian_maximum, "Maximum Energy/Wavelength")
 
-            if self.gaussian_minimum >= self.gaussian_maximum: raise Exception("Minimum Energy/Wavelength should be less than Maximum Energy/Wavelength")
+            congruence.checkLessThan(self.gaussian_minimum, self.gaussian_maximum, "Minimum Energy/Wavelength", "Maximum Energy/Wavelength")
 
         elif self.photon_energy_distribution == 5:
             congruence.checkFile(self.user_defined_file)
             self.user_defined_minimum = congruence.checkPositiveNumber(self.user_defined_minimum, "Minimum Energy/Wavelength")
             self.user_defined_maximum = congruence.checkStrictlyPositiveNumber(self.user_defined_maximum, "Maximum Energy/Wavelength")
+
+            congruence.checkLessThan(self.user_defined_minimum, self.user_defined_maximum, "Minimum Energy/Wavelength", "Maximum Energy/Wavelength")
 
         if self.optimize_source > 0:
             self.max_number_of_rejected_rays = congruence.checkPositiveNumber(self.max_number_of_rejected_rays,
