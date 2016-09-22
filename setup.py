@@ -43,7 +43,7 @@ INSTALL_REQUIRES = (
     'matplotlib==1.4.3', #problems found with 1.5.0
     'srxraylib>=1.0.7',
     'orange-widget-core>=0.0.2',
-    'oasys>=0.1.22',
+    'oasys>=0.1.23',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
