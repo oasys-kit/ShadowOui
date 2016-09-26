@@ -604,9 +604,7 @@ class OWdabam_height_profile(OWWidget):
 
             if self.center_y:
                 first_coord = profile_1D_y_x[0]
-                second_coord  = profile_1D_y_x[1]
                 last_coord = profile_1D_y_x[-1]
-                step = numpy.abs(second_coord - first_coord)
                 length = numpy.abs(last_coord - first_coord)
 
                 profile_1D_y_x_temp = numpy.linspace(-length/2, length/2, len(profile_1D_y_x))
