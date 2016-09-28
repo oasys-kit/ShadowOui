@@ -1074,7 +1074,7 @@ def do_histo(array, bins):
     plt.show()
 
 def do_1d_plot(scaled_array, title="PROVA"):
-    plot_canvas = PlotWindow.PlotWindow(roi=False, control=False, position=False, plugins=False, logx=False, logy=False)
+    plot_canvas = PlotWindow.PlotWindow(roi=False, control=False, position=True, plugins=False, logx=False, logy=False)
     plot_canvas.setDefaultPlotLines(True)
     plot_canvas.setActiveCurveColor(color='darkblue')
     plot_canvas.setMinimumWidth(800)

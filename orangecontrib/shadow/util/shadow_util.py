@@ -154,6 +154,18 @@ class ShadowCongruence():
 
         if len(values) < 2: raise Exception("Diffraction Profile File malformed (should be 2 or more columns of numbers, separated by spaces), please check input")
 
+    @classmethod
+    def checkXOPReflectivityFile(cls, file_name):
+        try:
+            if file_name.startswith('/'):
+                values = numpy.loadtxt(os.path.abspath(file_name))
+            else:
+                values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/" + file_name))
+        except:
+            raise Exception("Reflectivity File malformed (should be 2 or more columns of numbers, separated by spaces), please check input")
+
+        if len(values) < 2: raise Exception("Reflectivity Profile File malformed (should be 2 or more columns of numbers, separated by spaces), please check input")
+
 class ShadowStatisticData:
     intensity = 0.0
     total_number_of_rays = 0
@@ -452,7 +464,7 @@ class ShadowPlot:
         def __init__(self, x_scale_factor = 1.0, y_scale_factor = 1.0):
             super(ShadowPlot.DetailedHistoWidget, self).__init__()
 
-            self.plot_canvas = PlotWindow.PlotWindow(roi=False, control=False, position=False, plugins=False, logx=False, logy=False)
+            self.plot_canvas = PlotWindow.PlotWindow(roi=False, control=False, position=True, plugins=False, logx=False, logy=False)
             self.plot_canvas.setDefaultPlotLines(True)
             self.plot_canvas.setActiveCurveColor(color='darkblue')
             self.plot_canvas.setMinimumWidth(590*x_scale_factor)
