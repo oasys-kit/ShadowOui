@@ -282,13 +282,13 @@ class Wiggler(ow_source.Source):
 
                 data = numpy.loadtxt("tmp.traj",skiprows=15)
 
-                energy, flux = srfunc.wiggler_spectrum(data.T,
-                                                enerMin=self.e_min,
-                                                enerMax=self.e_max,
-                                                nPoints=500,
-                                                electronCurrent=self.electron_current/1000,
-                                                outFile="spectrum.dat",
-                                                elliptical=False)
+                energy, flux, temp = srfunc.wiggler_spectrum(data.T,
+                                                             enerMin=self.e_min,
+                                                             enerMax=self.e_max,
+                                                             nPoints=500,
+                                                             electronCurrent=self.electron_current/1000,
+                                                             outFile="spectrum.dat",
+                                                             elliptical=False)
 
                 self.plot_wiggler_histo(20,  data[:, 1], data[:, 7], plot_canvas_index=0, title="Magnetic Field (in vertical) Bz(Y)", xtitle=r'Y [m]', ytitle=r'B [T]')
                 self.plot_wiggler_histo(40,  data[:, 1], data[:, 6], plot_canvas_index=1, title="Electron Curvature", xtitle=r'Y [m]', ytitle=r'curvature [m^-1]')
