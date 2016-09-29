@@ -12,6 +12,8 @@ from oasys.widgets import congruence
 from orangecontrib.shadow.util.shadow_objects import ShadowTriggerOut, ShadowBeam, ShadowSource, ShadowFile
 from orangecontrib.shadow.widgets.gui import ow_generic_element
 
+shadow_src_to_copy = None
+
 class Source(ow_generic_element.GenericElement):
 
     maintainer = "Luca Rebuffi"
@@ -93,6 +95,7 @@ class Source(ow_generic_element.GenericElement):
 
     def copy_src_parameters(self):
         global shadow_src_to_copy
+
         shadow_src_to_copy = ShadowSource.create_src()
 
         self.populateFields(shadow_src_to_copy)
@@ -102,27 +105,31 @@ class Source(ow_generic_element.GenericElement):
     def paste_src_parameters(self):
         global shadow_src_to_copy
 
-        try:
-            if "BendingMagnet" in shadow_src_to_copy.source_type and not "BendingMagnet" in str(self.__class__):
-                raise Exception("Paste Parameters not allowed:\nDestination Source is not a BendingMagnet")
-            elif "Undulator" in shadow_src_to_copy.source_type and not "Undulator" in str(self.__class__):
-                raise Exception("Paste Parameters not allowed:\nDestination Source is not an Undulator")
-            elif "Geometrical" in shadow_src_to_copy.source_type and not "Geometrical" in str(self.__class__):
-                raise Exception("Paste Parameters not allowed:\nDestination Source is not a Geometrical Source")
-            elif "Wiggler" in shadow_src_to_copy.source_type and not "Wiggler" in str(self.__class__):
-                raise Exception("Paste Parameters not allowed:\nDestination Source is not a Wiggler")
+        if not shadow_src_to_copy is None:
+            try:
+                if "BendingMagnet" in shadow_src_to_copy.source_type and not "BendingMagnet" in str(self.__class__):
+                    raise Exception("Paste Parameters not allowed:\nDestination Source is not a BendingMagnet")
+                elif "Undulator" in shadow_src_to_copy.source_type and not "Undulator" in str(self.__class__):
+                    raise Exception("Paste Parameters not allowed:\nDestination Source is not an Undulator")
+                elif "Geometrical" in shadow_src_to_copy.source_type and not "Geometrical" in str(self.__class__):
+                    raise Exception("Paste Parameters not allowed:\nDestination Source is not a Geometrical Source")
+                elif "Wiggler" in shadow_src_to_copy.source_type and not "Wiggler" in str(self.__class__):
+                    raise Exception("Paste Parameters not allowed:\nDestination Source is not a Wiggler")
 
-            shadow_temp_file = congruence.checkFileName("tmp_src_buffer.dat")
-            shadow_src_to_copy.src.write(shadow_temp_file)
+                if QMessageBox.information(self, "Confirm Operation",
+                                              "Confirm Paste Operation?",
+                                              QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
+                    shadow_temp_file = congruence.checkFileName("tmp_src_buffer.dat")
+                    shadow_src_to_copy.src.write(shadow_temp_file)
 
-            shadow_file, type = ShadowFile.readShadowFile(shadow_temp_file)
+                    shadow_file, type = ShadowFile.readShadowFile(shadow_temp_file)
 
-            self.deserialize(shadow_file)
+                    self.deserialize(shadow_file)
 
-            os.remove(shadow_temp_file)
+                    os.remove(shadow_temp_file)
 
-        except Exception as exception:
-            QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
+            except Exception as exception:
+                QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
 
     def populateFields(self, shadow_src):

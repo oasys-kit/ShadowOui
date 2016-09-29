@@ -3205,6 +3205,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     def copy_oe_parameters(self):
         global shadow_oe_to_copy
+
         shadow_oe_to_copy = ShadowOpticalElement.create_empty_oe()
 
         self.populateFields(shadow_oe_to_copy)
@@ -3212,14 +3213,21 @@ class OpticalElement(ow_generic_element.GenericElement):
     def paste_oe_parameters(self):
         global shadow_oe_to_copy
 
-        shadow_temp_file = congruence.checkFileName("tmp_oe_buffer.dat")
-        shadow_oe_to_copy._oe.write(shadow_temp_file)
+        if not shadow_oe_to_copy is None:
+            if QtGui.QMessageBox.information(self, "Confirm Operation",
+                                          "Confirm Paste Operation?",
+                                          QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
+                try:
+                    shadow_temp_file = congruence.checkFileName("tmp_oe_buffer.dat")
+                    shadow_oe_to_copy._oe.write(shadow_temp_file)
 
-        shadow_file, type = ShadowFile.readShadowFile(shadow_temp_file)
+                    shadow_file, type = ShadowFile.readShadowFile(shadow_temp_file)
 
-        self.deserialize(shadow_file)
+                    self.deserialize(shadow_file)
 
-        os.remove(shadow_temp_file)
+                    os.remove(shadow_temp_file)
+                except Exception as exception:
+                    QtGui.QMessageBox.critical(self, "Error", str(exception),  QtGui.QMessageBox.Ok)
 
     def setupUI(self):
         if self.graphical_options.is_screen_slit:
