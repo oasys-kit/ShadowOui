@@ -60,22 +60,25 @@ class ShadowCongruence():
 
             if len(rows) < 10: raise Exception("Bragg file malformed, please check input")
 
-            first_row = rows[0].strip().split(" ")
+            first_row = ShadowCongruence.__get_numbers(rows[0].strip())
             if not len(first_row) == 3: raise Exception("Bragg file malformed, please check input")
 
-            second_row = rows[1].strip().split(" ")
+            second_row = ShadowCongruence.__get_numbers(rows[1].strip())
             if not len(second_row) == 3: raise Exception("Bragg file malformed, please check input")
 
-            if not (rows[2].startswith("(") and rows[3].startswith("(") and rows[4].startswith("(") and rows[5].startswith("(")):
+            if not (rows[2].strip().startswith("(") and \
+                            rows[3].strip().startswith("(") and \
+                            rows[4].strip().startswith("(") and \
+                            rows[5].strip().startswith("(")):
                 raise Exception("Bragg file malformed, please check input")
 
-            seventh_row = rows[6].strip().split(" ")
+            seventh_row = ShadowCongruence.__get_numbers(rows[6].strip())
             if not len(seventh_row) == 3: raise Exception("Bragg file malformed, please check input")
 
-            eighth_row = rows[7].strip().split(" ")
+            eighth_row = ShadowCongruence.__get_numbers(rows[7].strip())
             if not len(eighth_row) == 3: raise Exception("Bragg file malformed, please check input")
 
-            nineth_row = rows[8].strip().split(" ")
+            nineth_row = ShadowCongruence.__get_numbers(rows[8].strip())
             if not len(nineth_row) == 1: raise Exception("Bragg file malformed, please check input")
         except Exception as e:
             file.close()
@@ -91,10 +94,10 @@ class ShadowCongruence():
 
             if len(rows) < 3: raise Exception("PreRefl file malformed, please check input")
 
-            first_row = rows[0].strip().split("   ")
+            first_row = ShadowCongruence.__get_numbers(rows[0].strip())
             if not len(first_row) == 4: raise Exception("PreRefl file malformed, please check input")
 
-            second_row = rows[1].strip().split(" ")
+            second_row = ShadowCongruence.__get_numbers(rows[1].strip())
             if not len(second_row) == 1: raise Exception("PreRefl file malformed, please check input")
 
             try:
@@ -102,7 +105,6 @@ class ShadowCongruence():
             except:
                 raise Exception("PreRefl file malformed, please check input")
 
-            print(str(len(rows)), str(elements+2))
             if len(rows) != (elements*2) + 2: raise Exception("PreRefl file malformed, please check input")
         except Exception as e:
             file.close()
@@ -118,7 +120,7 @@ class ShadowCongruence():
 
             if len(rows) < 2: raise Exception("PreMLayer file malformed, please check input")
 
-            first_row = rows[0].strip().split(" ")
+            first_row = ShadowCongruence.__get_numbers(rows[0].strip())
             if not len(first_row) == 1: raise Exception("PreMLayer file malformed, please check input")
 
             try:
@@ -126,16 +128,16 @@ class ShadowCongruence():
             except:
                 raise Exception("PreRefl file malformed, please check input")
 
-            second_row = rows[1].strip().split(" ")
+            second_row = ShadowCongruence.__get_numbers(rows[1].strip())
             if not len(second_row) == int(elements): raise Exception("PreMLayer file malformed, please check input")
 
             try:
-                separator_row = rows[2 + elements*3].strip().split(" ")
+                separator_row = ShadowCongruence.__get_numbers(rows[2 + elements*3].strip())
                 if not len(separator_row) == 1: raise Exception("PreMLayer file malformed, please check input")
             except:
                 raise Exception("PreRefl file malformed, please check input")
 
-            next_row = rows[2 + elements*3 + 1].strip().split("   ")
+            next_row = ShadowCongruence.__get_numbers(rows[2 + elements*3 + 1].strip())
             if not len(next_row) == 4: raise Exception("PreMLayer file malformed, please check input")
         except Exception as e:
             file.close()
@@ -165,6 +167,20 @@ class ShadowCongruence():
             raise Exception("Reflectivity File malformed (should be 2 or more columns of numbers, separated by spaces), please check input")
 
         if len(values) < 2: raise Exception("Reflectivity Profile File malformed (should be 2 or more columns of numbers, separated by spaces), please check input")
+
+    @classmethod
+    def __get_numbers(cls, string):
+        values = string.strip().split(" ")
+
+        numbers = []
+        for value in values:
+            if not value == "":
+                try:
+                    numbers.append(value)
+                except:
+                    pass
+
+        return numbers
 
 class ShadowStatisticData:
     intensity = 0.0
@@ -1423,14 +1439,19 @@ if __name__ == "__main__":
     #print(congruence.checkFileName("Files/pippo.dat"))
     #print(congruence.checkFileName("/Users/labx/Desktop/pippo.dat"))
 
-    print("Bragg")
-    ShadowCongruence.checkBraggFile("/Users/admin/Oasys/bragg.dat")
-    print("PreRefl")
-    ShadowCongruence.checkPreReflFile("/Users/admin/Oasys/reflec.dat")
-    print("PreMLayer")
-    ShadowCongruence.checkPreMLayerFile("/Users/admin/Oasys/mlayer.dat")
+    s = " 5   8095683980.2420149       3.34799999999999994E-008"
 
-    ShadowCongruence.checkXOPDiffractionProfileFile("/Users/admin/Oasys/mlayer.dat")
+    print(s.strip().split(" "))
+
+
+    print("Bragg")
+    ShadowCongruence.checkBraggFile("/Users/labx/Oasys/bragg.dat")
+    print("PreRefl")
+    ShadowCongruence.checkPreReflFile("/Users/labx/Oasys/reflec.dat")
+    print("PreMLayer")
+    ShadowCongruence.checkPreMLayerFile("/Users/labx/Oasys/mlayer.dat")
+
+    #ShadowCongruence.checkXOPDiffractionProfileFile("/Users/labx/Oasys/mlayer.dat")
 
     '''
     print(ShadowPhysics.A2EV)
