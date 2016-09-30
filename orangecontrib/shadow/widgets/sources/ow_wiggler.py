@@ -370,6 +370,51 @@ class Wiggler(ow_source.Source):
     def selectFileWithHarmonics(self):
         self.le_file_with_harmonics.setText(oasysgui.selectFileFromDialog(self, self.file_with_harmonics, "Open File With Harmonics"))
 
+    def populateFields(self, shadow_src):
+        shadow_src.src.NPOINT=self.number_of_rays
+        shadow_src.src.ISTAR1=self.seed
+
+        shadow_src.src.CONV_FACT = self.workspace_units_to_cm * 100 # from m to cm (or user unit)
+
+        shadow_src.src.HDIV1 = 1.00000000000000
+        shadow_src.src.HDIV2 = 1.00000000000000
+
+        shadow_src.src.PH1=self.e_min
+        shadow_src.src.PH2=self.e_max
+
+        shadow_src.src.F_OPD=1
+        shadow_src.src.F_BOUND_SOUR = self.optimize_source_combo
+        shadow_src.src.NTOTALPOINT = self.max_number_of_rejected_rays
+
+        if self.optimize_source_combo == 1:
+            shadow_src.src.FILE_BOUND = bytes(congruence.checkFileName(self.file_with_phase_space_volume), 'utf-8')
+        elif self.optimize_source_combo == 2:
+            shadow_src.src.FILE_BOUND = bytes(congruence.checkFileName("myslit.dat"), 'utf-8')
+
+            f = open(congruence.checkFileName("myslit.dat"), "w")
+            f.write("%e %e %e %e %e "%(self.slit_distance, self.min_x, self.max_x, self.min_z, self.max_z))
+            f.write("\n")
+            f.close()
+
+        shadow_src.src.BENER=self.energy
+
+        if self.use_emittances_combo == 0:
+            shadow_src.src.SIGMAX=0
+            shadow_src.src.SIGMAY=0
+            shadow_src.src.SIGMAZ=0
+            shadow_src.src.EPSI_X=0
+            shadow_src.src.EPSI_Z=0
+            shadow_src.src.EPSI_DX=0
+            shadow_src.src.EPSI_DZ=0
+        else:
+            shadow_src.src.SIGMAX=self.sigma_x
+            shadow_src.src.SIGMAY=0
+            shadow_src.src.SIGMAZ=self.sigma_z
+            shadow_src.src.EPSI_X=self.emittance_x
+            shadow_src.src.EPSI_Z=self.emittance_z
+            shadow_src.src.EPSI_DX=self.distance_from_waist_x
+            shadow_src.src.EPSI_DZ=self.distance_from_waist_z
+
     def runShadowSource(self):
         #self.error(self.error_id)
         self.setStatusMessage("")
@@ -436,52 +481,7 @@ class Wiggler(ow_source.Source):
 
             shadow_src = ShadowSource.create_wiggler_src()
 
-            shadow_src.src.NPOINT=self.number_of_rays
-            shadow_src.src.ISTAR1=self.seed
-
-            shadow_src.src.CONV_FACT = self.workspace_units_to_cm * 100 # from m to cm (or user unit)
-
-            shadow_src.src.HDIV1 = 1.00000000000000
-            shadow_src.src.HDIV2 = 1.00000000000000
-
-            shadow_src.src.PH1=self.e_min
-            shadow_src.src.PH2=self.e_max
-
-            shadow_src.src.F_OPD=1
-            shadow_src.src.F_BOUND_SOUR = self.optimize_source_combo
-            shadow_src.src.NTOTALPOINT = self.max_number_of_rejected_rays
-
-            if self.optimize_source_combo == 1:
-                shadow_src.src.FILE_BOUND = bytes(congruence.checkFileName(self.file_with_phase_space_volume), 'utf-8')
-            elif self.optimize_source_combo == 2:
-                shadow_src.src.FILE_BOUND = bytes(congruence.checkFileName("myslit.dat"), 'utf-8')
-
-                f = open(congruence.checkFileName("myslit.dat"), "w")
-                f.write("%e %e %e %e %e "%(self.slit_distance, self.min_x, self.max_x, self.min_z, self.max_z))
-                f.write("\n")
-                f.close()
-
-                #self.information(0, "File written to disk: " + str(shadow_src.src.FILE_BOUND))
-                self.setStatusMessage("File written to disk: " + str(shadow_src.src.FILE_BOUND))
-
-            shadow_src.src.BENER=self.energy
-
-            if self.use_emittances_combo == 0:
-                shadow_src.src.SIGMAX=0
-                shadow_src.src.SIGMAY=0
-                shadow_src.src.SIGMAZ=0
-                shadow_src.src.EPSI_X=0
-                shadow_src.src.EPSI_Z=0
-                shadow_src.src.EPSI_DX=0
-                shadow_src.src.EPSI_DZ=0
-            else:
-                shadow_src.src.SIGMAX=self.sigma_x
-                shadow_src.src.SIGMAY=0
-                shadow_src.src.SIGMAZ=self.sigma_z
-                shadow_src.src.EPSI_X=self.emittance_x
-                shadow_src.src.EPSI_Z=self.emittance_z
-                shadow_src.src.EPSI_DX=self.distance_from_waist_x
-                shadow_src.src.EPSI_DZ=self.distance_from_waist_z
+            self.populateFields(shadow_src)
 
             shadow_src.src.FILE_TRAJ = wigFile
 
