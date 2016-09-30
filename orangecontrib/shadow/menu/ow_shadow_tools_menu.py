@@ -243,8 +243,8 @@ class ShadowToolsMenu(OMenu):
                         isinstance(widget, xsh_pre_mlayer.OWxsh_pre_mlayer):
                     widget.compute()
                 elif isinstance(widget, xsh_waviness.OWxsh_waviness):
-                    widget.calculate_error_profile(not_interactive_mode=True)
-                    widget.generate_error_profile_file(not_interactive_mode=True)
+                    widget.calculate_waviness(not_interactive_mode=True)
+                    widget.generate_waviness_file(not_interactive_mode=True)
                 elif isinstance(widget, height_profile_simulator.OWheight_profile_simulator):
                     widget.calculate_heigth_profile(not_interactive_mode=True)
                     widget.generate_heigth_profile_file(not_interactive_mode=True)
