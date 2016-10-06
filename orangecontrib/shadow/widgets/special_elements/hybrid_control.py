@@ -601,10 +601,7 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
                                                calculation_parameters.gwavelength)
 
     if input_parameters.ghy_calcType == 3:
-        if rms_slope == 0.0 or avg_wangle_x == 0.0:
-            focallength_ff = min(focallength_ff,
-                                 abs(calculation_parameters.ghy_x_max))
-        else:
+        if not (rms_slope == 0.0 or avg_wangle_x == 0.0):
             focallength_ff = min(focallength_ff,
                                  (min(abs(calculation_parameters.ghy_x_max),
                                       abs(calculation_parameters.ghy_x_min)) * 2) / 8 / rms_slope / numpy.sin(avg_wangle_x / 1e3))
@@ -742,10 +739,7 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
                                                calculation_parameters.gwavelength)
 
     if input_parameters.ghy_calcType == 3:
-        if rms_slope == 0:
-            focallength_ff = min(focallength_ff,
-                                 abs(calculation_parameters.ghy_z_max))
-        else:
+        if rms_slope != 0:
             focallength_ff = min(focallength_ff,
                                  (min(abs(calculation_parameters.ghy_z_max),
                                       abs(calculation_parameters.ghy_z_min)) * 2) / 16 / rms_slope)
