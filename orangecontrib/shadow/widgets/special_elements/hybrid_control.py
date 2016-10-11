@@ -185,9 +185,12 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
         calculation_parameters.original_beam_history = input_parameters.shadow_beam.getOEHistory()
 
-        shadow_oe_original = input_parameters.shadow_beam.getOEHistory(input_parameters.shadow_beam._oe_number)._shadow_oe_start
-        input_beam = input_parameters.shadow_beam.getOEHistory(input_parameters.shadow_beam._oe_number)._input_beam
-        shadow_oe = shadow_oe_original.duplicate() # no changes to the original object!
+        history_entry =  input_parameters.shadow_beam.getOEHistory(input_parameters.shadow_beam._oe_number)
+
+        shadow_oe = history_entry._shadow_oe_start.duplicate() # no changes to the original object!
+        shadow_oe_input_beam = history_entry._input_beam
+
+        print(shadow_oe._oe.T_IMAGE, shadow_oe._oe.SIMAG)
 
         n_screen = 1
         i_screen = numpy.zeros(10)  # after
@@ -259,7 +262,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
                                 cz_slit,
                                 file_scr_ext)
 
-        if input_parameters.ghy_calcType == 3:
+        if input_parameters.ghy_calcType > 1: # THIS WAS RESPONSIBLE OF THE SERIOUS BUG AT SOS WORKSHOP!!!!!
             if shadow_oe._oe.FWRITE > 1 or shadow_oe._oe.F_ANGLE == 0:
                 shadow_oe._oe.FWRITE = 0 # all
                 shadow_oe._oe.F_ANGLE = 1 # angles
@@ -268,11 +271,11 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
         input_parameters.widget.status_message("Creating HYBRID screen: redo simulation with modified O.E.")
 
-        shadow_beam_at_image_plane = ShadowBeam.traceFromOE(input_beam, shadow_oe, history=False)
+        shadow_beam_at_image_plane = ShadowBeam.traceFromOE(shadow_oe_input_beam, shadow_oe, history=False)
 
         input_parameters.shadow_beam = shadow_beam_at_image_plane
 
-        image_beam, cursor = read_shadow_beam(shadow_beam_at_image_plane, 0) # all rays
+        image_beam, cursor = read_shadow_beam(shadow_beam_at_image_plane, 1) # all rays     #xshi change from 0 to 1
 
         calculation_parameters.shadow_oe_end = shadow_oe
 
@@ -296,18 +299,20 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
             else:
                 fileShadowScreen = "screen." + str_n_oe + str_n_screen
 
-        image_beam, cursor = sh_readsh(fileShadowStar, 0)
+        image_beam, cursor = sh_readsh(fileShadowStar, 1)   #xshi change from 0 to 1
 
         calculation_parameters.shadow_oe_end = sh_read_gfile("end." + str_n_oe)
 
     calculation_parameters.image_plane_beam = image_beam
     calculation_parameters.image_plane_cursor = cursor
 
+    #print(shadow_oe._oe.T_IMAGE, shadow_oe._oe.SIMAG, len(image_beam._beam.rays[numpy.where(image_beam._beam.rays[:, 9] == 1)]))
+
     calculation_parameters.xx_star = image_beam._beam.rays[:, 0]
     calculation_parameters.zz_star = image_beam._beam.rays[:, 2]
 
     # read shadow screen file
-    screen_beam, cursor = sh_readsh(fileShadowScreen, 0)
+    screen_beam, cursor = sh_readsh(fileShadowScreen, 1)    #xshi change from 0 to 1
 
     calculation_parameters.screen_plane_beam = screen_beam
     calculation_parameters.screen_plane_cursor = cursor
@@ -329,6 +334,16 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
     calculation_parameters.zz_screen = screen_beam._beam.rays[:, 2]
     calculation_parameters.ghy_z_min = numpy.min(calculation_parameters.zz_screen)
     calculation_parameters.ghy_z_max = numpy.max(calculation_parameters.zz_screen)
+##
+##    screen_beam_good, cursor = sh_readsh(fileShadowScreen, 1)
+##    calculation_parameters.screen_plane_beam_good = screen_beam_good
+##    calculation_parameters.screen_plane_cursor_good = cursor
+##    calculation_parameters.xx_screen_good = screen_beam_good._beam.rays[:, 0]
+##    calculation_parameters.ghy_x_min = numpy.min(calculation_parameters.xx_screen_good)
+##    calculation_parameters.ghy_x_max = numpy.max(calculation_parameters.xx_screen_good)
+##    calculation_parameters.zz_screen_good = screen_beam_good._beam.rays[:, 2]
+##    calculation_parameters.ghy_z_min = numpy.min(calculation_parameters.zz_screen_good)
+##    calculation_parameters.ghy_z_max = numpy.max(calculation_parameters.zz_screen_good)
 
     calculation_parameters.dx_ray = numpy.arctan(calculation_parameters.xp_screen/calculation_parameters.yp_screen) # calculate divergence from direction cosines from SHADOW file  dx = atan(v_x/v_y)
     calculation_parameters.dz_ray = numpy.arctan(calculation_parameters.zp_screen/calculation_parameters.yp_screen) # calculate divergence from direction cosines from SHADOW file  dz = atan(v_z/v_y)
@@ -338,14 +353,14 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
  	# calculates the function of the "incident angle" and the "mirror height" versus the Z coordinate in the screen.
 
     if input_parameters.ghy_calcType == 3:
-        mirror_beam, cursor = sh_readsh("mirr." + str_n_oe, 0)
+        mirror_beam, cursor = sh_readsh("mirr." + str_n_oe, 1)  #xshi change from 0 to 1
 
         calculation_parameters.xx_mirr = mirror_beam._beam.rays[:, 0]
         calculation_parameters.yy_mirr = mirror_beam._beam.rays[:, 1]
         calculation_parameters.zz_mirr = mirror_beam._beam.rays[:, 2]
 
         # read in angle files
-        angle_flag, angle_index, angle_inc, angle_ref = sh_readangle("angle." + str_n_oe, 0, mirror_beam)
+        angle_flag, angle_index, angle_inc, angle_ref = sh_readangle("angle." + str_n_oe, 1, mirror_beam)   #xshi change from 0 to 1
 
         calculation_parameters.angle_inc = (90.0 - angle_inc)/180.0*1e3*numpy.pi
 
@@ -438,7 +453,7 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
         if (input_parameters.ghy_nbins_x < 0):
             input_parameters.ghy_nbins_x = 200
 
-        input_parameters.ghy_nbins_x = min(input_parameters.ghy_nbins_x, round(len(calculation_parameters.xx_screen) / 100))
+        input_parameters.ghy_nbins_x = min(input_parameters.ghy_nbins_x, round(len(calculation_parameters.xx_screen) / 20)) #xshi change from 100 to 20
 
         ticket = calculation_parameters.screen_plane_beam._beam.histo1(1,
                                                                        nbins=input_parameters.ghy_nbins_x,
@@ -453,7 +468,7 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
         if (input_parameters.ghy_nbins_z < 0):
             input_parameters.ghy_nbins_z = 200
 
-        input_parameters.ghy_nbins_z = min(input_parameters.ghy_nbins_z, round(len(calculation_parameters.zz_screen) / 100))
+        input_parameters.ghy_nbins_z = min(input_parameters.ghy_nbins_z, round(len(calculation_parameters.zz_screen) / 20)) #xshi change from 100 to 20
 
         ticket = calculation_parameters.screen_plane_beam._beam.histo1(3,
                                                                        nbins=input_parameters.ghy_nbins_z,
@@ -497,7 +512,7 @@ def hy_prop(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
     # automatic control of number of peaks to avoid numerical overflow
     if input_parameters.ghy_npeak < 0: # number of bins control
         input_parameters.ghy_npeak = 50
-    input_parameters.ghy_npeak = min(input_parameters.ghy_npeak, 50)
+    #input_parameters.ghy_npeak = min(input_parameters.ghy_npeak, 100) #xshi removed the 100 limitation
 
     input_parameters.ghy_npeak = max(input_parameters.ghy_npeak, 5)
 
@@ -574,6 +589,7 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
 
         if do_nf: calculation_parameters.nf_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)
 
+
     calculation_parameters.ff_beam.history = calculation_parameters.original_beam_history
 
 ##########################################################################
@@ -602,9 +618,10 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
 
     if input_parameters.ghy_calcType == 3:
         if not (rms_slope == 0.0 or avg_wangle_x == 0.0):
-            focallength_ff = min(focallength_ff,
-                                 (min(abs(calculation_parameters.ghy_x_max),
-                                      abs(calculation_parameters.ghy_x_min)) * 2) / 8 / rms_slope / numpy.sin(avg_wangle_x / 1e3))
+            #focallength_ff = min(focallength_ff,
+            #                     (min(abs(calculation_parameters.ghy_x_max),
+             #                         abs(calculation_parameters.ghy_x_min)) * 2) / 16 / rms_slope / numpy.sin(avg_wangle_x / 1e3))
+            focallength_ff = min(focallength_ff,(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min) / 16 / rms_slope / numpy.sin(avg_wangle_x / 1e3))#xshi changed
 
     fftsize = calculate_fft_size(calculation_parameters.ghy_x_min,
                                  calculation_parameters.ghy_x_max,
@@ -733,16 +750,20 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
     # ------------------------------------------
     # far field calculation
     # ------------------------------------------
+    print("ghy_z_min", calculation_parameters.ghy_z_min,"ghy_z_max",calculation_parameters.ghy_z_max)
     focallength_ff = calculate_focal_length_ff(calculation_parameters.ghy_z_min,
                                                calculation_parameters.ghy_z_max,
                                                input_parameters.ghy_npeak,
                                                calculation_parameters.gwavelength)
 
+    print("focallength_ff", focallength_ff)
     if input_parameters.ghy_calcType == 3:
         if rms_slope != 0:
-            focallength_ff = min(focallength_ff,
-                                 (min(abs(calculation_parameters.ghy_z_max),
-                                      abs(calculation_parameters.ghy_z_min)) * 2) / 16 / rms_slope)
+            #focallength_ff = min(focallength_ff,
+            #                     (min(abs(calculation_parameters.ghy_z_max),
+            #                          abs(calculation_parameters.ghy_z_min)) * 2) / 16 / rms_slope)
+            focallength_ff = min(focallength_ff,(calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min) / 16 / rms_slope) #xshi changed
+    print("focallength_ff", focallength_ff)
 
     fftsize = calculate_fft_size(calculation_parameters.ghy_z_min,
                                  calculation_parameters.ghy_z_max,
@@ -939,14 +960,12 @@ def sh_readangle(filename, flag=0, mirror_beam=None):
 
         index = 0
         for ray in mirror_beam._beam.rays:
-            ray_index = ray[11]-1
+            ray_index = int(ray[11]-1)
 
             angle_index[index] = values[ray_index, 0]
             angle_inc[index] = values[ray_index, 1]
             angle_ref[index] = values[ray_index, 2]
             angle_flag[index] = values[ray_index, 3]
-
-            print (index, dimension, ray_index, len(values[:, 0]))
 
             index+=1
     else:
@@ -1023,7 +1042,8 @@ def hy_GetOnePoint1D(mDist, random_generator, reset=0):
 
 # 1D
 def calculate_focal_length_ff(min_value, max_value, n_peaks, wavelength):
-    return (min(abs(max_value), abs(min_value))*2)**2/n_peaks/2/0.88/wavelength
+#    return (min(abs(max_value), abs(min_value))*2)**2/n_peaks/2/0.88/wavelength  #xshi used for now, but will have problem when the aperture is off center
+    return (max_value - min_value)**2/n_peaks/2/0.88/wavelength  #xshi suggested, but need to first fix the problem of getting the fake solution of mirror aperture by SHADOW.
 
 def calculate_fft_size(min_value, max_value, wavelength, propagation_distance, fft_npts):
     return int(min(100 * (max_value - min_value) ** 2 / wavelength / propagation_distance / 0.88, fft_npts))
