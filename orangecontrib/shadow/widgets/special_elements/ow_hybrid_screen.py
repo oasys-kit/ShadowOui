@@ -56,6 +56,8 @@ class HybridScreen(AutomaticElement):
     ghy_npeak = Setting(10)
     ghy_fftnpts = Setting(1e6)
 
+    file_to_write_out = Setting(0)
+
     input_beam = None
 
     TABS_AREA_HEIGHT = 560
@@ -96,7 +98,7 @@ class HybridScreen(AutomaticElement):
 
         tab_bas = oasysgui.createTabPage(tabs_setting, "Hybrid Setting")
 
-        box_1 = oasysgui.widgetBox(tab_bas, "Calculation Parameters", addSpace=True, orientation="vertical", height=350)
+        box_1 = oasysgui.widgetBox(tab_bas, "Calculation Parameters", addSpace=True, orientation="vertical", height=300)
 
         gui.comboBox(box_1, self, "ghy_diff_plane", label="Diffraction Plane", labelWidth=310,
                      items=["X", "Z"],
@@ -117,7 +119,7 @@ class HybridScreen(AutomaticElement):
 
         self.le_focal_length = oasysgui.lineEdit(box_1, self, "ghy_focallength", "Focal Length Value", labelWidth=260, valueType=float, orientation="horizontal")
 
-        self.cb_distance_to_image_calc = gui.comboBox(box_1, self, "distance_to_image_calc", label="Distance to image", labelWidth=180,
+        self.cb_distance_to_image_calc = gui.comboBox(box_1, self, "distance_to_image_calc", label="Distance to image", labelWidth=150,
                      items=["Use O.E. Image Plane Distance", "Specify Value"],
                      callback=self.set_DistanceToImageCalc,
                      sendSelectedValue=False, orientation="horizontal")
@@ -149,7 +151,7 @@ class HybridScreen(AutomaticElement):
                                              sendSelectedValue=False, orientation="horizontal")
 
 
-        box_2 = oasysgui.widgetBox(tab_bas, "Numerical Control Parameters", addSpace=True, orientation="vertical", height=150)
+        box_2 = oasysgui.widgetBox(tab_bas, "Numerical Control Parameters", addSpace=True, orientation="vertical", height=120)
 
         self.le_nbins_x = oasysgui.lineEdit(box_2, self, "ghy_nbins_x", "Number of bins for I(X) histogram", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_nbins_z = oasysgui.lineEdit(box_2, self, "ghy_nbins_z", "Number of bins for I(Z) histogram", labelWidth=260, valueType=float, orientation="horizontal")
@@ -160,6 +162,12 @@ class HybridScreen(AutomaticElement):
         self.set_DistanceToImageCalc()
         self.set_CalculationType()
 
+        adv_other_box = oasysgui.widgetBox(tab_bas, "Optional file output", addSpace=False, orientation="vertical")
+
+        gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=220,
+                     items=["None", "Debug (star.xx)"],
+                     sendSelectedValue=False,
+                     orientation="horizontal")
 
         self.shadow_output = QtGui.QTextEdit()
         self.shadow_output.setReadOnly(True)
@@ -316,6 +324,7 @@ class HybridScreen(AutomaticElement):
                     input_parameters.ghy_nbins_z = self.ghy_nbins_z
                     input_parameters.ghy_npeak = self.ghy_npeak
                     input_parameters.ghy_fftnpts = self.ghy_fftnpts
+                    input_parameters.file_to_write_out = self.file_to_write_out
 
                     calculation_parameters = hybrid_control.hy_run(input_parameters)
 
@@ -369,7 +378,9 @@ class HybridScreen(AutomaticElement):
 
             QtGui.QMessageBox.critical(self, "Error", str(exception), QtGui.QMessageBox.Ok)
 
-            #raise exception
+            #
+
+            # raise exception
 
         self.progressBarFinished()
 

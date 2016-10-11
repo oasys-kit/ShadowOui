@@ -51,6 +51,8 @@ class HybridInputParameters(object):
     ghy_fftnpts = 1e6
     ghy_lengthunit = 1
 
+    file_to_write_out = 0
+
     def __init__(self):
         super().__init__()
 
@@ -190,7 +192,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         shadow_oe = history_entry._shadow_oe_start.duplicate() # no changes to the original object!
         shadow_oe_input_beam = history_entry._input_beam
 
-        print(shadow_oe._oe.T_IMAGE, shadow_oe._oe.SIMAG)
+        #print(shadow_oe._oe.T_IMAGE, shadow_oe._oe.SIMAG)
 
         n_screen = 1
         i_screen = numpy.zeros(10)  # after
@@ -303,6 +305,9 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
         calculation_parameters.shadow_oe_end = sh_read_gfile("end." + str_n_oe)
 
+    if input_parameters.file_to_write_out == 1:
+        image_beam.writeToFile("hybrid_beam_at_image_plane." + str_n_oe)
+
     calculation_parameters.image_plane_beam = image_beam
     calculation_parameters.image_plane_cursor = cursor
 
@@ -313,6 +318,9 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
     # read shadow screen file
     screen_beam, cursor = sh_readsh(fileShadowScreen, 1)    #xshi change from 0 to 1
+
+    if input_parameters.file_to_write_out == 1:
+        screen_beam.writeToFile("hybrid_beam_at_oe_hybrid_screen." + str_n_oe)
 
     calculation_parameters.screen_plane_beam = screen_beam
     calculation_parameters.screen_plane_cursor = cursor
@@ -354,6 +362,9 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
     if input_parameters.ghy_calcType == 3:
         mirror_beam, cursor = sh_readsh("mirr." + str_n_oe, 1)  #xshi change from 0 to 1
+
+        if input_parameters.file_to_write_out == 1:
+            mirror_beam.writeToFile("hybrid_footprint_on_oe." + str_n_oe)
 
         calculation_parameters.xx_mirr = mirror_beam._beam.rays[:, 0]
         calculation_parameters.yy_mirr = mirror_beam._beam.rays[:, 1]
@@ -589,6 +600,21 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
 
         if do_nf: calculation_parameters.nf_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)
 
+    if input_parameters.file_to_write_out == 1:
+
+        if input_parameters.ghy_n_oe < 0:
+            str_n_oe = str(input_parameters.shadow_beam._oe_number)
+
+            if input_parameters.shadow_beam._oe_number < 10:
+                str_n_oe = "0" + str_n_oe
+        else: # compatibility with old verion
+            str_n_oe = str(input_parameters.ghy_n_oe)
+
+            if input_parameters.ghy_n_oe < 10:
+                str_n_oe = "0" + str_n_oe
+
+        calculation_parameters.ff_beam.writeToFile("hybrid_ff_beam." + str_n_oe)
+        if do_nf: calculation_parameters.nf_beam.writeToFile("hybrid_nf_beam." + str_n_oe)
 
     calculation_parameters.ff_beam.history = calculation_parameters.original_beam_history
 
@@ -750,20 +776,20 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
     # ------------------------------------------
     # far field calculation
     # ------------------------------------------
-    print("ghy_z_min", calculation_parameters.ghy_z_min,"ghy_z_max",calculation_parameters.ghy_z_max)
+    #print("ghy_z_min", calculation_parameters.ghy_z_min,"ghy_z_max",calculation_parameters.ghy_z_max)
     focallength_ff = calculate_focal_length_ff(calculation_parameters.ghy_z_min,
                                                calculation_parameters.ghy_z_max,
                                                input_parameters.ghy_npeak,
                                                calculation_parameters.gwavelength)
 
-    print("focallength_ff", focallength_ff)
+    #print("focallength_ff", focallength_ff)
     if input_parameters.ghy_calcType == 3:
         if rms_slope != 0:
             #focallength_ff = min(focallength_ff,
             #                     (min(abs(calculation_parameters.ghy_z_max),
             #                          abs(calculation_parameters.ghy_z_min)) * 2) / 16 / rms_slope)
             focallength_ff = min(focallength_ff,(calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min) / 16 / rms_slope) #xshi changed
-    print("focallength_ff", focallength_ff)
+    #print("focallength_ff", focallength_ff)
 
     fftsize = calculate_fft_size(calculation_parameters.ghy_z_min,
                                  calculation_parameters.ghy_z_max,

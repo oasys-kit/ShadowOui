@@ -4,8 +4,8 @@ from PyQt4 import QtGui
 from PyQt4.QtCore import QRect
 from PyQt4.QtGui import QApplication, QFileDialog
 from Shadow import ShadowTools as ST
-from orangewidget import widget, gui
-from oasys.widgets import gui as oasysgui
+from orangewidget import gui
+from oasys.widgets import gui as oasysgui, widget
 
 from orangecontrib.shadow.util.script.python_script import PythonConsole
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream, ShadowCompoundOpticalElement
@@ -168,7 +168,7 @@ class Info(widget.OWWidget):
                         except:
                             self.sourceInfo.append("Problem in calculating Mir Info for O.E. #:" + str(history_element._oe_number) + "\n" + str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]))
 
-                coe_end = ShadowCompoundOpticalElement.create_compound_oe()
+                coe_end = ShadowCompoundOpticalElement.create_compound_oe(workspace_units_to_cm=self.workspace_units_to_cm)
                 for oe in optical_element_list_end:
                     coe_end._oe.append(oe)
 

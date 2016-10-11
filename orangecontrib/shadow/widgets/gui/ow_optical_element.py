@@ -2036,18 +2036,17 @@ class OpticalElement(ow_generic_element.GenericElement):
                     shadow_oe._oe.CCC[:] = conic_coefficients[:]
                 else:
                     if self.surface_shape_parameters == 0:
-                       if (self.is_cylinder==1 and self.cylinder_orientation==1):
-                           if self.graphical_options.is_spheric:
-                               shadow_oe._oe.F_EXT=1
+                       if (self.is_cylinder==1 and self.cylinder_orientation==1 and self.graphical_options.is_spheric):
+                           shadow_oe._oe.F_EXT=1
 
-                               #IMPLEMENTATION OF THE AUTOMATIC CALCULATION OF THE SAGITTAL FOCUSING FOR SPHERICAL CYLINDERS
-                               # RADIUS = (2 F1 F2 sin (theta)) /( F1+F2)
-                               if self.focii_and_continuation_plane == 0:
-                                  self.spherical_radius = ((2*self.source_plane_distance*self.image_plane_distance)/(self.source_plane_distance+self.image_plane_distance))*math.sin(self.reflection_angle_mrad)
-                               else:
-                                  self.spherical_radius = ((2*self.object_side_focal_distance*self.image_side_focal_distance)/(self.object_side_focal_distance+self.image_side_focal_distance))*math.sin(round(math.radians(90-self.incidence_angle_respect_to_normal), 2))
+                           #IMPLEMENTATION OF THE AUTOMATIC CALCULATION OF THE SAGITTAL FOCUSING FOR SPHERICAL CYLINDERS
+                           # RADIUS = (2 F1 F2 sin (theta)) /( F1+F2)
+                           if self.focii_and_continuation_plane == 0:
+                              self.spherical_radius = ((2*self.source_plane_distance*self.image_plane_distance)/(self.source_plane_distance+self.image_plane_distance))*math.sin(self.reflection_angle_mrad)
+                           else:
+                              self.spherical_radius = ((2*self.object_side_focal_distance*self.image_side_focal_distance)/(self.object_side_focal_distance+self.image_side_focal_distance))*math.sin(round(math.radians(90-self.incidence_angle_respect_to_normal), 2))
 
-                               shadow_oe._oe.RMIRR = self.spherical_radius
+                           shadow_oe._oe.RMIRR = self.spherical_radius
                        else:
                            shadow_oe._oe.F_EXT = 0
 
@@ -2379,16 +2378,12 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             if self.graphical_options.is_curved:
                 if self.surface_shape_parameters == 0:
-                    if (self.is_cylinder==1 and self.cylinder_orientation==1):
-                       if not self.graphical_options.is_spheric:
-                           raise Exception("Automatic calculation of the sagittal focus supported only for Spheric O.E.")
-                    else:
-                       if not self.focii_and_continuation_plane == 0:
-                            self.object_side_focal_distance = congruence.checkNumber(self.object_side_focal_distance, "Object side focal distance")
-                            self.image_side_focal_distance = congruence.checkNumber(self.image_side_focal_distance, "Image side focal distance")
+                   if not self.focii_and_continuation_plane == 0:
+                        self.object_side_focal_distance = congruence.checkNumber(self.object_side_focal_distance, "Object side focal distance")
+                        self.image_side_focal_distance = congruence.checkNumber(self.image_side_focal_distance, "Image side focal distance")
 
-                       if self.graphical_options.is_paraboloid:
-                            self.focus_location = congruence.checkNumber(self.focus_location, "Focus location")
+                   if self.graphical_options.is_paraboloid:
+                        self.focus_location = congruence.checkNumber(self.focus_location, "Focus location")
                 else:
                    if self.graphical_options.is_spheric:
                        self.spherical_radius = congruence.checkStrictlyPositiveNumber(self.spherical_radius, "Spherical radius")
