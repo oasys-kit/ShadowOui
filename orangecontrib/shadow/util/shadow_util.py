@@ -145,28 +145,17 @@ class ShadowCongruence():
             raise e
 
     @classmethod
-    def checkXOPDiffractionProfileFile(cls, file_name):
+    def check2ColumnFormatFile(cls, file_name, specific_name):
         try:
             if file_name.startswith('/'):
                 values = numpy.loadtxt(os.path.abspath(file_name))
             else:
                 values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/" + file_name))
         except:
-            raise Exception("Diffraction Profile File malformed (should be 2 or more columns of numbers, separated by spaces), please check input")
+            raise Exception(specific_name + " file malformed (should be 2 or more columns of numbers, separated by spaces), please check input")
 
-        if len(values) < 2: raise Exception("Diffraction Profile File malformed (should be 2 or more columns of numbers, separated by spaces), please check input")
+        if len(values) < 2: raise Exception(specific_name + " file malformed (should be 2 or more columns of numbers, separated by spaces), please check input")
 
-    @classmethod
-    def checkXOPReflectivityFile(cls, file_name):
-        try:
-            if file_name.startswith('/'):
-                values = numpy.loadtxt(os.path.abspath(file_name))
-            else:
-                values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/" + file_name))
-        except:
-            raise Exception("Reflectivity File malformed (should be 2 or more columns of numbers, separated by spaces), please check input")
-
-        if len(values) < 2: raise Exception("Reflectivity Profile File malformed (should be 2 or more columns of numbers, separated by spaces), please check input")
 
     @classmethod
     def __get_numbers(cls, string):

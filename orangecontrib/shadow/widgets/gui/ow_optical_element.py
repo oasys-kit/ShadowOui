@@ -241,6 +241,8 @@ class OpticalElement(ow_generic_element.GenericElement):
     grating_hunter_monochromator_length = Setting(0.0)
     grating_hunter_distance_between_beams = Setting(0.0)
 
+    grating_use_efficiency = Setting(0)
+    grating_file_efficiency = Setting("efficiency.dat")
 
     optical_constants_refraction_index = Setting(0)
     fresnel_zone_plate = Setting(0)
@@ -948,7 +950,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     tab_grating_2 = oasysgui.createTabPage(tabs_grating_setting, "Ruling Setting")
                     tab_grating_1 = oasysgui.createTabPage(tabs_grating_setting, "Diffraction Settings")
 
-                    grating_box = oasysgui.widgetBox(tab_grating_1, "Diffraction Parameters", addSpace=True, orientation="vertical", height=380)
+                    grating_box = oasysgui.widgetBox(tab_grating_1, "Diffraction Parameters", addSpace=True, orientation="vertical", height=350)
 
                     oasysgui.lineEdit(grating_box, self, "grating_diffraction_order", "Diffraction Order", labelWidth=260, valueType=float, orientation="horizontal")
 
@@ -992,6 +994,22 @@ class OpticalElement(ow_generic_element.GenericElement):
                     self.le_grating_hunter_distance_between_beams = oasysgui.lineEdit(self.grating_mount_box_1, self, "grating_hunter_distance_between_beams", "Distance between beams", labelWidth=250, valueType=float, orientation="horizontal")
 
                     self.set_GratingAutosetting()
+
+                    efficiency_box = oasysgui.widgetBox(tab_grating_1, "Efficiency Parameters", addSpace=True, orientation="vertical")
+
+
+                    gui.comboBox(efficiency_box, self, "grating_use_efficiency", label="Use Efficiency", labelWidth=250,
+                                 items=["No", "User File"], sendSelectedValue=False, orientation="horizontal", callback=self.set_Efficiency)
+
+                    self.efficiency_box_1 = oasysgui.widgetBox(efficiency_box, "", addSpace=True, orientation="horizontal", height=30)
+                    self.efficiency_box_empty = oasysgui.widgetBox(efficiency_box, "", addSpace=True, orientation="horizontal", height=30, width=400)
+
+                    self.le_grating_file_efficiency = oasysgui.lineEdit(self.efficiency_box_1, self, "grating_file_efficiency", "File Name\n(Energy vs. Effic.)",
+                                                                        labelWidth=110, valueType=str, orientation="horizontal")
+
+                    gui.button(self.efficiency_box_1, self, "...", callback=self.selectFileEfficiency)
+
+                    self.set_Efficiency()
 
                     ################
 
@@ -1497,6 +1515,10 @@ class OpticalElement(ow_generic_element.GenericElement):
             self.set_GratingUnitsInUse()
             self.set_GratingMountType()
 
+    def set_Efficiency(self):
+        self.efficiency_box_1.setVisible(self.grating_use_efficiency == 1)
+        self.efficiency_box_empty.setVisible(self.grating_use_efficiency == 0)
+
     def set_GratingUnitsInUse(self):
         self.grating_autosetting_box_units_1.setVisible(self.grating_units_in_use == 0)
         self.grating_autosetting_box_units_2.setVisible(self.grating_units_in_use == 1)
@@ -1591,6 +1613,9 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     def selectFileReflectivity(self):
         self.le_file_reflectivity.setText(oasysgui.selectFileFromDialog(self, self.file_reflectivity, "Select Reflectivity File"))
+
+    def selectFileEfficiency(self):
+        self.le_grating_file_efficiency.setText(oasysgui.selectFileFromDialog(self, self.grating_file_efficiency, "Select Grating Efficiency File"))
 
     def selectFileCrystalParameters(self):
         self.le_file_crystal_parameters.setText(oasysgui.selectFileFromDialog(self, self.file_crystal_parameters, "Select File With Crystal Parameters"))
@@ -2404,10 +2429,10 @@ class OpticalElement(ow_generic_element.GenericElement):
                     elif self.source_of_reflectivity == 2:
                         ShadowCongruence.checkPreMLayerFile(congruence.checkFile(self.file_prerefl_m))
                     elif self.source_of_reflectivity == 3:
-                        ShadowCongruence.checkXOPReflectivityFile(congruence.checkFile(self.file_reflectivity))
+                        ShadowCongruence.check2ColumnFormatFile(congruence.checkFile(self.file_reflectivity), "Mirror reflectivity")
             elif self.graphical_options.is_crystal:
                 if self.diffraction_calculation == 1:
-                    ShadowCongruence.checkXOPDiffractionProfileFile(congruence.checkFile(self.file_diffraction_profile))
+                    ShadowCongruence.check2ColumnFormatFile(congruence.checkFile(self.file_diffraction_profile), "Diffraction profile")
                 else:
                     ShadowCongruence.checkBraggFile(congruence.checkFile(self.file_crystal_parameters))
 
@@ -2447,6 +2472,10 @@ class OpticalElement(ow_generic_element.GenericElement):
                     self.grating_holo_recording_wavelength = congruence.checkPositiveNumber(self.grating_holo_recording_wavelength, "Recording Wavelength")
                 elif self.grating_ruling_type == 4:
                     self.grating_ruling_density = congruence.checkPositiveNumber(self.grating_ruling_density, "Polynomial Line Density coeff.: 0th")
+
+                if self.grating_use_efficiency == 1:
+                    ShadowCongruence.check2ColumnFormatFile(congruence.checkFile(self.grating_file_efficiency), "Grating Efficiency")
+
             elif self.graphical_options.is_refractor:
                 if self.optical_constants_refraction_index == 0:
                     self.refractive_index_in_object_medium = congruence.checkPositiveNumber(self.refractive_index_in_object_medium, "Refractive Index in Object Medium")
@@ -2572,6 +2601,8 @@ class OpticalElement(ow_generic_element.GenericElement):
             beam_out = self.apply_user_diffraction_profile(beam_out)
         elif self.graphical_options.is_mirror and self.source_of_reflectivity == 3:
             beam_out = self.apply_user_reflectvity(beam_out)
+        elif self.graphical_options.is_grating and self.grating_use_efficiency == 1:
+            beam_out = self.apply_user_grating_efficiency(beam_out)
 
         self.writeCalculatedFields(shadow_oe)
 
@@ -2696,6 +2727,50 @@ class OpticalElement(ow_generic_element.GenericElement):
                 refl_down.append(mirror_reflectivities[-1])
             else:
                 refl_down = mirror_reflectivities[numpy.where(mirror_grazing_angles == values_down[-1])]
+
+            interpolated_weight.append(numpy.sqrt((refl_up[0] + refl_down[-1]) / 2))
+
+        output_beam = input_beam.duplicate()
+
+        for index in range(0, len(output_beam._beam.rays)):
+            output_beam._beam.rays[index, 6] = output_beam._beam.rays[index, 6] * interpolated_weight[index]
+            output_beam._beam.rays[index, 7] = output_beam._beam.rays[index, 7] * interpolated_weight[index]
+            output_beam._beam.rays[index, 8] = output_beam._beam.rays[index, 8] * interpolated_weight[index]
+            output_beam._beam.rays[index, 15] = output_beam._beam.rays[index, 15] * interpolated_weight[index]
+            output_beam._beam.rays[index, 16] = output_beam._beam.rays[index, 16] * interpolated_weight[index]
+            output_beam._beam.rays[index, 17] = output_beam._beam.rays[index, 17] * interpolated_weight[index]
+
+        return output_beam
+
+    def apply_user_grating_efficiency(self, input_beam):
+
+        ray_k_mods = input_beam._beam.rays[:, 10]
+
+        if self.grating_file_efficiency.startswith('/'):
+            values = numpy.loadtxt(os.path.abspath(self.grating_file_efficiency))
+        else:
+            values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/" + self.grating_file_efficiency))
+
+        grating_energies = values[:, 0]
+        grating_efficiencies = values[:, 1]
+
+        interpolated_weight = []
+
+        for index in range(0, len(ray_k_mods)):
+            values_up = grating_energies[numpy.where(grating_energies >= ShadowPhysics.getEnergyFromShadowK(ray_k_mods[index]))]
+            values_down = grating_energies[numpy.where(grating_energies < ShadowPhysics.getEnergyFromShadowK(ray_k_mods[index]))]
+
+            if len(values_up) == 0:
+                refl_up = []
+                refl_up.append(grating_efficiencies[0])
+            else:
+                refl_up = grating_efficiencies[numpy.where(grating_energies == values_up[0])]
+
+            if len(values_down) == 0:
+                refl_down = []
+                refl_down.append(grating_efficiencies[-1])
+            else:
+                refl_down = grating_efficiencies[numpy.where(grating_energies == values_down[-1])]
 
             interpolated_weight.append(numpy.sqrt((refl_up[0] + refl_down[-1]) / 2))
 
