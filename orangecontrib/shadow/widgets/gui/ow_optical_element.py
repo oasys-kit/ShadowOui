@@ -2818,6 +2818,7 @@ class OpticalElement(ow_generic_element.GenericElement):
             #self.error(self.error_id, "Exception occurred: " + str(exception))
 
             #raise exception
+
         self.progressBarFinished()
 
     def setBeam(self, beam):

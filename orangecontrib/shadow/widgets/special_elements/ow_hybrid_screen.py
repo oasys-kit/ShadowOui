@@ -378,7 +378,7 @@ class HybridScreen(AutomaticElement):
 
             QtGui.QMessageBox.critical(self, "Error", str(exception), QtGui.QMessageBox.Ok)
 
-            raise exception
+            #raise exception
 
         self.progressBarFinished()
 
