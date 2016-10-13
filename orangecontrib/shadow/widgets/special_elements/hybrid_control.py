@@ -65,12 +65,10 @@ class HybridCalculationParameters(object):
     original_beam_history = None
 
     image_plane_beam = None
-    image_plane_cursor = None
     ff_beam = None
     nf_beam = None
 
     screen_plane_beam = None
-    screen_plane_cursor = None
 
     # Star
     xx_star = None
@@ -190,7 +188,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         history_entry =  input_parameters.shadow_beam.getOEHistory(input_parameters.shadow_beam._oe_number)
 
         shadow_oe = history_entry._shadow_oe_start.duplicate() # no changes to the original object!
-        shadow_oe_input_beam = history_entry._input_beam
+        shadow_oe_input_beam = history_entry._input_beam.duplicate(history=False)
 
         #print(shadow_oe._oe.T_IMAGE, shadow_oe._oe.SIMAG)
 
@@ -277,7 +275,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
         input_parameters.shadow_beam = shadow_beam_at_image_plane
 
-        image_beam, cursor = read_shadow_beam(shadow_beam_at_image_plane, 1) # all rays     #xshi change from 0 to 1
+        image_beam = read_shadow_beam(shadow_beam_at_image_plane) #xshi change from 0 to 1
 
         calculation_parameters.shadow_oe_end = shadow_oe
 
@@ -301,7 +299,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
             else:
                 fileShadowScreen = "screen." + str_n_oe + str_n_screen
 
-        image_beam, cursor = sh_readsh(fileShadowStar, 1)   #xshi change from 0 to 1
+        image_beam = sh_readsh(fileShadowStar)   #xshi change from 0 to 1
 
         calculation_parameters.shadow_oe_end = sh_read_gfile("end." + str_n_oe)
 
@@ -309,7 +307,6 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         image_beam.writeToFile("hybrid_beam_at_image_plane." + str_n_oe)
 
     calculation_parameters.image_plane_beam = image_beam
-    calculation_parameters.image_plane_cursor = cursor
 
     #print(shadow_oe._oe.T_IMAGE, shadow_oe._oe.SIMAG, len(image_beam._beam.rays[numpy.where(image_beam._beam.rays[:, 9] == 1)]))
 
@@ -317,13 +314,12 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
     calculation_parameters.zz_star = image_beam._beam.rays[:, 2]
 
     # read shadow screen file
-    screen_beam, cursor = sh_readsh(fileShadowScreen, 1)    #xshi change from 0 to 1
+    screen_beam = sh_readsh(fileShadowScreen)    #xshi change from 0 to 1
 
     if input_parameters.file_to_write_out == 1:
         screen_beam.writeToFile("hybrid_beam_at_oe_hybrid_screen." + str_n_oe)
 
     calculation_parameters.screen_plane_beam = screen_beam
-    calculation_parameters.screen_plane_cursor = cursor
 
     calculation_parameters.wenergy     = ShadowPhysics.getEnergyFromShadowK(screen_beam._beam.rays[:, 10])
     calculation_parameters.wwavelength = ShadowPhysics.getWavelengthfromShadowK(screen_beam._beam.rays[:, 10])
@@ -342,16 +338,6 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
     calculation_parameters.zz_screen = screen_beam._beam.rays[:, 2]
     calculation_parameters.ghy_z_min = numpy.min(calculation_parameters.zz_screen)
     calculation_parameters.ghy_z_max = numpy.max(calculation_parameters.zz_screen)
-##
-##    screen_beam_good, cursor = sh_readsh(fileShadowScreen, 1)
-##    calculation_parameters.screen_plane_beam_good = screen_beam_good
-##    calculation_parameters.screen_plane_cursor_good = cursor
-##    calculation_parameters.xx_screen_good = screen_beam_good._beam.rays[:, 0]
-##    calculation_parameters.ghy_x_min = numpy.min(calculation_parameters.xx_screen_good)
-##    calculation_parameters.ghy_x_max = numpy.max(calculation_parameters.xx_screen_good)
-##    calculation_parameters.zz_screen_good = screen_beam_good._beam.rays[:, 2]
-##    calculation_parameters.ghy_z_min = numpy.min(calculation_parameters.zz_screen_good)
-##    calculation_parameters.ghy_z_max = numpy.max(calculation_parameters.zz_screen_good)
 
     calculation_parameters.dx_ray = numpy.arctan(calculation_parameters.xp_screen/calculation_parameters.yp_screen) # calculate divergence from direction cosines from SHADOW file  dx = atan(v_x/v_y)
     calculation_parameters.dz_ray = numpy.arctan(calculation_parameters.zp_screen/calculation_parameters.yp_screen) # calculate divergence from direction cosines from SHADOW file  dz = atan(v_z/v_y)
@@ -361,7 +347,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
  	# calculates the function of the "incident angle" and the "mirror height" versus the Z coordinate in the screen.
 
     if input_parameters.ghy_calcType == 3:
-        mirror_beam, cursor = sh_readsh("mirr." + str_n_oe, 1)  #xshi change from 0 to 1
+        mirror_beam = sh_readsh("mirr." + str_n_oe)  #xshi change from 0 to 1
 
         if input_parameters.file_to_write_out == 1:
             mirror_beam.writeToFile("hybrid_footprint_on_oe." + str_n_oe)
@@ -371,7 +357,8 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         calculation_parameters.zz_mirr = mirror_beam._beam.rays[:, 2]
 
         # read in angle files
-        angle_flag, angle_index, angle_inc, angle_ref = sh_readangle("angle." + str_n_oe, 1, mirror_beam)   #xshi change from 0 to 1
+
+        angle_inc, angle_ref = sh_readangle("angle." + str_n_oe, mirror_beam)   #xshi change from 0 to 1
 
         calculation_parameters.angle_inc = (90.0 - angle_inc)/180.0*1e3*numpy.pi
 
@@ -910,94 +897,44 @@ def sh_read_gfile(gfilename):
 
 #########################################################
 
-def read_shadow_beam(shadow_beam, flag):
-    go = numpy.where(shadow_beam._beam.rays[:, 9] == 1)
-    lo = numpy.where(shadow_beam._beam.rays[:, 9] < 1)
+def read_shadow_beam(shadow_beam):
+    cursor = numpy.where(shadow_beam._beam.rays[:, 9] == 1)
 
-    all = flag == 0
-    good_only = flag == 1
-    lost_only = flag == 2
-
-    if all:
-        cursor = None
-        image_beam_rays = copy.deepcopy(shadow_beam._beam.rays)
-    elif good_only:
-        cursor = go
-        image_beam_rays = copy.deepcopy(shadow_beam._beam.rays[go])
-    elif lost_only:
-        cursor = lo
-        image_beam_rays = copy.deepcopy(shadow_beam._beam.rays[lo])
-    else:
-        raise Exception("Flag not recongnized")
+    image_beam_rays = copy.deepcopy(shadow_beam._beam.rays[cursor])
+    image_beam_rays[:, 11] = numpy.arange(1, len(image_beam_rays) + 1, 1)
 
     out_beam = ShadowBeam()
     out_beam._beam.rays = image_beam_rays
 
-    return out_beam, cursor
+    return out_beam
 
 #########################################################
 
-def sh_readsh(shfilename, flag):
+def sh_readsh(shfilename):
     image_beam = ShadowBeam()
     image_beam.loadFromFile(congruence.checkFile(shfilename))
 
-    all = flag == 0
-    good_only = flag == 1
-    lost_only = flag == 2
-
-    if all:
-        cursor = None
-        image_beam_rays = copy.deepcopy(image_beam._beam.rays)
-    elif good_only:
-        cursor = numpy.where(image_beam._beam.rays[:, 9] == 1)
-        image_beam_rays = copy.deepcopy(image_beam._beam.rays[cursor])
-    elif lost_only:
-        cursor = numpy.where(image_beam._beam.rays[:, 9] < 1)
-        image_beam_rays = copy.deepcopy(image_beam._beam.rays[cursor])
-    else:
-        raise Exception("Flag not recongnized")
-
-    out_beam = ShadowBeam()
-    out_beam._beam.rays = image_beam_rays
-
-    return out_beam, cursor
+    return read_shadow_beam(image_beam)
 
 #########################################################
 
-def sh_readangle(filename, flag=0, mirror_beam=None):
+def sh_readangle(filename, mirror_beam=None):
     values = numpy.loadtxt(congruence.checkFile(filename))
+    dimension = len(mirror_beam._beam.rays)
 
-    all = flag == 0
-    good_only = flag == 1
-    lost_only = flag == 2
+    angle_inc = numpy.zeros(dimension)
+    angle_ref = numpy.zeros(dimension)
 
-    if all:
-        angle_index = copy.deepcopy(values[:, 0])
-        angle_inc = copy.deepcopy(values[:, 1])
-        angle_ref = copy.deepcopy(values[:, 2])
-        angle_flag = copy.deepcopy(values[:, 3])
-    elif good_only or lost_only:
-        dimension = len(mirror_beam._beam.rays)
+    index = 0
+    for ray in mirror_beam._beam.rays:
+        ray_index = int(ray[11]-1)
 
-        angle_index = numpy.zeros(dimension)
-        angle_inc = numpy.zeros(dimension)
-        angle_ref = numpy.zeros(dimension)
-        angle_flag = numpy.zeros(dimension)
+        angle_inc[index] = values[ray_index, 1]
+        angle_ref[index] = values[ray_index, 2]
 
-        index = 0
-        for ray in mirror_beam._beam.rays:
-            ray_index = int(ray[11]-1)
+        index+=1
 
-            angle_index[index] = values[ray_index, 0]
-            angle_inc[index] = values[ray_index, 1]
-            angle_ref[index] = values[ray_index, 2]
-            angle_flag[index] = values[ray_index, 3]
-
-            index+=1
-    else:
-        raise Exception("Flag not recongnized")
-
-    return angle_flag, angle_index, angle_inc, angle_ref
+    return angle_inc, angle_ref
 
 #########################################################
 
