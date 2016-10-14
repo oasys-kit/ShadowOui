@@ -522,7 +522,7 @@ class PlotXY(AutomaticElement):
                     self.plot_results()
             else:
                 QtGui.QMessageBox.critical(self, "Error",
-                                           "Data not displayable: No good rays or bad content",
+                                           "Data not displayable: No good rays, bad content, bad limits or axes",
                                            QtGui.QMessageBox.Ok)
 
 
