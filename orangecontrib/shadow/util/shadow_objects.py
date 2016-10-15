@@ -187,6 +187,8 @@ class ShadowBeam:
                 merged_beam._beam.rays = rays_2
                 merged_beam._oe_number = beam_2._oe_number
 
+            merged_beam._beam.rays[:, 11] = numpy.arange(1, len(merged_beam._beam.rays) + 1, 1) # ray_index
+
             return merged_beam
 
     @classmethod

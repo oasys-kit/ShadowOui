@@ -181,6 +181,7 @@ class AccumulatingLoopPoint(AutomaticElement):
                     if not self.input_beam is None:
                         self.input_beam = ShadowBeam.mergeBeams(self.input_beam, beam)
                     else:
+                        beam._beam.rays[:, 11] = numpy.arange(1, len(beam._beam.rays) + 1, 1) # ray_index
                         self.input_beam = beam
 
                     self.send("Trigger", ShadowTriggerIn(new_beam=True))
