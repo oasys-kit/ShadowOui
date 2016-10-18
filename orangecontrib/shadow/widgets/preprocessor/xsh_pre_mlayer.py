@@ -435,7 +435,7 @@ class OWxsh_pre_mlayer(OWWidget):
         self.O_DENSITY = congruence.checkStrictlyPositiveNumber(float(self.O_DENSITY), "Density (odd sublayer)")
 
         if self.GRADE_DEPTH == 0:
-            self.N_PAIRS = congruence.checkStrictlyPositiveNumber(float(self.N_PAIRS), "Number of bilayers")
+            self.N_PAIRS = congruence.checkStrictlyPositiveNumber(int(self.N_PAIRS), "Number of bilayers")
             self.THICKNESS = congruence.checkStrictlyPositiveNumber(float(self.THICKNESS), "bilayer thickness t")
             self.GAMMA = congruence.checkStrictlyPositiveNumber(float(self.GAMMA), "gamma ratio")
             self.ROUGHNESS_EVEN = congruence.checkPositiveNumber(float(self.ROUGHNESS_EVEN), "Roughness even layer")
