@@ -374,7 +374,7 @@ class Wiggler(ow_source.Source):
         shadow_src.src.NPOINT=self.number_of_rays
         shadow_src.src.ISTAR1=self.seed
 
-        shadow_src.src.CONV_FACT = self.workspace_units_to_cm * 100 # from m to cm (or user unit)
+        shadow_src.src.CONV_FACT = 1 / self.workspace_units_to_m
 
         shadow_src.src.HDIV1 = 1.00000000000000
         shadow_src.src.HDIV2 = 1.00000000000000
