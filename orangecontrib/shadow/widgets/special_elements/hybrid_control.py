@@ -229,6 +229,8 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
                     file_abs[0] = shadow_oe._oe.FILE_ABS[0]
             else:
                 raise Exception("Connected O.E. is not a Screen-Slit widget!")
+        elif input_parameters.ghy_calcType == 2: # ADDED BY XIANBO SHI
+            shadow_oe._oe.F_RIPPLE = 0
         elif input_parameters.ghy_calcType == 3: # mirror + figure error
             if input_parameters.ghy_usemirrorfile == 0: # use EMBEDDED one in OE
                 if shadow_oe._oe.F_RIPPLE == 1 and shadow_oe._oe.F_G_S == 2:
