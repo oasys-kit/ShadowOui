@@ -190,8 +190,6 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         shadow_oe = history_entry._shadow_oe_start.duplicate() # no changes to the original object!
         shadow_oe_input_beam = history_entry._input_beam.duplicate(history=False)
 
-        #print(shadow_oe._oe.T_IMAGE, shadow_oe._oe.SIMAG)
-
         n_screen = 1
         i_screen = numpy.zeros(10)  # after
         i_abs = numpy.zeros(10)

@@ -1,14 +1,15 @@
-import os
+import os, numpy
 
 from PyQt4 import QtGui
-from orangewidget import gui, widget
+from orangewidget import gui,widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
+from oasys.widgets import widget as oasyswidget
 
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowOpticalElement, ShadowOEHistoryItem
 
 
-class BeamFileReader(widget.OWWidget):
+class BeamFileReader(oasyswidget.OWWidget):
     name = "Shadow File Reader"
     description = "Utility: Shadow File Reader"
     icon = "icons/beam_file_reader.png"
@@ -65,6 +66,11 @@ class BeamFileReader(widget.OWWidget):
             if congruence.checkFileName(self.beam_file_name):
                 beam_out = ShadowBeam()
                 beam_out.loadFromFile(self.beam_file_name)
+                beam_out.history.append(ShadowOEHistoryItem()) # fake Source
+                beam_out._oe_number = 0
+
+                # just to create a safe history for possible re-tracing
+                beam_out.traceFromOE(beam_out, self.create_dummy_oe(), history=True)
 
                 path, file_name = os.path.split(self.beam_file_name)
 
@@ -75,3 +81,19 @@ class BeamFileReader(widget.OWWidget):
             QtGui.QMessageBox.critical(self, "Error",
                                        str(exception), QtGui.QMessageBox.Ok)
 
+
+    def create_dummy_oe(self):
+        empty_element = ShadowOpticalElement.create_empty_oe()
+
+        empty_element._oe.DUMMY = self.workspace_units_to_cm
+
+        empty_element._oe.T_SOURCE     = 0.0
+        empty_element._oe.T_IMAGE = 0.0
+        empty_element._oe.T_INCIDENCE  = 0.0
+        empty_element._oe.T_REFLECTION = 180.0
+        empty_element._oe.ALPHA        = 0.0
+
+        empty_element._oe.FWRITE = 3
+        empty_element._oe.F_ANGLE = 0
+
+        return empty_element
