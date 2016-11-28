@@ -2369,17 +2369,17 @@ class OpticalElement(ow_generic_element.GenericElement):
                  shadow_oe._oe.Y_SOUR_ROT=self.sm_rotation_around_y
                  shadow_oe._oe.Z_SOUR_ROT=self.sm_rotation_around_z
 
-            if self.file_to_write_out == 4:
-                shadow_oe._oe.FWRITE=0
-            else:
-                shadow_oe._oe.FWRITE=self.file_to_write_out
+        if self.file_to_write_out == 4:
+            shadow_oe._oe.FWRITE=0
+        else:
+            shadow_oe._oe.FWRITE=self.file_to_write_out
 
-            if self.graphical_options.is_crystal and self.diffraction_calculation == 1:
-                shadow_oe._oe.F_ANGLE = 1
-            elif self.graphical_options.is_mirror and self.source_of_reflectivity == 3:
-                shadow_oe._oe.F_ANGLE = 1
-            else:
-                shadow_oe._oe.F_ANGLE = self.write_out_inc_ref_angles
+        if self.graphical_options.is_crystal and self.diffraction_calculation == 1:
+            shadow_oe._oe.F_ANGLE = 1
+        elif self.graphical_options.is_mirror and self.source_of_reflectivity == 3:
+            shadow_oe._oe.F_ANGLE = 1
+        else:
+            shadow_oe._oe.F_ANGLE = self.write_out_inc_ref_angles
 
     def doSpecificSetting(self, shadow_oe):
         pass
