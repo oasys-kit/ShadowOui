@@ -563,7 +563,11 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
     do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
 
     calculation_parameters.ff_beam = calculation_parameters.image_plane_beam.duplicate(history=False)
-    if do_nf: calculation_parameters.nf_beam = calculation_parameters.screen_plane_beam.duplicate(history=False)
+    calculation_parameters.ff_beam._oe_number = input_parameters.shadow_beam._oe_number
+
+    if do_nf:
+        calculation_parameters.nf_beam = calculation_parameters.screen_plane_beam.duplicate(history=False)
+        calculation_parameters.nf_beam._oe_number = input_parameters.shadow_beam._oe_number
 
     if input_parameters.ghy_diff_plane == 1: #1d calculation in x direction
         angle_perpen = numpy.arctan(calculation_parameters.zp_screen/calculation_parameters.yp_screen)
