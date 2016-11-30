@@ -1956,8 +1956,6 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                         data_eta.append(parameters[3])
                         data_shift.append(twotheta_bragg-parameters[1])
 
-                        print(parameters)
-
                         for step in range(0, n_steps):
                             angle_index = min(n_steps_inf + step, max_position)
 

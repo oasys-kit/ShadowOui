@@ -878,8 +878,6 @@ class ShadowMath:
         fwhm = numpy.sqrt(sum(y_norm*(x-mean)**2)/len(x))*2.355
         mixing = 0.1
 
-        print(amplitude, mean, fwhm)
-
         parameters, covariance_matrix = optimize.curve_fit(ShadowMath.pseudovoigt_function,
                                                            x, y,
                                                            p0 = [amplitude, mean, fwhm, mixing],
@@ -890,13 +888,10 @@ class ShadowMath:
 
     @classmethod
     def pseudovoigt_function(cls, x, A, x0, fwhm, mixing):
-        beta_gauss = 0.5*fwhm*numpy.sqrt(numpy.pi/numpy.log(2))
-        gamma_lor = 0.5*fwhm
-        gaussian_fraction = numpy.exp(-numpy.pi*(((x-x0)**2)/beta_gauss**2))
-        lorentzian_fraction = (gamma_lor**2)/((x-x0)**2 + gamma_lor**2)
+        sigma = fwhm/2.355
+        gamma = fwhm/2
 
-        return A*((1-mixing)*gaussian_fraction + mixing*lorentzian_fraction)
-
+        return A*(mixing*numpy.exp(-(x-x0)**2/(2*sigma**2)) + (1-mixing)*((gamma**2)/((x-x0)**2 + gamma**2)))
 
     @classmethod
     def caglioti_broadening_fit(cls, data_x, data_y):
@@ -906,7 +901,7 @@ class ShadowMath:
         parameters, covariance_matrix = optimize.curve_fit(ShadowMath.caglioti_broadening_function,
                                                            x, y,
                                                            p0=[0.0001, 0.0001, 0.0001],
-                                                           bounds = ([ 0.0, -1.0, -1.0],
+                                                           bounds = ([ -1.0, -1.0, -1.0],
                                                                      [ 1.0,  1.0,  1.0]))
 
         return parameters, covariance_matrix
