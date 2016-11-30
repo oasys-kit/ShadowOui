@@ -2069,7 +2069,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                            if self.focii_and_continuation_plane == 0:
                               self.spherical_radius = ((2*self.source_plane_distance*self.image_plane_distance)/(self.source_plane_distance+self.image_plane_distance))*math.sin(self.reflection_angle_mrad)
                            else:
-                              self.spherical_radius = ((2*self.object_side_focal_distance*self.image_side_focal_distance)/(self.object_side_focal_distance+self.image_side_focal_distance))*math.sin(round(math.radians(90-self.incidence_angle_respect_to_normal), 2))
+                              self.spherical_radius = ((2*self.object_side_focal_distance*self.image_side_focal_distance)/(self.object_side_focal_distance+self.image_side_focal_distance))*math.sin(math.radians(90-self.incidence_angle_respect_to_normal))
 
                            shadow_oe._oe.RMIRR = self.spherical_radius
                        else:
