@@ -206,8 +206,11 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         cz_slit = numpy.zeros(10)
 
         if input_parameters.ghy_calcType == 1: # simple aperture
-            if (shadow_oe._oe.FMIRR == 5 and shadow_oe._oe.F_CRYSTAL == 0 and shadow_oe._oe.F_REFRAC == 2 and
-                        shadow_oe._oe.F_SCREEN==1 and shadow_oe._oe.N_SCREEN==1):
+            if (shadow_oe._oe.FMIRR == 5 and \
+                shadow_oe._oe.F_CRYSTAL == 0 and \
+                shadow_oe._oe.F_REFRAC == 2 and \
+                shadow_oe._oe.F_SCREEN==1 and \
+                shadow_oe._oe.N_SCREEN==1):
 
                 i_abs[0] = shadow_oe._oe.I_ABS[0]
                 i_slit[0] = shadow_oe._oe.I_SLIT[0]
@@ -262,7 +265,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
                                 cz_slit,
                                 file_scr_ext)
 
-        if input_parameters.ghy_calcType > 1: # THIS WAS RESPONSIBLE OF THE SERIOUS BUG AT SOS WORKSHOP!!!!!
+        if input_parameters.ghy_calcType > 0: # THIS WAS RESPONSIBLE OF THE SERIOUS BUG AT SOS WORKSHOP!!!!!
             if shadow_oe._oe.FWRITE > 1 or shadow_oe._oe.F_ANGLE == 0:
                 shadow_oe._oe.FWRITE = 0 # all
                 shadow_oe._oe.F_ANGLE = 1 # angles
