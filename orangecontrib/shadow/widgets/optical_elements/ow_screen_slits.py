@@ -7,7 +7,7 @@ from PyQt4.QtGui import QApplication
 
 from orangecontrib.shadow.widgets.gui.ow_optical_element import OpticalElement, GraphicalOptions
 from orangecontrib.shadow.util import ShadowOpticalElement
-
+from orangewidget.settings import Setting
 
 class ScreenSlits(OpticalElement):
 
@@ -19,6 +19,8 @@ class ScreenSlits(OpticalElement):
     priority = 1
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]
+
+    file_to_write_out = Setting(3) # None
 
     def __init__(self):
         graphical_Options=GraphicalOptions(is_screen_slit=True)
