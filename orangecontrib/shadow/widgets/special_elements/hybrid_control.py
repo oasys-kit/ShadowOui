@@ -24,6 +24,9 @@ ghy_diff_plane = 3 : 2D NOT USED
 ghy_nf = 1 generate near-field profile
 
 '''
+class HybridNotNecessaryWarning(Exception):
+    def __init__(self, *args, **kwargs):
+        pass
 
 class HybridInputParameters(object):
     widget=None
@@ -39,9 +42,7 @@ class HybridInputParameters(object):
     ghy_focallength = -1
     ghy_distance = -1
 
-    ghy_usemirrorfile = 1
     ghy_mirrorfile = "mirror.dat"
-    ghy_profile_dimension = 1
 
     ghy_nf = 1
 
@@ -60,6 +61,8 @@ class HybridInputParameters(object):
         return self.__dict__
 
 class HybridCalculationParameters(object):
+    calculation_not_necessary = False
+
     shadow_oe_end = None
 
     original_beam_history = None
@@ -134,8 +137,10 @@ class HybridCalculationParameters(object):
 ##########################################################################
 
 def hy_run(input_parameters=HybridInputParameters()):
+    calculation_parameters=HybridCalculationParameters()
+
     try:
-        calculation_parameters=HybridCalculationParameters()
+        hy_check_congruence(input_parameters, calculation_parameters)
 
         input_parameters.widget.status_message("Starting HYBRID calculation")
         input_parameters.widget.set_progress_bar(0)
@@ -145,166 +150,201 @@ def hy_run(input_parameters=HybridInputParameters()):
         input_parameters.widget.status_message("Analysis of Input Beam and OE completed")
         input_parameters.widget.set_progress_bar(10)
 
-        hy_init(input_parameters, calculation_parameters)		#Calculate functions needed to construct exit pupil function
+        if input_parameters.ghy_diff_plane == 3:
+            # FIRST: X DIRECTION
+            input_parameters.ghy_diff_plane = 1
 
-        input_parameters.widget.status_message("Initialization completed")
-        input_parameters.widget.set_progress_bar(20)
+            hy_init(input_parameters, calculation_parameters)		#Calculate functions needed to construct exit pupil function
 
-        input_parameters.widget.status_message("Start Wavefront Propagation")
-        hy_prop(input_parameters, calculation_parameters)	    #Perform wavefront propagation
+            input_parameters.widget.status_message("X: Initialization completed")
+            input_parameters.widget.set_progress_bar(10)
 
-        input_parameters.widget.status_message("Start Ray Resampling")
-        input_parameters.widget.set_progress_bar(80)
+            input_parameters.widget.status_message("X: Start Wavefront Propagation")
+            hy_prop(input_parameters, calculation_parameters)	    #Perform wavefront propagation
 
-        hy_conv(input_parameters, calculation_parameters)	    #Perform ray resampling
+            input_parameters.widget.status_message("X: Start Ray Resampling")
+            input_parameters.widget.set_progress_bar(40)
 
-        input_parameters.widget.status_message("Creating Output Shadow Beam")
+            hy_conv(input_parameters, calculation_parameters)	    #Perform ray resampling
 
-        hy_create_shadow_beam(input_parameters, calculation_parameters)
+            input_parameters.widget.status_message("X: Creating Output Shadow Beam")
 
-        return calculation_parameters
+            hy_create_shadow_beam(input_parameters, calculation_parameters)
+
+            # SECOND: Z DIRECTION
+            input_parameters.ghy_diff_plane = 2
+            input_parameters.shadow_beam = calculation_parameters.ff_beam
+
+            hy_init(input_parameters, calculation_parameters)		#Calculate functions needed to construct exit pupil function
+
+            input_parameters.widget.status_message("Z: Initialization completed")
+            input_parameters.widget.set_progress_bar(50)
+
+            input_parameters.widget.status_message("Z: Start Wavefront Propagation")
+            hy_prop(input_parameters, calculation_parameters)	    #Perform wavefront propagation
+
+            input_parameters.widget.status_message("Z: Start Ray Resampling")
+            input_parameters.widget.set_progress_bar(80)
+
+            hy_conv(input_parameters, calculation_parameters)	    #Perform ray resampling
+
+            input_parameters.widget.status_message("Z: Creating Output Shadow Beam")
+
+            hy_create_shadow_beam(input_parameters, calculation_parameters)
+        else:
+            hy_init(input_parameters, calculation_parameters)		#Calculate functions needed to construct exit pupil function
+
+            input_parameters.widget.status_message("Initialization completed")
+            input_parameters.widget.set_progress_bar(20)
+
+            input_parameters.widget.status_message("Start Wavefront Propagation")
+            hy_prop(input_parameters, calculation_parameters)	    #Perform wavefront propagation
+
+            input_parameters.widget.status_message("Start Ray Resampling")
+            input_parameters.widget.set_progress_bar(80)
+
+            hy_conv(input_parameters, calculation_parameters)	    #Perform ray resampling
+
+            input_parameters.widget.status_message("Creating Output Shadow Beam")
+
+            hy_create_shadow_beam(input_parameters, calculation_parameters)
+
+    except HybridNotNecessaryWarning as warning:
+         QMessageBox.warning(input_parameters.widget, "Error", str(warning), QMessageBox.Ok)
+
     except Exception as exception:
         raise exception
+
+    return calculation_parameters
+
+##########################################################################
+
+def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_parameters=HybridCalculationParameters()):
+    if input_parameters.ghy_n_oe < 0 and input_parameters.shadow_beam._oe_number == 0: # TODO!!!!!
+        raise Exception("Source calculation not yet supported")
+
+    if input_parameters.ghy_calcType == 1 or \
+        input_parameters.ghy_calcType == 2 or \
+        input_parameters.ghy_calcType == 4:
+
+        if input_parameters.ghy_n_oe < 0:
+            beam_after = input_parameters.shadow_beam
+
+            history_entry =  beam_after.getOEHistory(beam_after._oe_number)
+            beam_before = history_entry._input_beam
+
+            number_of_good_rays_before =  len(beam_before._beam.rays[numpy.where(beam_before._beam.rays[:, 9] == 1)])
+            number_of_good_rays_after = len(beam_after._beam.rays[numpy.where(beam_after._beam.rays[:, 9] == 1)])
+
+            if number_of_good_rays_after == number_of_good_rays_before:
+                calculation_parameters.ff_beam = input_parameters.shadow_beam
+                calculation_parameters.calculation_not_necessary = True
+
+                raise HybridNotNecessaryWarning("O.E. contains the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
 
 ##########################################################################
 
 def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameters=HybridCalculationParameters()):
+    str_n_oe = str(input_parameters.shadow_beam._oe_number)
 
-    if input_parameters.ghy_n_oe < 0 and input_parameters.shadow_beam._oe_number == 0: # TODO!!!!!
-        raise Exception("Source calculation not yet supported")
+    if input_parameters.shadow_beam._oe_number < 10:
+        str_n_oe = "0" + str_n_oe
 
-    if input_parameters.ghy_n_oe < 0:
-        str_n_oe = str(input_parameters.shadow_beam._oe_number)
+    fileShadowScreen = "screen." + str_n_oe + "01"
 
-        if input_parameters.shadow_beam._oe_number < 10:
-            str_n_oe = "0" + str_n_oe
+    # Before ray-tracing save the original history:
 
-        fileShadowScreen = "screen." + str_n_oe + "01"
+    calculation_parameters.original_beam_history = input_parameters.shadow_beam.getOEHistory()
 
-        # Before ray-tracing save the original history:
+    history_entry =  input_parameters.shadow_beam.getOEHistory(input_parameters.shadow_beam._oe_number)
 
-        calculation_parameters.original_beam_history = input_parameters.shadow_beam.getOEHistory()
+    shadow_oe = history_entry._shadow_oe_start.duplicate() # no changes to the original object!
+    shadow_oe_input_beam = history_entry._input_beam.duplicate(history=False)
 
-        history_entry =  input_parameters.shadow_beam.getOEHistory(input_parameters.shadow_beam._oe_number)
+    n_screen = 1
+    i_screen = numpy.zeros(10)  # after
+    i_abs = numpy.zeros(10)
+    i_slit = numpy.zeros(10)
+    i_stop = numpy.zeros(10)
+    k_slit = numpy.zeros(10)
+    thick = numpy.zeros(10)
+    file_abs = numpy.array(['', '', '', '', '', '', '', '', '', ''])
+    rx_slit = numpy.zeros(10)
+    rz_slit = numpy.zeros(10)
+    sl_dis = numpy.zeros(10)
+    file_scr_ext = numpy.array(['', '', '', '', '', '', '', '', '', ''])
+    cx_slit = numpy.zeros(10)
+    cz_slit = numpy.zeros(10)
 
-        shadow_oe = history_entry._shadow_oe_start.duplicate() # no changes to the original object!
-        shadow_oe_input_beam = history_entry._input_beam.duplicate(history=False)
+    if input_parameters.ghy_calcType == 1: # simple aperture
+        if (shadow_oe._oe.FMIRR == 5 and \
+            shadow_oe._oe.F_CRYSTAL == 0 and \
+            shadow_oe._oe.F_REFRAC == 2 and \
+            shadow_oe._oe.F_SCREEN==1 and \
+            shadow_oe._oe.N_SCREEN==1):
 
-        n_screen = 1
-        i_screen = numpy.zeros(10)  # after
-        i_abs = numpy.zeros(10)
-        i_slit = numpy.zeros(10)
-        i_stop = numpy.zeros(10)
-        k_slit = numpy.zeros(10)
-        thick = numpy.zeros(10)
-        file_abs = numpy.array(['', '', '', '', '', '', '', '', '', ''])
-        rx_slit = numpy.zeros(10)
-        rz_slit = numpy.zeros(10)
-        sl_dis = numpy.zeros(10)
-        file_scr_ext = numpy.array(['', '', '', '', '', '', '', '', '', ''])
-        cx_slit = numpy.zeros(10)
-        cz_slit = numpy.zeros(10)
+            i_abs[0] = shadow_oe._oe.I_ABS[0]
+            i_slit[0] = shadow_oe._oe.I_SLIT[0]
 
-        if input_parameters.ghy_calcType == 1: # simple aperture
-            if (shadow_oe._oe.FMIRR == 5 and \
-                shadow_oe._oe.F_CRYSTAL == 0 and \
-                shadow_oe._oe.F_REFRAC == 2 and \
-                shadow_oe._oe.F_SCREEN==1 and \
-                shadow_oe._oe.N_SCREEN==1):
+            if shadow_oe._oe.I_SLIT[0] == 1:
+                i_stop[0] = shadow_oe._oe.I_STOP[0]
+                k_slit[0] = shadow_oe._oe.K_SLIT[0]
 
-                i_abs[0] = shadow_oe._oe.I_ABS[0]
-                i_slit[0] = shadow_oe._oe.I_SLIT[0]
-
-                if shadow_oe._oe.I_SLIT[0] == 1:
-                    i_stop[0] = shadow_oe._oe.I_STOP[0]
-                    k_slit[0] = shadow_oe._oe.K_SLIT[0]
-
-                    if shadow_oe._oe.K_SLIT[0] == 2:
-                        file_scr_ext[0] = shadow_oe._oe.FILE_SCR_EXT[0]
-                    else:
-                        rx_slit[0] = shadow_oe._oe.RX_SLIT[0]
-                        rz_slit[0] = shadow_oe._oe.RZ_SLIT[0]
-                        cx_slit[0] = shadow_oe._oe.CX_SLIT[0]
-                        cz_slit[0] = shadow_oe._oe.CZ_SLIT[0]
-
-                if shadow_oe._oe.I_ABS[0] == 1:
-                    thick[0] = shadow_oe._oe.THICK[0]
-                    file_abs[0] = shadow_oe._oe.FILE_ABS[0]
-            else:
-                raise Exception("Connected O.E. is not a Screen-Slit widget!")
-        elif input_parameters.ghy_calcType == 2: # ADDED BY XIANBO SHI
-            shadow_oe._oe.F_RIPPLE = 0
-        elif input_parameters.ghy_calcType == 3: # mirror + figure error
-            if input_parameters.ghy_usemirrorfile == 0: # use EMBEDDED one in OE
-                if shadow_oe._oe.F_RIPPLE == 1 and shadow_oe._oe.F_G_S == 2:
-                    input_parameters.ghy_mirrorfile = shadow_oe._oe.FILE_RIP
-
-                    # disable slope error calculation for OE, must be done by HYBRID!
-                    shadow_oe._oe.F_RIPPLE = 0
+                if shadow_oe._oe.K_SLIT[0] == 2:
+                    file_scr_ext[0] = shadow_oe._oe.FILE_SCR_EXT[0]
                 else:
-                    raise Exception("O.E. has not Surface Error file (setup Advanced Option->Modified Surface:\n\nModification Type = Surface Error\nType of Defect: external spline)")
-            else:
-                if shadow_oe._oe.F_RIPPLE != 0:
-                    if QMessageBox.No == showConfirmMessage("Possible incongruence", "Hybrid is going to make calculations using and externally inputed Heights Error Profile,\n" + \
-                                                                "but the Shadow O.E. already has a Modified Surface option active:\n\n" + \
-                                                                "Proceed anyway?"):
-                        raise Exception("Procedure Interrupted")
+                    rx_slit[0] = shadow_oe._oe.RX_SLIT[0]
+                    rz_slit[0] = shadow_oe._oe.RZ_SLIT[0]
+                    cx_slit[0] = shadow_oe._oe.CX_SLIT[0]
+                    cz_slit[0] = shadow_oe._oe.CZ_SLIT[0]
 
-        shadow_oe._oe.set_screens(n_screen,
-                                i_screen,
-                                i_abs,
-                                sl_dis,
-                                i_slit,
-                                i_stop,
-                                k_slit,
-                                thick,
-                                file_abs,
-                                rx_slit,
-                                rz_slit,
-                                cx_slit,
-                                cz_slit,
-                                file_scr_ext)
-
-        if input_parameters.ghy_calcType > 0: # THIS WAS RESPONSIBLE OF THE SERIOUS BUG AT SOS WORKSHOP!!!!!
-            if shadow_oe._oe.FWRITE > 1 or shadow_oe._oe.F_ANGLE == 0:
-                shadow_oe._oe.FWRITE = 0 # all
-                shadow_oe._oe.F_ANGLE = 1 # angles
-
-        # need to rerun simulation
-
-        input_parameters.widget.status_message("Creating HYBRID screen: redo simulation with modified O.E.")
-
-        shadow_beam_at_image_plane = ShadowBeam.traceFromOE(shadow_oe_input_beam, shadow_oe, history=False)
-
-        input_parameters.shadow_beam = shadow_beam_at_image_plane
-
-        image_beam = read_shadow_beam(shadow_beam_at_image_plane) #xshi change from 0 to 1
-
-        calculation_parameters.shadow_oe_end = shadow_oe
-
-    else: # compatibility with old verion
-        str_n_oe = str(input_parameters.ghy_n_oe)
-
-        if input_parameters.ghy_n_oe < 10:
-            str_n_oe = "0" + str_n_oe
-
-        str_n_screen = str(input_parameters.ghy_n_screen)
-        if input_parameters.ghy_n_screen < 10:
-            str_n_screen = "0" + str_n_screen
-
-        if (input_parameters.ghy_n_oe==0):
-            fileShadowScreen = "begin.dat"
-            fileShadowStar = "begin.dat"
+            if shadow_oe._oe.I_ABS[0] == 1:
+                thick[0] = shadow_oe._oe.THICK[0]
+                file_abs[0] = shadow_oe._oe.FILE_ABS[0]
         else:
-            fileShadowStar = "star."+str_n_oe
-            if(input_parameters.ghy_n_screen==0):
-                fileShadowScreen = "star." + str_n_oe
-            else:
-                fileShadowScreen = "screen." + str_n_oe + str_n_screen
+            raise Exception("Connected O.E. is not a Screen-Slit widget!")
+    elif input_parameters.ghy_calcType == 2: # ADDED BY XIANBO SHI
+        shadow_oe._oe.F_RIPPLE = 0
+    elif input_parameters.ghy_calcType == 3: # mirror + figure error
+        if shadow_oe._oe.F_RIPPLE == 1 and shadow_oe._oe.F_G_S == 2:
+            input_parameters.ghy_mirrorfile = shadow_oe._oe.FILE_RIP
 
-        image_beam = sh_readsh(fileShadowStar)   #xshi change from 0 to 1
+            # disable slope error calculation for OE, must be done by HYBRID!
+            shadow_oe._oe.F_RIPPLE = 0
+        else:
+            raise Exception("O.E. has not Surface Error file (setup Advanced Option->Modified Surface:\n\nModification Type = Surface Error\nType of Defect: external spline)")
 
-        calculation_parameters.shadow_oe_end = sh_read_gfile("end." + str_n_oe)
+    shadow_oe._oe.set_screens(n_screen,
+                            i_screen,
+                            i_abs,
+                            sl_dis,
+                            i_slit,
+                            i_stop,
+                            k_slit,
+                            thick,
+                            file_abs,
+                            rx_slit,
+                            rz_slit,
+                            cx_slit,
+                            cz_slit,
+                            file_scr_ext)
+
+    if input_parameters.ghy_calcType > 0: # THIS WAS RESPONSIBLE OF THE SERIOUS BUG AT SOS WORKSHOP!!!!!
+        if shadow_oe._oe.FWRITE > 1 or shadow_oe._oe.F_ANGLE == 0:
+            shadow_oe._oe.FWRITE = 0 # all
+            shadow_oe._oe.F_ANGLE = 1 # angles
+
+    # need to rerun simulation
+
+    input_parameters.widget.status_message("Creating HYBRID screen: redo simulation with modified O.E.")
+
+    shadow_beam_at_image_plane = ShadowBeam.traceFromOE(shadow_oe_input_beam, shadow_oe, history=False)
+
+    input_parameters.shadow_beam = shadow_beam_at_image_plane
+
+    image_beam = read_shadow_beam(shadow_beam_at_image_plane) #xshi change from 0 to 1
+
+    calculation_parameters.shadow_oe_end = shadow_oe
 
     if input_parameters.file_to_write_out == 1:
         image_beam.writeToFile("hybrid_beam_at_image_plane." + str_n_oe)
@@ -365,11 +405,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
         calculation_parameters.angle_inc = (90.0 - angle_inc)/180.0*1e3*numpy.pi
 
-        # read in mirror surface
-        if input_parameters.ghy_usemirrorfile == 0 or input_parameters.ghy_profile_dimension == 1:
-            calculation_parameters.w_mirr_2D_values = sh_readsurface(input_parameters.ghy_mirrorfile, dimension=2)
-        else:
-            calculation_parameters.w_mirr_1D_values = sh_readsurface(input_parameters.ghy_mirrorfile, dimension=1)
+        calculation_parameters.w_mirr_2D_values = sh_readsurface(input_parameters.ghy_mirrorfile, dimension=2)
 
         # generate theta(z) and l(z) curve over a continuous grid
 
@@ -377,13 +413,13 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         hy_npoly_l = 6
 
         if numpy.amax(calculation_parameters.xx_screen) == numpy.amin(calculation_parameters.xx_screen):
-            if input_parameters.ghy_diff_plane == 1: raise Exception("Unconsistend calculation: Diffraction plane is set on X, but the beam has no extention in that direction")
+            if input_parameters.ghy_diff_plane == 1 or input_parameters.ghy_diff_plane == 3: raise Exception("Unconsistend calculation: Diffraction plane is set on X, but the beam has no extention in that direction")
         else:
             calculation_parameters.wangle_x = numpy.poly1d(numpy.polyfit(calculation_parameters.xx_screen, calculation_parameters.angle_inc, hy_npoly_angle))
             calculation_parameters.wl_x     = numpy.poly1d(numpy.polyfit(calculation_parameters.xx_screen, calculation_parameters.xx_mirr, hy_npoly_l))
 
         if numpy.amax(calculation_parameters.zz_screen) == numpy.amin(calculation_parameters.zz_screen):
-            if input_parameters.ghy_diff_plane == 2: raise Exception("Unconsistend calculation: Diffraction plane is set on Z, but the beam has no extention in that direction")
+            if input_parameters.ghy_diff_plane == 2 or input_parameters.ghy_diff_plane == 3: raise Exception("Unconsistend calculation: Diffraction plane is set on Z, but the beam has no extention in that direction")
         else:
             calculation_parameters.wangle_z = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.angle_inc, hy_npoly_angle))
             calculation_parameters.wl_z     = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.yy_mirr, hy_npoly_l))
@@ -391,10 +427,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 ##########################################################################
 
 def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=HybridCalculationParameters()):
-    if input_parameters.ghy_n_oe < 0:
-        oe_number = input_parameters.shadow_beam._oe_number
-    else:
-        oe_number = input_parameters.ghy_n_oe
+    oe_number = input_parameters.shadow_beam._oe_number
 
     if input_parameters.ghy_calcType > 1:
         simag = calculation_parameters.shadow_oe_end._oe.SIMAG
@@ -429,24 +462,18 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
             input_parameters.widget.status_message("Propagation distance = " + str(input_parameters.ghy_distance))
 
     if input_parameters.ghy_calcType == 3: #mirror with figure error
-        if input_parameters.ghy_usemirrorfile == 0 or input_parameters.ghy_profile_dimension == 1:
-            if input_parameters.ghy_diff_plane == 1: #X
-                np_array = calculation_parameters.w_mirr_2D_values.z_values[:, round(len(calculation_parameters.w_mirr_2D_values.y_coord)/2)]
+        if input_parameters.ghy_diff_plane == 1: #X
+            np_array = calculation_parameters.w_mirr_2D_values.z_values[:, round(len(calculation_parameters.w_mirr_2D_values.y_coord)/2)]
 
-                calculation_parameters.w_mirror_lx = ScaledArray.initialize_from_steps(np_array,
-                                                                                       calculation_parameters.w_mirr_2D_values.x_coord[0],
-                                                                                       calculation_parameters.w_mirr_2D_values.x_coord[1] - calculation_parameters.w_mirr_2D_values.x_coord[0])
-            elif input_parameters.ghy_diff_plane == 2: #Z
-                np_array = calculation_parameters.w_mirr_2D_values.z_values[round(len(calculation_parameters.w_mirr_2D_values.x_coord)/2), :]
+            calculation_parameters.w_mirror_lx = ScaledArray.initialize_from_steps(np_array,
+                                                                                   calculation_parameters.w_mirr_2D_values.x_coord[0],
+                                                                                   calculation_parameters.w_mirr_2D_values.x_coord[1] - calculation_parameters.w_mirr_2D_values.x_coord[0])
+        elif input_parameters.ghy_diff_plane == 2: #Z
+            np_array = calculation_parameters.w_mirr_2D_values.z_values[round(len(calculation_parameters.w_mirr_2D_values.x_coord)/2), :]
 
-                calculation_parameters.w_mirror_lz = ScaledArray.initialize_from_steps(np_array,
-                                                                                       calculation_parameters.w_mirr_2D_values.y_coord[0],
-                                                                                       calculation_parameters.w_mirr_2D_values.y_coord[1] - calculation_parameters.w_mirr_2D_values.y_coord[0])
-        else:
-            if input_parameters.ghy_diff_plane == 1: #X
-                calculation_parameters.w_mirror_lx = calculation_parameters.w_mirr_1D_values
-            elif input_parameters.ghy_diff_plane == 2: #Z
-                calculation_parameters.w_mirror_lz = calculation_parameters.w_mirr_1D_values
+            calculation_parameters.w_mirror_lz = ScaledArray.initialize_from_steps(np_array,
+                                                                                   calculation_parameters.w_mirr_2D_values.y_coord[0],
+                                                                                   calculation_parameters.w_mirr_2D_values.y_coord[1] - calculation_parameters.w_mirr_2D_values.y_coord[0])
 
     # generate intensity profile (histogram): I_ray(z) curve
 
