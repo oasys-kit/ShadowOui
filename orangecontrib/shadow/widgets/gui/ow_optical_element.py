@@ -2595,7 +2595,8 @@ class OpticalElement(ow_generic_element.GenericElement):
         beam_out = ShadowBeam.traceFromOE(self.input_beam,
                                           shadow_oe,
                                           write_start_file=write_start_file,
-                                          write_end_file=write_end_file)
+                                          write_end_file=write_end_file,
+                                          widget_class_name=type(self).__name__)
 
         if self.graphical_options.is_crystal and self.diffraction_calculation == 1:
             beam_out = self.apply_user_diffraction_profile(beam_out)

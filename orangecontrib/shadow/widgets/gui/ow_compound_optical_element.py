@@ -155,7 +155,8 @@ class CompoundOpticalElement(ow_generic_element.GenericElement):
                                                   write_start_files=write_start_files,
                                                   write_end_files=write_end_files,
                                                   write_star_files=write_star_files,
-                                                  write_mirr_files=write_mirr_files
+                                                  write_mirr_files=write_mirr_files,
+                                                  widget_class_name=type(self).__name__
                                                   )
 
         if self.trace_shadow:

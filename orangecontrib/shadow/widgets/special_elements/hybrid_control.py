@@ -8,7 +8,7 @@ from PyQt4.QtGui import QMessageBox
 
 from oasys.widgets import congruence
 
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowSource, ShadowOpticalElement
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowSource, ShadowOpticalElement, ShadowCompoundOpticalElement
 from orangecontrib.shadow.util.shadow_util import ShadowPhysics, ShadowPreProcessor
 
 from srxraylib.util.data_structures import ScaledArray, ScaledMatrix
@@ -19,7 +19,7 @@ from srxraylib.waveoptics import propagator
 Diffraction Plane
 ghy_diff_plane = 1 : X
 ghy_diff_plane = 2 : Z
-ghy_diff_plane = 3 : 2D NOT USED
+ghy_diff_plane = 3 : X+Z
 
 ghy_nf = 1 generate near-field profile
 
@@ -223,28 +223,102 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
     if input_parameters.ghy_n_oe < 0 and input_parameters.shadow_beam._oe_number == 0: # TODO!!!!!
         raise Exception("Source calculation not yet supported")
 
+    beam_after = input_parameters.shadow_beam
+    history_entry =  beam_after.getOEHistory(beam_after._oe_number)
+
+    widget_class_name = history_entry._widget_class_name
+
+    if input_parameters.ghy_calcType == 1 and not "ScreenSlits" in widget_class_name:
+        raise Exception("Simple Aperture calculation runs for Screen-Slits widgets only")
+
+    if input_parameters.ghy_calcType == 2 or input_parameters.ghy_calcType == 3:
+        if not "Mirror" in widget_class_name:
+            raise Exception("Mirror calculation runs for Mirror widgets only")
+
+    if input_parameters.ghy_calcType == 4:
+        if not ("Lens" in widget_class_name or "CRL" in widget_class_name):
+            raise Exception("CRL calculation runs for Lens or CRL widgets only")
+
     if input_parameters.ghy_calcType == 1 or \
         input_parameters.ghy_calcType == 2 or \
-        input_parameters.ghy_calcType == 4:
+        input_parameters.ghy_calcType == 3 or \
+        input_parameters.ghy_calcType == 4: #TODO remove calctype = 3
 
         if input_parameters.ghy_n_oe < 0:
-            beam_after = input_parameters.shadow_beam
-
-            history_entry =  beam_after.getOEHistory(beam_after._oe_number)
             beam_before = history_entry._input_beam
 
             number_of_good_rays_before =  len(beam_before._beam.rays[numpy.where(beam_before._beam.rays[:, 9] == 1)])
             number_of_good_rays_after = len(beam_after._beam.rays[numpy.where(beam_after._beam.rays[:, 9] == 1)])
 
-            if number_of_good_rays_after == number_of_good_rays_before:
+            if (number_of_good_rays_before-number_of_good_rays_after)/number_of_good_rays_before < 0.05:
                 calculation_parameters.ff_beam = input_parameters.shadow_beam
                 calculation_parameters.calculation_not_necessary = True
 
-                raise HybridNotNecessaryWarning("O.E. contains the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
+                raise HybridNotNecessaryWarning("O.E. contains almost the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
 
 ##########################################################################
 
 def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameters=HybridCalculationParameters()):
+    if input_parameters.ghy_calcType == 4: #CRL OR LENS
+        history_entry =  input_parameters.shadow_beam.getOEHistory(input_parameters.shadow_beam._oe_number)
+        compound_oe = history_entry._shadow_oe_end
+
+        last_oe = compound_oe._oe.list[-1]
+
+        if last_oe.FHIT_C == 0: #infinite
+            raise Exception("Calculation not possible: lenses have infinite extension")
+
+        image_plane_distance = last_oe.T_IMAGE
+
+        screen_slit = ShadowOpticalElement.create_screen_slit()
+
+        screen_slit._oe.DUMMY = input_parameters.widget.workspace_units_to_cm # Issue #3 : Global User's Unit
+        screen_slit._oe.T_SOURCE     = -image_plane_distance
+        screen_slit._oe.T_IMAGE      = image_plane_distance
+        screen_slit._oe.T_INCIDENCE  = 0.0
+        screen_slit._oe.T_REFLECTION = 180.0
+        screen_slit._oe.ALPHA        = 0.0
+
+        n_screen = 1
+        i_screen = numpy.zeros(10)  # after
+        i_abs = numpy.zeros(10)
+        i_slit = numpy.zeros(10)
+        i_stop = numpy.zeros(10)
+        k_slit = numpy.zeros(10)
+        thick = numpy.zeros(10)
+        file_abs = numpy.array(['', '', '', '', '', '', '', '', '', ''])
+        rx_slit = numpy.zeros(10)
+        rz_slit = numpy.zeros(10)
+        sl_dis = numpy.zeros(10)
+        file_scr_ext = numpy.array(['', '', '', '', '', '', '', '', '', ''])
+        cx_slit = numpy.zeros(10)
+        cz_slit = numpy.zeros(10)
+
+        i_slit[0] = 1
+        k_slit[0] = 1
+
+        rx_slit[0] = 2*last_oe.RWIDX2
+        rz_slit[0] = 2*last_oe.RLEN2
+
+        screen_slit._oe.set_screens(n_screen,
+                                  i_screen,
+                                  i_abs,
+                                  sl_dis,
+                                  i_slit,
+                                  i_stop,
+                                  k_slit,
+                                  thick,
+                                  file_abs,
+                                  rx_slit,
+                                  rz_slit,
+                                  cx_slit,
+                                  cz_slit,
+                                  file_scr_ext)
+
+        input_parameters.shadow_beam = ShadowBeam.traceFromOE(input_parameters.shadow_beam, screen_slit)
+        input_parameters.ghy_calcType = 1
+
+
     str_n_oe = str(input_parameters.shadow_beam._oe_number)
 
     if input_parameters.shadow_beam._oe_number < 10:

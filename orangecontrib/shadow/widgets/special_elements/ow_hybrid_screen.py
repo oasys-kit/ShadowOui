@@ -94,15 +94,18 @@ class HybridScreen(AutomaticElement):
 
         tab_bas = oasysgui.createTabPage(tabs_setting, "Hybrid Setting")
 
-        box_1 = oasysgui.widgetBox(tab_bas, "Calculation Parameters", addSpace=True, orientation="vertical", height=300)
+        box_1 = oasysgui.widgetBox(tab_bas, "Calculation Parameters", addSpace=True, orientation="vertical", height=250)
 
         gui.comboBox(box_1, self, "ghy_diff_plane", label="Diffraction Plane", labelWidth=310,
-                     items=["X", "Z", "X + Z"],
+                     items=["Sagittal", "Tangential", "Both"],
                      callback=self.set_DiffPlane,
                      sendSelectedValue=False, orientation="horizontal")
 
         gui.comboBox(box_1, self, "ghy_calcType", label="Calculation Type", labelWidth=100,
-                     items=["Simple Aperture", "Mirror", "Mirror + Figure Errors", "C.R.L."],
+                     items=["Diffraction by Simple Aperture",
+                            "Diffraction by Mirror Size",
+                            "Diffraction by Mirror Size + Figure Errors",
+                            "Diffraction by Lens or C.R.L. Size"],
                      callback=self.set_CalculationType,
                      sendSelectedValue=False, orientation="horizontal")
 
@@ -233,12 +236,14 @@ class HybridScreen(AutomaticElement):
          self.le_distance_to_image.setEnabled(self.distance_to_image_calc == 1)
 
     def set_CalculationType(self):
-        self.cb_focal_length_calc.setEnabled(self.ghy_calcType != 0)
-        self.le_focal_length.setEnabled(self.ghy_calcType != 0)
-        self.cb_nf.setEnabled(self.ghy_calcType != 0)
+        self.cb_focal_length_calc.setEnabled(self.ghy_calcType > 0 and self.ghy_calcType < 3)
+        self.le_focal_length.setEnabled(self.ghy_calcType > 0 and self.ghy_calcType < 3)
+        self.cb_nf.setEnabled(self.ghy_calcType > 0 and self.ghy_calcType < 3)
 
-        if self.ghy_calcType != 0:
+        if self.ghy_calcType > 0 and self.ghy_calcType < 3:
             self.set_FocalLengthCalc()
+        else:
+            self.ghy_nf = 0
 
         self.initializeTabs()
 

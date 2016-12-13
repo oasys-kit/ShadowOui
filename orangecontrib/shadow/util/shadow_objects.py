@@ -87,13 +87,21 @@ def adjust_shadow_string(string_to_adjust):
 
 class ShadowOEHistoryItem(object):
 
-    def __init__(self, oe_number=0, input_beam=None, shadow_source_start=None, shadow_source_end=None, shadow_oe_start=None, shadow_oe_end=None):
+    def __init__(self,
+                 oe_number=0,
+                 input_beam=None,
+                 shadow_source_start=None,
+                 shadow_source_end=None,
+                 shadow_oe_start=None,
+                 shadow_oe_end=None,
+                 widget_class_name=None):
         self._oe_number = oe_number
         self._input_beam = input_beam
         self._shadow_source_start = shadow_source_start
         self._shadow_source_end = shadow_source_end
         self._shadow_oe_start = shadow_oe_start
         self._shadow_oe_end = shadow_oe_end
+        self._widget_class_name = widget_class_name
 
     def duplicate(self):
         return ShadowOEHistoryItem(oe_number=self._oe_number,
@@ -101,7 +109,8 @@ class ShadowOEHistoryItem(object):
                                    shadow_source_start=self._shadow_source_start,
                                    shadow_source_end=self._shadow_source_end,
                                    shadow_oe_start=self._shadow_oe_start,
-                                   shadow_oe_end=self._shadow_oe_end)
+                                   shadow_oe_end=self._shadow_oe_end,
+                                   widget_class_name=self._widget_class_name)
 
 class ShadowFile:
 
@@ -192,7 +201,7 @@ class ShadowBeam:
             return merged_beam
 
     @classmethod
-    def traceFromSource(cls, shadow_src, write_begin_file=0, write_start_file=0, write_end_file=0, history=True):
+    def traceFromSource(cls, shadow_src, write_begin_file=0, write_start_file=0, write_end_file=0, history=True, widget_class_name=None):
         self = cls.__new__(ShadowBeam, beam=Shadow.Beam())
 
         shadow_src.self_repair()
@@ -215,12 +224,14 @@ class ShadowBeam:
         shadow_source_end = shadow_src.duplicate()
 
         if history:
-            self.history.append(ShadowOEHistoryItem(shadow_source_start=shadow_source_start, shadow_source_end=shadow_source_end))
+            self.history.append(ShadowOEHistoryItem(shadow_source_start=shadow_source_start,
+                                                    shadow_source_end=shadow_source_end,
+                                                    widget_class_name=widget_class_name))
 
         return self
 
     @classmethod
-    def traceFromOE(cls, input_beam, shadow_oe, write_start_file=0, write_end_file=0, history=True):
+    def traceFromOE(cls, input_beam, shadow_oe, write_start_file=0, write_end_file=0, history=True, widget_class_name=None):
 
         self = cls.initializeFromPreviousBeam(input_beam)
 
@@ -245,9 +256,16 @@ class ShadowBeam:
             #N.B. history[0] = Source
             if not self._oe_number == 0:
                 if len(self.history) - 1 < self._oe_number:
-                    self.history.append(ShadowOEHistoryItem(oe_number=self._oe_number, input_beam=input_beam.duplicate(), shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end))
+                    self.history.append(ShadowOEHistoryItem(oe_number=self._oe_number,
+                                                            input_beam=input_beam.duplicate(),
+                                                            shadow_oe_start=history_shadow_oe_start,
+                                                            shadow_oe_end=history_shadow_oe_end, widget_class_name=widget_class_name))
                 else:
-                    self.history[self._oe_number]=ShadowOEHistoryItem(oe_number=self._oe_number, input_beam=input_beam.duplicate(), shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end)
+                    self.history[self._oe_number]=ShadowOEHistoryItem(oe_number=self._oe_number,
+                                                                      input_beam=input_beam.duplicate(),
+                                                                      shadow_oe_start=history_shadow_oe_start,
+                                                                      shadow_oe_end=history_shadow_oe_end,
+                                                                      widget_class_name=widget_class_name)
 
         return self
 
@@ -259,7 +277,8 @@ class ShadowBeam:
                             write_end_files=0,
                             write_star_files=0,
                             write_mirr_files=0,
-                            history=True):
+                            history=True,
+                            widget_class_name=None):
         self = cls.initializeFromPreviousBeam(input_beam)
 
         shadow_oe.self_repair()
@@ -283,9 +302,17 @@ class ShadowBeam:
             # N.B. history[0] = Source
             if not self._oe_number == 0:
                 if len(self.history) - 1 < self._oe_number:
-                    self.history.append(ShadowOEHistoryItem(oe_number=self._oe_number, input_beam=input_beam.duplicate(), shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end))
+                    self.history.append(ShadowOEHistoryItem(oe_number=self._oe_number,
+                                                            input_beam=input_beam.duplicate(),
+                                                            shadow_oe_start=history_shadow_oe_start,
+                                                            shadow_oe_end=history_shadow_oe_end,
+                                                            widget_class_name=widget_class_name))
                 else:
-                    self.history[self._oe_number] = ShadowOEHistoryItem(oe_number=self._oe_number, input_beam=input_beam.duplicate(), shadow_oe_start=history_shadow_oe_start, shadow_oe_end=history_shadow_oe_end)
+                    self.history[self._oe_number] = ShadowOEHistoryItem(oe_number=self._oe_number,
+                                                                        input_beam=input_beam.duplicate(),
+                                                                        shadow_oe_start=history_shadow_oe_start,
+                                                                        shadow_oe_end=history_shadow_oe_end,
+                                                                        widget_class_name=widget_class_name)
 
         return self
 
