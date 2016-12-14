@@ -26,19 +26,8 @@ class GeometricalSource(ow_source.Source):
     inputs = [("Trigger", ShadowTriggerOut, "sendNewBeam"),
               ("ExchangeData", DataExchangeObject, "acceptExchangeData")]
 
-    #sampling = Setting(0)
-    sampling = 0
-
     number_of_rays=Setting(5000)
     seed=Setting(6775431)
-
-    grid_points_in_xfirst = Setting(1)
-    grid_points_in_zfirst = Setting(1)
-    grid_points_in_x = Setting(1)
-    grid_points_in_y = Setting(1)
-    grid_points_in_z = Setting(1)
-    radial_grid_points = Setting(0)
-    concentrical_grid_points = Setting(0)
 
     spatial_type = Setting(0)
 
@@ -139,41 +128,15 @@ class GeometricalSource(ow_source.Source):
         ##############################
         # MONTECARLO
 
-        #left_box_1 = oasysgui.widgetBox(tab_basic, "Montecarlo and Sampling", addSpace=True, orientation="vertical", height=280)
         left_box_1 = oasysgui.widgetBox(tab_basic, "Montecarlo", addSpace=True, orientation="vertical", height=100)
 
         gui.separator(left_box_1)
-
-        ##################################################################
-        #
-        # OTHER THAN RANDOM/RANDOM NOT PROPERLY WORKING, DISABLED UNTIL FIXED
-        #
-        '''
-        gui.comboBox(left_box_1, self, "sampling", label="Sampling (space/divergence)", labelWidth=260,
-                     items=["Random/Random", "Grid/Grid", "Grid/Random", "Random/Grid"], orientation="horizontal", callback=self.set_Sampling)
-
-        gui.separator(left_box_1)
-        '''
 
         self.sample_box_1 = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(self.sample_box_1, self, "number_of_rays", "Number of Random Rays", labelWidth=260, valueType=int, orientation="horizontal")
         oasysgui.lineEdit(self.sample_box_1, self, "seed", "Seed", labelWidth=260, valueType=int, orientation="horizontal")
 
-        '''
-        self.sample_box_2 = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
-
-        oasysgui.lineEdit(self.sample_box_2, self, "grid_points_in_xfirst", "Grid Points in X'", labelWidth=260, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(self.sample_box_2, self, "grid_points_in_zfirst", "Grid Points in Z'",  labelWidth=260, valueType=int, orientation="horizontal")
-
-        self.sample_box_3 = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
-
-        oasysgui.lineEdit(self.sample_box_3, self, "grid_points_in_x", "Grid Points in X", labelWidth=260, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(self.sample_box_3, self, "grid_points_in_y", "Grid Points in Y", labelWidth=260, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(self.sample_box_3, self, "grid_points_in_z", "Grid Points in Z",  labelWidth=260, valueType=int, orientation="horizontal")
-
-        self.set_Sampling()
-        '''
 
         ##############################
         # GEOMETRY
@@ -425,11 +388,6 @@ class GeometricalSource(ow_source.Source):
     def set_OptimizeSource(self):
         self.optimize_file_name_box.setVisible(self.optimize_source != 0)
 
-    def set_Sampling(self):
-        self.sample_box_1.setVisible(self.sampling != 1)
-        self.sample_box_2.setVisible(self.sampling == 1 or self.sampling == 3)
-        self.sample_box_3.setVisible(self.sampling == 1 or self.sampling == 2)
-
     def set_SpatialType(self):
         self.spatial_type_box_1.setVisible(self.spatial_type == 1)
         self.spatial_type_box_2.setVisible(self.spatial_type == 2)
@@ -603,8 +561,6 @@ class GeometricalSource(ow_source.Source):
         distribution = stats.truncnorm(a, b, loc=self.gaussian_central_value, scale=self.gaussian_sigma)
         sampled_spectrum = distribution.rvs(len(beam_out._beam.rays))
 
-        #sampled_spectrum = numpy.random.normal(loc=self.gaussian_central_value, scale=self.gaussian_sigma, size=len(beam_out._beam.rays))
-
         for index in range(0, len(beam_out._beam.rays)):
             if self.units == 0:
                 beam_out._beam.rays[index, 10] = ShadowPhysics.getShadowKFromEnergy(energy=sampled_spectrum[index])
@@ -762,7 +718,6 @@ class GeometricalSource(ow_source.Source):
 
     def setupUI(self):
         self.set_OptimizeSource()
-        self.set_Sampling()
         self.set_SpatialType()
         self.set_AngularDistribution()
         self.set_Depth()
@@ -771,23 +726,8 @@ class GeometricalSource(ow_source.Source):
 
     def checkFields(self):
 
-        if self.sampling != 1:
-            self.number_of_rays = congruence.checkPositiveNumber(self.number_of_rays, "Number of Random rays")
-            self.seed = congruence.checkPositiveNumber(self.seed, "Seed")
-
-        if self.sampling == 1:
-            self.grid_points_in_xfirst = congruence.checkPositiveNumber(self.grid_points_in_xfirst, "Grid Points in X'")
-            self.grid_points_in_zfirst = congruence.checkPositiveNumber(self.grid_points_in_zfirst, "Grid Points in Z'")
-            self.grid_points_in_x = congruence.checkPositiveNumber(self.grid_points_in_x, "Grid Points in X")
-            self.grid_points_in_y = congruence.checkPositiveNumber(self.grid_points_in_y, "Grid Points in Y")
-            self.grid_points_in_z = congruence.checkPositiveNumber(self.grid_points_in_z, "Grid Points in Z")
-        elif self.sampling == 2:
-            self.grid_points_in_x = congruence.checkPositiveNumber(self.grid_points_in_x, "Grid Points in X")
-            self.grid_points_in_y = congruence.checkPositiveNumber(self.grid_points_in_y, "Grid Points in Y")
-            self.grid_points_in_z = congruence.checkPositiveNumber(self.grid_points_in_z, "Grid Points in Z")
-        elif self.sampling == 3:
-            self.grid_points_in_xfirst = congruence.checkPositiveNumber(self.grid_points_in_xfirst, "Grid Points in X'")
-            self.grid_points_in_zfirst = congruence.checkPositiveNumber(self.grid_points_in_zfirst, "Grid Points in Z'")
+        self.number_of_rays = congruence.checkPositiveNumber(self.number_of_rays, "Number of Random rays")
+        self.seed = congruence.checkPositiveNumber(self.seed, "Seed")
 
         if self.spatial_type == 1:
             self.rect_width = congruence.checkPositiveNumber(self.rect_width, "Width")
@@ -904,18 +844,15 @@ class GeometricalSource(ow_source.Source):
             congruence.checkFile(self.optimize_file_name)
 
     def populateFields(self, shadow_src):
-        if self.sampling != 1:
-            shadow_src.src.NPOINT = self.number_of_rays
-            shadow_src.src.ISTAR1 = self.seed
+        shadow_src.src.NPOINT = self.number_of_rays
+        shadow_src.src.ISTAR1 = self.seed
 
-        shadow_src.src.FGRID = self.sampling
-
-        if self.sampling > 0:
-            shadow_src.src.IDO_VX = self.grid_points_in_xfirst
-            shadow_src.src.IDO_VZ = self.grid_points_in_zfirst
-            shadow_src.src.IDO_X_S = self.grid_points_in_x
-            shadow_src.src.IDO_Y_S = self.grid_points_in_y
-            shadow_src.src.IDO_Z_S = self.grid_points_in_z
+        shadow_src.src.FGRID = 0
+        shadow_src.src.IDO_VX = 0
+        shadow_src.src.IDO_VZ = 0
+        shadow_src.src.IDO_X_S = 0
+        shadow_src.src.IDO_Y_S = 0
+        shadow_src.src.IDO_Z_S = 0
 
         shadow_src.src.FSOUR = self.spatial_type
 
@@ -1028,18 +965,9 @@ class GeometricalSource(ow_source.Source):
                 self.number_of_rays=int(shadow_file.getProperty("NPOINT"))
                 self.seed=int(shadow_file.getProperty("ISTAR1"))
 
-                self.sampling = int(shadow_file.getProperty("FGRID"))
+                sampling = int(shadow_file.getProperty("FGRID"))
 
-                if self.sampling>0:
-                    self.grid_points_in_xfirst = int(shadow_file.getProperty("IDO_VX") )
-                    self.grid_points_in_zfirst = int(shadow_file.getProperty("IDO_VZ"))
-                    self.grid_points_in_x = int(shadow_file.getProperty("IDO_X_S"))
-                    self.grid_points_in_y = int(shadow_file.getProperty("IDO_Y_S"))
-                    self.grid_points_in_z = int(shadow_file.getProperty("IDO_Z_S"))
-                    self.radial_grid_points = int(shadow_file.getProperty("N_CIRCLE"))
-                    self.concentrical_grid_points = int(shadow_file.getProperty("N_CONE"))
-
-                    self.sampling = 0 # NO MORE SUPPORTED OTHER THAN RANDOM/RANDOM
+                if sampling > 0: raise Exception("Sampling different from Random/Random is no more supported")
 
                 self.spatial_type = int(shadow_file.getProperty("FSOUR"))
 
