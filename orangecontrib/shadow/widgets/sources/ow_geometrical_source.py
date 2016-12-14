@@ -150,7 +150,7 @@ class GeometricalSource(ow_source.Source):
         #             items=["Random/Random", "Grid/Grid", "Grid/Random", "Random/Grid"], orientation="horizontal", callback=self.set_Sampling)
 
         gui.comboBox(left_box_1, self, "sampling", label="Sampling (space/divergence)", labelWidth=260,
-                     items=["Random/Random"], orientation="horizontal", callback=self.set_Sampling)
+                     items=["Random/Random", "Grid/Grid"], orientation="horizontal", callback=self.set_Sampling)
 
         gui.separator(left_box_1)
 
@@ -426,7 +426,6 @@ class GeometricalSource(ow_source.Source):
         self.sample_box_1.setVisible(self.sampling != 1)
         self.sample_box_2.setVisible(self.sampling == 1 or self.sampling == 3)
         self.sample_box_3.setVisible(self.sampling == 1 or self.sampling == 2)
-        #self.sample_box_4.setVisible(self.sampling == 1 or self.sampling == 3)
 
     def set_SpatialType(self):
         self.spatial_type_box_1.setVisible(self.spatial_type == 1)
