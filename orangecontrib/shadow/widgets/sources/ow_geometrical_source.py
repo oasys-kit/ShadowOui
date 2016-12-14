@@ -26,7 +26,8 @@ class GeometricalSource(ow_source.Source):
     inputs = [("Trigger", ShadowTriggerOut, "sendNewBeam"),
               ("ExchangeData", DataExchangeObject, "acceptExchangeData")]
 
-    sampling = Setting(0)
+    #sampling = Setting(0)
+    sampling = 0
 
     number_of_rays=Setting(5000)
     seed=Setting(6775431)
@@ -138,7 +139,8 @@ class GeometricalSource(ow_source.Source):
         ##############################
         # MONTECARLO
 
-        left_box_1 = oasysgui.widgetBox(tab_basic, "Montecarlo and Sampling", addSpace=True, orientation="vertical", height=280)
+        #left_box_1 = oasysgui.widgetBox(tab_basic, "Montecarlo and Sampling", addSpace=True, orientation="vertical", height=280)
+        left_box_1 = oasysgui.widgetBox(tab_basic, "Montecarlo", addSpace=True, orientation="vertical", height=100)
 
         gui.separator(left_box_1)
 
@@ -146,19 +148,19 @@ class GeometricalSource(ow_source.Source):
         #
         # OTHER THAN RANDOM/RANDOM NOT PROPERLY WORKING, DISABLED UNTIL FIXED
         #
-        #gui.comboBox(left_box_1, self, "sampling", label="Sampling (space/divergence)", labelWidth=260,
-        #             items=["Random/Random", "Grid/Grid", "Grid/Random", "Random/Grid"], orientation="horizontal", callback=self.set_Sampling)
-
+        '''
         gui.comboBox(left_box_1, self, "sampling", label="Sampling (space/divergence)", labelWidth=260,
-                     items=["Random/Random", "Grid/Grid"], orientation="horizontal", callback=self.set_Sampling)
+                     items=["Random/Random", "Grid/Grid", "Grid/Random", "Random/Grid"], orientation="horizontal", callback=self.set_Sampling)
 
         gui.separator(left_box_1)
+        '''
 
         self.sample_box_1 = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(self.sample_box_1, self, "number_of_rays", "Number of Random Rays", labelWidth=260, valueType=int, orientation="horizontal")
         oasysgui.lineEdit(self.sample_box_1, self, "seed", "Seed", labelWidth=260, valueType=int, orientation="horizontal")
 
+        '''
         self.sample_box_2 = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(self.sample_box_2, self, "grid_points_in_xfirst", "Grid Points in X'", labelWidth=260, valueType=int, orientation="horizontal")
@@ -171,6 +173,7 @@ class GeometricalSource(ow_source.Source):
         oasysgui.lineEdit(self.sample_box_3, self, "grid_points_in_z", "Grid Points in Z",  labelWidth=260, valueType=int, orientation="horizontal")
 
         self.set_Sampling()
+        '''
 
         ##############################
         # GEOMETRY
