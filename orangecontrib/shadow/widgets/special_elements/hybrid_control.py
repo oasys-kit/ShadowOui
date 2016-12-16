@@ -425,8 +425,6 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
     calculation_parameters.image_plane_beam = image_beam
 
-    #print(shadow_oe._oe.T_IMAGE, shadow_oe._oe.SIMAG, len(image_beam._beam.rays[numpy.where(image_beam._beam.rays[:, 9] == 1)]))
-
     calculation_parameters.xx_star = image_beam._beam.rays[:, 0]
     calculation_parameters.zz_star = image_beam._beam.rays[:, 2]
 
@@ -495,6 +493,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         if numpy.amax(calculation_parameters.zz_screen) == numpy.amin(calculation_parameters.zz_screen):
             if input_parameters.ghy_diff_plane == 2 or input_parameters.ghy_diff_plane == 3: raise Exception("Unconsistend calculation: Diffraction plane is set on Z, but the beam has no extention in that direction")
         else:
+
             calculation_parameters.wangle_z = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.angle_inc, hy_npoly_angle))
             calculation_parameters.wl_z     = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.yy_mirr, hy_npoly_l))
 
@@ -739,9 +738,6 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
 
     if input_parameters.ghy_calcType == 3:
         if not (rms_slope == 0.0 or avg_wangle_x == 0.0):
-            #focallength_ff = min(focallength_ff,
-            #                     (min(abs(calculation_parameters.ghy_x_max),
-             #                         abs(calculation_parameters.ghy_x_min)) * 2) / 16 / rms_slope / numpy.sin(avg_wangle_x / 1e3))
             focallength_ff = min(focallength_ff,(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min) / 16 / rms_slope / numpy.sin(avg_wangle_x / 1e3))#xshi changed
 
     fftsize = calculate_fft_size(calculation_parameters.ghy_x_min,
@@ -871,20 +867,13 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
     # ------------------------------------------
     # far field calculation
     # ------------------------------------------
-    #print("ghy_z_min", calculation_parameters.ghy_z_min,"ghy_z_max",calculation_parameters.ghy_z_max)
     focallength_ff = calculate_focal_length_ff(calculation_parameters.ghy_z_min,
                                                calculation_parameters.ghy_z_max,
                                                input_parameters.ghy_npeak,
                                                calculation_parameters.gwavelength)
 
-    #print("focallength_ff", focallength_ff)
-    if input_parameters.ghy_calcType == 3:
-        if rms_slope != 0:
-            #focallength_ff = min(focallength_ff,
-            #                     (min(abs(calculation_parameters.ghy_z_max),
-            #                          abs(calculation_parameters.ghy_z_min)) * 2) / 16 / rms_slope)
-            focallength_ff = min(focallength_ff,(calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min) / 16 / rms_slope) #xshi changed
-    #print("focallength_ff", focallength_ff)
+    if input_parameters.ghy_calcType == 3 and rms_slope != 0:
+        focallength_ff = min(focallength_ff,(calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min) / 16 / rms_slope) #xshi changed
 
     fftsize = calculate_fft_size(calculation_parameters.ghy_z_min,
                                  calculation_parameters.ghy_z_max,
@@ -910,6 +899,7 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
                                                                       calculation_parameters.wangle_z,
                                                                       calculation_parameters.wl_z,
                                                                       calculation_parameters.w_mirror_lz))
+
 
     if do_nf: input_parameters.widget.set_progress_bar(35)
     else: input_parameters.widget.set_progress_bar(50)
@@ -1033,14 +1023,13 @@ def sh_readangle(filename, mirror_beam=None):
     angle_inc = numpy.zeros(dimension)
     angle_ref = numpy.zeros(dimension)
 
-    index = 0
-    for ray in mirror_beam._beam.rays:
-        ray_index = int(ray[11]-1)
+    ray_index = 0
+    for index in range(0, len(values)):
+        if values[index, 3] == 1:
+            angle_inc[ray_index] = values[index, 1]
+            angle_ref[ray_index] = values[index, 2]
 
-        angle_inc[index] = values[ray_index, 1]
-        angle_ref[index] = values[ray_index, 2]
-
-        index+=1
+            ray_index += 1
 
     return angle_inc, angle_ref
 
@@ -1076,11 +1065,13 @@ def hy_findrmsslopefromheight(wmirror_l):
 def hy_findrmserror(data):
     wfftcol = numpy.absolute(numpy.fft.fft(data.np_array))
 
-    waPSD = 2 * data.delta() * wfftcol[0:int(len(wfftcol)/2)]**2/data.size() # uniformed with IGOR, FFT is not simmetric around 0
+    waPSD = (2 * data.delta() * wfftcol[0:int(len(wfftcol)/2)]**2)/data.size() # uniformed with IGOR, FFT is not simmetric around 0
     waPSD[0] /= 2
     waPSD[len(waPSD)-1] /= 2
 
-    waRMS = numpy.trapz(waPSD, numpy.arange(0.0, 1.0, 1.0/len(waPSD))) # uniformed with IGOR: Same kind of integration, with automatic range assignement
+    fft_scale = numpy.fft.fftfreq(data.size())/data.delta()
+
+    waRMS = numpy.trapz(waPSD, fft_scale[0:int(len(wfftcol)/2)]) # uniformed with IGOR: Same kind of integration, with automatic range assignement
 
     return numpy.sqrt(waRMS)
 
@@ -1124,9 +1115,7 @@ def get_mirror_figure_error_phase_shift(abscissas,
                                         w_angle_function,
                                         w_l_function,
                                         mirror_figure_error):
-    return numpy.exp((-1.0) * 4 * numpy.pi / wavelength * numpy.sin(w_angle_function(abscissas)/1e3) * \
-                     mirror_figure_error.interpolate_values(w_l_function(abscissas)))
-
+    return (-1.0) * 4 * numpy.pi / wavelength * numpy.sin(w_angle_function(abscissas)/1e3) * mirror_figure_error.interpolate_values(w_l_function(abscissas))
 
 
 def showConfirmMessage(title, message):
