@@ -204,7 +204,7 @@ class OpticalElement(ow_generic_element.GenericElement):
     planes_angle = Setting(0.0)
     below_onto_bragg_planes = Setting(-1)
 
-    grating_diffraction_order = Setting(-1.0)
+    grating_diffraction_order = Setting(-1)
     grating_auto_setting = Setting(0)
     grating_units_in_use = Setting(0)
     grating_photon_energy = Setting(5.0)
@@ -232,7 +232,7 @@ class OpticalElement(ow_generic_element.GenericElement):
     grating_poly_coeff_2 = Setting(0.0)
     grating_poly_coeff_3 = Setting(0.0)
     grating_poly_coeff_4 = Setting(0.0)
-    grating_poly_signed_absolute = Setting(0)
+    grating_poly_signed_absolute = Setting(1)
 
     grating_mount_type = Setting(0)
 
@@ -952,7 +952,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     grating_box = oasysgui.widgetBox(tab_grating_1, "Diffraction Parameters", addSpace=True, orientation="vertical", height=350)
 
-                    oasysgui.lineEdit(grating_box, self, "grating_diffraction_order", "Diffraction Order", labelWidth=260, valueType=float, orientation="horizontal")
+                    oasysgui.lineEdit(grating_box, self, "grating_diffraction_order", "Diffraction Order (- for inside orders)", labelWidth=260, valueType=int, orientation="horizontal")
 
                     gui.comboBox(grating_box, self, "grating_auto_setting", label="Auto setting", labelWidth=350,
                                  items=["No", "Yes"],
