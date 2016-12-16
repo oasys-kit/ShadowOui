@@ -129,7 +129,7 @@ class HybridScreen(AutomaticElement):
 
         self.cb_nf = gui.comboBox(box_1, self, "ghy_nf", label="Near Field Calculation", labelWidth=310,
                                              items=["No", "Yes"],
-                                             sendSelectedValue=False, orientation="horizontal")
+                                             sendSelectedValue=False, orientation="horizontal", callback=self.initializeTabs)
 
 
         box_2 = oasysgui.widgetBox(tab_bas, "Numerical Control Parameters", addSpace=True, orientation="vertical", height=120)
@@ -169,13 +169,13 @@ class HybridScreen(AutomaticElement):
         self.tabs.clear()
 
         if self.ghy_calcType != 0 and self.ghy_nf == 1:
-            self.tab = [gui.createTabPage(self.tabs, "C.D.F. of " + u"\u2206" + "Divergence at Far Field"),
+            self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field"),
                         gui.createTabPage(self.tabs, "Distribution of Position at Far Field"),
-                        gui.createTabPage(self.tabs, "C.D.F. of " + u"\u2206" + "Position at Near Field"),
+                        gui.createTabPage(self.tabs, u"\u2206" + "Position at Near Field"),
                         gui.createTabPage(self.tabs, "Distribution of Position at Near Field")
                         ]
         else:
-            self.tab = [gui.createTabPage(self.tabs, "C.D.F. of " + u"\u2206" + "Divergence at Far Field"),
+            self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field"),
                         gui.createTabPage(self.tabs, "Distribution of Position at Far Field")
                         ]
 
@@ -287,14 +287,20 @@ class HybridScreen(AutomaticElement):
 
                     calculation_parameters = hybrid_control.hy_run(input_parameters)
 
-                    if not (calculation_parameters.beam_not_cut_in_z and calculation_parameters.beam_not_cut_in_x):
-                        self.ghy_focallength = input_parameters.ghy_focallength
-                        self.ghy_distance = input_parameters.ghy_distance
-                        self.ghy_nbins_x = input_parameters.ghy_nbins_x
-                        self.ghy_nbins_z = input_parameters.ghy_nbins_z
-                        self.ghy_npeak   = input_parameters.ghy_npeak
-                        self.ghy_fftnpts = input_parameters.ghy_fftnpts
+                    self.ghy_focallength = input_parameters.ghy_focallength
+                    self.ghy_distance = input_parameters.ghy_distance
+                    self.ghy_nbins_x = input_parameters.ghy_nbins_x
+                    self.ghy_nbins_z = input_parameters.ghy_nbins_z
+                    self.ghy_npeak   = input_parameters.ghy_npeak
+                    self.ghy_fftnpts = input_parameters.ghy_fftnpts
 
+
+                    if input_parameters.ghy_calcType != 3:
+                        do_plot = not (calculation_parameters.beam_not_cut_in_x or calculation_parameters.beam_not_cut_in_z)
+                    else:
+                        do_plot = True
+
+                    if do_plot:
                         self.setStatusMessage("Plotting Results")
 
                         do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
