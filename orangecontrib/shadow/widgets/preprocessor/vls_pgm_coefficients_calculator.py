@@ -10,6 +10,8 @@ from oasys.widgets import congruence
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
 from orangecontrib.shadow.util.shadow_util import ShadowPhysics
 
+raise Exception("not yet released")
+
 class OWVlsPgmCoefficientsCalculator(OWWidget):
     name = "VlsPgmCoefficientsCalculator"
     id = "VlsPgmCoefficientsCalculator"

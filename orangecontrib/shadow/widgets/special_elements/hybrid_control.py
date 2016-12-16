@@ -613,7 +613,6 @@ def hy_prop(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
     # automatic control of number of peaks to avoid numerical overflow
     if input_parameters.ghy_npeak < 0: # number of bins control
         input_parameters.ghy_npeak = 50
-    #input_parameters.ghy_npeak = min(input_parameters.ghy_npeak, 100) #xshi removed the 100 limitation
 
     input_parameters.ghy_npeak = max(input_parameters.ghy_npeak, 5)
 
@@ -725,9 +724,8 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
 
         input_parameters.widget.status_message("Using RMS slope = " + str(rms_slope))
 
-        avg_wangle_x = numpy.radians(calculate_function_average_value(calculation_parameters.wangle_x,
-                                                                      calculation_parameters.ghy_x_min,
-                                                                      calculation_parameters.ghy_x_max))
+        average_incident_angle = numpy.radians(calculation_parameters.shadow_oe_end._oe.T_INCIDENCE)*1e3
+
     # ------------------------------------------
     # far field calculation
     # ------------------------------------------
@@ -737,8 +735,8 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
                                                calculation_parameters.gwavelength)
 
     if input_parameters.ghy_calcType == 3:
-        if not (rms_slope == 0.0 or avg_wangle_x == 0.0):
-            focallength_ff = min(focallength_ff,(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min) / 16 / rms_slope / numpy.sin(avg_wangle_x / 1e3))#xshi changed
+        if not (rms_slope == 0.0 or average_incident_angle == 0.0):
+            focallength_ff = min(focallength_ff,(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min) / 16 / rms_slope / numpy.sin(average_incident_angle / 1e3))#xshi changed
 
     fftsize = calculate_fft_size(calculation_parameters.ghy_x_min,
                                  calculation_parameters.ghy_x_max,
@@ -834,7 +832,7 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
 
         if input_parameters.ghy_calcType == 3:
             imagesize = max(imagesize,
-                            16 * rms_slope * input_parameters.ghy_focallength * numpy.sin(avg_wangle_x / 1e3))
+                            16 * rms_slope * input_parameters.ghy_focallength * numpy.sin(average_incident_angle / 1e3))
 
         imagenpts = round(imagesize / intensity.delta() / 2) * 2 + 1
 
