@@ -74,43 +74,47 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
 
         self.le_r_a = oasysgui.lineEdit(box, self, "r_a", "Distance Source-Grating", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_r_b = oasysgui.lineEdit(box, self, "r_b", "Distance Grating-Exit Slits", labelWidth=260, valueType=float, orientation="horizontal")
-        self.le_h = oasysgui.lineEdit(box, self, "h", "V Distance Mirror-Grating", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_h = oasysgui.lineEdit(box, self, "h", "Vertical Distance Mirror-Grating", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.le_k   = oasysgui.lineEdit(box, self, "k", "Line Density (0th coeff.)", labelWidth=260, valueType=float, orientation="horizontal")
 
         gui.separator(box)
 
-        gui.comboBox(box, self, "units_in_use", label="Units in use", labelWidth=260,
+
+        box_2 = oasysgui.widgetBox(tab_step_1, "Grating Design Parameters", orientation="vertical")
+
+
+        gui.comboBox(box_2, self, "units_in_use", label="Units in use", labelWidth=260,
                      items=["eV", "Angstroms"],
                      callback=self.set_UnitsInUse, sendSelectedValue=False, orientation="horizontal")
 
-        self.autosetting_box_units_1 = oasysgui.widgetBox(box, "", addSpace=False, orientation="vertical")
+        self.autosetting_box_units_1 = oasysgui.widgetBox(box_2, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.autosetting_box_units_1, self, "photon_energy", "Set photon energy [eV]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.autosetting_box_units_1, self, "photon_energy", "Photon energy [eV]", labelWidth=260, valueType=float, orientation="horizontal")
 
-        self.autosetting_box_units_2 = oasysgui.widgetBox(box, "", addSpace=False, orientation="vertical")
+        self.autosetting_box_units_2 = oasysgui.widgetBox(box_2, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.autosetting_box_units_2, self, "photon_wavelength", "Set wavelength [Å]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.autosetting_box_units_2, self, "photon_wavelength", "Wavelength [Å]", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.set_UnitsInUse()
 
-        oasysgui.lineEdit(box, self, "c", "Demagnification Factor", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(box, self, "grating_diffraction_order", "Diffraction Order (- for inside orders)", labelWidth=260, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(box_2, self, "c", "C factor for optimized energy", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_2, self, "grating_diffraction_order", "Diffraction Order (- for inside orders)", labelWidth=260, valueType=int, orientation="horizontal")
 
         ##################################
 
 
-        box_2 = oasysgui.widgetBox(tab_step_2, "Angles Parameter", orientation="vertical")
+        box_3 = oasysgui.widgetBox(tab_step_2, "Ray-Tracing Parameter", orientation="vertical")
 
-        gui.comboBox(box_2, self, "new_units_in_use", label="Units in use", labelWidth=260,
+        gui.comboBox(box_3, self, "new_units_in_use", label="Units in use", labelWidth=260,
                      items=["eV", "Angstroms"],
                      callback=self.set_UnitsInUse2, sendSelectedValue=False, orientation="horizontal")
 
-        self.autosetting_box_units_3 = oasysgui.widgetBox(box_2, "", addSpace=False, orientation="vertical")
+        self.autosetting_box_units_3 = oasysgui.widgetBox(box_3, "", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(self.autosetting_box_units_3, self, "new_photon_energy", "New photon energy [eV]", labelWidth=260, valueType=float, orientation="horizontal")
 
-        self.autosetting_box_units_4 = oasysgui.widgetBox(box_2, "", addSpace=False, orientation="vertical")
+        self.autosetting_box_units_4 = oasysgui.widgetBox(box_3, "", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(self.autosetting_box_units_4, self, "new_photon_wavelength", "New wavelength [Å]", labelWidth=260, valueType=float, orientation="horizontal")
 
@@ -242,6 +246,20 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
             print("New C:", new_c)
             print("NEW ALPHA:", numpy.degrees(new_alpha), "deg")
             print("NEW BETA:", numpy.degrees(new_beta), numpy.degrees(_new_beta), "deg")
+
+
+            gamma = (new_alpha + new_beta)/2
+
+            d_source_to_mirror = self.r_a - (self.h/numpy.abs(numpy.tan(numpy.pi-2*gamma)))
+            d_mirror_to_grating = self.h/numpy.abs(numpy.sin(numpy.pi-2*gamma))
+
+            r_a_first = d_source_to_mirror + d_mirror_to_grating
+
+            print("\ngamma", numpy.degrees(gamma))
+            print("d_source_to_mirror", d_source_to_mirror, self.workspace_units_label)
+            print("d_mirror_to_grating", d_mirror_to_grating, self.workspace_units_label)
+            print("r_a_first", r_a_first, self.workspace_units_label)
+
 
             self.send("PreProcessor_Data", ShadowPreProcessorData())
         except Exception as exception:
