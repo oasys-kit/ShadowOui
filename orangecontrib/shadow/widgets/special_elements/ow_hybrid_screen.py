@@ -287,8 +287,7 @@ class HybridScreen(AutomaticElement):
 
                     calculation_parameters = hybrid_control.hy_run(input_parameters)
 
-                    if not calculation_parameters.calculation_not_necessary:
-
+                    if not (calculation_parameters.beam_not_cut_in_z and calculation_parameters.beam_not_cut_in_x):
                         self.ghy_focallength = input_parameters.ghy_focallength
                         self.ghy_distance = input_parameters.ghy_distance
                         self.ghy_nbins_x = input_parameters.ghy_nbins_x

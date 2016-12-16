@@ -61,7 +61,8 @@ class HybridInputParameters(object):
         return self.__dict__
 
 class HybridCalculationParameters(object):
-    calculation_not_necessary = False
+    beam_not_cut_in_z = False
+    beam_not_cut_in_x = False
 
     shadow_oe_end = None
 
@@ -239,21 +240,19 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
         if not ("Lens" in widget_class_name or "CRL" in widget_class_name):
             raise Exception("CRL calculation runs for Lens or CRL widgets only")
 
-    if input_parameters.ghy_calcType == 1 or \
-        input_parameters.ghy_calcType == 2 or \
-        input_parameters.ghy_calcType == 3 or \
-        input_parameters.ghy_calcType == 4: #TODO remove calctype = 3
+    #TODO: DO SEPARATE ANALYSIS OF THE SITUATION IN H and V, BY USING RAY-TRACING AND HISTOS
+    if input_parameters.ghy_n_oe < 0:
+        beam_before = history_entry._input_beam
 
-        if input_parameters.ghy_n_oe < 0:
-            beam_before = history_entry._input_beam
+        number_of_good_rays_before =  len(beam_before._beam.rays[numpy.where(beam_before._beam.rays[:, 9] == 1)])
+        number_of_good_rays_after = len(beam_after._beam.rays[numpy.where(beam_after._beam.rays[:, 9] == 1)])
 
-            number_of_good_rays_before =  len(beam_before._beam.rays[numpy.where(beam_before._beam.rays[:, 9] == 1)])
-            number_of_good_rays_after = len(beam_after._beam.rays[numpy.where(beam_after._beam.rays[:, 9] == 1)])
+        if (number_of_good_rays_before-number_of_good_rays_after)/number_of_good_rays_before < 0.05:
+            calculation_parameters.ff_beam = input_parameters.shadow_beam
+            calculation_parameters.beam_not_cut_in_x = True
+            calculation_parameters.beam_not_cut_in_z = True
 
-            if (number_of_good_rays_before-number_of_good_rays_after)/number_of_good_rays_before < 0.05:
-                calculation_parameters.ff_beam = input_parameters.shadow_beam
-                calculation_parameters.calculation_not_necessary = True
-
+            if input_parameters.ghy_calcType != 3:
                 raise HybridNotNecessaryWarning("O.E. contains almost the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
 
 ##########################################################################
@@ -716,8 +715,31 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
 ##########################################################################
 
 def propagate_1D_x_direction(calculation_parameters, input_parameters):
-
     do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
+
+    '''
+        scale_factor = 1
+    if input_parameters.ghy_calcType == 3:
+	dp_image = numpy.std(calculation_parameters.xx_focal_ray)/input_parameters.ghy_focallength
+	dp_se = 2 * rms_slope * numpy.sin(avg_wangle_x/1e3)	# different in x and z
+	dp_error = calculation_parameters.gwavelength/2/(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min)
+	scale_factor = max(1, 5*min(dp_error/dp_image, dp_error/dp_se))
+
+#Change the following parts, same for the near field section
+    fftsize = scale_factor * calculate_fft_size(calculation_parameters.ghy_x_min,
+                                 calculation_parameters.ghy_x_max,
+                                 calculation_parameters.gwavelength,
+                                 focallength_ff,
+                                 input_parameters.ghy_fftnpts)
+    wavefront = Wavefront1D.initialize_wavefront_from_range(wavelength=calculation_parameters.gwavelength,
+                                                            number_of_points=fftsize,
+                                                            x_min=scale_factor * calculation_parameters.ghy_x_min,
+                                                            x_max=scale_factor * calculation_parameters.ghy_x_max)
+    if scale_factor == 1
+	wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_x.interpolate_values(wavefront.get_abscissas())))
+    '''
+
+    scale_factor = 1.0
 
     if input_parameters.ghy_calcType == 3:
         rms_slope = hy_findrmsslopefromheight(calculation_parameters.w_mirror_lx)
@@ -725,6 +747,13 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
         input_parameters.widget.status_message("Using RMS slope = " + str(rms_slope))
 
         average_incident_angle = numpy.radians(calculation_parameters.shadow_oe_end._oe.T_INCIDENCE)*1e3
+
+        if calculation_parameters.beam_not_cut_in_x:
+            dp_image = numpy.std(calculation_parameters.xx_focal_ray)/input_parameters.ghy_focallength
+            dp_se = 2 * rms_slope * numpy.sin(average_incident_angle/1e3)	# different in x and z
+            dp_error = calculation_parameters.gwavelength/2/(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min)
+
+            scale_factor = max(1, 5*min(dp_error/dp_image, dp_error/dp_se))
 
     # ------------------------------------------
     # far field calculation
@@ -738,23 +767,24 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
         if not (rms_slope == 0.0 or average_incident_angle == 0.0):
             focallength_ff = min(focallength_ff,(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min) / 16 / rms_slope / numpy.sin(average_incident_angle / 1e3))#xshi changed
 
-    fftsize = calculate_fft_size(calculation_parameters.ghy_x_min,
-                                 calculation_parameters.ghy_x_max,
-                                 calculation_parameters.gwavelength,
-                                 focallength_ff,
-                                 input_parameters.ghy_fftnpts)
+    fftsize = int(scale_factor * calculate_fft_size(calculation_parameters.ghy_x_min,
+                                                    calculation_parameters.ghy_x_max,
+                                                    calculation_parameters.gwavelength,
+                                                    focallength_ff,
+                                                    input_parameters.ghy_fftnpts))
 
     if do_nf: input_parameters.widget.set_progress_bar(27)
     else: input_parameters.widget.set_progress_bar(30)
     input_parameters.widget.status_message("FF: creating plane wave begin, fftsize = " +  str(fftsize))
 
-
     wavefront = Wavefront1D.initialize_wavefront_from_range(wavelength=calculation_parameters.gwavelength,
                                                             number_of_points=fftsize,
-                                                            x_min=calculation_parameters.ghy_x_min,
-                                                            x_max=calculation_parameters.ghy_x_max)
+                                                            x_min=scale_factor * calculation_parameters.ghy_x_min,
+                                                            x_max=scale_factor * calculation_parameters.ghy_x_max)
 
-    wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_x.interpolate_values(wavefront.get_abscissas())))
+    if scale_factor == 1.0:
+        wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_x.interpolate_values(wavefront.get_abscissas())))
+
     wavefront.apply_ideal_lens(focallength_ff)
 
     if input_parameters.ghy_calcType == 3:
@@ -796,21 +826,23 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
     # near field calculation
     # ------------------------------------------
     if input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1:  # near field calculation
-        fftsize = calculate_fft_size(calculation_parameters.ghy_x_min,
-                                     calculation_parameters.ghy_x_max,
-                                     calculation_parameters.gwavelength,
-                                     input_parameters.ghy_focallength,
-                                     input_parameters.ghy_fftnpts)
+        fftsize = int(scale_factor * calculate_fft_size(calculation_parameters.ghy_x_min,
+                                                        calculation_parameters.ghy_x_max,
+                                                        calculation_parameters.gwavelength,
+                                                        input_parameters.ghy_focallength,
+                                                        input_parameters.ghy_fftnpts))
 
         input_parameters.widget.status_message("NF: creating plane wave begin, fftsize = " +  str(fftsize))
         input_parameters.widget.set_progress_bar(55)
 
         wavefront = Wavefront1D.initialize_wavefront_from_range(wavelength=calculation_parameters.gwavelength,
                                                                 number_of_points=fftsize,
-                                                                x_min=calculation_parameters.ghy_x_min,
-                                                                x_max=calculation_parameters.ghy_x_max)
+                                                                x_min=scale_factor*calculation_parameters.ghy_x_min,
+                                                                x_max=scale_factor*calculation_parameters.ghy_x_max)
 
-        wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_x.interpolate_values(wavefront.get_abscissas())))
+        if scale_factor == 1.0:
+            wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_x.interpolate_values(wavefront.get_abscissas())))
+
         wavefront.apply_ideal_lens(input_parameters.ghy_focallength)
 
         if input_parameters.ghy_calcType == 3:
@@ -854,13 +886,21 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
 ##########################################################################
 
 def propagate_1D_z_direction(calculation_parameters, input_parameters):
-
     do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
+
+    scale_factor = 1.0
 
     if input_parameters.ghy_calcType == 3:
         rms_slope = hy_findrmsslopefromheight(calculation_parameters.w_mirror_lz)
 
         input_parameters.widget.status_message("Using RMS slope = " + str(rms_slope))
+
+        if calculation_parameters.beam_not_cut_in_z:
+            dp_image = numpy.std(calculation_parameters.zz_focal_ray)/input_parameters.ghy_focallength
+            dp_se = 2 * rms_slope # different in x and z
+            dp_error = calculation_parameters.gwavelength/2/(calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min)
+
+            scale_factor = max(1, 5*min(dp_error/dp_image, dp_error/dp_se))
 
     # ------------------------------------------
     # far field calculation
@@ -873,11 +913,11 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
     if input_parameters.ghy_calcType == 3 and rms_slope != 0:
         focallength_ff = min(focallength_ff,(calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min) / 16 / rms_slope) #xshi changed
 
-    fftsize = calculate_fft_size(calculation_parameters.ghy_z_min,
-                                 calculation_parameters.ghy_z_max,
-                                 calculation_parameters.gwavelength,
-                                 focallength_ff,
-                                 input_parameters.ghy_fftnpts)
+    fftsize = int(scale_factor * calculate_fft_size(calculation_parameters.ghy_z_min,
+                                                    calculation_parameters.ghy_z_max,
+                                                    calculation_parameters.gwavelength,
+                                                    focallength_ff,
+                                                    input_parameters.ghy_fftnpts))
 
     if do_nf: input_parameters.widget.set_progress_bar(27)
     else: input_parameters.widget.set_progress_bar(30)
@@ -885,10 +925,12 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
 
     wavefront = Wavefront1D.initialize_wavefront_from_range(wavelength=calculation_parameters.gwavelength,
                                                             number_of_points=fftsize,
-                                                            x_min=calculation_parameters.ghy_z_min,
-                                                            x_max=calculation_parameters.ghy_z_max)
+                                                            x_min=scale_factor * calculation_parameters.ghy_z_min,
+                                                            x_max=scale_factor * calculation_parameters.ghy_z_max)
 
-    wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_z.interpolate_values(wavefront.get_abscissas())))
+    if scale_factor == 1.0:
+        wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_z.interpolate_values(wavefront.get_abscissas())))
+
     wavefront.apply_ideal_lens(focallength_ff)
 
     if input_parameters.ghy_calcType == 3:
@@ -929,21 +971,23 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
     # near field calculation
     # ------------------------------------------
     if input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1:
-        fftsize = calculate_fft_size(calculation_parameters.ghy_z_min,
-                                     calculation_parameters.ghy_z_max,
-                                     calculation_parameters.gwavelength,
-                                     input_parameters.ghy_focallength,
-                                     input_parameters.ghy_fftnpts)
+        fftsize = int(scale_factor * calculate_fft_size(calculation_parameters.ghy_z_min,
+                                                        calculation_parameters.ghy_z_max,
+                                                        calculation_parameters.gwavelength,
+                                                        input_parameters.ghy_focallength,
+                                                        input_parameters.ghy_fftnpts))
 
         input_parameters.widget.status_message("NF: creating plane wave begin, fftsize = " +  str(fftsize))
         input_parameters.widget.set_progress_bar(55)
 
         wavefront = Wavefront1D.initialize_wavefront_from_range(wavelength=calculation_parameters.gwavelength,
                                                                 number_of_points=fftsize,
-                                                                x_min=calculation_parameters.ghy_z_min,
-                                                                x_max=calculation_parameters.ghy_z_max)
+                                                                x_min=scale_factor*calculation_parameters.ghy_z_min,
+                                                                x_max=scale_factor*calculation_parameters.ghy_z_max)
 
-        wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_z.interpolate_values(wavefront.get_abscissas())))
+        if scale_factor == 1.0:
+            wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_z.interpolate_values(wavefront.get_abscissas())))
+
         wavefront.apply_ideal_lens(input_parameters.ghy_focallength)
 
         if input_parameters.ghy_calcType == 3:
