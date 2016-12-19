@@ -66,8 +66,8 @@ class OWheight_profile_simulator(OWWidget):
     dimension_x = Setting(20.1)
     dimension_y = Setting(200.1)
 
-    power_law_exponent_beta_x = Setting(1.5)
-    power_law_exponent_beta_y = Setting(1.5)
+    power_law_exponent_beta_x = Setting(3.0)
+    power_law_exponent_beta_y = Setting(3.0)
 
     correlation_length_x = Setting(30.0)
     correlation_length_y = Setting(30.0)
