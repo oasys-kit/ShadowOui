@@ -168,22 +168,46 @@ class HybridScreen(AutomaticElement):
     def initializeTabs(self):
         self.tabs.clear()
 
-        if self.ghy_calcType != 0 and self.ghy_nf == 1:
-            self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field"),
-                        gui.createTabPage(self.tabs, "Distribution of Position at Far Field"),
-                        gui.createTabPage(self.tabs, u"\u2206" + "Position at Near Field"),
-                        gui.createTabPage(self.tabs, "Distribution of Position at Near Field")
-                        ]
+        if self.ghy_diff_plane < 2:
+            if self.ghy_nf == 1:
+                self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field"),
+                            gui.createTabPage(self.tabs, "Distribution of Position at Far Field"),
+                            gui.createTabPage(self.tabs, u"\u2206" + "Position at Near Field"),
+                            gui.createTabPage(self.tabs, "Distribution of Position at Near Field")
+                            ]
+            else:
+                self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field"),
+                            gui.createTabPage(self.tabs, "Distribution of Position at Far Field")
+                            ]
         else:
-            self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field"),
-                        gui.createTabPage(self.tabs, "Distribution of Position at Far Field")
-                        ]
+            if self.ghy_nf == 1:
+                self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field (S)"),
+                            gui.createTabPage(self.tabs, u"\u2206" + "Position at Near Field (S)"),
+                            gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field (T)"),
+                            gui.createTabPage(self.tabs, u"\u2206" + "Position at Near Field (T)"),
+                            gui.createTabPage(self.tabs, "Distribution of Position at Near Field"),
+                            gui.createTabPage(self.tabs, "Distribution of Position at Far Field")
+                            ]
+            else:
+                self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field (S)"),
+                            gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field (T)"),
+                            gui.createTabPage(self.tabs, "Distribution of Position at Far Field")
+                            ]
 
         for tab in self.tab:
             tab.setFixedHeight(self.IMAGE_HEIGHT)
             tab.setFixedWidth(self.IMAGE_WIDTH)
 
-        self.plot_canvas = [None, None, None, None]
+        self.plot_canvas = [None, None, None, None, None, None]
+
+    def plot_xy(self, beam_out, progressBarValue, var_x, var_y, plot_canvas_index, title, xtitle, ytitle, xum="", yum=""):
+        if self.plot_canvas[plot_canvas_index] is None:
+            self.plot_canvas[plot_canvas_index] = ShadowPlot.DetailedPlotWidget()
+            self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+
+        self.plot_canvas[plot_canvas_index].plot_xy(beam_out._beam, var_x, var_y, title, xtitle, ytitle, xum=xum, yum=yum, conv=self.workspace_units_to_cm)
+
+        self.progressBarSet(progressBarValue)
 
     def plot_histo(self, beam_out, progressBarValue, var, plot_canvas_index, title, xtitle, ytitle, xum=""):
         if self.plot_canvas[plot_canvas_index] is None:
@@ -228,6 +252,8 @@ class HybridScreen(AutomaticElement):
     def set_DiffPlane(self):
         self.le_nbins_x.setEnabled(self.ghy_diff_plane == 0 or self.ghy_diff_plane == 2)
         self.le_nbins_z.setEnabled(self.ghy_diff_plane == 1 or self.ghy_diff_plane == 2)
+
+        self.initializeTabs()
 
     def set_FocalLengthCalc(self):
          self.le_focal_length.setEnabled(self.focal_length_calc == 1)
@@ -294,41 +320,63 @@ class HybridScreen(AutomaticElement):
                     self.ghy_npeak   = input_parameters.ghy_npeak
                     self.ghy_fftnpts = input_parameters.ghy_fftnpts
 
+                    do_plot_x = not calculation_parameters.beam_not_cut_in_x
+                    do_plot_z = not calculation_parameters.beam_not_cut_in_z
+                    do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
 
-                    if input_parameters.ghy_calcType != 3:
-                        do_plot = not (calculation_parameters.beam_not_cut_in_x or calculation_parameters.beam_not_cut_in_z)
-                    else:
-                        do_plot = True
-
-                    if do_plot:
+                    if do_plot_x or do_plot_z:
                         self.setStatusMessage("Plotting Results")
 
-                        do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
-
-                        if do_nf:
-                            if self.ghy_diff_plane == 0:
+                    if self.ghy_diff_plane == 0:
+                        if do_plot_x:
+                            if do_nf:
                                 self.plot_histo_hybrid(84, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp", xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
                                 self.plot_histo(calculation_parameters.ff_beam, 84, 1, plot_canvas_index=1, title="X",
                                                 xtitle=r'X [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
                                 self.plot_histo_hybrid(88, calculation_parameters.dif_x, 2, title=u"\u2206" + "X", xtitle=r'$\Delta$X [$\mu$m]', ytitle=r'Arbitrary Units', var=1)
                                 self.plot_histo(calculation_parameters.nf_beam, 96, 1, plot_canvas_index=3, title="X",
                                                 xtitle=r'X [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
-                            elif self.ghy_diff_plane == 1:
+                            else:
+                                self.plot_histo_hybrid(88, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp", xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
+                                self.plot_histo(calculation_parameters.ff_beam, 96, 1, plot_canvas_index=1, title="X",
+                                                xtitle=r'X [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
+                    elif self.ghy_diff_plane == 1:
+                        if do_plot_z:
+                            if do_nf:
                                 self.plot_histo_hybrid(84, calculation_parameters.dif_zp, 0, title=u"\u2206" + "Zp", xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
                                 self.plot_histo(calculation_parameters.ff_beam, 84, 3, plot_canvas_index=1, title="Z",
                                                 xtitle=r'Z [$\mu$m]', ytitle=r'Number of Rays', xum=("Z [" + u"\u03BC" + "m]"))
                                 self.plot_histo_hybrid(88, calculation_parameters.dif_z, 2, title=u"\u2206" + "Z", xtitle=r'$\Delta$Z [$\mu$m]', ytitle=r'Arbitrary Units', var=2)
                                 self.plot_histo(calculation_parameters.nf_beam, 96, 3, plot_canvas_index=3, title="Z",
                                                 xtitle=r'Z [$\mu$m]', ytitle=r'Number of Rays', xum=("Z [" + u"\u03BC" + "m]"))
-                        else:
-                            if self.ghy_diff_plane == 0:
-                                self.plot_histo_hybrid(88, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp", xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
-                                self.plot_histo(calculation_parameters.ff_beam, 96, 1, plot_canvas_index=1, title="X",
-                                                xtitle=r'X [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
-                            elif self.ghy_diff_plane == 1:
+                            else:
                                 self.plot_histo_hybrid(88, calculation_parameters.dif_zp, 0, title=u"\u2206" + "Zp", xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
                                 self.plot_histo(calculation_parameters.ff_beam, 96, 3, plot_canvas_index=1, title="Z",
                                                 xtitle=r'Z [$\mu$m]', ytitle=r'Number of Rays', xum=("Z [" + u"\u03BC" + "m]"))
+
+                    elif self.ghy_diff_plane == 2:
+                            if do_plot_x:
+                                if do_nf:
+                                    self.plot_histo_hybrid(82, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp", xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
+                                    self.plot_histo_hybrid(84, calculation_parameters.dif_x, 1, title=u"\u2206" + "X", xtitle=r'$\Delta$X [$\mu$m]', ytitle=r'Arbitrary Units', var=1)
+                                else:
+                                    self.plot_histo_hybrid(84, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp", xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
+
+                            if do_plot_z:
+                                if do_nf:
+                                    self.plot_histo_hybrid(86, calculation_parameters.dif_zp, 2, title=u"\u2206" + "Zp", xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
+                                    self.plot_histo_hybrid(88, calculation_parameters.dif_z, 3, title=u"\u2206" + "Z", xtitle=r'$\Delta$Z [$\mu$m]', ytitle=r'Arbitrary Units', var=2)
+                                else:
+                                    self.plot_histo_hybrid(88, calculation_parameters.dif_zp, 1, title=u"\u2206" + "Zp", xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
+
+                            if do_nf:
+                                self.plot_xy(calculation_parameters.nf_beam, 94, 1, 3, plot_canvas_index=4, title="X,Z",
+                                                xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
+                                self.plot_xy(calculation_parameters.ff_beam, 98, 1, 3, plot_canvas_index=5, title="X,Z",
+                                                xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
+                            else:
+                                self.plot_xy(calculation_parameters.ff_beam, 96, 1, 3, plot_canvas_index=2, title="X,Z",
+                                                xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
 
                     self.send("Output Beam (Far Field)", calculation_parameters.ff_beam)
                 else:

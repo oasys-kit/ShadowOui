@@ -242,18 +242,138 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
 
     #TODO: DO SEPARATE ANALYSIS OF THE SITUATION IN H and V, BY USING RAY-TRACING AND HISTOS
     if input_parameters.ghy_n_oe < 0:
-        beam_before = history_entry._input_beam
+        beam_before = history_entry._input_beam.duplicate()
+        oe_before = history_entry._shadow_oe_start.duplicate()
 
         number_of_good_rays_before =  len(beam_before._beam.rays[numpy.where(beam_before._beam.rays[:, 9] == 1)])
         number_of_good_rays_after = len(beam_after._beam.rays[numpy.where(beam_after._beam.rays[:, 9] == 1)])
 
-        if (number_of_good_rays_before-number_of_good_rays_after)/number_of_good_rays_before < 0.05:
-            calculation_parameters.ff_beam = input_parameters.shadow_beam
+        if number_of_good_rays_before == number_of_good_rays_after:
             calculation_parameters.beam_not_cut_in_x = True
             calculation_parameters.beam_not_cut_in_z = True
 
             if input_parameters.ghy_calcType != 3:
-                raise HybridNotNecessaryWarning("O.E. contains almost the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
+                calculation_parameters.ff_beam = input_parameters.shadow_beam
+
+                raise HybridNotNecessaryWarning("O.E. contains the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
+        else:
+            ticket_tangential = None
+            ticket_sagittal = None
+            max_tangential = numpy.Inf
+            min_tangential = -numpy.Inf
+            max_sagittal = numpy.Inf
+            min_sagittal = -numpy.Inf
+            is_infinite = False
+
+            # CASE SIMPLE APERTURE:
+            if input_parameters.ghy_calcType == 1:
+                if oe_before._oe.I_SLIT[0] == 0: # NOT APERTURE
+                    is_infinite = True
+                else:
+                    if oe_before._oe.I_STOP[0] == 1: # OBSTRUCTION
+                        raise Exception("Simple Aperture calculation runs for apertures only")
+
+                    beam_at_the_slit = beam_before.duplicate(history=False)
+                    beam_at_the_slit._beam.retrace(oe_before._oe.T_SOURCE) # TRACE INCIDENT BEAM UP TO THE SLIT
+
+                    # TODO: MANAGE CASE OF ROTATED SLITS (OE MOVEMENT OR SOURCE MOVEMENT)
+                    max_tangential = oe_before._oe.CZ_SLIT[0] + oe_before._oe.RZ_SLIT[0]/2
+                    min_tangential = oe_before._oe.CZ_SLIT[0] - oe_before._oe.RZ_SLIT[0]/2
+                    max_sagittal = oe_before._oe.CX_SLIT[0] + oe_before._oe.RX_SLIT[0]/2
+                    min_sagittal = oe_before._oe.CX_SLIT[0] - oe_before._oe.RX_SLIT[0]/2
+
+                    ticket_tangential = beam_at_the_slit._beam.histo1(3, nbins=500, nolost=1, ref=23)
+                    ticket_sagittal = beam_at_the_slit._beam.histo1(1, nbins=500, nolost=1, ref=23)
+
+            elif input_parameters.ghy_calcType == 2 or input_parameters.ghy_calcType == 3: # MIRRORS
+                if oe_before._oe.FHIT_C == 0: #infinite
+                    is_infinite = True
+                else:
+                    str_n_oe = str(input_parameters.shadow_beam._oe_number)
+                    if input_parameters.shadow_beam._oe_number < 10:
+                        str_n_oe = "0" + str_n_oe
+
+                    beam_before._beam.rays = beam_before._beam.rays[numpy.where(beam_before._beam.rays[:, 9] == 1)] # GOOD ONLY BEFORE THE BEAM
+
+                    oe_before._oe.FWRITE = 1
+                    mirror_beam = ShadowBeam.traceFromOE(beam_before, oe_before, history=False)
+                    mirror_beam.loadFromFile("mirr." + str_n_oe)
+
+                    max_tangential = oe_before._oe.RLEN1
+                    min_tangential = oe_before._oe.RLEN2
+                    max_sagittal = oe_before._oe.RWIDX1
+                    min_sagittal = oe_before._oe.RWIDX2
+                    ticket_tangential = mirror_beam._beam.histo1(2, nbins=500, nolost=0, ref=23) # ALL THE RAYS FOR ANALYSIS
+                    ticket_sagittal = mirror_beam._beam.histo1(1, nbins=500, nolost=0, ref=23) # ALL THE RAYS  FOR ANALYSIS
+
+            elif input_parameters.ghy_calcType == 4: # CRL
+                first_oe = history_entry._shadow_oe_end._oe.list[0]
+
+                if first_oe.FHIT_C == 0: #infinite
+                    is_infinite = True
+                else:
+                    beam_at_the_slit = beam_before.duplicate(history=False)
+                    beam_at_the_slit._beam.retrace(first_oe.T_SOURCE) # TRACE INCIDENT BEAM UP TO THE SLIT
+
+                    max_tangential = numpy.abs(first_oe.RLEN2)
+                    min_tangential = -numpy.abs(first_oe.RLEN2)
+                    max_sagittal = numpy.abs(first_oe.RWIDX2)
+                    min_sagittal = -numpy.abs(first_oe.RWIDX2)
+
+                    ticket_tangential = beam_at_the_slit._beam.histo1(3, nbins=500, nolost=1, ref=23)
+                    ticket_sagittal = beam_at_the_slit._beam.histo1(1, nbins=500, nolost=1, ref=23)
+            if is_infinite:
+                calculation_parameters.beam_not_cut_in_x = True
+                calculation_parameters.beam_not_cut_in_z = True
+            else: # ANALYSIS OF THE HISTOGRAMS
+                # SAGITTAL
+                intensity_sagittal = ticket_sagittal['histogram']
+                total_intensity_sagittal = numpy.sum(intensity_sagittal) # should be identical to total_intensity_tangential
+                coordinate_sagittal = ticket_sagittal['bin_center']
+
+                cursor_up = numpy.where(coordinate_sagittal < min_sagittal)
+                cursor_down = numpy.where(coordinate_sagittal > max_sagittal)
+                intensity_sagittal_cut = (numpy.sum(intensity_sagittal[cursor_up]) + numpy.sum(intensity_sagittal[cursor_down]))/total_intensity_sagittal
+
+                # TANGENTIAL
+                intensity_tangential = ticket_tangential['histogram']
+                total_intensity_tangential = numpy.sum(intensity_tangential)
+                coordinate_tangential = ticket_tangential['bin_center']
+
+                cursor_up = numpy.where(coordinate_tangential < min_tangential)
+                cursor_down = numpy.where(coordinate_tangential > max_tangential)
+                intensity_tangential_cut = (numpy.sum(intensity_tangential[cursor_up]) + numpy.sum(intensity_tangential[cursor_down]))/total_intensity_tangential
+
+                calculation_parameters.beam_not_cut_in_x = intensity_sagittal_cut < 0.05
+                calculation_parameters.beam_not_cut_in_z = intensity_tangential_cut < 0.05
+
+                #print("T", calculation_parameters.beam_not_cut_in_z)
+                #print("T", min_tangential, max_tangential, min(coordinate_tangential), max(coordinate_tangential))
+                #print("T", intensity_tangential_cut, numpy.sum(intensity_tangential[cursor_up]), numpy.sum(intensity_tangential[cursor_down]))
+                #print("S", calculation_parameters.beam_not_cut_in_x)
+                #print("S", min_sagittal, max_sagittal, min(coordinate_sagittal), max(coordinate_sagittal))
+                #print("S", intensity_sagittal_cut, numpy.sum(intensity_sagittal[cursor_up]), numpy.sum(intensity_sagittal[cursor_down]))
+
+            # REQUEST FILTERING OR REFUSING
+            if input_parameters.ghy_diff_plane == 1 and calculation_parameters.beam_not_cut_in_x:
+                    calculation_parameters.ff_beam = input_parameters.shadow_beam
+
+                    raise HybridNotNecessaryWarning("O.E. contains almost the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
+            elif input_parameters.ghy_diff_plane == 2 and calculation_parameters.beam_not_cut_in_z:
+                    calculation_parameters.ff_beam = input_parameters.shadow_beam
+
+                    raise HybridNotNecessaryWarning("O.E. contains almost the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
+            elif input_parameters.ghy_diff_plane == 3: # BOTH
+                if calculation_parameters.beam_not_cut_in_x and calculation_parameters.beam_not_cut_in_z:
+                    calculation_parameters.ff_beam = input_parameters.shadow_beam
+
+                    raise HybridNotNecessaryWarning("O.E. contains almost the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
+                else: # REMOVE UNUSEFUL CALCULATION
+                    if calculation_parameters.beam_not_cut_in_x:
+                        input_parameters.ghy_diff_plane == 2
+                    elif calculation_parameters.beam_not_cut_in_z:
+                        input_parameters.ghy_diff_plane == 1
+
 
 ##########################################################################
 
@@ -296,8 +416,8 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         i_slit[0] = 1
         k_slit[0] = 1
 
-        rx_slit[0] = 2*last_oe.RWIDX2
-        rz_slit[0] = 2*last_oe.RLEN2
+        rx_slit[0] = numpy.abs(2*last_oe.RWIDX2)
+        rz_slit[0] = numpy.abs(2*last_oe.RLEN2)
 
         screen_slit._oe.set_screens(n_screen,
                                   i_screen,
