@@ -320,8 +320,13 @@ class HybridScreen(AutomaticElement):
                     self.ghy_npeak   = input_parameters.ghy_npeak
                     self.ghy_fftnpts = input_parameters.ghy_fftnpts
 
-                    do_plot_x = not calculation_parameters.beam_not_cut_in_x
-                    do_plot_z = not calculation_parameters.beam_not_cut_in_z
+                    if input_parameters.ghy_calcType == 3:
+                        do_plot_x = True
+                        do_plot_z = True
+                    else:
+                        do_plot_x = not calculation_parameters.beam_not_cut_in_x
+                        do_plot_z = not calculation_parameters.beam_not_cut_in_z
+
                     do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
 
                     if do_plot_x or do_plot_z:
@@ -370,13 +375,15 @@ class HybridScreen(AutomaticElement):
                                     self.plot_histo_hybrid(88, calculation_parameters.dif_zp, 1, title=u"\u2206" + "Zp", xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
 
                             if do_nf:
-                                self.plot_xy(calculation_parameters.nf_beam, 94, 1, 3, plot_canvas_index=4, title="X,Z",
-                                                xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
-                                self.plot_xy(calculation_parameters.ff_beam, 98, 1, 3, plot_canvas_index=5, title="X,Z",
-                                                xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
+                                if (do_plot_x or do_plot_z):
+                                    self.plot_xy(calculation_parameters.nf_beam, 94, 1, 3, plot_canvas_index=4, title="X,Z",
+                                                    xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
+                                    self.plot_xy(calculation_parameters.ff_beam, 98, 1, 3, plot_canvas_index=5, title="X,Z",
+                                                    xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
                             else:
-                                self.plot_xy(calculation_parameters.ff_beam, 96, 1, 3, plot_canvas_index=2, title="X,Z",
-                                                xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
+                                if (do_plot_x or do_plot_z):
+                                    self.plot_xy(calculation_parameters.ff_beam, 96, 1, 3, plot_canvas_index=2, title="X,Z",
+                                                    xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
 
                     self.send("Output Beam (Far Field)", calculation_parameters.ff_beam)
                 else:
@@ -389,7 +396,7 @@ class HybridScreen(AutomaticElement):
 
             QtGui.QMessageBox.critical(self, "Error", str(exception), QtGui.QMessageBox.Ok)
 
-            #raise exception
+            raise exception
 
         self.setStatusMessage("")
         self.progressBarFinished()
