@@ -322,6 +322,9 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
 
                     ticket_tangential = beam_at_the_slit._beam.histo1(3, nbins=500, nolost=1, ref=23)
                     ticket_sagittal = beam_at_the_slit._beam.histo1(1, nbins=500, nolost=1, ref=23)
+
+            ############################################################################
+
             if is_infinite:
                 calculation_parameters.beam_not_cut_in_x = True
                 calculation_parameters.beam_not_cut_in_z = True
@@ -355,24 +358,26 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
                 #print("S", intensity_sagittal_cut, numpy.sum(intensity_sagittal[cursor_up]), numpy.sum(intensity_sagittal[cursor_down]))
 
             # REQUEST FILTERING OR REFUSING
-            if input_parameters.ghy_diff_plane == 1 and calculation_parameters.beam_not_cut_in_x:
+
+            if not input_parameters.ghy_calcType == 3:
+                if input_parameters.ghy_diff_plane == 1 and calculation_parameters.beam_not_cut_in_x:
                     calculation_parameters.ff_beam = input_parameters.shadow_beam
 
                     raise HybridNotNecessaryWarning("O.E. contains almost the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
-            elif input_parameters.ghy_diff_plane == 2 and calculation_parameters.beam_not_cut_in_z:
+                elif input_parameters.ghy_diff_plane == 2 and calculation_parameters.beam_not_cut_in_z:
                     calculation_parameters.ff_beam = input_parameters.shadow_beam
 
                     raise HybridNotNecessaryWarning("O.E. contains almost the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
-            elif input_parameters.ghy_diff_plane == 3: # BOTH
-                if calculation_parameters.beam_not_cut_in_x and calculation_parameters.beam_not_cut_in_z:
-                    calculation_parameters.ff_beam = input_parameters.shadow_beam
+                elif input_parameters.ghy_diff_plane == 3: # BOTH
+                    if calculation_parameters.beam_not_cut_in_x and calculation_parameters.beam_not_cut_in_z:
+                        calculation_parameters.ff_beam = input_parameters.shadow_beam
 
-                    raise HybridNotNecessaryWarning("O.E. contains almost the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
-                else: # REMOVE UNUSEFUL CALCULATION
-                    if calculation_parameters.beam_not_cut_in_x:
-                        input_parameters.ghy_diff_plane == 2
-                    elif calculation_parameters.beam_not_cut_in_z:
-                        input_parameters.ghy_diff_plane == 1
+                        raise HybridNotNecessaryWarning("O.E. contains almost the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
+                    else: # REMOVE UNUSEFUL CALCULATION
+                        if calculation_parameters.beam_not_cut_in_x:
+                            input_parameters.ghy_diff_plane == 2
+                        elif calculation_parameters.beam_not_cut_in_z:
+                            input_parameters.ghy_diff_plane == 1
 
 
 ##########################################################################
@@ -836,28 +841,6 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
 
 def propagate_1D_x_direction(calculation_parameters, input_parameters):
     do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
-
-    '''
-        scale_factor = 1
-    if input_parameters.ghy_calcType == 3:
-	dp_image = numpy.std(calculation_parameters.xx_focal_ray)/input_parameters.ghy_focallength
-	dp_se = 2 * rms_slope * numpy.sin(avg_wangle_x/1e3)	# different in x and z
-	dp_error = calculation_parameters.gwavelength/2/(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min)
-	scale_factor = max(1, 5*min(dp_error/dp_image, dp_error/dp_se))
-
-#Change the following parts, same for the near field section
-    fftsize = scale_factor * calculate_fft_size(calculation_parameters.ghy_x_min,
-                                 calculation_parameters.ghy_x_max,
-                                 calculation_parameters.gwavelength,
-                                 focallength_ff,
-                                 input_parameters.ghy_fftnpts)
-    wavefront = Wavefront1D.initialize_wavefront_from_range(wavelength=calculation_parameters.gwavelength,
-                                                            number_of_points=fftsize,
-                                                            x_min=scale_factor * calculation_parameters.ghy_x_min,
-                                                            x_max=scale_factor * calculation_parameters.ghy_x_max)
-    if scale_factor == 1
-	wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_x.interpolate_values(wavefront.get_abscissas())))
-    '''
 
     scale_factor = 1.0
 

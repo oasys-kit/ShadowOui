@@ -1,6 +1,7 @@
 __author__ = 'labx'
 
 import sys
+import orangecanvas.resources as resources
 from oasys.widgets import gui as oasysgui
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
@@ -9,7 +10,7 @@ from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream
 
 from PyQt4 import QtGui
-from PyQt4.QtGui import QPalette, QColor, QFont
+from PyQt4.QtGui import QImage, QLabel, QPixmap, QWidget, QHBoxLayout, QPalette, QFont, QColor
 
 from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticElement
 from orangecontrib.shadow.widgets.special_elements import hybrid_control
@@ -129,7 +130,7 @@ class HybridScreen(AutomaticElement):
 
         self.cb_nf = gui.comboBox(box_1, self, "ghy_nf", label="Near Field Calculation", labelWidth=310,
                                              items=["No", "Yes"],
-                                             sendSelectedValue=False, orientation="horizontal", callback=self.initializeTabs)
+                                             sendSelectedValue=False, orientation="horizontal")
 
 
         box_2 = oasysgui.widgetBox(tab_bas, "Numerical Control Parameters", addSpace=True, orientation="vertical", height=120)
@@ -142,6 +143,8 @@ class HybridScreen(AutomaticElement):
         self.set_DiffPlane()
         self.set_DistanceToImageCalc()
         self.set_CalculationType()
+
+        self.initializeTabs()
 
         adv_other_box = oasysgui.widgetBox(tab_bas, "Optional file output", addSpace=False, orientation="vertical")
 
@@ -218,6 +221,23 @@ class HybridScreen(AutomaticElement):
 
         self.progressBarSet(progressBarValue)
 
+    def plot_emtpy(self, progressBarValue, plot_canvas_index):
+        if self.plot_canvas[plot_canvas_index] is None:
+            widget = QWidget()
+            widget.setLayout(QHBoxLayout())
+            label = QLabel(widget)
+            label.setPixmap(QPixmap(QImage(resources.package_dirname("orangecontrib.shadow.widgets.special_elements") +
+                                           "/icons/no_result.png")))
+
+            widget.layout().addWidget(label)
+
+            self.plot_canvas[plot_canvas_index] = widget
+
+            self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+
+
+        self.progressBarSet(progressBarValue)
+
     def plot_histo_hybrid(self, progressBarValue, scaled_array, plot_canvas_index, title, xtitle, ytitle, var):
         if self.plot_canvas[plot_canvas_index] is None:
             self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True, plugins=False)
@@ -253,8 +273,6 @@ class HybridScreen(AutomaticElement):
         self.le_nbins_x.setEnabled(self.ghy_diff_plane == 0 or self.ghy_diff_plane == 2)
         self.le_nbins_z.setEnabled(self.ghy_diff_plane == 1 or self.ghy_diff_plane == 2)
 
-        self.initializeTabs()
-
     def set_FocalLengthCalc(self):
          self.le_focal_length.setEnabled(self.focal_length_calc == 1)
 
@@ -271,13 +289,11 @@ class HybridScreen(AutomaticElement):
         else:
             self.ghy_nf = 0
 
-        self.initializeTabs()
-
-
     def run_hybrid(self):
         try:
             self.setStatusMessage("")
             self.progressBarInit()
+            self.initializeTabs()
 
             if ShadowCongruence.checkEmptyBeam(self.input_beam):
                 if ShadowCongruence.checkGoodBeam(self.input_beam):
@@ -336,15 +352,24 @@ class HybridScreen(AutomaticElement):
                         if do_plot_x:
                             if do_nf:
                                 self.plot_histo_hybrid(84, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp", xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
-                                self.plot_histo(calculation_parameters.ff_beam, 84, 1, plot_canvas_index=1, title="X",
+                                self.plot_histo(calculation_parameters.ff_beam, 88, 1, plot_canvas_index=1, title="X",
                                                 xtitle=r'X [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
-                                self.plot_histo_hybrid(88, calculation_parameters.dif_x, 2, title=u"\u2206" + "X", xtitle=r'$\Delta$X [$\mu$m]', ytitle=r'Arbitrary Units', var=1)
+                                self.plot_histo_hybrid(92, calculation_parameters.dif_x, 2, title=u"\u2206" + "X", xtitle=r'$\Delta$X [$\mu$m]', ytitle=r'Arbitrary Units', var=1)
                                 self.plot_histo(calculation_parameters.nf_beam, 96, 1, plot_canvas_index=3, title="X",
                                                 xtitle=r'X [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
                             else:
                                 self.plot_histo_hybrid(88, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp", xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
                                 self.plot_histo(calculation_parameters.ff_beam, 96, 1, plot_canvas_index=1, title="X",
                                                 xtitle=r'X [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
+                        else:
+                            if do_nf:
+                                self.plot_emtpy(84, 0)
+                                self.plot_emtpy(88, 1)
+                                self.plot_emtpy(92, 2)
+                                self.plot_emtpy(96, 3)
+                            else:
+                                self.plot_emtpy(88, 0)
+                                self.plot_emtpy(96, 1)
                     elif self.ghy_diff_plane == 1:
                         if do_plot_z:
                             if do_nf:
@@ -358,32 +383,58 @@ class HybridScreen(AutomaticElement):
                                 self.plot_histo_hybrid(88, calculation_parameters.dif_zp, 0, title=u"\u2206" + "Zp", xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
                                 self.plot_histo(calculation_parameters.ff_beam, 96, 3, plot_canvas_index=1, title="Z",
                                                 xtitle=r'Z [$\mu$m]', ytitle=r'Number of Rays', xum=("Z [" + u"\u03BC" + "m]"))
+                        else:
+                            if do_nf:
+                                self.plot_emtpy(84, 0)
+                                self.plot_emtpy(88, 1)
+                                self.plot_emtpy(92, 2)
+                                self.plot_emtpy(96, 3)
+                            else:
+                                self.plot_emtpy(88, 0)
+                                self.plot_emtpy(96, 1)
 
                     elif self.ghy_diff_plane == 2:
-                            if do_plot_x:
-                                if do_nf:
-                                    self.plot_histo_hybrid(82, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp", xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
-                                    self.plot_histo_hybrid(84, calculation_parameters.dif_x, 1, title=u"\u2206" + "X", xtitle=r'$\Delta$X [$\mu$m]', ytitle=r'Arbitrary Units', var=1)
-                                else:
-                                    self.plot_histo_hybrid(84, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp", xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
-
-                            if do_plot_z:
-                                if do_nf:
-                                    self.plot_histo_hybrid(86, calculation_parameters.dif_zp, 2, title=u"\u2206" + "Zp", xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
-                                    self.plot_histo_hybrid(88, calculation_parameters.dif_z, 3, title=u"\u2206" + "Z", xtitle=r'$\Delta$Z [$\mu$m]', ytitle=r'Arbitrary Units', var=2)
-                                else:
-                                    self.plot_histo_hybrid(88, calculation_parameters.dif_zp, 1, title=u"\u2206" + "Zp", xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
-
+                        if do_plot_x:
                             if do_nf:
-                                if (do_plot_x or do_plot_z):
-                                    self.plot_xy(calculation_parameters.nf_beam, 94, 1, 3, plot_canvas_index=4, title="X,Z",
-                                                    xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
-                                    self.plot_xy(calculation_parameters.ff_beam, 98, 1, 3, plot_canvas_index=5, title="X,Z",
-                                                    xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
+                                self.plot_histo_hybrid(82, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp", xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
+                                self.plot_histo_hybrid(84, calculation_parameters.dif_x, 1, title=u"\u2206" + "X", xtitle=r'$\Delta$X [$\mu$m]', ytitle=r'Arbitrary Units', var=1)
                             else:
-                                if (do_plot_x or do_plot_z):
-                                    self.plot_xy(calculation_parameters.ff_beam, 96, 1, 3, plot_canvas_index=2, title="X,Z",
-                                                    xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
+                                self.plot_histo_hybrid(84, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp", xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
+                        else:
+                            if do_nf:
+                                self.plot_emtpy(82, 0)
+                                self.plot_emtpy(84, 1)
+                            else:
+                                self.plot_emtpy(84, 0)
+
+                        if do_plot_z:
+                            if do_nf:
+                                self.plot_histo_hybrid(86, calculation_parameters.dif_zp, 2, title=u"\u2206" + "Zp", xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
+                                self.plot_histo_hybrid(88, calculation_parameters.dif_z, 3, title=u"\u2206" + "Z", xtitle=r'$\Delta$Z [$\mu$m]', ytitle=r'Arbitrary Units', var=2)
+                            else:
+                                self.plot_histo_hybrid(88, calculation_parameters.dif_zp, 1, title=u"\u2206" + "Zp", xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
+                        else:
+                            if do_nf:
+                                self.plot_emtpy(86, 2)
+                                self.plot_emtpy(88, 3)
+                            else:
+                                self.plot_emtpy(88, 1)
+
+                        if (do_plot_x or do_plot_z):
+                            if do_nf:
+                                self.plot_xy(calculation_parameters.nf_beam, 94, 1, 3, plot_canvas_index=4, title="X,Z",
+                                                xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
+                                self.plot_xy(calculation_parameters.ff_beam, 98, 1, 3, plot_canvas_index=5, title="X,Z",
+                                                xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
+                            else:
+                                self.plot_xy(calculation_parameters.ff_beam, 96, 1, 3, plot_canvas_index=2, title="X,Z",
+                                                xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
+                        else:
+                            if do_nf:
+                                self.plot_emtpy(94, 4)
+                                self.plot_emtpy(98, 5)
+                            else:
+                                self.plot_emtpy(96, 3)
 
                     self.send("Output Beam (Far Field)", calculation_parameters.ff_beam)
                 else:
