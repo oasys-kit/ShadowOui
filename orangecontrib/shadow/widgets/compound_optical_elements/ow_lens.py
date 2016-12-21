@@ -43,8 +43,8 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
 
         lens_box = oasysgui.widgetBox(self.tab_bas, "Input Parameters", addSpace=False, orientation="vertical", height=400)
 
-        self.le_p = oasysgui.lineEdit(lens_box, self, "p", "Distance Source-First lens interface (P)", labelWidth=260, valueType=float, orientation="horizontal")
-        self.le_q = oasysgui.lineEdit(lens_box, self, "q", "Distance Last lens interface-Image plane (Q)", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_p = oasysgui.lineEdit(lens_box, self, "p", "Source Plane Distance to First interface (P)", labelWidth=280, valueType=float, orientation="horizontal")
+        self.le_q = oasysgui.lineEdit(lens_box, self, "q", "Last interface distance to Image plane (Q)"  , labelWidth=280, valueType=float, orientation="horizontal")
 
         gui.comboBox(lens_box, self, "has_finite_diameter", label="Lens Diameter", labelWidth=260,
                      items=["Finite", "Infinite"], callback=self.set_diameter, sendSelectedValue=False, orientation="horizontal")

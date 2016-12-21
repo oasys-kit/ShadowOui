@@ -51,6 +51,7 @@ class ShadowCongruence():
             return False
         else:
             return True
+
     @classmethod
     def checkBraggFile(cls, file_name):
         file = open(file_name, "r")
@@ -156,6 +157,27 @@ class ShadowCongruence():
 
         if len(values) < 2: raise Exception(specific_name + " file malformed (should be 2 or more columns of numbers, separated by spaces), please check input")
 
+    @classmethod
+    def checkErrorProfileFile(cls, file_name):
+        file = open(file_name, "r")
+
+        try:
+            rows = file.readlines()
+
+            if len(rows) < 2: raise Exception("Surface Error file malformed, please check input")
+
+            first_row = ShadowCongruence.__get_numbers(rows[0].strip())
+            if not len(first_row) == 2: raise Exception("Surface Error file malformed, please check input")
+
+            n_x = int(first_row[0])
+
+            if n_x > 500:
+                raise Exception("Malformed file: maximum allowed point in X direction is 500")
+
+        except Exception as e:
+            file.close()
+
+            raise e
 
     @classmethod
     def __get_numbers(cls, string):
@@ -776,6 +798,9 @@ class ShadowPreProcessor:
         dimensions = rows[0].split()
         n_x = int(dimensions[0])
         n_y = int(dimensions[1])
+
+        if n_x > 500:
+            raise Exception("Malformed file: maximum allowed point in X direction is 500")
 
         x_coords = numpy.zeros(0)
         y_coords = numpy.zeros(0)

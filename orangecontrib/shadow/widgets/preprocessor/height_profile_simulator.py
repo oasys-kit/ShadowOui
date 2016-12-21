@@ -88,9 +88,8 @@ class OWheight_profile_simulator(OWWidget):
 
     center_x = Setting(1)
     modify_x = Setting(0)
-    new_length = Setting(20.1)
+    new_length_x = Setting(20.1)
     filler_value = Setting(0.0)
-    scale_factor_x = Setting(1.0)
 
     renormalize_x = Setting(0)
 
@@ -101,9 +100,8 @@ class OWheight_profile_simulator(OWWidget):
 
     center_y = Setting(1)
     modify_y = Setting(0)
-    new_length = Setting(200.1)
+    new_length_y = Setting(200.1)
     filler_value = Setting(0.0)
-    scale_factor_y = Setting(1.0)
 
     renormalize_y = Setting(0)
 
@@ -238,10 +236,10 @@ class OWheight_profile_simulator(OWWidget):
         self.modify_box_2_1 = oasysgui.widgetBox(self.kind_of_profile_y_box_2, "", addSpace=False, orientation="vertical", height=70)
 
         self.modify_box_2_2 = oasysgui.widgetBox(self.kind_of_profile_y_box_2, "", addSpace=False, orientation="vertical", height=70)
-        oasysgui.lineEdit(self.modify_box_2_2, self, "scale_factor_y", "Scale Factor", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_new_length_y_1 = oasysgui.lineEdit(self.modify_box_2_2, self, "new_length_y", "New Length", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.modify_box_2_3 = oasysgui.widgetBox(self.kind_of_profile_y_box_2, "", addSpace=False, orientation="vertical", height=70)
-        self.le_new_length = oasysgui.lineEdit(self.modify_box_2_3, self, "new_length", "New Length", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_new_length_y_2 = oasysgui.lineEdit(self.modify_box_2_3, self, "new_length_y", "New Length", labelWidth=300, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.modify_box_2_3, self, "filler_value", "Filler Value (if new length > profile length) [nm]", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.set_ModifyY()
@@ -333,10 +331,10 @@ class OWheight_profile_simulator(OWWidget):
         self.modify_box_1_1 = oasysgui.widgetBox(self.kind_of_profile_x_box_2, "", addSpace=False, orientation="vertical", height=70)
 
         self.modify_box_1_2 = oasysgui.widgetBox(self.kind_of_profile_x_box_2, "", addSpace=False, orientation="vertical", height=70)
-        oasysgui.lineEdit(self.modify_box_1_2, self, "scale_factor_x", "Scale Factor", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_new_length_x_1 = oasysgui.lineEdit(self.modify_box_1_2, self, "new_length_x", "New Length", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.modify_box_1_3 = oasysgui.widgetBox(self.kind_of_profile_x_box_2, "", addSpace=False, orientation="vertical", height=70)
-        self.le_new_length = oasysgui.lineEdit(self.modify_box_1_3, self, "new_length", "New Length", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_new_length_x_2 = oasysgui.lineEdit(self.modify_box_1_3, self, "new_length_x", "New Length", labelWidth=300, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.modify_box_1_3, self, "filler_value", "Filler Value (if new length > profile length) [nm]", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.set_ModifyX()
@@ -453,20 +451,19 @@ class OWheight_profile_simulator(OWWidget):
                 profile_1D_y_x *= self.conversion_factor_y_x * self.workspace_units_to_cm # to cm
                 profile_1D_y_y *= self.conversion_factor_y_y * self.workspace_units_to_cm # to cm
 
+                first_coord = profile_1D_y_x[0]
+                second_coord  = profile_1D_y_x[1]
+                last_coord = profile_1D_y_x[-1]
+                step = numpy.abs(second_coord - first_coord)
+                length = numpy.abs(last_coord - first_coord)
+                n_points_old = len(profile_1D_y_x)
 
                 if self.modify_y == 2:
                     profile_1D_y_x_temp = profile_1D_y_x
                     profile_1D_y_y_temp = profile_1D_y_y
 
-                    first_coord = profile_1D_y_x_temp[0]
-                    second_coord  = profile_1D_y_x_temp[1]
-                    last_coord = profile_1D_y_x_temp[-1]
-                    step = numpy.abs(second_coord - first_coord)
-                    length = numpy.abs(last_coord - first_coord)
-                    n_points_old = len(profile_1D_y_x_temp)
-
-                    if self.new_length > length:
-                        difference = self.new_length - length
+                    if self.new_length_y > length:
+                        difference = self.new_length_y - length
 
                         n_added_points = int(difference/step)
                         if difference % step == 0:
@@ -478,8 +475,8 @@ class OWheight_profile_simulator(OWWidget):
                         profile_1D_y_x = numpy.arange(n_added_points + n_points_old) * step
                         profile_1D_y_y = numpy.ones(n_added_points + n_points_old) * self.filler_value * 1e-9 * self.si_to_user_units
                         profile_1D_y_y[int(n_added_points/2) : n_points_old + int(n_added_points/2)] = profile_1D_y_y_temp
-                    elif self.new_length < length:
-                        difference = length - self.new_length
+                    elif self.new_length_y < length:
+                        difference = length - self.new_length_y
 
                         n_removed_points = int(difference/step)
                         if difference % step == 0:
@@ -499,7 +496,8 @@ class OWheight_profile_simulator(OWWidget):
                         profile_1D_y_y = profile_1D_y_y_temp
 
                 elif self.modify_y == 1:
-                    profile_1D_y_x *= self.scale_factor_y
+                    scale_factor_y = self.new_length_y/length
+                    profile_1D_y_x *= scale_factor_y
 
                 if self.center_y:
                     first_coord = profile_1D_y_x[0]
@@ -542,19 +540,19 @@ class OWheight_profile_simulator(OWWidget):
                 profile_1D_x_x *= self.conversion_factor_x_x * self.workspace_units_to_cm
                 profile_1D_x_y *= self.conversion_factor_x_y * self.workspace_units_to_cm
 
+                first_coord = profile_1D_x_x[0]
+                second_coord  = profile_1D_x_x[1]
+                last_coord = profile_1D_x_x[-1]
+                step = numpy.abs(second_coord - first_coord)
+                length = numpy.abs(last_coord - first_coord)
+                n_points_old = len(profile_1D_x_x)
+
                 if self.modify_x == 2:
                     profile_1D_x_x_temp = profile_1D_x_x
                     profile_1D_x_y_temp = profile_1D_x_y
 
-                    first_coord = profile_1D_x_x_temp[0]
-                    second_coord  = profile_1D_x_x_temp[1]
-                    last_coord = profile_1D_x_x_temp[-1]
-                    step = numpy.abs(second_coord - first_coord)
-                    length = numpy.abs(last_coord - first_coord)
-                    n_points_old = len(profile_1D_x_x_temp)
-
-                    if self.new_length > length:
-                        difference = self.new_length - length
+                    if self.new_length_x > length:
+                        difference = self.new_length_x - length
 
                         n_added_points = int(difference/step)
                         if difference % step == 0:
@@ -566,8 +564,8 @@ class OWheight_profile_simulator(OWWidget):
                         profile_1D_x_x = numpy.arange(n_added_points + n_points_old) * step
                         profile_1D_x_y = numpy.ones(n_added_points + n_points_old) * self.filler_value * 1e-9 * self.si_to_user_units
                         profile_1D_x_y[int(n_added_points/2) : n_points_old + int(n_added_points/2)] = profile_1D_x_y_temp
-                    elif self.new_length < length:
-                        difference = length - self.new_length
+                    elif self.new_length_x < length:
+                        difference = length - self.new_length_x
 
                         n_removed_points = int(difference/step)
                         if difference % step == 0:
@@ -587,7 +585,8 @@ class OWheight_profile_simulator(OWWidget):
                         profile_1D_x_y = profile_1D_x_y_temp
 
                 elif self.modify_x == 1:
-                    profile_1D_x_x *= self.scale_factor_x
+                    scale_factor_x = self.new_length_x/length
+                    profile_1D_x_x *= scale_factor_x
 
                 if self.center_x:
                     first_coord = profile_1D_x_x[0]
@@ -724,6 +723,8 @@ class OWheight_profile_simulator(OWWidget):
             congruence.checkFile(self.heigth_profile_1D_file_name_y)
             self.conversion_factor_y_x = congruence.checkStrictlyPositiveNumber(self.conversion_factor_y_x, "Conversion from file to workspace units(Abscissa)")
             self.conversion_factor_y_y = congruence.checkStrictlyPositiveNumber(self.conversion_factor_y_y, "Conversion from file to workspace units (Height Profile Values)")
+            if self.modify_y > 0:
+                self.new_length_y = congruence.checkStrictlyPositiveNumber(self.new_length_y, "New Length")
             if self.renormalize_y == 1:
                 self.rms_y = congruence.checkPositiveNumber(self.rms_y, "Rms Y")
 
@@ -738,6 +739,8 @@ class OWheight_profile_simulator(OWWidget):
             congruence.checkFile(self.heigth_profile_1D_file_name_x)
             self.conversion_factor_x_x = congruence.checkStrictlyPositiveNumber(self.conversion_factor_x_x, "Conversion from file to workspace units(Abscissa)")
             self.conversion_factor_x_y = congruence.checkStrictlyPositiveNumber(self.conversion_factor_x_y, "Conversion from file to workspace units (Height Profile Values)")
+            if self.modify_x > 0:
+                self.new_length_x = congruence.checkStrictlyPositiveNumber(self.new_length_x, "New Length")
             if self.renormalize_x == 1:
                 self.rms_x = congruence.checkPositiveNumber(self.rms_x, "Rms X")
 

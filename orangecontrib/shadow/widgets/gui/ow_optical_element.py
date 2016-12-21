@@ -2512,7 +2512,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                      self.ms_ripple_ampli_y = congruence.checkPositiveNumber(self.ms_ripple_ampli_y , "Modified Surface: Ripple Amplitude y")
                      self.ms_ripple_wavel_y = congruence.checkPositiveNumber(self.ms_ripple_wavel_y , "Modified Surface: Ripple Wavelength y")
                  else:
-                     congruence.checkFile(self.ms_defect_file_name)
+                     ShadowCongruence.checkErrorProfileFile(congruence.checkFile(self.ms_defect_file_name))
             elif self.modified_surface == 2:
                 congruence.checkFile(self.ms_file_facet_descr)
                 self.ms_facet_width_x = congruence.checkPositiveNumber(self.ms_facet_width_x, "Modified Surface: Facet width x")

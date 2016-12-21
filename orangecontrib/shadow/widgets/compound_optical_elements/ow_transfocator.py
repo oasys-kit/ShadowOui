@@ -618,10 +618,10 @@ class CRLBox(QtGui.QWidget):
 
         lens_box = oasysgui.widgetBox(self, "Single Lens Input Parameters", addSpace=False, orientation="vertical", height=350, width=self.transfocator.CONTROL_AREA_WIDTH-40)
 
-        self.le_p = oasysgui.lineEdit(lens_box, self, "p", "Distance Source-First lens interface (P)", labelWidth=260, valueType=float, orientation="horizontal",
-                           callback=self.transfocator.dump_p)
-        self.le_q = oasysgui.lineEdit(lens_box, self, "q", "Distance Last lens interface-Image plane (Q)", labelWidth=260, valueType=float, orientation="horizontal",
-                           callback=self.transfocator.dump_q)
+        self.le_p = oasysgui.lineEdit(lens_box, self, "p", "Source Plane Distance to First Interface (P)", labelWidth=280, valueType=float, orientation="horizontal",
+                                      callback=self.transfocator.dump_p)
+        self.le_q = oasysgui.lineEdit(lens_box, self, "q", "Last Interface distance to Image plane (Q)"  , labelWidth=280, valueType=float, orientation="horizontal",
+                                      callback=self.transfocator.dump_q)
 
         diameter_box_outer = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="horizontal")
 

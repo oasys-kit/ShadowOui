@@ -78,7 +78,6 @@ class OWdabam_height_profile(OWWidget):
     new_length = Setting(200.0)
     filler_value = Setting(0.0)
 
-    scale_factor_y = Setting(1.0)
     renormalize_y = Setting(1)
     error_type_y = Setting(0)
     rms_y = Setting(0.9)
@@ -235,10 +234,10 @@ class OWdabam_height_profile(OWWidget):
         self.modify_box_1 = oasysgui.widgetBox(output_profile_box, "", addSpace=False, orientation="vertical", height=50)
 
         self.modify_box_2 = oasysgui.widgetBox(output_profile_box, "", addSpace=False, orientation="vertical", height=50)
-        oasysgui.lineEdit(self.modify_box_2, self, "scale_factor_y", "Scale Factor", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_new_length_1 = oasysgui.lineEdit(self.modify_box_2, self, "new_length", "New Length", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.modify_box_3 = oasysgui.widgetBox(output_profile_box, "", addSpace=False, orientation="vertical", height=50)
-        self.le_new_length = oasysgui.lineEdit(self.modify_box_3, self, "new_length", "New Length", labelWidth=300, valueType=float, orientation="horizontal")
+        self.le_new_length_2 = oasysgui.lineEdit(self.modify_box_3, self, "new_length", "New Length", labelWidth=300, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.modify_box_3, self, "filler_value", "Filler Value (if new length > profile length) [nm]", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.set_ModifyY()
@@ -302,7 +301,9 @@ class OWdabam_height_profile(OWWidget):
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_step_x.parent().layout().itemAt(0).widget()
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
-        label = self.le_new_length.parent().layout().itemAt(0).widget()
+        label = self.le_new_length_1.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_new_length_2.parent().layout().itemAt(0).widget()
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
     def initializeTabs(self):
@@ -596,7 +597,8 @@ class OWdabam_height_profile(OWWidget):
                 if self.modify_y == 0:
                     profile_1D_y_x = self.si_to_user_units * self.server.y
                 elif self.modify_y == 1:
-                    profile_1D_y_x = self.si_to_user_units * self.server.y * self.scale_factor_y
+                    scale_factor_y = self.new_length/(self.si_to_user_units * (max(self.server.y)-min(self.server.y)))
+                    profile_1D_y_x = self.si_to_user_units * self.server.y * scale_factor_y
 
                 if self.use_undetrended == 0: profile_1D_y_y = self.si_to_user_units * self.server.zHeights
                 else: profile_1D_y_y = self.si_to_user_units * self.server.zHeightsUndetrended
@@ -687,9 +689,7 @@ class OWdabam_height_profile(OWWidget):
                                             QMessageBox.Ok)
                 if self.modify_y == 0:
                     dimension_y = self.si_to_user_units * (self.server.y[-1] - self.server.y[0])
-                if self.modify_y == 1:
-                    dimension_y = self.si_to_user_units * (self.server.y[-1] - self.server.y[0]) * self.scale_factor_y
-                elif self.modify_y == 2:
+                if self.modify_y == 1 or self.modify_y == 2:
                     dimension_y = self.new_length
 
                 self.send("PreProcessor_Data", ShadowPreProcessorData(error_profile_data_file=self.heigth_profile_file_name,
@@ -712,9 +712,7 @@ class OWdabam_height_profile(OWWidget):
         self.step_x = congruence.checkStrictlyPositiveNumber(self.step_x, "Step X")
         if self.step_x > self.dimension_x/2:
             raise Exception("Step Width should be smaller than or equal to Width/2")
-        if self.modify_y == 1:
-            self.scale_factor_y = congruence.checkStrictlyPositiveNumber(self.scale_factor_y, "Scale Factor")
-        elif self.modify_y == 2:
+        if self.modify_y == 1 or self.modify_y == 2:
             self.new_length = congruence.checkStrictlyPositiveNumber(self.new_length, "New Length")
 
         if self.renormalize_y == 1:
