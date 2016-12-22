@@ -710,8 +710,9 @@ class OWdabam_height_profile(OWWidget):
     def check_fields(self):
         self.dimension_x = congruence.checkStrictlyPositiveNumber(self.dimension_x, "Dimension X")
         self.step_x = congruence.checkStrictlyPositiveNumber(self.step_x, "Step X")
-        if self.step_x > self.dimension_x/2:
-            raise Exception("Step Width should be smaller than or equal to Width/2")
+
+        congruence.checkLessOrEqualThan(self.step_x, self.dimension_x/2, "Step Width", "Width/2")
+
         if self.modify_y == 1 or self.modify_y == 2:
             self.new_length = congruence.checkStrictlyPositiveNumber(self.new_length, "New Length")
 

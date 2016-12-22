@@ -3,6 +3,7 @@ __author__ = 'labx'
 import sys
 import orangecanvas.resources as resources
 from oasys.widgets import gui as oasysgui
+from oasys.widgets import congruence
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
 
@@ -117,14 +118,14 @@ class HybridScreen(AutomaticElement):
                      callback=self.set_FocalLengthCalc,
                      sendSelectedValue=False, orientation="horizontal")
 
-        self.le_focal_length = oasysgui.lineEdit(box_1, self, "ghy_focallength", "Focal Length Value", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_focal_length = oasysgui.lineEdit(box_1, self, "ghy_focallength", "Focal Length value", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.cb_distance_to_image_calc = gui.comboBox(box_1, self, "distance_to_image_calc", label="Distance to image", labelWidth=150,
                      items=["Use O.E. Image Plane Distance", "Specify Value"],
                      callback=self.set_DistanceToImageCalc,
                      sendSelectedValue=False, orientation="horizontal")
 
-        self.le_distance_to_image = oasysgui.lineEdit(box_1, self, "ghy_distance", "Distance to image value", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_distance_to_image = oasysgui.lineEdit(box_1, self, "ghy_distance", "Distance to Image value", labelWidth=260, valueType=float, orientation="horizontal")
 
         gui.separator(box_1)
 
@@ -135,8 +136,8 @@ class HybridScreen(AutomaticElement):
 
         box_2 = oasysgui.widgetBox(tab_bas, "Numerical Control Parameters", addSpace=True, orientation="vertical", height=120)
 
-        self.le_nbins_x = oasysgui.lineEdit(box_2, self, "ghy_nbins_x", "Number of bins for I(X) histogram", labelWidth=260, valueType=float, orientation="horizontal")
-        self.le_nbins_z = oasysgui.lineEdit(box_2, self, "ghy_nbins_z", "Number of bins for I(Z) histogram", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_nbins_x = oasysgui.lineEdit(box_2, self, "ghy_nbins_x", "Number of bins for I(Sagittal) histogram", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_nbins_z = oasysgui.lineEdit(box_2, self, "ghy_nbins_z", "Number of bins for I(Tangential) histogram", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_npeak   = oasysgui.lineEdit(box_2, self, "ghy_npeak", "Number of diffraction peaks", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_fftnpts = oasysgui.lineEdit(box_2, self, "ghy_fftnpts", "Number of points for FFT", labelWidth=260, valueType=float, orientation="horizontal")
 
@@ -299,6 +300,8 @@ class HybridScreen(AutomaticElement):
                 if ShadowCongruence.checkGoodBeam(self.input_beam):
                     sys.stdout = EmittingStream(textWritten=self.write_stdout)
 
+                    self.check_fields()
+
                     input_parameters = hybrid_control.HybridInputParameters()
                     input_parameters.ghy_lengthunit = self.workspace_units
                     input_parameters.widget = self
@@ -451,6 +454,21 @@ class HybridScreen(AutomaticElement):
 
         self.setStatusMessage("")
         self.progressBarFinished()
+
+    def check_fields(self):
+        if self.focal_length_calc == 1:
+            congruence.checkPositiveNumber(self.ghy_focallength, "Focal Length value")
+
+        if self.distance_to_image_calc == 1:
+            congruence.checkPositiveNumber(self.ghy_distance, "Distance to image value")
+
+        if self.ghy_diff_plane == 0 or self.ghy_diff_plane == 2:
+            congruence.checkStrictlyPositiveNumber(self.ghy_nbins_x, "Number of bins for I(Sagittal) histogram")
+        if self.ghy_diff_plane == 1 or self.ghy_diff_plane == 2:
+            congruence.checkStrictlyPositiveNumber(self.ghy_nbins_y, "Number of bins for I(Tangential) histogram")
+
+        congruence.checkStrictlyPositiveNumber(self.ghy_npeak, "Number of diffraction peaks")
+        congruence.checkStrictlyPositiveNumber(self.ghy_fftnpts, "Number of points for FFT")
 
     def set_progress_bar(self, value):
         if value >= 100:

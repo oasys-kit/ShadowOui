@@ -285,8 +285,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
             xrange = [x_min, x_max]
         else:
-            if self.x_range_min >= self.x_range_max: raise Exception(
-                "X range min cannot be greater or equal than X range max")
+            congruence.checkLessThan(self.x_range_min, self.x_range_max, "X range min", "X range max")
 
             factor1 = ShadowPlot.get_factor(var_x, self.workspace_units_to_cm)
 

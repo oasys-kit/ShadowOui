@@ -371,14 +371,12 @@ class PlotXY(AutomaticElement):
                 yrange = [y_min, y_max]
         else:
             if self.x_range == 1:
-                if self.x_range_min >= self.x_range_max:
-                    raise Exception("X range min cannot be greater or equal than X range max")
+                congruence.checkLessThan(self.x_range_min, self.x_range_max, "X range min", "X range max")
 
                 xrange = [self.x_range_min / factor1, self.x_range_max / factor1]
 
             if self.y_range == 1:
-                if self.y_range_min >= self.y_range_max:
-                    raise Exception("Y range min cannot be greater or than Y range max")
+                congruence.checkLessThan(self.y_range_min, self.y_range_max, "Y range min", "Y range max")
 
                 yrange = [self.y_range_min / factor2, self.y_range_max / factor2]
 

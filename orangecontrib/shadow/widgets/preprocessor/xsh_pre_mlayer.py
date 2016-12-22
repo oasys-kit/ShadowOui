@@ -426,7 +426,7 @@ class OWxsh_pre_mlayer(OWWidget):
         congruence.checkDir(self.FILE)
         self.E_MIN  = congruence.checkPositiveNumber(self.E_MIN , "Min Energy")
         self.E_MAX  = congruence.checkStrictlyPositiveNumber(self.E_MAX , "Max Energy")
-        if self.E_MIN > self.E_MAX: raise Exception("Minimum Energy cannot be bigger than Maximum Energy")
+        congruence.checkLessOrEqualThan(self.E_MIN, self.E_MAX, "Minimum Energy", "Maximum Energy")
         self.S_MATERIAL = ShadowPhysics.checkCompoundName(self.S_MATERIAL)
         self.S_DENSITY = congruence.checkStrictlyPositiveNumber(float(self.S_DENSITY), "Density (substrate)")
         self.E_MATERIAL = ShadowPhysics.checkCompoundName(self.E_MATERIAL)

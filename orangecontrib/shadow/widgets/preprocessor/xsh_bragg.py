@@ -243,7 +243,7 @@ class OWxsh_bragg(OWWidget):
         self.E_MIN  = congruence.checkPositiveNumber(self.E_MIN , "Minimum energy")
         self.E_MAX  = congruence.checkStrictlyPositiveNumber(self.E_MAX , "Maximum Energy")
         self.E_STEP = congruence.checkStrictlyPositiveNumber(self.E_STEP, "Energy step")
-        if self.E_MIN > self.E_MAX: raise Exception("From Energy cannot be bigger than To Energy")
+        congruence.checkLessOrEqualThan(self.E_MIN, self.E_MAX, "From Energy", "To Energy")
         congruence.checkDir(self.SHADOW_FILE)
 
     def defaults(self):

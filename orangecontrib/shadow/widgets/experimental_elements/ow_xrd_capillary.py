@@ -1173,17 +1173,17 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
             self.slit_2_distance = congruence.checkStrictlyPositiveNumber(self.slit_2_distance, "Slit 2 Distance from Goniometer Center")
             self.slit_2_vertical_aperture = congruence.checkStrictlyPositiveNumber(self.slit_2_vertical_aperture, "Slit 2 Vertical Aperture")
             self.slit_2_horizontal_aperture = congruence.checkStrictlyPositiveNumber(self.slit_2_horizontal_aperture, "Slit 2 Horizontal Aperture")
-            if self.slit_1_distance >= self.slit_2_distance: raise Exception("Slit 1 Distance from Goniometer Center >= Slit 2 Distance from Goniometer Center")
+            congruence.checkLessThan(self.slit_1_distance, self.slit_2_distance, "Slit 1 Distance from Goniometer Center", "Slit 2 Distance from Goniometer Center")
         elif self.diffracted_arm_type == 1:
             self.acceptance_slit_distance = congruence.checkStrictlyPositiveNumber(self.acceptance_slit_distance, "Slit Distance from Goniometer Center")
             self.acceptance_slit_vertical_aperture = congruence.checkStrictlyPositiveNumber(self.acceptance_slit_vertical_aperture, "Slit Vertical Aperture")
             self.acceptance_slit_horizontal_aperture = congruence.checkStrictlyPositiveNumber(self.acceptance_slit_horizontal_aperture, "Slit Horizontal Aperture")
             self.analyzer_distance = congruence.checkStrictlyPositiveNumber(self.analyzer_distance, "Crystal Distance from Goniometer Center")
             self.analyzer_bragg_angle = congruence.checkStrictlyPositiveNumber(self.analyzer_bragg_angle, "Analyzer Incidence Angle")
-            if self.analyzer_bragg_angle >= 90: raise Exception("Analyzer Incidence Angle >= 90 deg")
+            congruence.checkLessThan(self.analyzer_bragg_angle, 90, "Analyzer Incidence Angle", "90 deg")
             congruence.checkFile(self.rocking_curve_file)
             self.mosaic_angle_spread_fwhm = congruence.checkPositiveNumber(self.mosaic_angle_spread_fwhm, "Mosaic Angle Spread FWHM")
-            if self.acceptance_slit_distance >= self.analyzer_distance: raise Exception("Slit Distance from Goniometer Center >= Crystal Distance from Goniometer Center")
+            congruence.checkLessThan(self.acceptance_slit_distance, self.analyzer_distance, "Slit Distance from Goniometer Center", "Crystal Distance from Goniometer Center")
         elif self.diffracted_arm_type == 2:
             self.area_detector_distance = congruence.checkStrictlyPositiveNumber(self.area_detector_distance,
                                                                                 "Detector Distance")
@@ -1195,9 +1195,8 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         self.start_angle_na = congruence.checkPositiveAngle(self.start_angle_na, "Start Angle")
         self.stop_angle_na = congruence.checkPositiveAngle(self.stop_angle_na, "Stop Angle")
-        if self.start_angle_na >= self.stop_angle_na: raise Exception("Start Angle >= Stop Angle")
-        if self.stop_angle_na > 180: raise Exception("Stop Angle > 180 deg")
-
+        congruence.checkLessThan(self.start_angle_na, self.stop_angle_na, "Start Angle", "Stop Angle")
+        congruence.checkLessThan(self.stop_angle_na, 180, "Stop Angle", "180 deg")
         self.step = congruence.checkPositiveAngle(self.step, "Step")
 
         if self.set_number_of_peaks == 1:
@@ -1212,7 +1211,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                 self.degree_of_polarization = congruence.checkPositiveNumber(self.degree_of_polarization, "K Factor")
 
             self.monochromator_angle = congruence.checkPositiveAngle(self.monochromator_angle, "Monochromator Theta Angle")
-            if self.monochromator_angle >= 90: raise Exception("Monochromator Theta Angle >= 90 deg")
+            congruence.checkLessThan(self.monochromator_angle, 90, "Monochromator Theta Angle", "90 deg")
 
         if self.add_debye_waller_factor == 1 and self.use_default_dwf == 0:
             self.new_debye_waller_B = congruence.checkPositiveNumber(self.new_debye_waller_B, "Debye-Waller Factor (B)")

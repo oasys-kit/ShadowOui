@@ -686,7 +686,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                             self.set_isCyl_Parameters()
 
-                    view_shape_box = oasysgui.widgetBox(tab_bas_shape, "Surface Shape Viewer", addSpace=True, orientation="vertical")
+                    view_shape_box = oasysgui.widgetBox(tab_bas_shape, "Calculated Surface Shape", addSpace=True, orientation="vertical")
 
                     if not self.graphical_options.is_conic_coefficients:
                         if self.graphical_options.is_spheric:
@@ -706,8 +706,8 @@ class OpticalElement(ow_generic_element.GenericElement):
                             self.le_paraboloid_parameter_2 = oasysgui.lineEdit(view_shape_box, self, "paraboloid_parameter", "Calculater Paraboloid Parameter", labelWidth=260, valueType=float, orientation="horizontal")
                             self.le_paraboloid_parameter_2.setReadOnly(True)
 
-
-                    self.render_surface_button = gui.button(view_shape_box, self, "Render Surface Shape", callback=self.viewSurfaceShape)
+                    if not self.graphical_options.is_toroidal:
+                        self.render_surface_button = gui.button(view_shape_box, self, "Render Surface Shape", callback=self.viewSurfaceShape)
 
                     if not self.graphical_options.is_conic_coefficients:
                         self.set_IntExt_Parameters()
@@ -1430,7 +1430,8 @@ class OpticalElement(ow_generic_element.GenericElement):
         self.surface_box_ext.setVisible(self.surface_shape_parameters == 1)
         if self.surface_shape_parameters == 0: self.set_FociiCont_Parameters()
 
-        self.render_surface_button.setEnabled(self.surface_shape_parameters == 0)
+        if not self.graphical_options.is_toroidal:
+            self.render_surface_button.setEnabled(self.surface_shape_parameters == 0)
 
     def set_FociiCont_Parameters(self):
         self.surface_box_int_2.setVisible(self.focii_and_continuation_plane == 1)
