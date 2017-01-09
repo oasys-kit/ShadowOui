@@ -450,7 +450,7 @@ class HybridScreen(AutomaticElement):
 
             QtGui.QMessageBox.critical(self, "Error", str(exception), QtGui.QMessageBox.Ok)
 
-            raise exception
+            #raise exception
 
         self.setStatusMessage("")
         self.progressBarFinished()
@@ -465,7 +465,7 @@ class HybridScreen(AutomaticElement):
         if self.ghy_diff_plane == 0 or self.ghy_diff_plane == 2:
             congruence.checkStrictlyPositiveNumber(self.ghy_nbins_x, "Number of bins for I(Sagittal) histogram")
         if self.ghy_diff_plane == 1 or self.ghy_diff_plane == 2:
-            congruence.checkStrictlyPositiveNumber(self.ghy_nbins_y, "Number of bins for I(Tangential) histogram")
+            congruence.checkStrictlyPositiveNumber(self.ghy_nbins_z, "Number of bins for I(Tangential) histogram")
 
         congruence.checkStrictlyPositiveNumber(self.ghy_npeak, "Number of diffraction peaks")
         congruence.checkStrictlyPositiveNumber(self.ghy_fftnpts, "Number of points for FFT")
