@@ -100,6 +100,7 @@ class HybridCalculationParameters(object):
     xx_mirr = None
     zz_mirr = None
     angle_inc = None
+    angle_ref = None
 
     # Mirror Surface
     w_mirr_1D_values = None
@@ -108,6 +109,8 @@ class HybridCalculationParameters(object):
     # Mirror Fitted Functions
     wangle_x = None
     wangle_z = None
+    wangle_ref_x = None
+    wangle_ref_z = None
     wl_x     = None
     wl_z     = None
 
@@ -157,39 +160,36 @@ def hy_run(input_parameters=HybridInputParameters()):
 
             hy_init(input_parameters, calculation_parameters)		#Calculate functions needed to construct exit pupil function
 
-            input_parameters.widget.status_message("X: Initialization completed")
+            input_parameters.widget.status_message("Sagittal: Initialization completed")
             input_parameters.widget.set_progress_bar(10)
 
-            input_parameters.widget.status_message("X: Start Wavefront Propagation")
+            input_parameters.widget.status_message("Sagittal: Start Wavefront Propagation")
             hy_prop(input_parameters, calculation_parameters)	    #Perform wavefront propagation
 
-            input_parameters.widget.status_message("X: Start Ray Resampling")
+            input_parameters.widget.status_message("Sagittal: Start Ray Resampling")
             input_parameters.widget.set_progress_bar(40)
 
             hy_conv(input_parameters, calculation_parameters)	    #Perform ray resampling
 
-            input_parameters.widget.status_message("X: Creating Output Shadow Beam")
-
-            hy_create_shadow_beam(input_parameters, calculation_parameters)
-
             # SECOND: Z DIRECTION
             input_parameters.ghy_diff_plane = 2
-            input_parameters.shadow_beam = calculation_parameters.ff_beam
 
             hy_init(input_parameters, calculation_parameters)		#Calculate functions needed to construct exit pupil function
 
-            input_parameters.widget.status_message("Z: Initialization completed")
+            input_parameters.widget.status_message("Tangential: Initialization completed")
             input_parameters.widget.set_progress_bar(50)
 
-            input_parameters.widget.status_message("Z: Start Wavefront Propagation")
+            input_parameters.widget.status_message("Tangential: Start Wavefront Propagation")
             hy_prop(input_parameters, calculation_parameters)	    #Perform wavefront propagation
 
-            input_parameters.widget.status_message("Z: Start Ray Resampling")
+            input_parameters.widget.status_message("Tangential: Start Ray Resampling")
             input_parameters.widget.set_progress_bar(80)
 
             hy_conv(input_parameters, calculation_parameters)	    #Perform ray resampling
 
-            input_parameters.widget.status_message("Z: Creating Output Shadow Beam")
+            input_parameters.widget.status_message("Both: Creating Output Shadow Beam")
+
+            input_parameters.ghy_diff_plane = 3
 
             hy_create_shadow_beam(input_parameters, calculation_parameters)
         else:
@@ -232,15 +232,22 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
     if input_parameters.ghy_calcType == 1 and not "ScreenSlits" in widget_class_name:
         raise Exception("Simple Aperture calculation runs for Screen-Slits widgets only")
 
-    if input_parameters.ghy_calcType == 2 or input_parameters.ghy_calcType == 3:
-        if not "Mirror" in widget_class_name:
+    if input_parameters.ghy_calcType == 2:
+        if not ("Mirror" in widget_class_name or "Grating" in widget_class_name):
+            raise Exception("Mirror/Grating calculation runs for Mirror/Grating widgets only")
+
+    if input_parameters.ghy_calcType == 3:
+        if not ("Mirror" in widget_class_name):
             raise Exception("Mirror calculation runs for Mirror widgets only")
 
     if input_parameters.ghy_calcType == 4:
+        if not ("Grating" in widget_class_name):
+            raise Exception("Grating calculation runs for Gratings widgets only")
+
+    if input_parameters.ghy_calcType == 5:
         if not ("Lens" in widget_class_name or "CRL" in widget_class_name):
             raise Exception("CRL calculation runs for Lens or CRL widgets only")
 
-    #TODO: DO SEPARATE ANALYSIS OF THE SITUATION IN H and V, BY USING RAY-TRACING AND HISTOS
     if input_parameters.ghy_n_oe < 0:
         beam_before = history_entry._input_beam.duplicate()
         oe_before = history_entry._shadow_oe_start.duplicate()
@@ -252,7 +259,7 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
             calculation_parameters.beam_not_cut_in_x = True
             calculation_parameters.beam_not_cut_in_z = True
 
-            if input_parameters.ghy_calcType != 3:
+            if input_parameters.ghy_calcType != 3 and input_parameters.ghy_calcType != 4:
                 calculation_parameters.ff_beam = input_parameters.shadow_beam
 
                 raise HybridNotNecessaryWarning("O.E. contains the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
@@ -285,7 +292,7 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
                     ticket_tangential = beam_at_the_slit._beam.histo1(3, nbins=500, nolost=1, ref=23)
                     ticket_sagittal = beam_at_the_slit._beam.histo1(1, nbins=500, nolost=1, ref=23)
 
-            elif input_parameters.ghy_calcType == 2 or input_parameters.ghy_calcType == 3: # MIRRORS
+            elif input_parameters.ghy_calcType == 2 or input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4: # MIRRORS/GRATINGS
                 if oe_before._oe.FHIT_C == 0: #infinite
                     is_infinite = True
                 else:
@@ -306,7 +313,7 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
                     ticket_tangential = mirror_beam._beam.histo1(2, nbins=500, nolost=0, ref=23) # ALL THE RAYS FOR ANALYSIS
                     ticket_sagittal = mirror_beam._beam.histo1(1, nbins=500, nolost=0, ref=23) # ALL THE RAYS  FOR ANALYSIS
 
-            elif input_parameters.ghy_calcType == 4: # CRL
+            elif input_parameters.ghy_calcType == 5: # CRL
                 first_oe = history_entry._shadow_oe_end._oe.list[0]
 
                 if first_oe.FHIT_C == 0: #infinite
@@ -359,7 +366,7 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
 
             # REQUEST FILTERING OR REFUSING
 
-            if not input_parameters.ghy_calcType == 3:
+            if not (input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4):
                 if input_parameters.ghy_diff_plane == 1 and calculation_parameters.beam_not_cut_in_x:
                     calculation_parameters.ff_beam = input_parameters.shadow_beam
 
@@ -383,7 +390,7 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
 ##########################################################################
 
 def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameters=HybridCalculationParameters()):
-    if input_parameters.ghy_calcType == 4: #CRL OR LENS
+    if input_parameters.ghy_calcType == 5: #CRL OR LENS
         history_entry =  input_parameters.shadow_beam.getOEHistory(input_parameters.shadow_beam._oe_number)
         compound_oe = history_entry._shadow_oe_end
 
@@ -503,7 +510,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
             raise Exception("Connected O.E. is not a Screen-Slit widget!")
     elif input_parameters.ghy_calcType == 2: # ADDED BY XIANBO SHI
         shadow_oe._oe.F_RIPPLE = 0
-    elif input_parameters.ghy_calcType == 3: # mirror + figure error
+    elif input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4: # mirror/grating + figure error
         if shadow_oe._oe.F_RIPPLE == 1 and shadow_oe._oe.F_G_S == 2:
             input_parameters.ghy_mirrorfile = shadow_oe._oe.FILE_RIP
 
@@ -581,11 +588,11 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
     calculation_parameters.dx_ray = numpy.arctan(calculation_parameters.xp_screen/calculation_parameters.yp_screen) # calculate divergence from direction cosines from SHADOW file  dx = atan(v_x/v_y)
     calculation_parameters.dz_ray = numpy.arctan(calculation_parameters.zp_screen/calculation_parameters.yp_screen) # calculate divergence from direction cosines from SHADOW file  dz = atan(v_z/v_y)
 
-    # Process mirror
+    # Process mirror/grating
 	# reads file with mirror height mesh
  	# calculates the function of the "incident angle" and the "mirror height" versus the Z coordinate in the screen.
 
-    if input_parameters.ghy_calcType == 3:
+    if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
         mirror_beam = sh_readsh("mirr." + str_n_oe)  #xshi change from 0 to 1
 
         if input_parameters.file_to_write_out == 1:
@@ -600,6 +607,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         angle_inc, angle_ref = sh_readangle("angle." + str_n_oe, mirror_beam)   #xshi change from 0 to 1
 
         calculation_parameters.angle_inc = (90.0 - angle_inc)/180.0*1e3*numpy.pi
+        calculation_parameters.angle_ref = (90.0 - angle_ref)/180.0*1e3*numpy.pi
 
         calculation_parameters.w_mirr_2D_values = sh_readsurface(input_parameters.ghy_mirrorfile, dimension=2)
 
@@ -611,15 +619,17 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         if numpy.amax(calculation_parameters.xx_screen) == numpy.amin(calculation_parameters.xx_screen):
             if input_parameters.ghy_diff_plane == 1 or input_parameters.ghy_diff_plane == 3: raise Exception("Unconsistend calculation: Diffraction plane is set on X, but the beam has no extention in that direction")
         else:
-            calculation_parameters.wangle_x = numpy.poly1d(numpy.polyfit(calculation_parameters.xx_screen, calculation_parameters.angle_inc, hy_npoly_angle))
-            calculation_parameters.wl_x     = numpy.poly1d(numpy.polyfit(calculation_parameters.xx_screen, calculation_parameters.xx_mirr, hy_npoly_l))
+            calculation_parameters.wangle_x     = numpy.poly1d(numpy.polyfit(calculation_parameters.xx_screen, calculation_parameters.angle_inc, hy_npoly_angle))
+            calculation_parameters.wl_x         = numpy.poly1d(numpy.polyfit(calculation_parameters.xx_screen, calculation_parameters.xx_mirr, hy_npoly_l))
+            if input_parameters.ghy_calcType == 4: calculation_parameters.wangle_ref_x = numpy.poly1d(numpy.polyfit(calculation_parameters.xx_screen, calculation_parameters.angle_ref, hy_npoly_angle))
 
         if numpy.amax(calculation_parameters.zz_screen) == numpy.amin(calculation_parameters.zz_screen):
             if input_parameters.ghy_diff_plane == 2 or input_parameters.ghy_diff_plane == 3: raise Exception("Unconsistend calculation: Diffraction plane is set on Z, but the beam has no extention in that direction")
         else:
 
-            calculation_parameters.wangle_z = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.angle_inc, hy_npoly_angle))
-            calculation_parameters.wl_z     = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.yy_mirr, hy_npoly_l))
+            calculation_parameters.wangle_z     = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.angle_inc, hy_npoly_angle))
+            calculation_parameters.wl_z         = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.yy_mirr, hy_npoly_l))
+            if input_parameters.ghy_calcType == 4: calculation_parameters.wangle_ref_z = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.angle_ref, hy_npoly_angle))
 
 ##########################################################################
 
@@ -658,7 +668,7 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
         else:
             input_parameters.widget.status_message("Propagation distance = " + str(input_parameters.ghy_distance))
 
-    if input_parameters.ghy_calcType == 3: #mirror with figure error
+    if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4: # mirror/grating with figure error
         if input_parameters.ghy_diff_plane == 1: #X
             np_array = calculation_parameters.w_mirr_2D_values.z_values[:, round(len(calculation_parameters.w_mirr_2D_values.y_coord)/2)]
 
@@ -816,6 +826,46 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
         calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
 
         if do_nf: calculation_parameters.nf_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)
+    elif input_parameters.ghy_diff_plane == 3: #1d calculation in both direction
+        angle_num = numpy.sqrt(1+(numpy.tan(calculation_parameters.dz_conv))**2+(numpy.tan(calculation_parameters.dx_conv))**2)
+
+        beam_sagittal = calculation_parameters.ff_beam.duplicate(history=False)
+        beam_tangential = calculation_parameters.ff_beam.duplicate(history=False)
+
+        angle_perpen = numpy.arctan(calculation_parameters.zp_screen/calculation_parameters.yp_screen)
+
+        beam_sagittal._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
+        beam_sagittal._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)[::-1] # uncorrelate 2 directions!
+        beam_sagittal._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
+        beam_sagittal._beam.rays[:, 5] = numpy.tan(angle_perpen)/angle_num
+
+        angle_perpen = numpy.arctan(calculation_parameters.xp_screen/calculation_parameters.yp_screen)
+
+        beam_tangential._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)[::-1] # uncorrelate 2 directions!
+        beam_tangential._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
+        beam_tangential._beam.rays[:, 3] = numpy.tan(angle_perpen)/angle_num
+        beam_tangential._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
+
+        beam_sagittal._beam.rays = beam_sagittal._beam.rays[::2] # even entries to maintain same number of rays
+        beam_tangential._beam.rays = beam_tangential._beam.rays[1::2] # odd entries to maintain same number of rays
+
+        calculation_parameters.ff_beam = ShadowBeam.mergeBeams(beam_sagittal, beam_tangential) # merge
+        calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
+
+        if do_nf:
+            beam_sagittal = calculation_parameters.nf_beam.duplicate(history=False)
+            beam_tangential = calculation_parameters.nf_beam.duplicate(history=False)
+
+            beam_sagittal._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)
+            beam_sagittal._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)[::-1] # uncorrelate 2 directions!
+
+            beam_tangential._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)[::-1]
+            beam_tangential._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)
+
+            beam_sagittal._beam.rays = beam_sagittal._beam.rays[::2]
+            beam_tangential._beam.rays = beam_tangential._beam.rays[1::2]
+
+            calculation_parameters.nf_beam = ShadowBeam.mergeBeams(beam_sagittal, beam_tangential)
 
     if input_parameters.file_to_write_out == 1:
 
@@ -844,12 +894,13 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
 
     scale_factor = 1.0
 
-    if input_parameters.ghy_calcType == 3:
+    if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
         rms_slope = hy_findrmsslopefromheight(calculation_parameters.w_mirror_lx)
 
         input_parameters.widget.status_message("Using RMS slope = " + str(rms_slope))
 
-        average_incident_angle = numpy.radians(calculation_parameters.shadow_oe_end._oe.T_INCIDENCE)*1e3
+        average_incident_angle = numpy.radians(90-calculation_parameters.shadow_oe_end._oe.T_INCIDENCE)*1e3
+        average_reflection_angle = numpy.radians(90-calculation_parameters.shadow_oe_end._oe.T_REFLECTION)*1e3
 
         if calculation_parameters.beam_not_cut_in_x:
             dp_image = numpy.std(calculation_parameters.xx_focal_ray)/input_parameters.ghy_focallength
@@ -869,6 +920,10 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
     if input_parameters.ghy_calcType == 3:
         if not (rms_slope == 0.0 or average_incident_angle == 0.0):
             focallength_ff = min(focallength_ff,(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min) / 16 / rms_slope / numpy.sin(average_incident_angle / 1e3))#xshi changed
+
+    if input_parameters.ghy_calcType == 4:
+        if not (rms_slope == 0.0 or average_incident_angle == 0.0):
+            focallength_ff = min(focallength_ff,(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min) / 8 / rms_slope / (numpy.sin(average_incident_angle / 1e3) + numpy.sin(average_reflection_angle / 1e3)))#xshi changed
 
     fftsize = int(scale_factor * calculate_fft_size(calculation_parameters.ghy_x_min,
                                                     calculation_parameters.ghy_x_max,
@@ -896,6 +951,15 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
                                                                       calculation_parameters.wangle_x,
                                                                       calculation_parameters.wl_x,
                                                                       calculation_parameters.w_mirror_lx))
+
+    if input_parameters.ghy_calcType == 4:
+       wavefront.add_phase_shifts(get_grating_figure_error_phase_shift(wavefront.get_abscissas(),
+                                                                       calculation_parameters.gwavelength,
+                                                                       calculation_parameters.wangle_x,
+                                                                       calculation_parameters.wangle_ref_x,
+                                                                       calculation_parameters.wl_x,
+                                                                       calculation_parameters.w_mirror_lx))
+
 
     if do_nf: input_parameters.widget.set_progress_bar(35)
     else: input_parameters.widget.set_progress_bar(50)
@@ -955,6 +1019,14 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
                                                                           calculation_parameters.wl_x,
                                                                           calculation_parameters.w_mirror_lx))
 
+        if input_parameters.ghy_calcType == 4:
+           wavefront.add_phase_shifts(get_grating_figure_error_phase_shift(wavefront.get_abscissas(),
+                                                                           calculation_parameters.gwavelength,
+                                                                           calculation_parameters.wangle_x,
+                                                                           calculation_parameters.wangle_ref_x,
+                                                                           calculation_parameters.wl_x,
+                                                                           calculation_parameters.w_mirror_lx))
+
         input_parameters.widget.status_message("calculated plane wave: begin NF propagation (distance = " + str(input_parameters.ghy_distance) + ")")
         input_parameters.widget.set_progress_bar(60)
 
@@ -968,6 +1040,10 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
         if input_parameters.ghy_calcType == 3:
             imagesize = max(imagesize,
                             16 * rms_slope * input_parameters.ghy_focallength * numpy.sin(average_incident_angle / 1e3))
+
+        if input_parameters.ghy_calcType == 4:
+            imagesize = max(imagesize,
+                            8 * rms_slope * input_parameters.ghy_focallength * (numpy.sin(average_incident_angle / 1e3) + numpy.sin(average_reflection_angle / 1e3)))
 
         imagenpts = round(imagesize / intensity.delta() / 2) * 2 + 1
 
@@ -1013,8 +1089,8 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
                                                input_parameters.ghy_npeak,
                                                calculation_parameters.gwavelength)
 
-    if input_parameters.ghy_calcType == 3 and rms_slope != 0:
-        focallength_ff = min(focallength_ff,(calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min) / 16 / rms_slope) #xshi changed
+    if (input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4) and rms_slope != 0:
+        focallength_ff = min(focallength_ff,(calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min) / 16 / rms_slope ) #xshi changed
 
     fftsize = int(scale_factor * calculate_fft_size(calculation_parameters.ghy_z_min,
                                                     calculation_parameters.ghy_z_max,
@@ -1043,6 +1119,13 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
                                                                       calculation_parameters.wl_z,
                                                                       calculation_parameters.w_mirror_lz))
 
+    if input_parameters.ghy_calcType == 4:
+       wavefront.add_phase_shifts(get_grating_figure_error_phase_shift(wavefront.get_abscissas(),
+                                                                       calculation_parameters.gwavelength,
+                                                                       calculation_parameters.wangle_z,
+                                                                       calculation_parameters.wangle_ref_z,
+                                                                       calculation_parameters.wl_z,
+                                                                       calculation_parameters.w_mirror_lz))
 
     if do_nf: input_parameters.widget.set_progress_bar(35)
     else: input_parameters.widget.set_progress_bar(50)
@@ -1100,6 +1183,13 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
                                                                           calculation_parameters.wl_z,
                                                                           calculation_parameters.w_mirror_lz))
 
+        if input_parameters.ghy_calcType == 4:
+           wavefront.add_phase_shifts(get_grating_figure_error_phase_shift(wavefront.get_abscissas(),
+                                                                           calculation_parameters.gwavelength,
+                                                                           calculation_parameters.wangle_z,
+                                                                           calculation_parameters.wangle_ref_z,
+                                                                           calculation_parameters.wl_z,
+                                                                           calculation_parameters.w_mirror_lz))
 
         input_parameters.widget.status_message("calculated plane wave: begin NF propagation (distance = " + str(input_parameters.ghy_distance) + ")")
         input_parameters.widget.set_progress_bar(60)
@@ -1111,7 +1201,7 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
         imagesize = max(imagesize,
                         2 * abs((calculation_parameters.ghy_z_max - calculation_parameters.ghy_z_min) * (input_parameters.ghy_distance - input_parameters.ghy_focallength)) / input_parameters.ghy_focallength)
 
-        if input_parameters.ghy_calcType == 3:
+        if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
             imagesize = max(imagesize, 16 * rms_slope * input_parameters.ghy_focallength)
 
         imagenpts = round(imagesize / intensity.delta() / 2) * 2 + 1
@@ -1262,6 +1352,13 @@ def get_mirror_figure_error_phase_shift(abscissas,
                                         mirror_figure_error):
     return (-1.0) * 4 * numpy.pi / wavelength * numpy.sin(w_angle_function(abscissas)/1e3) * mirror_figure_error.interpolate_values(w_l_function(abscissas))
 
+def get_grating_figure_error_phase_shift(abscissas,
+                                         wavelength,
+                                         w_angle_function,
+                                         w_angle_ref_function,
+                                         w_l_function,
+                                         mirror_figure_error):
+    return (-1.0) * 2 * numpy.pi / wavelength * (numpy.sin(w_angle_function(abscissas)/1e3) + numpy.sin(w_angle_ref_function(abscissas)/1e3)) * mirror_figure_error.interpolate_values(w_l_function(abscissas))
 
 def showConfirmMessage(title, message):
     msgBox = QMessageBox()

@@ -105,9 +105,10 @@ class HybridScreen(AutomaticElement):
 
         gui.comboBox(box_1, self, "ghy_calcType", label="Calculation Type", labelWidth=100,
                      items=["Diffraction by Simple Aperture",
-                            "Diffraction by Mirror Size",
+                            "Diffraction by Mirror or Grating Size",
                             "Diffraction by Mirror Size + Figure Errors",
-                            "Diffraction by Lens or C.R.L. Size"],
+                            "Diffraction by Grating Size + Figure Errors",
+                            "Diffraction by Lens or C.R.L. Size",],
                      callback=self.set_CalculationType,
                      sendSelectedValue=False, orientation="horizontal")
 
@@ -281,11 +282,11 @@ class HybridScreen(AutomaticElement):
          self.le_distance_to_image.setEnabled(self.distance_to_image_calc == 1)
 
     def set_CalculationType(self):
-        self.cb_focal_length_calc.setEnabled(self.ghy_calcType > 0 and self.ghy_calcType < 3)
-        self.le_focal_length.setEnabled(self.ghy_calcType > 0 and self.ghy_calcType < 3)
-        self.cb_nf.setEnabled(self.ghy_calcType > 0 and self.ghy_calcType < 3)
+        self.cb_focal_length_calc.setEnabled(self.ghy_calcType > 0 and self.ghy_calcType < 4)
+        self.le_focal_length.setEnabled(self.ghy_calcType > 0 and self.ghy_calcType < 4)
+        self.cb_nf.setEnabled(self.ghy_calcType > 0 and self.ghy_calcType < 4)
 
-        if self.ghy_calcType > 0 and self.ghy_calcType < 3:
+        if self.ghy_calcType > 0 and self.ghy_calcType < 4:
             self.set_FocalLengthCalc()
         else:
             self.ghy_nf = 0
@@ -339,7 +340,7 @@ class HybridScreen(AutomaticElement):
                     self.ghy_npeak   = input_parameters.ghy_npeak
                     self.ghy_fftnpts = input_parameters.ghy_fftnpts
 
-                    if input_parameters.ghy_calcType == 3:
+                    if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
                         do_plot_x = True
                         do_plot_z = True
                     else:

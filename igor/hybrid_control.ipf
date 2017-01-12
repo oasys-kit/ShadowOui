@@ -13,7 +13,7 @@ End
 
 Window hybrid_gui() : Graph
 	PauseUpdate; Silent 1
-	Display/k=1 /W=(480,50,820,440)
+	Display/k=1 /W=(480,50,820,450)
 	Modifygraph gbRGB=(42662,65535,42662)
 	String/G ghy_path
 	If(exists("gsh_path")==2)
@@ -34,6 +34,7 @@ Window hybrid_gui() : Graph
 	Variable/G ghy_npeak = 20
 	Variable/G ghy_lengthunit = 1
 	Variable/G ghy_fftnpts = 1e6
+	Variable/G ghy_scalefactor = 1
 	Variable/G ghy_nf = 0
 	Variable/G ghy_nf_only = 0
 	Variable/G ghy_range_x = -1
@@ -44,7 +45,7 @@ Window hybrid_gui() : Graph
 	SetVariable hy_input_n_oe,live=1,pos={0,35},size={0,0},bodyWidth=50,fsize=14,title="O.E. number",limits={0,10,1},value=ghy_n_oe
 	SetVariable hy_input_n_screen,live=1,pos={0,60},size={0,0},bodyWidth=50,fsize=14,title="Screen number at 0 distance after OE",limits={0,10,1},value=ghy_n_screen
 	PopupMenu/Z hy_input_diff_plane,live=1,pos={0,85},size={0,0},bodyWidth=80,fsize=14,title="Diffraction plane",mode=1,popvalue=StringFromList(ghy_diff_plane-1, "X;Z;2D"),value="X;Z;2D",proc=hy_updategui_diff_plane
-	PopupMenu/Z hy_input_calcType,live=1,pos={0,115},size={0,0},bodyWidth=220,fsize=14,title="Calculation type",mode=1,popvalue=StringFromList(ghy_calcType-1, "1.Simple aperture;2.Ideal focusing optics;3.Elliptical mirror with slope error;4.CRL"),value="1.Simple aperture;2.Ideal focusing optics;3.Elliptical mirror with slope error;4.CRL",proc=hy_updategui_calcType
+	PopupMenu/Z hy_input_calcType,live=1,pos={0,115},size={0,0},bodyWidth=220,fsize=14,title="Calculation type",mode=1,popvalue=StringFromList(ghy_calcType-1, "1.Simple aperture;2.Ideal focusing optics;3.Mirror with slope error;4.Grating with slope error;5.CRL"),value="1.Simple aperture;2.Ideal focusing optics;3.Mirror with slope error;4.Grating with slope error;5.CRL",proc=hy_updategui_calcType
 	SetVariable hy_input_focallength, disable=2,live=1,pos={0,145},size={0,0},bodyWidth=80,fsize=14,title="Focal length (use SIMAGE if <0)",value=ghy_focallength
 	SetVariable hy_input_distance, disable=0,live=1,pos={0,170},size={0,0},bodyWidth=80,fsize=14,title="Distance to image (use T_IMAGE if <0)",value=ghy_distance
 	SetVariable hy_input_mirrorfile,disable=2,live=1,pos={0,195},size={0,0},bodyWidth=160,fsize=14,title="Mirror figure error file",value=ghy_mirrorfile
@@ -56,16 +57,17 @@ Window hybrid_gui() : Graph
 	SetVariable hy_input_nbins_z, disable=0,live=1,pos={0,330},size={0,0},bodyWidth=80,fsize=14,title="Number of bins for I(Z) histogram",value=ghy_nbins_z
 	SetVariable hy_input_npeak, disable=0,live=1,pos={0,355},size={0,0},bodyWidth=80,fsize=14,title="Number of diffraction peaks",value=ghy_npeak
 	SetVariable hy_input_fftnpts, disable=0,live=1,pos={0,380},size={0,0},bodyWidth=80,fsize=14,title="Maximum number of points for FFT",value=ghy_fftnpts
-	GroupBox hy_input_gb2,pos={0,410},size={330,1},frame=0
-	PopupMenu/Z hy_input_lengthunit,live=1,pos={0,415},size={0,0},bodyWidth=80,fsize=14,fColor=(65535,0,0),title="Important! Length unit in SHADOW",mode=1,popvalue=StringFromList(ghy_lengthunit-1, "cm;mm"),value="cm;mm",proc=hy_updategui_lengthunit
-	GroupBox hy_input_gb3,pos={0,445},size={330,1},frame=0
-	TitleBox hy_input_tb2,title="Result plotting control",pos={50,452},frame=0,fsize=14,fColor=(65535,0,0),fstyle=2
-	SetVariable hy_input_range_x, disable=2,live=1,pos={0,475},size={0,0},bodyWidth=80,fsize=14,title="Result histogram range (X) user unit",value=ghy_range_x
-	SetVariable hy_input_nncon_x, disable=2,live=1,pos={0,500},size={0,0},bodyWidth=80,fsize=14,title="Result histogram number of bins (X)",value=ghy_nncon_x
-	SetVariable hy_input_range_z, disable=0,live=1,pos={0,525},size={0,0},bodyWidth=80,fsize=14,title="Result histogram range (Z) user unit",value=ghy_range_z
-	SetVariable hy_input_nncon_z, disable=0,live=1,pos={0,550},size={0,0},bodyWidth=80,fsize=14,title="Result histogram number of bins (Z)",value=ghy_nncon_z	
-	GroupBox hy_input_gb4,pos={0,580},size={510,1},frame=0
-	GroupBox hy_input_gb5,pos={332,0},size={1,580},frame=0		
+	SetVariable hy_input_scalefactor, disable=0,live=1,pos={0,405},size={0,0},bodyWidth=80,fsize=14,title="Scale factor for wavefront size",value=ghy_scalefactor
+	GroupBox hy_input_gb2,pos={0,435},size={330,1},frame=0
+	PopupMenu/Z hy_input_lengthunit,live=1,pos={0,440},size={0,0},bodyWidth=80,fsize=14,fColor=(65535,0,0),title="Important! Length unit in SHADOW",mode=1,popvalue=StringFromList(ghy_lengthunit-1, "cm;mm"),value="cm;mm",proc=hy_updategui_lengthunit
+	GroupBox hy_input_gb3,pos={0,470},size={330,1},frame=0
+	TitleBox hy_input_tb2,title="Result plotting control",pos={50,477},frame=0,fsize=14,fColor=(65535,0,0),fstyle=2
+	SetVariable hy_input_range_x, disable=2,live=1,pos={0,500},size={0,0},bodyWidth=80,fsize=14,title="Result histogram range (X) user unit",value=ghy_range_x
+	SetVariable hy_input_nncon_x, disable=2,live=1,pos={0,525},size={0,0},bodyWidth=80,fsize=14,title="Result histogram number of bins (X)",value=ghy_nncon_x
+	SetVariable hy_input_range_z, disable=0,live=1,pos={0,550},size={0,0},bodyWidth=80,fsize=14,title="Result histogram range (Z) user unit",value=ghy_range_z
+	SetVariable hy_input_nncon_z, disable=0,live=1,pos={0,580},size={0,0},bodyWidth=80,fsize=14,title="Result histogram number of bins (Z)",value=ghy_nncon_z	
+	GroupBox hy_input_gb4,pos={0,605},size={510,1},frame=0
+	GroupBox hy_input_gb5,pos={332,0},size={1,605},frame=0		
 	Button hy_input_run,pos={340,10},size={160,30},fsize=16,fColor=(65535,0,0),proc=hy_run,title="Run HYBRID"
 	Button hy_input_rerun,win=hybrid_gui,disable=2,pos={340,45},size={160,30},fsize=16,proc=hy_rerun,title="Rerun (no file load)"
 	Button hy_input_savefiles,pos={340,80},size={160,30},fsize=14,proc=hy_savefiles,title="Save shadow files"
@@ -144,7 +146,7 @@ Function hy_updategui_diff_plane(ctrlName,popNum,popStr) : PopupMenuControl
 		SetVariable hy_input_range_z, disable=2,live=1,pos={0,525},size={0,0},bodyWidth=80,fsize=14,title="Result histogram range (Z) user unit",value=ghy_range_z
 		SetVariable hy_input_nncon_z, disable=2,live=1,pos={0,550},size={0,0},bodyWidth=80,fsize=14,title="Result histogram number of bins (Z)",value=ghy_nncon_z	
 	Endif
-	If(popNum==3)
+	If((popNum==3)||(popNum==4))
 		SetVariable hy_input_nbins_x, win=hybrid_gui, disable=0,live=1,pos={0,305},size={0,0},bodyWidth=80,fsize=14,title="Number of bins for I(X) histogram",value=ghy_nbins_x
 		SetVariable hy_input_nbins_z, win=hybrid_gui, disable=0,live=1,pos={0,330},size={0,0},bodyWidth=80,fsize=14,title="Number of bins for I(Z) histogram",value=ghy_nbins_z
 		SetVariable hy_input_range_x, disable=0,live=1,pos={0,475},size={0,0},bodyWidth=80,fsize=14,title="Result histogram range (X) user unit",value=ghy_range_x
@@ -176,7 +178,7 @@ Function hy_updategui_calcType(ctrlName,popNum,popStr) : PopupMenuControl
 		PopupMenu/Z hy_input_nearfield,disable=2,live=1,pos={0,245},size={0,0},bodyWidth=80,fsize=14,title="Near-field calculation",mode=1,popvalue=StringFromList(ghy_nf,"No;YES"),value="No;YES",proc=hy_updategui_ghy_nf
 		Button hy_input_longi,disable=2,pos={340,245},size={160,30},fsize=14,proc=hy_longi,title="longitudinal profiles (nf)"
 	Endif
-	If(popNum==3)
+	If((popNum==3)||(popNum==4))
 		SetVariable hy_input_mirrorfile, win=hybrid_gui, disable=0,live=1,pos={0,195},size={0,0},bodyWidth=160,fsize=14,title="Mirror figure error file",value=ghy_mirrorfile
 		PopupMenu/Z hy_input_mirrorwave, win=hybrid_gui,disable=0,live=1,pos={0,220},size={0,0},bodyWidth=120,fsize=14,title="        Or, select wave",mode=1,popvalue=StringFromList(ghy_usemirrorfile-1,sh_popwave()),value=sh_popwave()
 		Button hy_input_sestudy,disable=0,pos={340,210},size={160,30},fsize=14,proc=hy_sestudy,title="Slope error study"
@@ -185,7 +187,7 @@ Function hy_updategui_calcType(ctrlName,popNum,popStr) : PopupMenuControl
 		PopupMenu/Z hy_input_mirrorwave, win=hybrid_gui,disable=2,live=1,pos={0,220},size={0,0},bodyWidth=120,fsize=14,title="        Or, select wave",mode=1,popvalue=StringFromList(ghy_usemirrorfile-1,sh_popwave()),value=sh_popwave()
 		Button hy_input_sestudy,disable=2,pos={340,210},size={160,30},fsize=14,proc=hy_sestudy,title="Slope error study"
 	endif
-	NVAR ghy_regist
+	NVAR/Z ghy_regist
 	If(ghy_calcType != ghy_regist || WaveExists(yp_screen)!=1)
 		Button hy_input_rerun,win=hybrid_gui,disable=2,pos={340,45},size={160,30},fsize=16,proc=hy_rerun,title="Rerun (no file load)"
 	Else
@@ -261,15 +263,11 @@ End
 
 //Read shadow output files needed by HYBRID
 Function hy_readfiles()
-	NVAR ghy_n_oe,ghy_n_screen,ghy_diff_plane,ghy_calcType,ghy_nbins_x,ghy_nbins_z,ghy_npeak,ghy_usemirrorfile,ghy_lengthunit,ghy_nf
-	SVAR ghy_path,ghy_mirrorfile
+	NVAR/Z ghy_n_oe,ghy_n_screen,ghy_diff_plane,ghy_calcType,ghy_nbins_x,ghy_nbins_z,ghy_npeak,ghy_usemirrorfile,ghy_lengthunit,ghy_nf
+	SVAR/Z ghy_path,ghy_mirrorfile
 	string str_n_oe,str_n_screen,fileShadowScreen, fileShadowAngle,fileShadowEnd,fileShadowMirr,fileShadowPresurface,fileShadowStar
 	string/G gfile
 	string shname,colname
-	ControlInfo /W=hybrid_gui hy_input_mirrorwave
-	ghy_usemirrorfile = V_Value
-	string mirrorwavename = S_value
-	wave mirrorwave = $S_value
 	NewPath/O/Q shadow, ghy_path
 	
 	print "|||||||||||||||||||||||||||||||||HYBRID INPUTS|||||||||||||||||||||||||||||||||||||||||"
@@ -310,7 +308,7 @@ Function hy_readfiles()
 			abort "The aperture screen must be placed at ZERO distance from o.e. Found at distance:"+StringByKey(SL_DIS_name,gfile)
 		endif
 	endif
-	if(ghy_calcType==3)	//Mirror with figure errors
+	if((ghy_calcType==3)||(ghy_calcType==4))	//Mirror or grating with figure errors		//xshi2017
 		if(NumberByKey("F_ANGLE",gfile)!=1)
 			abort "File with angles not created: "+fileShadowAngle
 		endif
@@ -350,7 +348,7 @@ Function hy_readfiles()
 	//Process mirror
 	//reads file with mirror height mesh
  	//calculates the function of the "incident angle" and the "mirror height" versus the Z coordinate in the screen. 
- 	If(ghy_calcType == 3)
+ 	If((ghy_calcType==3)||(ghy_calcType==4))				//xshi2017
 		sh_readsh(ghy_path+fileShadowMirr,1,"shmirr")
 		wave shmirr
 		sh_getshcol(shmirr,1,0,"xx_mirr")
@@ -359,14 +357,25 @@ Function hy_readfiles()
 		//read in angle files
 		sh_readangle(ghy_path+fileShadowAngle,1)
 		wave angle_flag, angle_index, angle_inc, angle_ref
-		killwaves/z angle_flag, angle_index, angle_ref
 		angle_inc = (90.0 - angle_inc)/180.0*1e3*pi 
+		wavestats/q/z angle_inc
+		variable/G ghy_grazingangle = v_avg
+		
+		If(ghy_calcType==4)		//xshi2017
+			angle_ref = (90.0 - angle_ref)/180.0*1e3*pi 
+			wavestats/q/z angle_ref
+			variable/G ghy_refangle = v_avg
+		endif
 		
 		//read in mirror surface
-		If(ghy_usemirrorfile==1)
+		If(ghy_usemirrorfile==1&&strlen(fileShadowPresurface)!=0)
 			sh_readsurface(ghy_path+fileShadowPresurface,"wmirror")
 			wave wmirror
 		else
+			ControlInfo /W=hybrid_gui hy_input_mirrorwave
+			ghy_usemirrorfile = V_Value
+			string mirrorwavename = S_value
+			wave mirrorwave = $S_value
 			duplicate/O/D mirrorwave wmirror
 			print "mirror surface loaded from wave:", mirrorwavename
 		endif
@@ -380,23 +389,33 @@ Function hy_readfiles()
 		duplicate/O fit_angle_inc wangle_x
 		CurveFit/Q/L=(hy_fit_npts) /NTHR=0 poly hy_npoly_angle,  angle_inc /X=zz_screen /D
 		duplicate/O fit_angle_inc wangle_z
+		
+		If(ghy_calcType==4)		//xshi2017
+			CurveFit/Q/L=(hy_fit_npts) /NTHR=0 poly hy_npoly_angle,  angle_ref /X=xx_screen /D
+			wave fit_angle_ref
+			duplicate/O fit_angle_ref wangle_ref_x
+			CurveFit/Q/L=(hy_fit_npts) /NTHR=0 poly hy_npoly_angle,  angle_ref /X=zz_screen /D
+			duplicate/O fit_angle_ref wangle_ref_z				
+		endif
 		CurveFit/Q/L=(hy_fit_npts) /NTHR=0 poly hy_npoly_l,  xx_mirr /X=xx_screen /D
 		wave fit_xx_mirr
 		duplicate/O fit_xx_mirr wlx		
 		CurveFit/Q/L=(hy_fit_npts) /NTHR=0 poly hy_npoly_l,  yy_mirr /X=zz_screen /D
 		wave fit_yy_mirr
 		duplicate/O fit_yy_mirr wlz
+		
+		killwaves/z angle_flag, angle_index, angle_ref		//xshi2017
 	endif
 	
-	killwaves/z W_coef,w_sigma,W_ParamConfidenceInterval,fit_yy_mirr,fit_angle_inc,fit_xx_mirr,shmirr
+	killwaves/z W_coef,w_sigma,W_ParamConfidenceInterval,fit_yy_mirr,fit_angle_inc,fit_xx_mirr,shmirr,fit_angle_ref
 
 End
 
 //Calculate functions needed to construct exit pupil function
 Function hy_init()
-	NVAR ghy_diff_plane,ghy_calcType,ghy_focallength,ghy_distance,ghy_n_oe,ghy_nbins_x,ghy_nbins_z,ghy_lengthunit
-	SVAR gfile
-	wave wmirror,angle_inc,xx_screen,zz_screen,ref_screen,xx_mirr,yy_mirr,wwavelength,dx_ray,dz_ray
+	NVAR/Z ghy_diff_plane,ghy_calcType,ghy_focallength,ghy_distance,ghy_n_oe,ghy_nbins_x,ghy_nbins_z,ghy_lengthunit
+	SVAR/Z gfile
+	wave/Z wmirror,angle_inc,xx_screen,zz_screen,ref_screen,xx_mirr,yy_mirr,wwavelength,dx_ray,dz_ray
 	
 	If(ghy_calcType>1)
 		If(ghy_focallength<0)
@@ -443,7 +462,7 @@ Function hy_init()
 	endif
 	
 	//Extract 1d mirror profile for 1d calculation
-	If(ghy_calcType==3)	// mirror with figure error
+	If((ghy_calcType==3)||(ghy_calcType==4))	// mirror with figure error		//xshi
 		If(WaveDims(wmirror)==2)
 			If(ghy_diff_plane==1)
 				Make/O/D/N=(dimsize(wmirror,0)) wmirror_lx
@@ -476,7 +495,7 @@ Function hy_init()
 			If(ghy_nbins_x<0)		// number of bins control
 				ghy_nbins_x = 200
 			endif		
-			ghy_nbins_x = min(ghy_nbins_x,round(dimsize(xx_screen,0)/100))
+			ghy_nbins_x = min(ghy_nbins_x,round(dimsize(xx_screen,0)/20))
 			sh_1dhist(ghy_nbins_x,"xx_screen",1,5,1,0,1,"ref_screen")
 			wave xx_screen_histo
 			duplicate/O xx_screen_histo wIray_x
@@ -485,7 +504,7 @@ Function hy_init()
 			If(ghy_nbins_z<0)		// number of bins control
 				ghy_nbins_z = 200
 			endif	
-			ghy_nbins_z = min(ghy_nbins_z,round(dimsize(zz_screen,0)/100))
+			ghy_nbins_z = min(ghy_nbins_z,round(dimsize(zz_screen,0)/20))
 			sh_1dhist(ghy_nbins_z,"zz_screen",1,5,1,0,0,"ref_screen")	
 			wave zz_screen_histo
 			duplicate/O zz_screen_histo wIray_z
@@ -524,9 +543,9 @@ End
 
 //Perform wavefront propagation 
 Function hy_prop()
-	NVAR ghy_diff_plane,ghy_calcType,ghy_focallength,ghy_distance,ghy_npeak,ghy_nf,ghy_fftnpts
-	NVAR  ghy_z_min, ghy_z_max, ghy_x_min, ghy_x_max,genergy, gwavelength, gknum,ghy_nf_only
-	wave wmirror,wmirror_lx,wmirror_lz,wangle_z,wangle_x,wlz,wlx,wIray_2d,wIray_x,wIray_z
+	NVAR/Z ghy_diff_plane,ghy_calcType,ghy_focallength,ghy_distance,ghy_npeak,ghy_nf,ghy_fftnpts,ghy_scalefactor
+	NVAR/Z ghy_z_min, ghy_z_max, ghy_x_min, ghy_x_max,genergy, gwavelength, gknum,ghy_nf_only, ghy_grazingangle,ghy_refangle
+	wave/Z wmirror,wmirror_lx,wmirror_lz,wangle_z,wangle_x,wlz,wlx,wIray_2d,wIray_x,wIray_z,wangle_ref_x,wangle_ref_z
 	
 	variable fftsize,imagesize,imagenpts,focallength_ff,fftsize_x,fftsize_z,scalex,scalez,imagesize_z,imagesize_x,imagenpts_x,imagenpts_z,rmsslope
 	
@@ -556,31 +575,42 @@ Function hy_prop()
 		If(ghy_npeak<0)		// number of bins control
 			ghy_npeak = 50
 		endif
-		ghy_npeak = min(ghy_npeak,50)
+//		ghy_npeak = min(ghy_npeak,50)
 	endif
 	ghy_npeak = max(ghy_npeak,5)
 	If(ghy_fftnpts<0)		// number of bins control
 		ghy_fftnpts = 4e6
 	endif
 	ghy_fftnpts = min(ghy_fftnpts,4e6)
-	
+	variable scale_factor = ghy_scalefactor	//xshi Dec19
 	switch(ghy_diff_plane)										
 		case 1:	//1d calculation in x direction
 			if(ghy_nf_only !=1)	//far field calculation
-				focallength_ff = (min(abs(ghy_x_max),abs(ghy_x_min))*2)^2/ghy_npeak/2/0.88/gwavelength		// automatically choose propagation distance
+				//focallength_ff = (min(abs(ghy_x_max),abs(ghy_x_min))*2)^2/ghy_npeak/2/0.88/gwavelength		// automatically choose propagation distance
+				focallength_ff = (ghy_x_max-ghy_x_min)^2/ghy_npeak/2/0.88/gwavelength		// automatically choose propagation distance
 				if(ghy_calcType==3)
 					rmsslope = hy_findrmsslopefromheight("wmirror_lx",0)
-					wavestats/q/z wangle_z
-					focallength_ff = min(focallength_ff, (min(abs(ghy_x_max),abs(ghy_x_min))*2)/8/rmsslope/sin(v_avg/1e3))	// make sure the range is enough for big slope error
+					//focallength_ff = min(focallength_ff, (min(abs(ghy_x_max),abs(ghy_x_min))*2)/8/rmsslope/sin(ghy_grazingangle/1e3))	// make sure the range is enough for big slope error
+					focallength_ff = min(focallength_ff, (ghy_x_max-ghy_x_min)/16/rmsslope/sin(ghy_grazingangle/1e3))	// make sure the range is enough for big slope error
 				endif
-				fftsize = min(100*(ghy_x_max-ghy_x_min)^2/gwavelength/focallength_ff/0.88,ghy_fftnpts)		// 100 points within fwhm of the peak
+				if(ghy_calcType==4)		//xshi2017
+					rmsslope = hy_findrmsslopefromheight("wmirror_lx",0)
+					//focallength_ff = min(focallength_ff, (min(abs(ghy_x_max),abs(ghy_x_min))*2)/8/rmsslope/sin(ghy_grazingangle/1e3))	// make sure the range is enough for big slope error
+					focallength_ff = min(focallength_ff, (ghy_x_max-ghy_x_min)/8/rmsslope/(sin(ghy_grazingangle/1e3)+sin(ghy_refangle/1e3)))	// make sure the range is enough for big slope error
+				endif
+				fftsize = scale_factor*min(100*(ghy_x_max-ghy_x_min)^2/gwavelength/focallength_ff/0.88,ghy_fftnpts)		// 100 points within fwhm of the peak
 				make/C/O/N=(fftsize) wplane
-				SetScale/I x, ghy_x_min,ghy_x_max,"", wplane
+				SetScale/I x, ghy_x_min-(ghy_x_max-ghy_x_min)*(scale_factor-1)/2,ghy_x_max+(ghy_x_max-ghy_x_min)*(scale_factor-1)/2,"", wplane	//xshi Dec19
 				wplane=cmplx(1,0)									//plane wave
-				wplane*=sqrt(wIray_x(x))								//intensity scaling of the plane wave
+				If(scale_factor ==1)	//xshi Dec19
+					wplane*=sqrt(wIray_x(x))								//intensity scaling of the plane wave
+				endif
 				wplane*=Exp(cmplx(0,-1)*gknum*(x^2/focallength_ff)/2)		//sperical wave converging to the focal plane
 				If(ghy_calcType==3)
 					wplane*=Exp(cmplx(0,-1)*4*pi/gwavelength*sin(wangle_x(x)/1e3)*wmirror_lx(wlx(x)))	//add phase shift from mirror figure error 
+				endif
+				If(ghy_calcType==4)		//xshi2017
+					wplane*=Exp(cmplx(0,-1)*2*pi/gwavelength*(sin(wangle_x(x)/1e3)+sin(wangle_ref_x(x)/1e3))*wmirror_lx(wlx(x)))	//add phase shift from mirror figure error 
 				endif
 				FFT/OUT=1/dest=wplane_fft wplane
 				Duplicate/O/C wplane_fft mop
@@ -596,14 +626,19 @@ Function hy_prop()
 				setscale/I x, -(imagenpts-1)/2*dimdelta(inten,0)/focallength_ff,(imagenpts-1)/2*dimdelta(inten,0)/focallength_ff,  dif_xp
 			endif
 			If((ghy_nf==1&&ghy_calctype>1)||ghy_nf_only==1)		// near field calculation
-				fftsize = min(100*(ghy_x_max-ghy_x_min)^2/gwavelength/ghy_focallength/0.88,ghy_fftnpts)		// 100 points within fwhm of the peak
+				fftsize = scale_factor* min(100*(ghy_x_max-ghy_x_min)^2/gwavelength/ghy_focallength/0.88,ghy_fftnpts)		// 100 points within fwhm of the peak
 				make/C/O/N=(fftsize) wplane
-				SetScale/I x, ghy_x_min,ghy_x_max,"", wplane
+				SetScale/I x, ghy_x_min-(ghy_x_max-ghy_x_min)*(scale_factor-1)/2,ghy_x_max+(ghy_x_max-ghy_x_min)*(scale_factor-1)/2,"", wplane	//xshi Dec19
 				wplane=cmplx(1,0)									//plane wave
-				wplane*=sqrt(wIray_x(x))								//intensity scaling of the plane wave
+				If(scale_factor ==1)	//xshi Dec19
+					wplane*=sqrt(wIray_x(x))								//intensity scaling of the plane wave
+				endif
 				wplane*=Exp(cmplx(0,-1)*gknum*(x^2/ghy_focallength)/2)	//sperical wave converging to the focal plane
 				If(ghy_calcType==3)
 					wplane*=Exp(cmplx(0,-1)*4*pi/gwavelength*sin(wangle_x(x)/1e3)*wmirror_lx(wlx(x)))	//add phase shift from mirror figure error 
+				endif
+				If(ghy_calcType==4)	//xshi2017
+					wplane*=Exp(cmplx(0,-1)*2*pi/gwavelength*(sin(wangle_x(x)/1e3)+sin(wangle_ref_x(x)/1e3))*wmirror_lx(wlx(x)))	//add phase shift from mirror figure error 
 				endif
 				FFT/OUT=1/dest=wplane_fft wplane
 				Duplicate/O/C wplane_fft mop
@@ -615,8 +650,11 @@ Function hy_prop()
 				imagesize = max(imagesize,2*abs((ghy_x_max-ghy_x_min)*(ghy_distance-ghy_focallength))/ghy_focallength)
 				If(ghy_calcType==3)
 					rmsslope = hy_findrmsslopefromheight("wmirror_lx",0)
-					wavestats/q/z wangle_z
-					imagesize = max(imagesize,16*rmsslope*ghy_focallength*sin(v_avg/1e3))	//in case of big slope error
+					imagesize = max(imagesize,16*rmsslope*ghy_focallength*sin(ghy_grazingangle/1e3))	//in case of big slope error
+				endif
+				If(ghy_calcType==4)	//xshi2017
+					rmsslope = hy_findrmsslopefromheight("wmirror_lx",0)
+					imagesize = max(imagesize,8*rmsslope*ghy_focallength*(sin(ghy_grazingangle/1e3)+sin(ghy_refangle/1e3)))	//in case of big slope error
 				endif
 				imagenpts = round(imagesize/dimdelta(inten,0)/2)*2+1
 				Make/O/N=(imagenpts) dif_x		//diffraction profile
@@ -626,19 +664,26 @@ Function hy_prop()
 			break
 		case 2: //1d calculation in z direction
 			if(ghy_nf_only !=1)	//far field calculation
-				focallength_ff = (min(abs(ghy_z_max),abs(ghy_z_min))*2)^2/ghy_npeak/2/0.88/gwavelength		// automatically choose propagation distance
-				if(ghy_calcType==3)
+				//focallength_ff = (min(abs(ghy_z_max),abs(ghy_z_min))*2)^2/ghy_npeak/2/0.88/gwavelength		// automatically choose propagation distance
+				focallength_ff = (ghy_z_max-ghy_z_min)^2/ghy_npeak/2/0.88/gwavelength		// automatically choose propagation distance
+				if((ghy_calcType==3)||(ghy_calcType==4))		//xshi2017
 					rmsslope = hy_findrmsslopefromheight("wmirror_lz",0)
-					focallength_ff = min(focallength_ff, (min(abs(ghy_z_max),abs(ghy_z_min))*2)/16/rmsslope)		// make sure the range is enough for big slope error
+					//focallength_ff = min(focallength_ff, (min(abs(ghy_z_max),abs(ghy_z_min))*2)/16/rmsslope)		// make sure the range is enough for big slope error
+					focallength_ff = min(focallength_ff, (ghy_z_max-ghy_z_min)/16/rmsslope)		// make sure the range is enough for big slope error
 				endif
-				fftsize = min(100*(ghy_z_max-ghy_z_min)^2/gwavelength/focallength_ff/0.88,ghy_fftnpts)		// 100 points within fwhm of the peak
+				fftsize = scale_factor* min(100*(ghy_z_max-ghy_z_min)^2/gwavelength/focallength_ff/0.88,ghy_fftnpts)		// 100 points within fwhm of the peak
 				make/C/O/N=(fftsize) wplane
-				SetScale/I x, ghy_z_min,ghy_z_max,"", wplane
+				SetScale/I x, ghy_z_min-(ghy_z_max-ghy_z_min)*(scale_factor-1)/2,ghy_z_max+(ghy_z_max-ghy_z_min)*(scale_factor-1)/2,"", wplane	//xshi Dec19
 				wplane=cmplx(1,0)									//plane wave
-				wplane*=sqrt(wIray_z(x))								//intensity scaling of the plane wave
+				If(scale_factor ==1)	//xshi Dec19
+					wplane*=sqrt(wIray_z(x))								//intensity scaling of the plane wave
+				endif
 				wplane*=Exp(cmplx(0,-1)*gknum*(x^2/focallength_ff)/2)		//sperical wave converging to the focal plane
 				If(ghy_calcType==3)
 					wplane*=Exp(cmplx(0,-1)*4*pi/gwavelength*sin(wangle_z(x)/1e3)*wmirror_lz(wlz(x)))	//add phase shift from mirror figure error 
+				endif
+				If(ghy_calcType==4)		//xshi2017
+					wplane*=Exp(cmplx(0,-1)*2*pi/gwavelength*(sin(wangle_z(x)/1e3)+sin(wangle_ref_z(x)/1e3))*wmirror_lz(wlz(x)))	//add phase shift from mirror figure error 
 				endif
 				FFT/OUT=1/dest=wplane_fft wplane
 				Duplicate/O/C wplane_fft mop
@@ -654,14 +699,19 @@ Function hy_prop()
 				setscale/I x, -(imagenpts-1)/2*dimdelta(inten,0)/focallength_ff,(imagenpts-1)/2*dimdelta(inten,0)/focallength_ff,  dif_zp
 			endif
 			If((ghy_nf==1&&ghy_calctype>1)||ghy_nf_only==1)				// near field calculation
-				fftsize = min(100*(ghy_z_max-ghy_z_min)^2/gwavelength/ghy_focallength/0.88,ghy_fftnpts)		// 100 points within fwhm of the peak
+				fftsize =  scale_factor*min(100*(ghy_z_max-ghy_z_min)^2/gwavelength/ghy_focallength/0.88,ghy_fftnpts)		// 100 points within fwhm of the peak
 				make/C/O/N=(fftsize) wplane
-				SetScale/I x, ghy_z_min,ghy_z_max,"", wplane
+				SetScale/I x, ghy_z_min-(ghy_z_max-ghy_z_min)*(scale_factor-1)/2,ghy_z_max+(ghy_z_max-ghy_z_min)*(scale_factor-1)/2,"", wplane	//xshi Dec19
 				wplane=cmplx(1,0)									//plane wave
-				wplane*=sqrt(wIray_z(x))								//intensity scaling of the plane wave
+				If(scale_factor ==1)	//xshi Dec19
+					wplane*=sqrt(wIray_z(x))								//intensity scaling of the plane wave
+				endif
 				wplane*=Exp(cmplx(0,-1)*gknum*(x^2/ghy_focallength)/2)	//sperical wave converging to the focal plane
 				If(ghy_calcType==3)
 					wplane*=Exp(cmplx(0,-1)*4*pi/gwavelength*sin(wangle_z(x)/1e3)*wmirror_lz(wlz(x)))	//add phase shift from mirror figure error 
+				endif
+				If(ghy_calcType==4)		//xshi2017
+					wplane*=Exp(cmplx(0,-1)*2*pi/gwavelength*(sin(wangle_z(x)/1e3)+sin(wangle_ref_z(x)/1e3))*wmirror_lz(wlz(x)))	//add phase shift from mirror figure error 
 				endif
 				FFT/OUT=1/dest=wplane_fft wplane
 				Duplicate/O/C wplane_fft mop
@@ -671,7 +721,7 @@ Function hy_prop()
 				setscale/P x, dimoffset(wplane,0),dimdelta(wplane,0),inten
 				imagesize = (ghy_npeak*2*0.88*gwavelength*ghy_focallength/abs(ghy_z_max-ghy_z_min))	// ghy_npeak in the wavefront propagation image
 				imagesize = max(imagesize,2*abs((ghy_z_max-ghy_z_min)*(ghy_distance-ghy_focallength))/ghy_focallength)
-				If(ghy_calcType==3)
+				If((ghy_calcType==3)||(ghy_calcType==4))
 					rmsslope = hy_findrmsslopefromheight("wmirror_lz",0)
 					imagesize = max(imagesize,16*rmsslope*ghy_focallength)	//in case of big slope error
 				endif
@@ -709,7 +759,8 @@ Function hy_prop()
 			break
 		case 3:	//2d calculation
 			If(ghy_nf_only!=1)		//far field calculation
-				focallength_ff = (min(min(abs(ghy_z_max),abs(ghy_z_min)),min(abs(ghy_x_max),abs(ghy_x_min)))*2)^2/ghy_npeak/2/0.88/gwavelength	// automatically choose propagation distance
+				//focallength_ff = (min(min(abs(ghy_z_max),abs(ghy_z_min)),min(abs(ghy_x_max),abs(ghy_x_min)))*2)^2/ghy_npeak/2/0.88/gwavelength	// automatically choose propagation distance
+				focallength_ff = (min((ghy_z_max-ghy_z_min),(ghy_x_max-ghy_x_min)))^2/ghy_npeak/2/0.88/gwavelength	// automatically choose propagation distance
 				fftsize_x = min(20*(ghy_x_max-ghy_x_min)^2/gwavelength/focallength_ff/0.88,ghy_fftnpts)		// 20 points within fwhm of the peak
 				fftsize_z = min(20*(ghy_z_max-ghy_z_min)^2/gwavelength/focallength_ff/0.88,ghy_fftnpts)		// 20 points within fwhm of the peak		
 				make/C/O/N=(fftsize_x,fftsize_z) wplane
@@ -725,6 +776,11 @@ Function hy_prop()
 					hy_mirror_project(wmirror,wlz,wplane)	//assuming wlx is linear with a slope of 1, so don't need to rescale the axis.
 					wave wmirror_projected
 					wplane*=Exp(cmplx(0,-1)*4*pi/gwavelength*sin(wangle_z(x)/1e3)*wmirror_projected)	//add phase shift from mirror figure error,  angle variation in meridinal direcion only
+				endif
+				If(ghy_calcType==4)		//xshi2017
+					hy_mirror_project(wmirror,wlz,wplane)	//assuming wlx is linear with a slope of 1, so don't need to rescale the axis.
+					wave wmirror_projected
+					wplane*=Exp(cmplx(0,-1)*2*pi/gwavelength*(sin(wangle_z(x)/1e3)+sin(wangle_ref_z(x)/1e3))*wmirror_projected)	//add phase shift from mirror figure error,  angle variation in meridinal direcion only
 				endif
 				FFT/OUT=1/dest=wplane_fft wplane
 				Duplicate/O/C wplane_fft mop
@@ -808,10 +864,10 @@ End
 
 //Perform ray resampling
 Function hy_conv()
-	NVAR ghy_diff_plane,ghy_calcType,ghy_focallength,ghy_distance,ghy_npeak,ghy_nf
-	NVAR ghy_range_x,ghy_range_z,ghy_nncon_x,ghy_nncon_z	
-	wave xx_screen,zz_screen,xp_screen,yp_screen,zp_screen,ref_screen,xx_focal_ray, zz_focal_ray
-	wave dif_xp,dif_x,dif_zp,dif_z,dif_xz,dif_xpzp,dx_ray,dz_ray
+	NVAR/Z ghy_diff_plane,ghy_calcType,ghy_focallength,ghy_distance,ghy_npeak,ghy_nf
+	NVAR/Z ghy_range_x,ghy_range_z,ghy_nncon_x,ghy_nncon_z	
+	wave/Z xx_screen,zz_screen,xp_screen,yp_screen,zp_screen,ref_screen,xx_focal_ray, zz_focal_ray
+	wave/Z dif_xp,dif_x,dif_zp,dif_z,dif_xz,dif_xpzp,dx_ray,dz_ray
 	variable nbins
 	nbins = ghy_npeak*20+1			//at least 10 bins in each peak
 	switch(ghy_diff_plane)												
@@ -851,10 +907,12 @@ Function hy_conv()
 			wave pos_dif
 			duplicate/O pos_dif dz_wave
 			dz_wave = atan(pos_dif)		// calculate dz from tan(dz)
+			
 			duplicate/O dz_ray, dz_conv
 			dz_conv += dz_wave			// add the ray divergence kicks
 			duplicate/O zz_screen zz_image_ff
 			zz_image_ff += ghy_distance*tan(dz_conv)		//ray tracing to the image plane
+			
 			If(ghy_range_z<0||ghy_nncon_z<2)
 				sh_1dhist(nbins,"zz_image_ff",1,5,1,0,0,"ref_screen")
 			else
@@ -904,9 +962,9 @@ End
 //save shadow files for the future raytracing
 Function hy_savefiles(hy_input_savefiles) : ButtonControl
 	String hy_input_savefiles
-	NVAR ghy_n_oe,ghy_n_screen,ghy_diff_plane,ghy_calcType,ghy_distance
+	NVAR/Z ghy_n_oe,ghy_n_screen,ghy_diff_plane,ghy_calcType,ghy_distance
 	SVAR ghy_path
-	wave shscreen,shstar, xx_screen,zz_screen,xp_screen,yp_screen,zp_screen, dx_conv,dz_conv,xx_image_ff,zz_image_ff,xx_image_nf,zz_image_nf
+	wave/Z shscreen,shstar, xx_screen,zz_screen,xp_screen,yp_screen,zp_screen, dx_conv,dz_conv,xx_image_ff,zz_image_ff,xx_image_nf,zz_image_nf
 	string str_n_oe,str_n_screen, fscreen_hybrid, fstar_hybrid, fstar_hybrid_nf
 	str_n_oe = num2str(ghy_n_oe)
 	If(ghy_n_oe<10)
@@ -988,24 +1046,27 @@ End
 //Slope error study for mirrors, 1d only
 Function hy_sestudy(hy_input_sestudy) : ButtonControl
 	String hy_input_sestudy
-	NVAR ghy_calcType,ghy_nf_only,ghy_nf,ghy_diff_plane,ghy_lengthunit,ghy_range_x,ghy_range_z,ghy_nncon_x,ghy_nncon_z
-	wave xx_image_ff_histo,zz_image_ff_histo,xx_image_nf_histo,zz_image_nf_histo
-	variable newse,ffornf,error_type,slope_del, slope_min, slope_max
-	If(ghy_calcType!= 3)
+	NVAR/Z ghy_calcType,ghy_nf_only,ghy_nf,ghy_diff_plane,ghy_lengthunit,ghy_range_x,ghy_range_z,ghy_nncon_x,ghy_nncon_z
+	wave/Z xx_image_ff_histo,zz_image_ff_histo,xx_image_nf_histo,zz_image_nf_histo
+	variable newse,ffornf,error_type,slope_del, slope_min, slope_max, plotornot
+	If(ghy_calcType<3)
 		abort "Need to run hybrid with figure error once"
 	endif
 	newse = 0
 	ffornf = 0
 	slope_min = 0
-	slope_max =1
-	slope_del = 0.1
+	slope_max =10
+	slope_del = 0.5
+	error_type=1
+	plotornot = 2
 	Prompt newse, "New mirror surface?", popup, "No;Yes"	
 	Prompt ffornf, "Calculation mode:", popup, "Far-field;Near-field;Both"
 	Prompt error_type, "Figure error type", popup,"Slope;Height"
 	Prompt slope_min, "Minimum error (urad or nm):"
 	Prompt slope_max, "Maxinum error (urad or nm)"
 	Prompt slope_del, "Step size (urad or nm)"
-	DoPrompt "Slope error study", newse,ffornf, error_type, slope_min, slope_max,slope_del
+	Prompt plotornot,"Plot results", popup,"Yes;No"
+	DoPrompt "Slope error study", newse,ffornf, error_type, slope_min, slope_max,slope_del,plotornot
 	if (V_flag==1)
 		return 0
 	endif
@@ -1047,16 +1108,19 @@ Function hy_sestudy(hy_input_sestudy) : ButtonControl
 		variable freq_min = 1
 		variable freq_max = 100
 		Variable RandomSeed	=0.1
+		Variable slo1 = -3.0
+		prompt slo1, "log(PSD) vs log(f) slope, default:-3" 
 		Prompt mirrorlength, "Mirror length ("+StringFromList(ghy_lengthunit-1, "cm;mm")+")"
 		Prompt mirror_npts, "Number of points"
 		Prompt freq_min, "Lowest frequency (>=1)"
 		Prompt freq_max, "Highest frequency"
 		Prompt RandomSeed, "Random seed between 0 and 1"
-		doPrompt "Create mirror in y, flat in x", mirrorlength, mirror_npts, freq_min, freq_max, RandomSeed
+		doPrompt "Create mirror in y, flat in x", slo1, mirrorlength, mirror_npts, freq_min, freq_max, RandomSeed
 		if (V_Flag)
 			return -1								// User canceled
 		endif
-		hy_CreateSurfaceFile_range("mirror_tmp",mirror_npts,mirrorlength/mirror_npts,freq_min,freq_max,randomseed)
+		//hy_CreateSurfaceFile_range("mirror_tmp",mirror_npts,mirrorlength/mirror_npts,freq_min,freq_max,randomseed)
+		hy_CreateSurfaceFile_range_new("mirror_tmp","he",1e-6,slo1,mirror_npts,mirrorlength/mirror_npts,freq_min,freq_max,randomseed)
 		wave mirror_tmp
 		If(ghy_diff_plane == 1)
 			Duplicate/O mirror_tmp wmirror_lx
@@ -1094,15 +1158,15 @@ Function hy_sestudy(hy_input_sestudy) : ButtonControl
 			break
 	endswitch
 	If(ffornf==1 || ffornf==3)	
-		make/O/N=(nn) sig_ff, peakint_ff,fwhm_ff
-		setscale/P x, slope_min, slope_del,"",sig_ff, peakint_ff,fwhm_ff
+		make/O/N=(nn) sig_ff, centersig_ff, peak_ff, peakint_ff,fwhm_ff
+		setscale/P x, slope_min, slope_del,"",sig_ff,centersig_ff, peak_ff, peakint_ff,fwhm_ff
 		make/O/N=(nncon,nn) slopeall_ff
 		setscale/P y, slope_min, slope_del,"",slopeall_ff
 		setscale/I x, -halfrange_ff, halfrange_ff,"",slopeall_ff
 	endif
 	If(ffornf==2 || ffornf==3)
-		make/O/N=(nn) sig_nf, peakint_nf,fwhm_nf
-		setscale/P x, slope_min, slope_del,"",sig_nf, peakint_nf,fwhm_nf
+		make/O/N=(nn) sig_nf, centersig_nf, peak_nf, peakint_nf,fwhm_nf
+		setscale/P x, slope_min, slope_del,"",sig_nf, centersig_nf, peak_nf, peakint_nf,fwhm_nf
 		make/O/N=(nncon,nn) slopeall_nf
 		setscale/P y, slope_min, slope_del,"",slopeall_nf
 		setscale/I x, -halfrange_nf, halfrange_nf,"",slopeall_nf	
@@ -1155,18 +1219,22 @@ Function hy_sestudy(hy_input_sestudy) : ButtonControl
 					sig_ff[i]= hy_GetStanDev("xx_image_ff_histo",-inf,inf)
 					fwhm_ff[i] = sh_FindFWHM("xx_image_ff_histo")
 					wavestats/q xx_image_ff_histo
+					peak_ff[i] = v_max
 					peakleft = dimoffset(xx_image_ff_histo,0)+dimdelta(xx_image_ff_histo,0)*v_maxRowloc-fwhm_ff[0]
 					peakright = dimoffset(xx_image_ff_histo,0)+dimdelta(xx_image_ff_histo,0)*v_maxRowloc+fwhm_ff[0]
-					peakint_ff[i] =  sum(xx_image_ff_histo,peakleft,peakright)/sum(ref_screen)	
+					peakint_ff[i] =  sum(xx_image_ff_histo,peakleft,peakright)/sum(ref_screen)
+					centersig_ff[i] = hy_GetStanDev("xx_image_ff_histo",-2*fwhm_ff[0],2*fwhm_ff[0])	
 					slopeall_ff[][i]=xx_image_ff_histo(x)
 			endif
 			if(ffornf==2 || ffornf==3)
 					sig_nf[i]= hy_GetStanDev("xx_image_nf_histo",-inf,inf)
 					fwhm_nf[i] = sh_FindFWHM("xx_image_nf_histo")
 					wavestats/q xx_image_nf_histo
+					peak_nf[i] = v_max
 					peakleft = dimoffset(xx_image_nf_histo,0)+dimdelta(xx_image_nf_histo,0)*v_maxRowloc-fwhm_nf[0]
 					peakright = dimoffset(xx_image_nf_histo,0)+dimdelta(xx_image_nf_histo,0)*v_maxRowloc+fwhm_nf[0]
-					peakint_nf[i] =  sum(xx_image_nf_histo,peakleft,peakright)/sum(ref_screen)	
+					peakint_nf[i] =  sum(xx_image_nf_histo,peakleft,peakright)/sum(ref_screen)
+					centersig_nf[i]= hy_GetStanDev("xx_image_nf_histo",-2*fwhm_nf[0],2*fwhm_nf[0])	
 					slopeall_nf[][i]=xx_image_nf_histo(x)
 			endif	
 		elseif(ghy_diff_plane == 2)
@@ -1174,18 +1242,22 @@ Function hy_sestudy(hy_input_sestudy) : ButtonControl
 					sig_ff[i]= hy_GetStanDev("zz_image_ff_histo",-inf,inf)
 					fwhm_ff[i] = sh_FindFWHM("zz_image_ff_histo")
 					wavestats/q zz_image_ff_histo
+					peak_ff[i] = v_max
 					peakleft = dimoffset(zz_image_ff_histo,0)+dimdelta(zz_image_ff_histo,0)*v_maxRowloc-fwhm_ff[0]
 					peakright = dimoffset(zz_image_ff_histo,0)+dimdelta(zz_image_ff_histo,0)*v_maxRowloc+fwhm_ff[0]
-					peakint_ff[i] =  sum(zz_image_ff_histo,peakleft,peakright)/sum(ref_screen)	
+					peakint_ff[i] =  sum(zz_image_ff_histo,peakleft,peakright)/sum(ref_screen)
+					centersig_ff[i] = hy_GetStanDev("zz_image_ff_histo",-2*fwhm_ff[0],2*fwhm_ff[0])	
 					slopeall_ff[][i]=zz_image_ff_histo(x)
 			endif
 			If(ffornf==2 || ffornf==3)
 					sig_nf[i]= hy_GetStanDev("zz_image_nf_histo",-inf,inf)
 					fwhm_nf[i] = sh_FindFWHM("zz_image_nf_histo")
 					wavestats/q zz_image_nf_histo
+					peak_nf[i] = v_max
 					peakleft = dimoffset(zz_image_nf_histo,0)+dimdelta(zz_image_nf_histo,0)*v_maxRowloc-fwhm_nf[0]
 					peakright = dimoffset(zz_image_nf_histo,0)+dimdelta(zz_image_nf_histo,0)*v_maxRowloc+fwhm_nf[0]
-					peakint_nf[i] =  sum(zz_image_nf_histo,peakleft,peakright)/sum(ref_screen)	
+					peakint_nf[i] =  sum(zz_image_nf_histo,peakleft,peakright)/sum(ref_screen)
+					centersig_nf[i]= hy_GetStanDev("zz_image_nf_histo",-2*fwhm_nf[0],2*fwhm_nf[0])		
 					slopeall_nf[][i]=zz_image_nf_histo(x)
 			endif				
 		endif
@@ -1203,7 +1275,7 @@ Function hy_sestudy(hy_input_sestudy) : ButtonControl
 		endif
 	endfor
 	Killwindow ProgressPanel
-	If(ffornf==1 || ffornf==3)	
+	If(plotornot==1&&(ffornf==1 || ffornf==3))	
 		NewWaterfall/N=hyplot slopeall_ff
 		ModifyWaterfall angle= 90
 		ModifyWaterfall axlen= 0.7
@@ -1217,7 +1289,7 @@ Function hy_sestudy(hy_input_sestudy) : ButtonControl
 			Label right "Height error (nm)"
 		endif
 	endif
-	If(ffornf==2 || ffornf==3)	
+	If(plotornot==1&&(ffornf==2 || ffornf==3))	
 		NewWaterfall/N=hyplot slopeall_nf
 		ModifyWaterfall angle= 90
 		ModifyWaterfall axlen= 0.7
@@ -1245,8 +1317,8 @@ End
 
 Function hy_longi(hy_input_longi) : ButtonControl
 	String hy_input_longi
-	NVAR ghy_nf_only,ghy_distance,ghy_diff_plane,ghy_range_x,ghy_range_z,ghy_nncon_x,ghy_nncon_z,ghy_nf,ghy_lengthunit
-	wave xx_image_nf_histo,zz_image_nf_histo
+	NVAR/Z ghy_nf_only,ghy_distance,ghy_diff_plane,ghy_range_x,ghy_range_z,ghy_nncon_x,ghy_nncon_z,ghy_nf,ghy_lengthunit
+	wave/Z xx_image_nf_histo,zz_image_nf_histo
 	variable nn = 11			// number of drift points (odd number to have drift 0)
 	variable longi_range = 0.2	// user unit
 	Prompt longi_range, "Propagation distance ("+StringFromList(ghy_lengthunit-1, "cm;mm")+"):"
@@ -1265,7 +1337,7 @@ Function hy_longi(hy_input_longi) : ButtonControl
 		endif
 		make/O/N=(nn,dimsize(xx_image_nf_histo,0)) longiall
 		setscale/I x, -longi_range/2, longi_range/2,"",longiall
-		setscale/P y, -dimoffset(xx_image_nf_histo,0), dimdelta(xx_image_nf_histo,0),"",longiall		
+		setscale/P y, dimoffset(xx_image_nf_histo,0), dimdelta(xx_image_nf_histo,0),"",longiall		
 	elseif(ghy_diff_plane == 2)
 		If(waveexists(zz_image_nf_histo)!=1||ghy_nf!=1)
 			abort "Need to run HYBRID near-field once"
@@ -1346,7 +1418,7 @@ Function hy_cleanup(hy_input_cleanup) : ButtonControl
 	Killwaves/z xx_image_ff,xx_image_ff_histo,xx_wave,xx_image_nf,xx_image_nf_histo
 	Killwaves/z xx_image_ffzz_image_ff,xx_image_ffzz_image_ffx,xx_image_ffzz_image_ffz
 	Killwaves/z wmirror,angle_inc,xx_screen,zz_screen,ref_screen,xx_mirr,yy_mirr,wwavelength,dx_ray,dz_ray
-	Killwaves/z wmirror,wmirror_lx,wmirror_lz,wangle_z,wangle_x,wlz,wlx,wIray_2d,wIray_x,wIray_z
+	Killwaves/z wmirror,wmirror_lx,wmirror_lz,wangle_z,wangle_x,wlz,wlx,wIray_2d,wIray_x,wIray_z,wangle_ref_x,wangle_ref_z
 	Killwaves/z xx_screen,zz_screen,xp_screen,yp_screen,zp_screen,ref_screen,xx_focal_ray, zz_focal_ray
 	Killwaves/z dif_xp,dif_x,dif_zp,dif_z,dif_xz,dif_xpzp,dx_ray,dz_ray
 End
@@ -1356,9 +1428,9 @@ Function/S sh_read_gfile(gfilename)
 	string gfilename
 	Variable refnum
 	If (strlen(gfilename) == 0)
-		open/R/T="????" refnum
+		open/M="Read Shadow start file"/R/T="????" refnum
 	else
-		open/R/T="????" refnum as gfilename
+		open/M="Read Shadow start file"/R/T="????" refnum as gfilename
 	Endif
 	FStatus refnum								// get the file status 
 	If (V_flag == 0)								// When cancel was clicked, V_flag=1				
@@ -1387,16 +1459,16 @@ Function/S sh_readsh(shfilename,flag,shname)
 	    shname="shdata"
 	 endif
 	If (strlen(shfilename) == 0)
-		open/R/T="????" refnum
+		open/M="Load Shadow Binary file"/R/T="????" refnum
 		print "Shadow file loaded: ", S_filename 
 	else
 		If(stringmatch(":",shfilename[strlen(shfilename)-1]) == 1)
 			NewPath/O/Q tmppath, shfilename
-			open/R/P=tmppath/T="????" refnum
+			open/M="Load Shadow Binary file"/R/P=tmppath/T="????" refnum
 			print "Shadow file loaded: ", S_filename 
 			KillPath/Z tmppath		
 		else
-			open/R/T="????" refnum as shfilename
+			open/M="Load Shadow Binary file"/R/T="????" refnum as shfilename
 			print "Shadow file loaded: ", shfileName
 		endif
 	Endif
@@ -1506,14 +1578,14 @@ Function sh_putrays(shfilename,shdata)
 	lastray[][]=shdata[p][header[2]-1]
 	Variable refnum	
 	If (strlen(shfilename) == 0)
-		open/T="BINA" refnum
+		open/M="Save Shadow Binary file"/T="BINA" refnum
 	else
 		If(stringmatch(":",shfilename[strlen(shfilename)-1]) == 1)
 			NewPath/O/Q tmppath, shfilename
-			open/P=tmppath/T="BINA" refnum		
+			open/M="Save Shadow Binary file"/P=tmppath/T="BINA" refnum		
 			KillPath/Z tmppath		
 		else
-			open/T="BINA" refnum as shfilename
+			open/M="Save Shadow Binary file"/T="BINA" refnum as shfilename
 		endif
 	Endif
 	FbinWrite/B=0/F=0 refnum, header		
@@ -1822,23 +1894,65 @@ Function sh_readsurface(filename,outputname)
 		Loadwave/Q/J/N=tmp/L={0,0,0,0,0}/M
 		filename = S_path+S_fileName
 	Endif
+	killwaves/z tmp0
 	Loadwave/Q/J/N=tmp/L={0,0,1,0,2}/M filename
 	print "mirror surface loaded from file:", filename
 	wave tmp0
 	Variable nx = tmp0[0][0]
 	Variable ny = tmp0[0][1]
-	variable i, j
 	make/N=(ny)/O/D yvalues
 	make/N=(nx)/O/D xvalues
 	make/N=(nx,ny)/O/D $outputname
 	wave surface = $outputname
-	Loadwave/D/Q/J/N=tmp/L={0,1,1,0,ny}/M filename
+	Loadwave/D/Q/J/N=tmp/V={"\t "," $",0,1}/L={0,1,1,0,ny}/M filename
 	yvalues = tmp0[0][p]
-	Loadwave/D/Q/J/N=tmp/L={0,2,nx,0,ny+1}/M filename
+	variable i=-1
+	variable blank=-1
+	Do
+		i+=1
+		blank+=1		
+	while(numtype(yvalues[i])==2)
+	If(blank>0)
+		Loadwave/D/Q/J/N=tmp/V={"\t "," $",0,1}/L={0,1,1,blank,ny}/M filename
+		yvalues = tmp0[0][p]
+	endif	
+	Loadwave/D/Q/J/N=tmp/V={"\t "," $",0,1}/L={0,2,nx,blank,ny+1}/M filename
 	xvalues = tmp0[p][0]
 	surface[][]=tmp0[p][q+1]
 	setscale/I x, xvalues[0], xvalues[nx-1], "", surface
 	setscale/I y, yvalues[0], yvalues[ny-1], "", surface
+	killwaves/z tmp0, xvalues, yvalues
+end
+
+Function sh_readsurface_mac(filename,outputname)
+	String filename,outputname
+	If (strlen(filename) == 0)
+		Loadwave/Q/J/N=tmp/L={0,0,0,0,0}/M
+		filename = S_path+S_fileName
+	Endif
+	print filename
+	Loadwave/O/Q/F={2,12,0}/N=tmp/L={0,0,1,0,2}/M filename
+	wave tmp0
+	Variable nx = tmp0[0][0]
+	Variable ny = tmp0[0][1]
+	Variable nrows = 1+ceil(ny/5)+ny*nx
+	Variable ncols = min(5,ny)
+	Loadwave/O/D/Q/F={ncols,16,0}/N=tmp/L={0,0,nrows,0,ncols}/M filename	
+	make/N=(ny)/O/D yvalues
+	make/N=(nx)/O/D xvalues
+	make/N=(nx,ny)/O/D $outputname
+	wave zvalues = $outputname
+	Variable i, j
+	For(i=0;i<ny;i+=1)
+		yvalues[i] = tmp0[1+floor(i/ncols)][mod(i,ncols)]
+	Endfor
+	For(i=0;i<nx;i+=1)
+		xvalues[i] = tmp0[1+ceil(ny/ncols)+i*ny][0]
+		zvalues[i][] =  tmp0[1+ceil(ny/ncols)+i*ny+q][0]
+		zvalues[i][0] =  tmp0[1+ceil(ny/ncols)+i*ny][1]
+	Endfor
+	setscale/I x, xvalues[0], xvalues[nx-1], "", zvalues
+	setscale/I y, yvalues[0], yvalues[ny-1], "", zvalues
 	killwaves/z tmp0, xvalues, yvalues
 end
 
@@ -1853,7 +1967,7 @@ Window sh_gui() : Graph
 	string/G gsh_starfiletypelist="star;star_hybrid"
 	Variable/G gsh_starfiletype = 1
 	PauseUpdate; Silent 1
-	Display/k=1 /W=(360,50,470,440)
+	Display/k=1 /W=(360,50,470,450)
 	Modifygraph gbRGB=(42662,65535,42662)
 	TitleBox sh_input_textbox1,title="Shadow working directory",pos={10,10},frame=0,fsize=14
 	SetVariable sh_input_path,live=1,pos={10,35},size={0,0},bodyWidth=150,fsize=14,title="  ",value=gsh_path
@@ -1876,6 +1990,15 @@ Window sh_gui() : Graph
 	Button sh_input_1dhist,pos={10,420},size={150,20},proc=sh_input_1dhistbutton,title="Histogram 1d"	
 	
 	Button sh_input_closeplots,pos={10,445},size={150,20},proc=sh_input_closeplotsbutton,title="Close plots"	
+	GroupBox sh_input_gb2,pos={0,473},size={190,1},frame=0
+	Button sh_input_spectra_read2d,pos={10,480},size={150,20},proc=sh_input_spectra_read2dbutton,title="Read Spectra output"	
+	Button sh_input_spectra_source,pos={10,505},size={150,20},proc=sh_input_spectra_sourcebutton,title="Rays from Spectra"
+	Button sh_input_shifted_und,pos={10,530},size={150,20},proc=sh_input_shifted_undbutton,title="Rays for shifted undulator"	
+	GroupBox sh_input_gb3,pos={0,558},size={190,1},frame=0		
+//	Button readwavinessdata,pos={10,565},size={150,20},proc=readwavinessdatabutton,title="Read surface profile"
+//	Button writewavinessdata,pos={10,590},size={150,20},proc=writewavinessdatabutton,title="Write 2d surface profile"
+//	Button writewavinessdata1d,pos={10,615},size={150,20},proc=writewavinessdata1dbutton,title="Write 1d surface profile"
+
 EndMacro
 
 Function sh_updateflag(ctrlName,popNum,popStr) : PopupMenuControl
@@ -2106,7 +2229,6 @@ Function sh_1dhist(numBinx,navex,iFlag,other,histo,minX,maxX,naves)
 	endif
 
 	String NewWavex=navex+"_histo"
-	wave WewWavex=$NewWavex		//Histogram on x
 	Make/O/D/N=(numBinx)  $NewWavex
 	wave WewWavex=$NewWavex
 	WewWavex=0
@@ -2252,8 +2374,6 @@ Function sh_2dhist(numBinx,numBinz,navex,navez,iFlag,other,histo,minX,maxX,minZ,
 	WewWave=0
 	String NewWavex=NewWave+"x"
 	String NewWavez=NewWave+"z"
-	wave WewWavex=$NewWavex		//Histogram on x
-	wave WewWavez=$NewWavez		//Histogram on z
 	Make/O/D/N=(numBinx)  $NewWavex
 	Make/O/D/N=(numBinz)  $NewWavez
 	wave WewWavex=$NewWavex
@@ -2434,6 +2554,7 @@ function hy_mirror_project(wmirror,wlz,wplane)
 	killwaves/z wmirror_trans, oneline_z, oneline_l
 end
 
+
 Function hy_CreateCDF1D(wName)
 //Create sampling from 2d wave
 	String wName
@@ -2488,6 +2609,206 @@ Function hy_GetOnePoint1D(Reset)
 	while(NumType(resu) == 2)			// avoid NAN
 	return resu
 end 
+
+//generate begin.dat file from SPECTRA source size and divergence distribution
+Function sh_input_spectra_sourcebutton(sh_input_spectra_source) : ButtonControl
+	String sh_input_spectra_source
+	string name_spec_size,name_spec_div
+	Prompt name_spec_size, "Source size distribution", popup, wavelist("*",";","DIMS:2")
+	Prompt name_spec_div, "Source divergence distribution", popup, wavelist("*",";","DIMS:2")
+	DoPrompt "Select waves loaded from Spectra", name_spec_size,name_spec_div
+	if (V_Flag)
+		return -1								// User canceled
+	endif
+	wave spec_size = $name_spec_size
+	wave spec_div = $name_spec_div
+	Duplicate/O spec_size root:size_tmp
+	Duplicate/O spec_div root:div_tmp
+	SetDataFolder root:
+	wave size_tmp,div_tmp
+	SVAR gsh_path
+	NVAR gsh_flag
+	sh_readsh(gsh_path,gsh_flag,"begintmp")
+	wave begintmp
+	//spectra export angle in the unit of mrad, need to change to rad before convoluting with shadow
+	setscale/P x, dimoffset(div_tmp,0)*1e-3,dimdelta(div_tmp,0)*1e-3,div_tmp
+	setscale/P y, dimoffset(div_tmp,1)*1e-3,dimdelta(div_tmp,1)*1e-3,div_tmp
+	sh_spectra_source("size_tmp","div_tmp",begintmp)
+	sh_putrays(gsh_path,begintmp)
+	killwaves/z size_tmp,div_tmp,begintmp
+End
+
+//generate begin.dat file from SPECTRA source size and divergence distribution
+Function sh_spectra_source(name_spec_size,name_spec_div,shdata)
+	string name_spec_size, name_spec_div
+	wave shdata
+	sh_getshcol(shdata,1, 0,"onecol")	
+	wave onecol
+	hy_CreateCDF2D(name_spec_size)
+	hy_MakeDist2D("onecol")
+	wave xdiv, zdiv
+	shdata[0][]=xdiv[q]
+	shdata[2][]=zdiv[q]
+	hy_CreateCDF2D(name_spec_div)
+	hy_MakeDist2D("onecol")
+	duplicate/O xdiv stan
+	stan = 1/sqrt(1+tan(xdiv)*tan(xdiv)+tan(zdiv)*tan(zdiv))	
+	shdata[3][]=tan(xdiv[q])*stan[q]
+	shdata[4][]=stan[q]
+	shdata[5][]=tan(zdiv[q])*stan[q]
+	killwaves/z onecol,mdist,resu,forver,forhor,zdiv,xdiv,stan
+end
+
+//function to read spectra output
+Function sh_input_spectra_read2dbutton(sh_input_spectra_read2d) : ButtonControl
+	String sh_input_spectra_read2d
+	sh_spectra_read2d("")
+End
+
+Function sh_spectra_read2d(filename)
+	string filename
+	If (strlen(filename) == 0)
+		LoadWave/Q/G/O/D/L={0,0,0,0,3}/N=sptmp
+	else
+		If(stringmatch(":",filename[strlen(filename)-1]) == 1)
+			NewPath/O/Q tmppath, filename
+			LoadWave/Q/P=tmppath/G/O/D/L={0,0,0,0,3}/N=sptmp
+			print "Spectra file loaded: ", S_path,S_filename 
+			KillPath/Z tmppath		
+		else
+			LoadWave/Q/G/O/D/L={0,0,0,0,3}/N=sptmp filename
+			print "Spectra file loaded: ", filename 
+		endif
+	Endif
+	if (V_Flag==0)
+		abort							// User canceled
+	endif
+	string outputname = s_filename[0,strlen(s_filename)-5]
+	wave sptmp0,sptmp1,sptmp2
+	variable i=0
+	do
+		i+=1
+	while(sptmp1[i+1]==sptmp1[i])
+	Redimension/N=(i+1,dimsize(sptmp2,0)/(i+1)) sptmp2
+	wavestats/q/z sptmp0
+	setscale/I x,v_min,v_max, sptmp2
+	wavestats/q/z sptmp1
+	setscale/I y,v_min,v_max, sptmp2
+	Duplicate/O/D sptmp2 $outputname
+	killwaves/z  sptmp0,sptmp1,sptmp2
+End
+
+//Generate rays for longitudinally shifted undulator
+Function sh_input_shifted_undbutton(sh_input_shifted_und) : ButtonControl
+	String  sh_input_shifted_und
+	string name_spec_size,name_spec_div
+	Prompt name_spec_size, "Source size distribution", popup, wavelist("*",";","DIMS:2")
+	Prompt name_spec_div, "Source divergence distribution", popup, wavelist("*",";","DIMS:2")
+	DoPrompt "Select waves loaded from Spectra", name_spec_size,name_spec_div
+	if (V_Flag)
+		return -1								// User canceled
+	endif
+	wave spec_size = $name_spec_size
+	wave spec_div = $name_spec_div
+	Duplicate/O spec_size root:size_tmp
+	Duplicate/O spec_div root:div_tmp
+	SetDataFolder root:
+	wave size_tmp,div_tmp
+	SVAR gsh_path
+	NVAR gsh_flag
+	sh_readsh(gsh_path,gsh_flag,"begintmp")
+	wave begintmp
+	//spectra export angle in the unit of mrad, need to change to rad before convoluting with shadow
+	setscale/P x, dimoffset(div_tmp,0)*1e-3,dimdelta(div_tmp,0)*1e-3,div_tmp
+	setscale/P y, dimoffset(div_tmp,1)*1e-3,dimdelta(div_tmp,1)*1e-3,div_tmp
+	sh_shifted_und(begintmp,"size_tmp","div_tmp",0,0,0,0,0,0)
+	killwaves/z size_tmp,div_tmp
+	sh_putrays(gsh_path,begintmp)
+	killwaves/z begintmp
+End
+
+Function sh_shifted_und(shdata,name_spec_size,name_spec_div,esigx,esigz,esigxp,esigzp,longshift,observepoint)
+	wave shdata
+	string name_spec_size,name_spec_div
+	variable esigx,esigz,esigxp,esigzp,longshift,observepoint
+	Prompt name_spec_size, "photon size distribution (single e)", popup, wavelist("*",";","DIMS:2")
+	Prompt name_spec_div, "photon divergence distribution (single e)", popup, wavelist("*",";","DIMS:2")
+	Prompt esigx, "Electron beam size in x (user unit)"
+	Prompt esigz, "Electron beam size in z (user unit)"
+	Prompt esigxp, "Electron beam divergence (rad) in x"
+	Prompt esigzp, "Electron beam divergence (rad) in z"	
+	Prompt longshift, "Und center to e center (user unit)"
+	Prompt observepoint, "Observe position to e center (user unit)"
+	If(strlen(name_spec_size)==0)
+		If(esigx<=0)
+			DoPrompt "Input parameters",name_spec_size,name_spec_div,esigx,esigz,esigxp,esigzp,longshift,observepoint
+		else
+			DoPrompt "Input parameters",name_spec_size,name_spec_div
+		endif
+	else
+		If(esigx<=0)
+			DoPrompt "Input parameters",esigx,esigz,esigxp,esigzp,longshift,observepoint
+		endif
+	endif
+	//generate rays follow single electron radiation distribution
+	sh_getshcol(shdata,1, 0,"onecol")	
+	wave onecol
+	hy_CreateCDF2D(name_spec_div)
+	hy_MakeDist2D("onecol")
+	wave xdiv, zdiv
+	duplicate/O xdiv xdiv_1
+	duplicate/O zdiv zdiv_1
+	
+	hy_CreateCDF2D(name_spec_size)
+	hy_MakeDist2D("onecol")
+	duplicate/O xdiv xsize_1
+	duplicate/O zdiv zsize_1
+	xsize_1 = xdiv+tan(xdiv_1)*(observepoint-longshift)
+	zsize_1 = zdiv+tan(zdiv_1)*(observepoint-longshift)
+
+	//generate rays from electron beam distribution
+	make/N=(501,501)/D/O egaus_size, egaus_div
+	setscale/I x,-esigx*5,esigx*5,egaus_size
+	setscale/I y,-esigz*5,esigz*5,egaus_size
+	setscale/I x,-esigxp*5,esigxp*5,egaus_div
+	setscale/I y,-esigzp*5,esigzp*5,egaus_div
+	if(esigx==0)
+		egaus_size=exp(-y^2/2/esigz^2)
+	elseif (esigz==0)
+		egaus_size=exp(-x^2/2/esigx^2)
+	else 	
+		egaus_size=exp(-x^2/2/esigx^2)*exp(-y^2/2/esigz^2)
+	endif
+	if(esigxp==0)
+		egaus_div=exp(-y^2/2/esigzp^2)
+	elseif (esigzp==0)
+		egaus_div=exp(-x^2/2/esigxp^2)
+	else 	
+		egaus_div=exp(-x^2/2/esigxp^2)*exp(-y^2/2/esigzp^2)
+	endif	
+	hy_CreateCDF2D("egaus_div")
+	hy_MakeDist2D("onecol")
+	duplicate/O xdiv xdiv_2,xdiv_tot
+	duplicate/O zdiv zdiv_2,zdiv_tot
+	xdiv_tot = xdiv_1+xdiv_2
+	zdiv_tot = zdiv_1+zdiv_2
+	hy_CreateCDF2D("egaus_size")
+	hy_MakeDist2D("onecol")
+	duplicate/O xdiv xsize_tot
+	duplicate/O zdiv zsize_tot
+	xsize_tot = xsize_1+xdiv+tan(xdiv_2)*observepoint
+	zsize_tot = zsize_1+zdiv+tan(zdiv_2)*observepoint
+	duplicate/O xdiv stan	
+	//save in to rays
+	shdata[0][]=xsize_tot[q]
+	shdata[2][]=zsize_tot[q]
+	stan = 1/sqrt(1+tan(xdiv_tot)*tan(xdiv_tot)+tan(zdiv_tot)*tan(zdiv_tot))	
+	shdata[3][]=tan(xdiv_tot[q])*stan[q]
+	shdata[4][]=stan[q]
+	shdata[5][]=tan(zdiv_tot[q])*stan[q]
+	
+	killwaves/z onecol,mdist,resu,forver,forhor,zdiv,xdiv,stan,xdiv_1,zdiv_1,xdiv_2,zdiv_2,xsize_1,zsize_1,xdiv_tot,zdiv_tot,xsize_tot,zsize_tot,egaus_div,egaus_size
+End
 
 Function hy_CreateCDF2D(Name)
 //Create wave mDist with a sampling of a sampling of 2d wave
@@ -2562,7 +2883,7 @@ Function hy_GetOnePoint2D(Name,  resu,Reset)
 	String Name
 	wave resu
 	Variable Reset
-	wave  ForVer, ForHor, wavem
+	wave  ForVer, ForHor
 	If (Reset==1)
 		SetRandomSeed(0.1)
 	endif
@@ -2596,6 +2917,73 @@ Function hy_GetOnePoint2D(Name,  resu,Reset)
 	endif
 end 
 
+//Apr. 7th, 2016 include slo1 as input
+Function/S hy_CreateSurfaceFile_range_new(name,flag,he,slo1,npo,del,freq_min,freq_max,randomseed)
+	String name
+	string flag	//"se", slope error, "he", height error
+	variable he,slo1
+	Variable npo	//=190		//Number of points surface wave
+	Variable del	//=1			//Spacing surface wave
+	variable freq_min
+	variable freq_max
+	Variable RandomSeed	//=0.1
+	Variable nFreq = freq_max-freq_min+1	//=50
+	
+	variable mult1= 1e-10
+	If(slo1==0)
+		slo1=-3.0
+	endif
+	
+	If(strlen(name)==0)	
+		Prompt name, "Name of wave to create"
+		Prompt flag, "slope error or height error",popup "se;he"
+		prompt he, "rms error (mm or rad)"
+		prompt slo1, "log(PSD) vs log(f) slope, default:-3"
+		Prompt npo, "Enter number of points, even"
+		Prompt del, "Enter delta value"
+		Prompt freq_min, "Lowest frequency (>=1)"
+		Prompt freq_max, "Highest frequency"
+		Prompt RandomSeed, "Random seed between 0 and 1"
+		doPrompt "Input", name,flag,he,slo1,npo, del, freq_min, freq_max, RandomSeed
+		if (V_Flag)
+			return ""								// User canceled
+		endif
+	endif
+	
+	If(strlen(name)==0)
+		name="mirror"
+	endif
+	SetRandomSeed RandomSeed
+	Make/N=(npo)/O/D $Name
+	Wave wName=$Name
+	Variable length=npo*del
+	SetScale/P x -length/2, del, "", wName
+
+	Variable freq=npo/(length*npo+1)
+	Make/N=(nFreq)/O/D , FouAmp,FouFre,FouPha
+	SetScale/P x freq*freq_min,freq,"",  FouAmp,FouFre,FouPha
+	FouFre=x
+	Variable i
+	for (i=0;i<nFreq;i+=1)
+		FouAmp[i]=mult1*FouFre[i]^(slo1/2)
+	endfor	
+	variable fileNumber
+	wName=0
+	for (i=0;i<nFreq;i+=1)
+		FouPha[i] =  enoise(pi)
+		wName += FouAmp[i]*cos(-pi*2*x*FouFre[i]+FouPha[i]);
+	endfor
+	variable he_cal 
+	If(stringmatch(flag,"he")==1)
+		he_cal = hy_findrmserror(Name,0)
+	elseif(stringmatch(flag,"se")==1)
+		he_cal = hy_findrmsslopefromheight(Name,0)
+	endif
+	wName*=he/he_cal
+	killwaves/z FouPha,FouFre,FouAmp
+	return name
+end
+
 Function hy_CreateSurfaceFile_range(name,npo,del,freq_min,freq_max,randomseed)
 	String name
 	Variable npo	//=190		//Number of points surface wave
@@ -2605,11 +2993,16 @@ Function hy_CreateSurfaceFile_range(name,npo,del,freq_min,freq_max,randomseed)
 	Variable RandomSeed	//=0.1
 	Variable nFreq = freq_max-freq_min+1	//=50
 		
-	Variable mult1=2.1e-10
-	Variable mult2=mult1
-	Variable slo1=-1.5
-	Variable slo2= slo1
-	Variable chSlo=0.001
+//	Variable mult1=2.1e-10
+//	Variable mult2=mult1
+//	Variable slo1=-1.5
+//	Variable slo2= slo1
+//	Variable chSlo=0.001
+	variable mult1= 1e-10
+	Variable mult2=mult1*5
+	variable slo1 = -2.3		//slope of the log_psd vs log_frequency
+	Variable slo2= -0.9	
+	Variable chSlo=0.1
 
 	If(strlen(name)==0)	
 		Prompt name, "Name of wave to create"
@@ -2637,9 +3030,9 @@ Function hy_CreateSurfaceFile_range(name,npo,del,freq_min,freq_max,randomseed)
 	Variable i
 	for (i=0;i<nFreq;i+=1)
 		if(FouFre[i]<chSlo)
-			FouAmp[i]=mult1*FouFre[i]^slo1
+			FouAmp[i]=mult1*FouFre[i]^(slo1/2)	//Mar 2016, changed from slo1 to slo1/2, then slo1 is the slope of the log_PSD vs log_frequency
 		else
-			FouAmp[i]=mult2*FouFre[i]^slo2
+			FouAmp[i]=mult2*FouFre[i]^(slo2/2)
 		endif
 	endfor	
 	variable fileNumber
@@ -2654,22 +3047,28 @@ end
 Function hy_findrmserror(Name,flag)
 	String name
 	variable flag	//0 no print result, !=0 print result in history
-	duplicate/O $name wmirror_tmp
-	If(mod(dimsize(wmirror_tmp,0),2)==1)
-		DeletePoints dimsize(wmirror_tmp,0)-1,1, wmirror_tmp
+	duplicate/O $name wmirror_tmp1
+	If(mod(dimsize(wmirror_tmp1,0),2)==1)
+		DeletePoints dimsize(wmirror_tmp1,0)-1,1, wmirror_tmp1		//delete one point if odd number of points
 	endif
-	FFT/OUT=3/DEST=wfftcol wmirror_tmp
+	FFT/OUT=3/DEST=wfftcol wmirror_tmp1
 	Duplicate/O wfftcol, waPSD
-	waPSD = 2*dimdelta(wmirror_tmp,0)*wfftcol^2/dimsize(wmirror_tmp,0)
+	waPSD = 2*dimdelta(wmirror_tmp1,0)*wfftcol^2/dimsize(wmirror_tmp1,0)
+	//based on the reference, the first and the last point need to be divided by two.
+	//We are not sure about this. 
+	//The first point contains the height average information. If the height average is subtracted before calling the function,
+	//these two points are very small numbers and the following steps do negligible effects.
 	waPSD[0]/=2
 	waPSD[dimsize(waPSD,0)-1]/=2
+	
 	Duplicate/O waPSD waRMS
-	integrate waRMS
-	variable rmserror = sqrt(waRMS[dimsize(waRMS,0)-1])
+	integrate/T waRMS
+	waRMS=sqrt(waRMS)
+	variable rmserror = waRMS[dimsize(waRMS,0)-1]
 	If(flag!=0)
 		print "The rms error is:", rmserror
 	endif
-	killwaves/z wmirror_tmp, wfftcol,waPSD,waRMS
+	killwaves/z wmirror_tmp1, wfftcol,waPSD,waRMS
 	return rmserror
 End
 
@@ -2677,6 +3076,8 @@ Function hy_findrmsslopefromheight(Name,flag)
 	String name
 	variable flag	//0 no print result, !=0 print result in history
 	duplicate/O $name wmirror_tmp
+	wavestats/q/z wmirror_tmp
+	wmirror_tmp-=v_avg
 	Differentiate/METH=2 wmirror_tmp
 	variable slopeerror = hy_findrmserror("wmirror_tmp",flag)
 	killwaves/z wmirror_tmp
@@ -2687,7 +3088,9 @@ Function hy_findrmsheightfromslope(Name,flag)
 	String name
 	variable flag	//0 no print result, !=0 print result in history
 	duplicate/O $name wmirror_tmp
-	Integrate wmirror_tmp
+	Integrate/T wmirror_tmp
+	wavestats/q/z wmirror_tmp
+	wmirror_tmp-=v_avg
 	variable heighterror = hy_findrmserror("wmirror_tmp",flag)
 	killwaves/z wmirror_tmp
 	return heighterror
@@ -2700,6 +3103,8 @@ Function hy_findrmsslope_notrecommended(Name,flag)
 	If(mod(dimsize(wmirror_tmp,0),2)==1)
 		DeletePoints dimsize(wmirror_tmp,0)-1,1, wmirror_tmp
 	endif
+	wavestats/q/z wmirror_tmp
+	wmirror_tmp-=v_avg
 	FFT/OUT=3/DEST=wfftcol wmirror_tmp
 	Duplicate/O wfftcol, waPSD, wsPSD
 	waPSD = 2*dimdelta(wmirror_tmp,0)*wfftcol^2/dimsize(wmirror_tmp,0)
@@ -2708,7 +3113,7 @@ Function hy_findrmsslope_notrecommended(Name,flag)
 	
 	wsPSD = waPSD[p]*(2*pi*(p-1)/dimsize(wmirror_tmp,0)/dimdelta(wmirror_tmp,0))^2
 	Duplicate/O wsPSD wsRMS
-	integrate wsRMS
+	integrate/T wsRMS
 	variable rmsslope = sqrt(wsRMS[dimsize(wsRMS,0)-1])
 	If(flag!=0)
 		print "The rms slope error is:", rmsslope
@@ -2965,8 +3370,8 @@ End
 
 Function hy_showplots(hy_input_showplots) : ButtonControl
 	String hy_input_showplots
-	NVAR ghy_diff_plane,ghy_nf,ghy_lengthunit
-	wave xx_image_ff_histo,xx_image_nf_histo,zz_image_ff_histo,zz_image_nf_histo,xx_image_ffzz_image_ff,xx_image_ffzz_image_ffx,xx_image_ffzz_image_ffz
+	NVAR/Z ghy_diff_plane,ghy_nf,ghy_lengthunit
+	wave/Z xx_image_ff_histo,xx_image_nf_histo,zz_image_ff_histo,zz_image_nf_histo,xx_image_ffzz_image_ff,xx_image_ffzz_image_ffx,xx_image_ffzz_image_ffz
 	Switch(ghy_diff_plane)
 		case 1:
 			Display/N=hyplot xx_image_ff_histo
