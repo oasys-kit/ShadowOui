@@ -8,7 +8,7 @@ from orangewidget import gui, widget
 from orangewidget.settings import Setting
 
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream, ShadowTriggerIn
 
 from PyQt4 import QtGui
 from PyQt4.QtGui import QImage, QLabel, QPixmap, QWidget, QHBoxLayout, QPalette, QFont, QColor
@@ -25,7 +25,11 @@ class HybridScreen(AutomaticElement):
     outputs = [{"name":"Output Beam (Far Field)",
                 "type":ShadowBeam,
                 "doc":"Shadow Beam",
-                "id":"beam_ff"},]
+                "id":"beam_ff"},
+               {"name":"Trigger",
+                "type": ShadowTriggerIn,
+                "doc":"Feedback signal to start a new beam simulation",
+                "id":"Trigger"}]
 
     name = "Hybrid Screen"
     description = "Shadow HYBRID: Hybrid Screen"
@@ -441,6 +445,7 @@ class HybridScreen(AutomaticElement):
                                 self.plot_emtpy(96, 3)
 
                     self.send("Output Beam (Far Field)", calculation_parameters.ff_beam)
+                    self.send("Trigger", ShadowTriggerIn(new_beam=True))
                 else:
                     raise Exception("Input Beam with no good rays")
             else:
