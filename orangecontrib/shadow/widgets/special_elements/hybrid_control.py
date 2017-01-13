@@ -827,10 +827,10 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
             do_sagittal   = not calculation_parameters.beam_not_cut_in_x
             do_tangential = not calculation_parameters.beam_not_cut_in_z
 
-        print("sag", do_sagittal, "tan", do_tangential)
+        #print("sag", do_sagittal, "tan", do_tangential)
 
         if do_sagittal and do_tangential:
-            print("2D")
+            #print("2D")
             '''
             # WRONG ALGORITHM!!!! Z' and X' are CORRELATED!
             calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
@@ -880,7 +880,7 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
                 calculation_parameters.nf_beam = ShadowBeam.mergeBeams(beam_sagittal, beam_tangential)
         else:
             if do_sagittal:
-                print("1D S")
+                #print("1D S")
 
                 angle_perpen = numpy.arctan(calculation_parameters.zp_screen/calculation_parameters.yp_screen)
                 angle_num = numpy.sqrt(1+(numpy.tan(angle_perpen))**2+(numpy.tan(calculation_parameters.dx_conv))**2)
@@ -893,7 +893,7 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
                 if do_nf: calculation_parameters.nf_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)
 
             elif do_tangential:
-                print("1D T")
+                #print("1D T")
 
                 angle_perpen = numpy.arctan(calculation_parameters.xp_screen/calculation_parameters.yp_screen)
                 angle_num = numpy.sqrt(1+(numpy.tan(angle_perpen))**2+(numpy.tan(calculation_parameters.dz_conv))**2)
