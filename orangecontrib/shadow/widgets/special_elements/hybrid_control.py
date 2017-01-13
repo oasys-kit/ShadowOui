@@ -357,13 +357,6 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
                 calculation_parameters.beam_not_cut_in_x = intensity_sagittal_cut < 0.05
                 calculation_parameters.beam_not_cut_in_z = intensity_tangential_cut < 0.05
 
-                #print("T", calculation_parameters.beam_not_cut_in_z)
-                #print("T", min_tangential, max_tangential, min(coordinate_tangential), max(coordinate_tangential))
-                #print("T", intensity_tangential_cut, numpy.sum(intensity_tangential[cursor_up]), numpy.sum(intensity_tangential[cursor_down]))
-                #print("S", calculation_parameters.beam_not_cut_in_x)
-                #print("S", min_sagittal, max_sagittal, min(coordinate_sagittal), max(coordinate_sagittal))
-                #print("S", intensity_sagittal_cut, numpy.sum(intensity_sagittal[cursor_up]), numpy.sum(intensity_sagittal[cursor_down]))
-
             # REQUEST FILTERING OR REFUSING
 
             if not (input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4):
@@ -827,54 +820,90 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
 
         if do_nf: calculation_parameters.nf_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)
     elif input_parameters.ghy_diff_plane == 3: #1d calculation in both direction
-        angle_num = numpy.sqrt(1+(numpy.tan(calculation_parameters.dz_conv))**2+(numpy.tan(calculation_parameters.dx_conv))**2)
+        do_sagittal = True
+        do_tangential = True
 
-        beam_sagittal = calculation_parameters.ff_beam.duplicate(history=False)
-        beam_tangential = calculation_parameters.ff_beam.duplicate(history=False)
+        if input_parameters.ghy_calcType not in (3, 4):
+            do_sagittal   = not calculation_parameters.beam_not_cut_in_x
+            do_tangential = not calculation_parameters.beam_not_cut_in_z
 
-        angle_perpen = numpy.arctan(calculation_parameters.zp_screen/calculation_parameters.yp_screen)
+        print("sag", do_sagittal, "tan", do_tangential)
 
-        beam_sagittal._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
-        beam_sagittal._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)[::-1] # uncorrelate 2 directions!
-        beam_sagittal._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
-        beam_sagittal._beam.rays[:, 5] = numpy.tan(angle_perpen)/angle_num
+        if do_sagittal and do_tangential:
+            print("2D")
+            '''
+            # WRONG ALGORITHM!!!! Z' and X' are CORRELATED!
+            calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
+            calculation_parameters.ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
+            calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
+            calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
+            '''
 
-        angle_perpen = numpy.arctan(calculation_parameters.xp_screen/calculation_parameters.yp_screen)
+            angle_num = numpy.sqrt(1+(numpy.tan(calculation_parameters.dz_conv))**2+(numpy.tan(calculation_parameters.dx_conv))**2)
 
-        beam_tangential._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)[::-1] # uncorrelate 2 directions!
-        beam_tangential._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
-        beam_tangential._beam.rays[:, 3] = numpy.tan(angle_perpen)/angle_num
-        beam_tangential._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
+            beam_sagittal = calculation_parameters.ff_beam.duplicate(history=False)
+            beam_tangential = calculation_parameters.ff_beam.duplicate(history=False)
 
-        beam_sagittal._beam.rays = beam_sagittal._beam.rays[::2] # even entries to maintain same number of rays
-        beam_tangential._beam.rays = beam_tangential._beam.rays[1::2] # odd entries to maintain same number of rays
+            angle_perpen = numpy.arctan(calculation_parameters.zp_screen/calculation_parameters.yp_screen)
 
-        calculation_parameters.ff_beam = ShadowBeam.mergeBeams(beam_sagittal, beam_tangential) # merge
-        calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
+            beam_sagittal._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
+            beam_sagittal._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)[::-1] # uncorrelate 2 directions!
+            beam_sagittal._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
+            beam_sagittal._beam.rays[:, 5] = numpy.tan(angle_perpen)/angle_num
 
-        '''
-        # WRONG ALGORITHM!!!! Z' and X' are CORRELATED!
-        calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
-        calculation_parameters.ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
-        calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
-        calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
-        '''
+            angle_perpen = numpy.arctan(calculation_parameters.xp_screen/calculation_parameters.yp_screen)
 
+            beam_tangential._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)[::-1] # uncorrelate 2 directions!
+            beam_tangential._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
+            beam_tangential._beam.rays[:, 3] = numpy.tan(angle_perpen)/angle_num
+            beam_tangential._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
 
-        if do_nf:
-            beam_sagittal = calculation_parameters.nf_beam.duplicate(history=False)
-            beam_tangential = calculation_parameters.nf_beam.duplicate(history=False)
+            beam_sagittal._beam.rays = beam_sagittal._beam.rays[::2] # even entries to maintain same number of rays
+            beam_tangential._beam.rays = beam_tangential._beam.rays[1::2] # odd entries to maintain same number of rays
 
-            beam_sagittal._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)
-            beam_sagittal._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)[::-1] # uncorrelate 2 directions!
+            calculation_parameters.ff_beam = ShadowBeam.mergeBeams(beam_sagittal, beam_tangential) # merge
+            calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
 
-            beam_tangential._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)[::-1]
-            beam_tangential._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)
+            if do_nf:
+                beam_sagittal = calculation_parameters.nf_beam.duplicate(history=False)
+                beam_tangential = calculation_parameters.nf_beam.duplicate(history=False)
 
-            beam_sagittal._beam.rays = beam_sagittal._beam.rays[::2]
-            beam_tangential._beam.rays = beam_tangential._beam.rays[1::2]
+                beam_sagittal._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)
+                beam_sagittal._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)[::-1] # uncorrelate 2 directions!
 
-            calculation_parameters.nf_beam = ShadowBeam.mergeBeams(beam_sagittal, beam_tangential)
+                beam_tangential._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)[::-1] # uncorrelate 2 directions!
+                beam_tangential._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)
+
+                beam_sagittal._beam.rays = beam_sagittal._beam.rays[::2]
+                beam_tangential._beam.rays = beam_tangential._beam.rays[1::2]
+
+                calculation_parameters.nf_beam = ShadowBeam.mergeBeams(beam_sagittal, beam_tangential)
+        else:
+            if do_sagittal:
+                print("1D S")
+
+                angle_perpen = numpy.arctan(calculation_parameters.zp_screen/calculation_parameters.yp_screen)
+                angle_num = numpy.sqrt(1+(numpy.tan(angle_perpen))**2+(numpy.tan(calculation_parameters.dx_conv))**2)
+
+                calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
+                calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
+                calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
+                calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(angle_perpen)/angle_num
+
+                if do_nf: calculation_parameters.nf_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)
+
+            elif do_tangential:
+                print("1D T")
+
+                angle_perpen = numpy.arctan(calculation_parameters.xp_screen/calculation_parameters.yp_screen)
+                angle_num = numpy.sqrt(1+(numpy.tan(angle_perpen))**2+(numpy.tan(calculation_parameters.dz_conv))**2)
+
+                calculation_parameters.ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
+                calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(angle_perpen)/angle_num
+                calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
+                calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
+
+                if do_nf: calculation_parameters.nf_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)
 
     if input_parameters.file_to_write_out == 1:
 
@@ -1084,7 +1113,7 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
 
     scale_factor = 1.0
 
-    if input_parameters.ghy_calcType == 3:
+    if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
         rms_slope = hy_findrmsslopefromheight(calculation_parameters.w_mirror_lz)
 
         input_parameters.widget.status_message("Using RMS slope = " + str(rms_slope))
