@@ -778,8 +778,8 @@ def hy_conv(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
 
             calculation_parameters.xx_image_nf = pos_dif + calculation_parameters.xx_focal_ray
     elif input_parameters.ghy_diff_plane == 2: #1d calculation in z direction
-        mDist = hy_CreateCDF1D(calculation_parameters.dif_zp)		#create cumulative distribution function from the angular diffraction profile
-        pos_dif = hy_MakeDist1D(calculation_parameters.zp_screen, mDist)	#generate random ray divergence kicks based on the CDF, the number of rays is the same as in the original shadow file
+        mDist = hy_CreateCDF1D(calculation_parameters.dif_zp)		# create cumulative distribution function from the angular diffraction profile
+        pos_dif = hy_MakeDist1D(calculation_parameters.zp_screen, mDist)	# generate random ray divergence kicks based on the CDF, the number of rays is the same as in the original shadow file
 
         dz_wave = numpy.arctan(pos_dif) # calculate dz from tan(dz)
         dz_conv = dz_wave + calculation_parameters.dz_ray # add the ray divergence kicks
@@ -851,6 +851,15 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
 
         calculation_parameters.ff_beam = ShadowBeam.mergeBeams(beam_sagittal, beam_tangential) # merge
         calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
+
+        '''
+        # WRONG ALGORITHM!!!! Z' and X' are CORRELATED!
+        calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
+        calculation_parameters.ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
+        calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
+        calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
+        '''
+
 
         if do_nf:
             beam_sagittal = calculation_parameters.nf_beam.duplicate(history=False)
@@ -968,25 +977,25 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
     else: input_parameters.widget.set_progress_bar(50)
     input_parameters.widget.status_message("calculated plane wave: begin FF propagation (distance = " +  str(focallength_ff) + ")")
 
-    intensity = propagator.propagate_1D_fresnel(wavefront, focallength_ff)
+    propagated_wavefront = propagator.propagate_1D_fresnel(wavefront, focallength_ff)
 
     if do_nf: input_parameters.widget.set_progress_bar(50)
     else: input_parameters.widget.set_progress_bar(70)
     input_parameters.widget.status_message("dif_xp: begin calculation")
 
     imagesize = min(abs(calculation_parameters.ghy_x_max), abs(calculation_parameters.ghy_x_min)) * 2
-    imagenpts = round(imagesize / intensity.delta() / 2) * 2 + 1
+    imagenpts = round(imagesize / propagated_wavefront.delta() / 2) * 2 + 1
 
 
-    dif_xp = ScaledArray.initialize_from_range(numpy.ones(intensity.size()),
-                                               -(imagenpts - 1) / 2 * intensity.delta(),
-                                               (imagenpts - 1) / 2 * intensity.delta())
+    dif_xp = ScaledArray.initialize_from_range(numpy.ones(propagated_wavefront.size()),
+                                               -(imagenpts - 1) / 2 * propagated_wavefront.delta(),
+                                               (imagenpts - 1) / 2 * propagated_wavefront.delta())
 
 
-    dif_xp.np_array = numpy.absolute(intensity.get_complex_amplitude_from_abscissas(dif_xp.scale))**2
+    dif_xp.np_array = numpy.absolute(propagated_wavefront.get_complex_amplitude_from_abscissas(dif_xp.scale))**2
 
-    dif_xp.set_scale_from_range(-(imagenpts - 1) / 2 * intensity.delta() / focallength_ff,
-                                (imagenpts - 1) / 2 * intensity.delta() / focallength_ff)
+    dif_xp.set_scale_from_range(-(imagenpts - 1) / 2 * propagated_wavefront.delta() / focallength_ff,
+                                (imagenpts - 1) / 2 * propagated_wavefront.delta() / focallength_ff)
 
     calculation_parameters.dif_xp = dif_xp
 
@@ -1036,7 +1045,7 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
         input_parameters.widget.status_message("calculated plane wave: begin NF propagation (distance = " + str(input_parameters.ghy_distance) + ")")
         input_parameters.widget.set_progress_bar(60)
 
-        intensity = propagator.propagate_1D_fresnel(wavefront, input_parameters.ghy_distance)
+        propagated_wavefront = propagator.propagate_1D_fresnel(wavefront, input_parameters.ghy_distance)
 
         # ghy_npeak in the wavefront propagation image
         imagesize = (input_parameters.ghy_npeak * 2 * 0.88 * calculation_parameters.gwavelength * input_parameters.ghy_focallength / abs(calculation_parameters.ghy_x_max - calculation_parameters.ghy_x_min))
@@ -1051,16 +1060,16 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
             imagesize = max(imagesize,
                             8 * rms_slope * input_parameters.ghy_focallength * (numpy.sin(average_incident_angle / 1e3) + numpy.sin(average_reflection_angle / 1e3)))
 
-        imagenpts = round(imagesize / intensity.delta() / 2) * 2 + 1
+        imagenpts = round(imagesize / propagated_wavefront.delta() / 2) * 2 + 1
 
         input_parameters.widget.set_progress_bar(75)
         input_parameters.widget.status_message("dif_x: begin calculation")
 
         dif_x = ScaledArray.initialize_from_range(numpy.ones(imagenpts),
-                                                  -(imagenpts - 1) / 2 * intensity.delta(),
-                                                  (imagenpts - 1) / 2 * intensity.delta())
+                                                  -(imagenpts - 1) / 2 * propagated_wavefront.delta(),
+                                                  (imagenpts - 1) / 2 * propagated_wavefront.delta())
 
-        dif_x.np_array *= numpy.absolute(intensity.get_complex_amplitude_from_abscissas(dif_x.scale))**2
+        dif_x.np_array *= numpy.absolute(propagated_wavefront.get_complex_amplitude_from_abscissas(dif_x.scale))**2
 
         calculation_parameters.dif_x = dif_x
 
@@ -1140,23 +1149,23 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
     else: input_parameters.widget.set_progress_bar(50)
     input_parameters.widget.status_message("calculated plane wave: begin FF propagation (distance = " +  str(focallength_ff) + ")")
 
-    intensity = propagator.propagate_1D_fresnel(wavefront, focallength_ff)
+    propagated_wavefront = propagator.propagate_1D_fresnel(wavefront, focallength_ff)
 
     if do_nf: input_parameters.widget.set_progress_bar(50)
     else: input_parameters.widget.set_progress_bar(70)
     input_parameters.widget.status_message("dif_zp: begin calculation")
 
     imagesize = min(abs(calculation_parameters.ghy_z_max), abs(calculation_parameters.ghy_z_min)) * 2
-    imagenpts = round(imagesize / intensity.delta() / 2) * 2 + 1
+    imagenpts = round(imagesize / propagated_wavefront.delta() / 2) * 2 + 1
 
-    dif_zp = ScaledArray.initialize_from_range(numpy.ones(intensity.size()),
-                                               -(imagenpts - 1) / 2 * intensity.delta(),
-                                               (imagenpts - 1) / 2 * intensity.delta())
+    dif_zp = ScaledArray.initialize_from_range(numpy.ones(propagated_wavefront.size()),
+                                               -(imagenpts - 1) / 2 * propagated_wavefront.delta(),
+                                               (imagenpts - 1) / 2 * propagated_wavefront.delta())
 
-    dif_zp.np_array *= numpy.absolute(intensity.get_complex_amplitude_from_abscissas(dif_zp.scale))**2
+    dif_zp.np_array *= numpy.absolute(propagated_wavefront.get_complex_amplitude_from_abscissas(dif_zp.scale))**2
 
-    dif_zp.set_scale_from_range(-(imagenpts - 1) / 2 * intensity.delta() / focallength_ff,
-                                (imagenpts - 1) / 2 * intensity.delta() / focallength_ff)
+    dif_zp.set_scale_from_range(-(imagenpts - 1) / 2 * propagated_wavefront.delta() / focallength_ff,
+                                (imagenpts - 1) / 2 * propagated_wavefront.delta() / focallength_ff)
 
     calculation_parameters.dif_zp = dif_zp
 
@@ -1206,7 +1215,7 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
         input_parameters.widget.status_message("calculated plane wave: begin NF propagation (distance = " + str(input_parameters.ghy_distance) + ")")
         input_parameters.widget.set_progress_bar(60)
 
-        intensity = propagator.propagate_1D_fresnel(wavefront, input_parameters.ghy_distance)
+        propagated_wavefront = propagator.propagate_1D_fresnel(wavefront, input_parameters.ghy_distance)
 
         # ghy_npeak in the wavefront propagation image
         imagesize = (input_parameters.ghy_npeak * 2 * 0.88 * calculation_parameters.gwavelength * input_parameters.ghy_focallength / abs(calculation_parameters.ghy_z_max - calculation_parameters.ghy_z_min))
@@ -1216,16 +1225,16 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
         if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
             imagesize = max(imagesize, 16 * rms_slope * input_parameters.ghy_focallength)
 
-        imagenpts = round(imagesize / intensity.delta() / 2) * 2 + 1
+        imagenpts = round(imagesize / propagated_wavefront.delta() / 2) * 2 + 1
 
         input_parameters.widget.set_progress_bar(75)
         input_parameters.widget.status_message("dif_z: begin calculation")
 
         dif_z = ScaledArray.initialize_from_range(numpy.ones(imagenpts),
-                                                  -(imagenpts - 1) / 2 * intensity.delta(),
-                                                   (imagenpts - 1) / 2 * intensity.delta())
+                                                  -(imagenpts - 1) / 2 * propagated_wavefront.delta(),
+                                                   (imagenpts - 1) / 2 * propagated_wavefront.delta())
 
-        dif_z.np_array *= numpy.absolute(intensity.get_complex_amplitude_from_abscissas(dif_z.scale)**2)
+        dif_z.np_array *= numpy.absolute(propagated_wavefront.get_complex_amplitude_from_abscissas(dif_z.scale)**2)
 
         calculation_parameters.dif_z = dif_z
 

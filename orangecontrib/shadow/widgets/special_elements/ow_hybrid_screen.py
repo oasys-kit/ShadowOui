@@ -180,13 +180,13 @@ class HybridScreen(AutomaticElement):
         if self.ghy_diff_plane < 2:
             if self.ghy_nf == 1:
                 self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field"),
-                            gui.createTabPage(self.tabs, "Distribution of Position at Far Field"),
+                            gui.createTabPage(self.tabs, "Distribution of Position at Image Plane"),
                             gui.createTabPage(self.tabs, u"\u2206" + "Position at Near Field"),
                             gui.createTabPage(self.tabs, "Distribution of Position at Near Field")
                             ]
             else:
                 self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field"),
-                            gui.createTabPage(self.tabs, "Distribution of Position at Far Field")
+                            gui.createTabPage(self.tabs, "Distribution of Position at Image Plane")
                             ]
         else:
             if self.ghy_nf == 1:
@@ -195,12 +195,12 @@ class HybridScreen(AutomaticElement):
                             gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field (T)"),
                             gui.createTabPage(self.tabs, u"\u2206" + "Position at Near Field (T)"),
                             gui.createTabPage(self.tabs, "Distribution of Position at Near Field"),
-                            gui.createTabPage(self.tabs, "Distribution of Position at Far Field")
+                            gui.createTabPage(self.tabs, "Distribution of Position at Image Plane")
                             ]
             else:
                 self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field (S)"),
                             gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field (T)"),
-                            gui.createTabPage(self.tabs, "Distribution of Position at Far Field")
+                            gui.createTabPage(self.tabs, "Distribution of Position at Image Plane")
                             ]
 
         for tab in self.tab:
