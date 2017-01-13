@@ -941,7 +941,10 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
                                                             x_max=scale_factor * calculation_parameters.ghy_x_max)
 
     if scale_factor == 1.0:
-        wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_x.interpolate_values(wavefront.get_abscissas())))
+        try:
+            wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_x.interpolate_values(wavefront.get_abscissas())))
+        except IndexError:
+            raise Exception("Unexpected Error during interpolation: try reduce Number of bins for I(Sagittal) histogram")
 
     wavefront.apply_ideal_lens(focallength_ff)
 
@@ -1008,7 +1011,10 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
                                                                 x_max=scale_factor*calculation_parameters.ghy_x_max)
 
         if scale_factor == 1.0:
-            wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_x.interpolate_values(wavefront.get_abscissas())))
+            try:
+                wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_x.interpolate_values(wavefront.get_abscissas())))
+            except IndexError:
+                raise Exception("Unexpected Error during interpolation: try reduce Number of bins for I(Sagittal) histogram")
 
         wavefront.apply_ideal_lens(input_parameters.ghy_focallength)
 
@@ -1108,7 +1114,10 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
                                                             x_max=scale_factor * calculation_parameters.ghy_z_max)
 
     if scale_factor == 1.0:
-        wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_z.interpolate_values(wavefront.get_abscissas())))
+        try:
+            wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_z.interpolate_values(wavefront.get_abscissas())))
+        except IndexError:
+            raise Exception("Unexpected Error during interpolation: try reduce Number of bins for I(Tangential) histogram")
 
     wavefront.apply_ideal_lens(focallength_ff)
 
@@ -1172,7 +1181,10 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
                                                                 x_max=scale_factor*calculation_parameters.ghy_z_max)
 
         if scale_factor == 1.0:
-            wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_z.interpolate_values(wavefront.get_abscissas())))
+            try:
+                wavefront.set_plane_wave_from_complex_amplitude(numpy.sqrt(calculation_parameters.wIray_z.interpolate_values(wavefront.get_abscissas())))
+            except IndexError:
+                raise Exception("Unexpected Error during interpolation: try reduce Number of bins for I(Tangential) histogram")
 
         wavefront.apply_ideal_lens(input_parameters.ghy_focallength)
 
