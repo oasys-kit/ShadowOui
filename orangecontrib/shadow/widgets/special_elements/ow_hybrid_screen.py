@@ -118,6 +118,10 @@ class HybridScreen(AutomaticElement):
 
         gui.separator(box_1, 10)
 
+        self.cb_nf = gui.comboBox(box_1, self, "ghy_nf", label="Near Field Calculation", labelWidth=310,
+                                             items=["No", "Yes"],
+                                             sendSelectedValue=False, orientation="horizontal", callback=self.set_NF)
+
         self.cb_focal_length_calc = gui.comboBox(box_1, self, "focal_length_calc", label="Focal Length", labelWidth=180,
                      items=["Use O.E. Focal Distance", "Specify Value"],
                      callback=self.set_FocalLengthCalc,
@@ -125,19 +129,14 @@ class HybridScreen(AutomaticElement):
 
         self.le_focal_length = oasysgui.lineEdit(box_1, self, "ghy_focallength", "Focal Length value", labelWidth=260, valueType=float, orientation="horizontal")
 
+        gui.separator(box_1)
+
         self.cb_distance_to_image_calc = gui.comboBox(box_1, self, "distance_to_image_calc", label="Distance to image", labelWidth=150,
                      items=["Use O.E. Image Plane Distance", "Specify Value"],
                      callback=self.set_DistanceToImageCalc,
                      sendSelectedValue=False, orientation="horizontal")
 
         self.le_distance_to_image = oasysgui.lineEdit(box_1, self, "ghy_distance", "Distance to Image value", labelWidth=260, valueType=float, orientation="horizontal")
-
-        gui.separator(box_1)
-
-        self.cb_nf = gui.comboBox(box_1, self, "ghy_nf", label="Near Field Calculation", labelWidth=310,
-                                             items=["No", "Yes"],
-                                             sendSelectedValue=False, orientation="horizontal")
-
 
         box_2 = oasysgui.widgetBox(tab_bas, "Numerical Control Parameters", addSpace=True, orientation="vertical", height=120)
 
@@ -149,6 +148,7 @@ class HybridScreen(AutomaticElement):
         self.set_DiffPlane()
         self.set_DistanceToImageCalc()
         self.set_CalculationType()
+        self.set_NF()
 
         self.initializeTabs()
 
@@ -313,33 +313,45 @@ class HybridScreen(AutomaticElement):
                 if self.is_automatic_run:
                     self.run_hybrid()
 
-
     def set_DiffPlane(self):
         self.le_nbins_x.setEnabled(self.ghy_diff_plane == 0 or self.ghy_diff_plane == 2)
         self.le_nbins_z.setEnabled(self.ghy_diff_plane == 1 or self.ghy_diff_plane == 2)
 
-        self.cb_nf.setEnabled(self.ghy_calcType > 0 and self.ghy_calcType < 4 and self.ghy_diff_plane < 2)
-
-        if self.ghy_calcType > 0 and self.ghy_calcType < 4 and self.ghy_diff_plane < 2:
-            self.set_FocalLengthCalc()
+        if self.ghy_calcType > 0 and self.ghy_calcType < 4 and self.ghy_diff_plane != 2:
+            self.cb_nf.setEnabled(True)
         else:
+            self.cb_nf.setEnabled(False)
             self.ghy_nf = 0
 
+        self.set_NF()
+
+    def set_CalculationType(self):
+        if self.ghy_calcType > 0 and self.ghy_calcType < 4 and self.ghy_diff_plane != 2:
+            self.cb_nf.setEnabled(True)
+        else:
+            self.cb_nf.setEnabled(False)
+            self.ghy_nf = 0
+
+        self.set_NF()
+
+    def set_NF(self):
+        if self.ghy_nf == 0:
+            self.focal_length_calc = 0
+            self.distance_to_image_calc = 0
+            self.cb_focal_length_calc.setEnabled(False)
+            self.le_focal_length.setEnabled(False)
+        else:
+            self.cb_focal_length_calc.setEnabled(True)
+            self.le_focal_length.setEnabled(True)
+
+        self.set_FocalLengthCalc()
+
     def set_FocalLengthCalc(self):
+         print(self.focal_length_calc)
          self.le_focal_length.setEnabled(self.focal_length_calc == 1)
 
     def set_DistanceToImageCalc(self):
          self.le_distance_to_image.setEnabled(self.distance_to_image_calc == 1)
-
-    def set_CalculationType(self):
-        self.cb_focal_length_calc.setEnabled(self.ghy_calcType > 0 and self.ghy_calcType < 4)
-        self.le_focal_length.setEnabled(self.ghy_calcType > 0 and self.ghy_calcType < 4)
-        self.cb_nf.setEnabled(self.ghy_calcType > 0 and self.ghy_calcType < 4 and self.ghy_diff_plane < 2)
-
-        if self.ghy_calcType > 0 and self.ghy_calcType < 4 and self.ghy_diff_plane < 2:
-            self.set_FocalLengthCalc()
-        else:
-            self.ghy_nf = 0
 
     def run_hybrid(self):
         try:
