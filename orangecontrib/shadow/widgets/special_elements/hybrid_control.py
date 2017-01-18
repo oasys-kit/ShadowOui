@@ -13,7 +13,11 @@ from orangecontrib.shadow.util.shadow_util import ShadowPhysics, ShadowPreProces
 
 from srxraylib.util.data_structures import ScaledArray, ScaledMatrix
 from srxraylib.waveoptics.wavefront import Wavefront1D
+from srxraylib.waveoptics.wavefront2D import Wavefront2D
 from srxraylib.waveoptics import propagator
+from srxraylib.waveoptics import propagator2D
+
+from scipy import interpolate
 
 '''
 Diffraction Plane
@@ -119,6 +123,7 @@ class HybridCalculationParameters(object):
 
     w_mirror_lx = None
     w_mirror_lz = None
+    w_mirror_l = None
 
     wIray_x = None
     wIray_z = None
@@ -129,6 +134,7 @@ class HybridCalculationParameters(object):
     dif_zp = None
     dif_x = None
     dif_z = None
+    dif_xpzp = None
 
     # Conversion Output
     dx_conv = None
@@ -154,7 +160,8 @@ def hy_run(input_parameters=HybridInputParameters()):
         input_parameters.widget.status_message("Analysis of Input Beam and OE completed")
         input_parameters.widget.set_progress_bar(10)
 
-        if input_parameters.ghy_diff_plane == 3:
+        if input_parameters.ghy_diff_plane == 4:
+
             # FIRST: X DIRECTION
             input_parameters.ghy_diff_plane = 1
 
@@ -192,6 +199,7 @@ def hy_run(input_parameters=HybridInputParameters()):
             input_parameters.ghy_diff_plane = 3
 
             hy_create_shadow_beam(input_parameters, calculation_parameters)
+
         else:
             hy_init(input_parameters, calculation_parameters)		#Calculate functions needed to construct exit pupil function
 
@@ -641,10 +649,11 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
         else:
             input_parameters.widget.status_message("Focal length = " + str(input_parameters.ghy_focallength))
 
-    if input_parameters.ghy_diff_plane == 1:
+    if input_parameters.ghy_diff_plane == 1 or input_parameters.ghy_diff_plane == 3:
         calculation_parameters.xx_focal_ray = copy.deepcopy(calculation_parameters.xx_screen) + \
                                               input_parameters.ghy_focallength * numpy.tan(calculation_parameters.dx_ray)
-    elif input_parameters.ghy_diff_plane == 2:
+
+    if input_parameters.ghy_diff_plane == 2 or input_parameters.ghy_diff_plane == 3:
         calculation_parameters.zz_focal_ray = copy.deepcopy(calculation_parameters.zz_screen) + \
                                               input_parameters.ghy_focallength * numpy.tan(calculation_parameters.dz_ray)
 
@@ -662,13 +671,14 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
             input_parameters.widget.status_message("Propagation distance = " + str(input_parameters.ghy_distance))
 
     if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4: # mirror/grating with figure error
-        if input_parameters.ghy_diff_plane == 1: #X
+        if input_parameters.ghy_diff_plane == 1 or input_parameters.ghy_diff_plane == 3: #X
             np_array = calculation_parameters.w_mirr_2D_values.z_values[:, round(len(calculation_parameters.w_mirr_2D_values.y_coord)/2)]
 
             calculation_parameters.w_mirror_lx = ScaledArray.initialize_from_steps(np_array,
                                                                                    calculation_parameters.w_mirr_2D_values.x_coord[0],
                                                                                    calculation_parameters.w_mirr_2D_values.x_coord[1] - calculation_parameters.w_mirr_2D_values.x_coord[0])
-        elif input_parameters.ghy_diff_plane == 2: #Z
+
+        if input_parameters.ghy_diff_plane == 2 or input_parameters.ghy_diff_plane == 3: #Z
             np_array = calculation_parameters.w_mirr_2D_values.z_values[round(len(calculation_parameters.w_mirr_2D_values.x_coord)/2), :]
 
             calculation_parameters.w_mirror_lz = ScaledArray.initialize_from_steps(np_array,
@@ -707,6 +717,30 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
         bins = ticket['bins']
 
         calculation_parameters.wIray_z = ScaledArray.initialize_from_range(ticket['histogram'], bins[0], bins[len(bins)-1])
+    elif input_parameters.ghy_diff_plane == 3: # 2D
+        if (input_parameters.ghy_nbins_x < 0):
+            input_parameters.ghy_nbins_x = 50
+
+        if (input_parameters.ghy_nbins_z < 0):
+            input_parameters.ghy_nbins_z = 50
+
+        input_parameters.ghy_nbins_x = min(input_parameters.ghy_nbins_x, round(numpy.sqrt(len(calculation_parameters.xx_screen) / 10)))
+        input_parameters.ghy_nbins_z = min(input_parameters.ghy_nbins_z, round(numpy.sqrt(len(calculation_parameters.zz_screen) / 10)))
+
+        ticket = calculation_parameters.screen_plane_beam._beam.histo2(col_h=1,
+                                                                       col_v=3,
+                                                                       nbins_h=input_parameters.ghy_nbins_x,
+                                                                       nbins_v=input_parameters.ghy_nbins_z,
+                                                                       xrange=[numpy.min(calculation_parameters.xx_screen), numpy.max(calculation_parameters.xx_screen)],
+                                                                       yrange=[numpy.min(calculation_parameters.zz_screen), numpy.max(calculation_parameters.zz_screen)],
+                                                                       nolost=1,
+                                                                       ref=23)
+
+        bins_h = ticket['bin_h_edges']
+        bins_v = ticket['bin_v_edges']
+        calculation_parameters.wIray_x = ScaledArray.initialize_from_range(ticket['histogram_h'], bins_h[0], bins_h[len(bins_h)-1])
+        calculation_parameters.wIray_z = ScaledArray.initialize_from_range(ticket['histogram_v'], bins_v[0], bins_v[len(bins_v)-1])
+        calculation_parameters.wIray_2d = ScaledMatrix.initialize_from_range(ticket['histogram'], bins_h[0], bins_h[len(bins_h)-1], bins_v[0], bins_v[len(bins_v)-1])
 
     calculation_parameters.gwavelength = numpy.average(calculation_parameters.wwavelength)
 
@@ -734,12 +768,18 @@ def hy_prop(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
             calculation_parameters.ghy_focallength = (calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min)**2/calculation_parameters.gwavelength/input_parameters.ghy_npeak
         elif input_parameters.ghy_diff_plane == 2: # Z
             calculation_parameters.ghy_focallength = (calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min)**2/calculation_parameters.gwavelength/input_parameters.ghy_npeak
+        elif input_parameters.ghy_diff_plane == 3: # 2D
+            calculation_parameters.ghy_focallength = (max(numpy.abs(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min),
+                                                          numpy.abs(calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min)))**2/calculation_parameters.gwavelength/input_parameters.ghy_npeak
 
         input_parameters.widget.status_message("Focal length set to: " + str(calculation_parameters.ghy_focallength))
 
     # automatic control of number of peaks to avoid numerical overflow
     if input_parameters.ghy_npeak < 0: # number of bins control
-        input_parameters.ghy_npeak = 50
+        if input_parameters.ghy_diff_plane == 3:
+            input_parameters.ghy_npeak = 10
+        else:
+            input_parameters.ghy_npeak = 50
 
     input_parameters.ghy_npeak = max(input_parameters.ghy_npeak, 5)
 
@@ -753,6 +793,8 @@ def hy_prop(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
         propagate_1D_x_direction(calculation_parameters, input_parameters)
     elif input_parameters.ghy_diff_plane == 2: #1d calculation in z direction
         propagate_1D_z_direction(calculation_parameters, input_parameters)
+    elif input_parameters.ghy_diff_plane == 3: #2D
+        propagate_2D(calculation_parameters, input_parameters)
 
 def hy_conv(input_parameters=HybridInputParameters(), calculation_parameters=HybridCalculationParameters()):
     if input_parameters.ghy_diff_plane == 1: #1d calculation in x direction
@@ -785,7 +827,23 @@ def hy_conv(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
             pos_dif = hy_MakeDist1D(calculation_parameters.zz_focal_ray, mDist)
 
             calculation_parameters.zz_image_nf = pos_dif + calculation_parameters.zz_focal_ray
+    elif input_parameters.ghy_diff_plane == 3: #2D
+        mDist, ForHor, ForVer = hy_CreateCDF2D(calculation_parameters.dif_xpzp)		# create cumulative distribution function from the angular diffraction profile
+        pos_dif_x, pos_dif_z = hy_MakeDist2D(calculation_parameters.zp_screen, mDist, ForHor, ForVer)	# generate random ray divergence kicks based on the CDF, the number of rays is the same as in the original shadow file
 
+        dx_wave = numpy.arctan(pos_dif_x) # calculate dx from tan(dx)
+        dx_conv = dx_wave + calculation_parameters.dx_ray # add the ray divergence kicks
+
+        calculation_parameters.xx_image_ff = calculation_parameters.xx_screen + input_parameters.ghy_distance*numpy.tan(dx_conv) # ray tracing to the image plane
+        calculation_parameters.dx_conv = dx_conv
+
+        dz_wave = numpy.arctan(pos_dif_z) # calculate dz from tan(dz)
+        dz_conv = dz_wave + calculation_parameters.dz_ray # add the ray divergence kicks
+
+        calculation_parameters.zz_image_ff = calculation_parameters.zz_screen + input_parameters.ghy_distance*numpy.tan(dz_conv) # ray tracing to the image plane
+        calculation_parameters.dz_conv = dz_conv
+    elif input_parameters.ghy_diff_plane == 4: #2D - x then Z
+        pass
 #########################################################################
 
 def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_parameters=HybridCalculationParameters()):
@@ -819,91 +877,15 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
         calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
 
         if do_nf: calculation_parameters.nf_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)
-    elif input_parameters.ghy_diff_plane == 3: #1d calculation in both direction
-        do_sagittal = True
-        do_tangential = True
+    elif input_parameters.ghy_diff_plane == 3: # 2d calculation
+        angle_num = numpy.sqrt(1+(numpy.tan(calculation_parameters.dz_conv))**2+(numpy.tan(calculation_parameters.dx_conv))**2)
 
-        if input_parameters.ghy_calcType not in (3, 4):
-            do_sagittal   = not calculation_parameters.beam_not_cut_in_x
-            do_tangential = not calculation_parameters.beam_not_cut_in_z
+        calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
+        calculation_parameters.ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
+        calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
+        calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
+        calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
 
-        #print("sag", do_sagittal, "tan", do_tangential)
-
-        if do_sagittal and do_tangential:
-            #print("2D")
-            '''
-            # WRONG ALGORITHM!!!! Z' and X' are CORRELATED!
-            calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
-            calculation_parameters.ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
-            calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
-            calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
-            '''
-
-            angle_num = numpy.sqrt(1+(numpy.tan(calculation_parameters.dz_conv))**2+(numpy.tan(calculation_parameters.dx_conv))**2)
-
-            beam_sagittal = calculation_parameters.ff_beam.duplicate(history=False)
-            beam_tangential = calculation_parameters.ff_beam.duplicate(history=False)
-
-            angle_perpen = numpy.arctan(calculation_parameters.zp_screen/calculation_parameters.yp_screen)
-
-            beam_sagittal._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
-            beam_sagittal._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)[::-1] # uncorrelate 2 directions!
-            beam_sagittal._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
-            beam_sagittal._beam.rays[:, 5] = numpy.tan(angle_perpen)/angle_num
-
-            angle_perpen = numpy.arctan(calculation_parameters.xp_screen/calculation_parameters.yp_screen)
-
-            beam_tangential._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)[::-1] # uncorrelate 2 directions!
-            beam_tangential._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
-            beam_tangential._beam.rays[:, 3] = numpy.tan(angle_perpen)/angle_num
-            beam_tangential._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
-
-            beam_sagittal._beam.rays = beam_sagittal._beam.rays[::2] # even entries to maintain same number of rays
-            beam_tangential._beam.rays = beam_tangential._beam.rays[1::2] # odd entries to maintain same number of rays
-
-            calculation_parameters.ff_beam = ShadowBeam.mergeBeams(beam_sagittal, beam_tangential) # merge
-            calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
-
-            if do_nf:
-                beam_sagittal = calculation_parameters.nf_beam.duplicate(history=False)
-                beam_tangential = calculation_parameters.nf_beam.duplicate(history=False)
-
-                beam_sagittal._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)
-                beam_sagittal._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)[::-1] # uncorrelate 2 directions!
-
-                beam_tangential._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)[::-1] # uncorrelate 2 directions!
-                beam_tangential._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)
-
-                beam_sagittal._beam.rays = beam_sagittal._beam.rays[::2]
-                beam_tangential._beam.rays = beam_tangential._beam.rays[1::2]
-
-                calculation_parameters.nf_beam = ShadowBeam.mergeBeams(beam_sagittal, beam_tangential)
-        else:
-            if do_sagittal:
-                #print("1D S")
-
-                angle_perpen = numpy.arctan(calculation_parameters.zp_screen/calculation_parameters.yp_screen)
-                angle_num = numpy.sqrt(1+(numpy.tan(angle_perpen))**2+(numpy.tan(calculation_parameters.dx_conv))**2)
-
-                calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
-                calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
-                calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
-                calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(angle_perpen)/angle_num
-
-                if do_nf: calculation_parameters.nf_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)
-
-            elif do_tangential:
-                #print("1D T")
-
-                angle_perpen = numpy.arctan(calculation_parameters.xp_screen/calculation_parameters.yp_screen)
-                angle_num = numpy.sqrt(1+(numpy.tan(angle_perpen))**2+(numpy.tan(calculation_parameters.dz_conv))**2)
-
-                calculation_parameters.ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
-                calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(angle_perpen)/angle_num
-                calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
-                calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
-
-                if do_nf: calculation_parameters.nf_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)
 
     if input_parameters.file_to_write_out == 1:
 
@@ -1013,6 +995,10 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
     input_parameters.widget.status_message("dif_xp: begin calculation")
 
     imagesize = min(abs(calculation_parameters.ghy_x_max), abs(calculation_parameters.ghy_x_min)) * 2
+    # 2017-01 Luca Rebuffi
+    imagesize = min(imagesize,
+                    input_parameters.ghy_npeak*2*0.88*calculation_parameters.gwavelength*focallength_ff/abs(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min))
+
     imagenpts = round(imagesize / propagated_wavefront.delta() / 2) * 2 + 1
 
 
@@ -1185,6 +1171,9 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
     input_parameters.widget.status_message("dif_zp: begin calculation")
 
     imagesize = min(abs(calculation_parameters.ghy_z_max), abs(calculation_parameters.ghy_z_min)) * 2
+    # 2017-01 Luca Rebuffi
+    imagesize = min(imagesize,
+                    input_parameters.ghy_npeak*2*0.88*calculation_parameters.gwavelength*focallength_ff/abs(calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min))
     imagenpts = round(imagesize / propagated_wavefront.delta() / 2) * 2 + 1
 
     dif_zp = ScaledArray.initialize_from_range(numpy.ones(propagated_wavefront.size()),
@@ -1268,6 +1257,151 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
         calculation_parameters.dif_z = dif_z
 
         input_parameters.widget.set_progress_bar(80)
+
+def propagate_2D(calculation_parameters, input_parameters):
+    # only tangential slopes
+    if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
+        rms_slope = hy_findrmsslopefromheight(calculation_parameters.w_mirror_lz)
+
+        input_parameters.widget.status_message("Using RMS slope = " + str(rms_slope))
+
+    # ------------------------------------------
+    # far field calculation
+    # ------------------------------------------
+    focallength_ff = calculate_focal_length_ff_2D(calculation_parameters.ghy_x_min,
+                                                  calculation_parameters.ghy_x_max,
+                                                  calculation_parameters.ghy_z_min,
+                                                  calculation_parameters.ghy_z_max,
+                                                  input_parameters.ghy_npeak,
+                                                  calculation_parameters.gwavelength)
+
+    if (input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4) and rms_slope != 0:
+        focallength_ff = min(focallength_ff,(calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min) / 16 / rms_slope ) #xshi changed
+
+    input_parameters.widget.status_message("FF: calculated focal length: " + str(focallength_ff))
+
+    fftsize_x = int(calculate_fft_size(calculation_parameters.ghy_x_min,
+                                       calculation_parameters.ghy_x_max,
+                                       calculation_parameters.gwavelength,
+                                       focallength_ff,
+                                       input_parameters.ghy_fftnpts,
+                                       factor=20))
+
+    fftsize_z = int(calculate_fft_size(calculation_parameters.ghy_z_min,
+                                    calculation_parameters.ghy_z_max,
+                                    calculation_parameters.gwavelength,
+                                    focallength_ff,
+                                    input_parameters.ghy_fftnpts,
+                                    factor=20))
+
+    input_parameters.widget.set_progress_bar(30)
+    input_parameters.widget.status_message("FF: creating plane wave begin, fftsize_x = " +  str(fftsize_x) + ", fftsize_z = " +  str(fftsize_z))
+
+    wavefront = Wavefront2D.initialize_wavefront_from_range(wavelength=calculation_parameters.gwavelength,
+                                                            number_of_points=(fftsize_x, fftsize_z),
+                                                            x_min=calculation_parameters.ghy_x_min,
+                                                            x_max=calculation_parameters.ghy_x_max,
+                                                            y_min=calculation_parameters.ghy_z_min,
+                                                            y_max=calculation_parameters.ghy_z_max)
+
+    try:
+        for i in range(0, len(wavefront.electric_field_array.x_coord)):
+            for j in range(0, len(wavefront.electric_field_array.y_coord)):
+                wavefront.electric_field_array.set_z_value(i, j,
+                                                           numpy.sqrt(calculation_parameters.wIray_2d.interpolate_value(
+                                                               wavefront.electric_field_array.x_coord[i],
+                                                               wavefront.electric_field_array.y_coord[j]))
+                                                           )
+    except IndexError:
+        raise Exception("Unexpected Error during interpolation: try reduce Number of bins for I(Tangential) histogram")
+
+    wavefront.apply_ideal_lens(focallength_ff, focallength_ff)
+
+    if input_parameters.ghy_calcType == 3:
+        input_parameters.widget.status_message("FF: calculating phase shift due to Height Error Profile")
+
+        phase_shifts = numpy.zeros(wavefront.size())
+
+        for index in range(0, phase_shifts.shape[0]):
+
+            np_array = numpy.zeros(calculation_parameters.w_mirr_2D_values.shape()[1])
+            for j in range(0, len(np_array)):
+                np_array[j] = calculation_parameters.w_mirr_2D_values.interpolate_value(wavefront.get_coordinate_x()[index], calculation_parameters.w_mirr_2D_values.get_y_value(j))
+
+            w_mirror_lz = ScaledArray.initialize_from_steps(np_array,
+                                                            calculation_parameters.w_mirr_2D_values.y_coord[0],
+                                                            calculation_parameters.w_mirr_2D_values.y_coord[1] - calculation_parameters.w_mirr_2D_values.y_coord[0])
+
+            phase_shifts[index, :] = get_mirror_figure_error_phase_shift(wavefront.get_coordinate_y(),
+                                                                         calculation_parameters.gwavelength,
+                                                                         calculation_parameters.wangle_z,
+                                                                         calculation_parameters.wl_z,
+                                                                         w_mirror_lz)
+        wavefront.add_phase_shifts(phase_shifts)
+
+    if input_parameters.ghy_calcType == 4:
+        input_parameters.widget.status_message("FF: calculating phase shift due to Height Error Profile")
+
+        phase_shifts = numpy.zeros(wavefront.size())
+
+        for index in range(0, phase_shifts.shape[0]):
+
+            w_mirror_lz = ScaledArray.initialize_from_steps(calculation_parameters.w_mirr_2D_values.z_values[index, :],
+                                                            calculation_parameters.w_mirr_2D_values.y_coord[0],
+                                                            calculation_parameters.w_mirr_2D_values.y_coord[1] - calculation_parameters.w_mirr_2D_values.y_coord[0])
+
+            phase_shifts[index, :] = get_grating_figure_error_phase_shift(wavefront.get_coordinate_y(),
+                                                                          calculation_parameters.gwavelength,
+                                                                          calculation_parameters.wangle_z,
+                                                                          calculation_parameters.wangle_ref_z,
+                                                                          calculation_parameters.wl_z,
+                                                                          w_mirror_lz)
+        wavefront.add_phase_shifts(phase_shifts)
+
+    input_parameters.widget.set_progress_bar(50)
+    input_parameters.widget.status_message("calculated plane wave: begin FF propagation (distance = " +  str(focallength_ff) + ")")
+
+    propagated_wavefront = propagator2D.propagate_2D_fresnel(wavefront, focallength_ff)
+
+    input_parameters.widget.set_progress_bar(70)
+    input_parameters.widget.status_message("dif_zp: begin calculation")
+
+    imagesize_x = min(abs(calculation_parameters.ghy_x_max), abs(calculation_parameters.ghy_x_min)) * 2
+    imagesize_x = min(imagesize_x,
+                      input_parameters.ghy_npeak*2*0.88*calculation_parameters.gwavelength*focallength_ff/abs(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min))
+    delta_x = propagated_wavefront.delta()[0]
+    imagenpts_x = round(imagesize_x/delta_x/2) * 2 + 1
+    
+    imagesize_z = min(abs(calculation_parameters.ghy_z_max), abs(calculation_parameters.ghy_z_min)) * 2
+    imagesize_z = min(imagesize_z,
+                      input_parameters.ghy_npeak*2*0.88*calculation_parameters.gwavelength*focallength_ff/abs(calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min))
+    delta_z = propagated_wavefront.delta()[1]
+    imagenpts_z = round(imagesize_z/delta_z/2) * 2 + 1
+
+    dif_xpzp = ScaledMatrix.initialize_from_range(numpy.ones((imagenpts_x, imagenpts_z)),
+                                                  min_scale_value_x = -(imagenpts_x - 1) / 2 * delta_x,
+                                                  max_scale_value_x =(imagenpts_x - 1) / 2 * delta_x,
+                                                  min_scale_value_y = -(imagenpts_z - 1) / 2 * delta_z,
+                                                  max_scale_value_y =(imagenpts_z - 1) / 2 * delta_z)
+
+    for i in range(0, dif_xpzp.shape()[0]):
+        for j in range(0, dif_xpzp.shape()[1]):
+            dif_xpzp.set_z_value(i, j, numpy.absolute(propagated_wavefront.get_interpolated_complex_amplitude(
+                                                           dif_xpzp.x_coord[i],
+                                                           dif_xpzp.y_coord[j]))**2
+                                                       )
+
+    dif_xpzp.set_scale_from_range(0,
+                                  -(imagenpts_x - 1) / 2 * delta_x / focallength_ff,
+                                  (imagenpts_x - 1) / 2 * delta_x / focallength_ff)
+
+    dif_xpzp.set_scale_from_range(1,
+                                  -(imagenpts_z - 1) / 2 * delta_z / focallength_ff,
+                                  (imagenpts_z - 1) / 2 * delta_z / focallength_ff)
+
+    calculation_parameters.dif_xpzp = dif_xpzp
+
+    input_parameters.widget.set_progress_bar(80)
 
 #########################################################
 #
@@ -1375,7 +1509,7 @@ def hy_CreateCDF1D(data):
 
 def hy_MakeDist1D(np_array, mDist):
     random_generator = random.Random()
-    random_generator.seed(25)
+    random_generator.seed()
 
     pos_dif = numpy.zeros(len(np_array))
     for index in range(0, len(np_array)):
@@ -1385,15 +1519,80 @@ def hy_MakeDist1D(np_array, mDist):
 
 def hy_GetOnePoint1D(mDist, random_generator, reset=0):
     if reset==1 : random_generator.seed(1)
+
     return mDist.interpolate_scale_value(random_generator.random()) # Finding vertical x value
+
+def hy_CreateCDF2D(data):
+    mDist = ScaledMatrix(data.x_coord, data.y_coord, data.z_values)
+    numx = mDist.shape()[0]
+    numy = mDist.shape()[1]
+
+    for i in range(1, numx):
+        for j in range(0, numy):
+            mDist.z_values[i, j] += mDist.z_values[i - 1, j] # mDist matrix contains the rows
+
+    ForHor = ScaledArray.initialize(numpy.zeros(numx))
+    ForHor.scale = mDist.x_coord
+    ForVer = ScaledArray.initialize(mDist.z_values[numx-1, :])
+    ForVer.scale = mDist.y_coord
+
+    for j in range(1, numy):
+        ForVer.np_array[j] += ForVer.np_array[j-1]
+    ForVer.np_array /= ForVer.np_array[numy-1]
+
+    for j in range(0, numy):
+        mDist.z_values[:, j] /= mDist.z_values[numx-1, j] # normalization of each row
+
+    return mDist, ForHor, ForVer
+
+def hy_MakeDist2D(np_array, mDist, ForHor, ForVer):
+    random_generator = random.Random()
+    random_generator.seed()
+
+    pos_dif_x = numpy.zeros(len(np_array))
+    pos_dif_z = numpy.zeros(len(np_array))
+
+    for index in range(0, len(np_array)):
+        dif_x, dif_z =  hy_GetOnePoint2D(mDist, ForHor, ForVer, random_generator)
+        pos_dif_x[index] = dif_x
+        pos_dif_z[index] = dif_z
+
+    return pos_dif_x, pos_dif_z
+
+def hy_GetOnePoint2D(mDist, ForHor, ForVer, random_generator, reset=0):
+    if reset==1 : random_generator.seed()
+
+    xDiv = random_generator.random()
+    zDiv = random_generator.random()
+    pointNumber = 0
+
+    if zDiv <= ForVer.get_value(0):
+        res_y = mDist.get_y_value(0)
+    else:
+        res_y = ForVer.interpolate_scale_value(zDiv) #Finding vertical x value
+        for index in range(0, ForVer.size()):
+            pointNumber = index
+            if ForVer.get_value(index) > res_y: break
+
+    ForHor.set_values(mDist.z_values[:, pointNumber])	#Finding the horizontal angle
+
+    if xDiv <= ForHor.get_value(0):
+        res_x=mDist.get_x_value(0)
+    else:
+        res_x = ForHor.interpolate_scale_value(xDiv)
+
+    return res_x, res_y
 
 # 1D
 def calculate_focal_length_ff(min_value, max_value, n_peaks, wavelength):
 #    return (min(abs(max_value), abs(min_value))*2)**2/n_peaks/2/0.88/wavelength  #xshi used for now, but will have problem when the aperture is off center
     return (max_value - min_value)**2/n_peaks/2/0.88/wavelength  #xshi suggested, but need to first fix the problem of getting the fake solution of mirror aperture by SHADOW.
 
-def calculate_fft_size(min_value, max_value, wavelength, propagation_distance, fft_npts):
-    return int(min(100 * (max_value - min_value) ** 2 / wavelength / propagation_distance / 0.88, fft_npts))
+def calculate_focal_length_ff_2D(min_x_value, max_x_value, min_z_value, max_z_value, n_peaks, wavelength):
+    return (min((max_z_value - min_z_value), (max_x_value - min_x_value)))**2/n_peaks/2/0.88/wavelength
+
+def calculate_fft_size(min_value, max_value, wavelength, propagation_distance, fft_npts, factor=100):
+    return int(min(factor * (max_value - min_value) ** 2 / wavelength / propagation_distance / 0.88, fft_npts))
 
 def get_mirror_figure_error_phase_shift(abscissas,
                                         wavelength,
@@ -1419,154 +1618,3 @@ def showConfirmMessage(title, message):
     msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
     msgBox.setDefaultButton(QMessageBox.No)
     return msgBox.exec_()
-
-
-################################################################
-################################################################
-# TEST
-################################################################
-################################################################
-
-import time
-from PyQt4.QtGui import QApplication
-import matplotlib.pyplot as plt
-
-import PyMca5.PyMcaGui.plotting.PlotWindow as PlotWindow
-from PyMca5.PyMcaGui.plotting.ImageView import ImageView
-
-
-def do_histo(array, bins):
-    plt.hist(array, bins)
-    plt.show()
-
-def do_1d_plot(scaled_array, title="PROVA"):
-    plot_canvas = PlotWindow.PlotWindow(roi=False, control=False, position=True, plugins=False, logx=False, logy=False)
-    plot_canvas.setDefaultPlotLines(True)
-    plot_canvas.setActiveCurveColor(color='darkblue')
-    plot_canvas.setMinimumWidth(800)
-    plot_canvas.setMaximumWidth(800)
-
-    plot_canvas.addCurve(scaled_array.scale, scaled_array.np_array, title, symbol='', color='blue', replace=True) #'+', '^', ','
-    plot_canvas.setDrawModeEnabled(True, 'rectangle')
-    plot_canvas.setZoomModeEnabled(True)
-
-    plot_canvas.show()
-
-def do_2d_plot(scaled_matrix, title="PROVA"):
-    plot_canvas = ImageView()
-
-    colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
-
-    plot_canvas._imagePlot.setDefaultColormap(colormap)
-    plot_canvas.setMinimumWidth(800)
-    plot_canvas.setMaximumWidth(800)
-
-    nbins_x =  scaled_matrix.shape()[0]
-    nbins_y =  scaled_matrix.shape()[1]
-
-    xmin, xmax = numpy.min(scaled_matrix.x_coord), numpy.max(scaled_matrix.x_coord)
-    ymin, ymax = numpy.min(scaled_matrix.y_coord), numpy.max(scaled_matrix.y_coord)
-
-    origin = (xmin, ymin)
-    scale = (abs((xmax-xmin)/nbins_x), abs((ymax-ymin)/nbins_y))
-
-    # PyMCA inverts axis!!!! histogram must be calculated reversed
-    data_to_plot = []
-    for y_index in range(0, nbins_y):
-        x_values = []
-        for x_index in range(0, nbins_x):
-            x_values.append(scaled_matrix.get_z_value(x_index, y_index))
-
-        data_to_plot.append(x_values)
-
-    plot_canvas.setImage(numpy.array(data_to_plot), origin=origin, scale=scale)
-
-    plot_canvas.show()
-
-if __name__ == "__main__":
-    a = QApplication(sys.argv)
-
-    doXianbo = True
-
-    if doXianbo:
-        os.chdir("/Users/labx/Desktop/TEMP/XIANBO_IN/")
-
-        input_parameters = HybridInputParameters()
-
-        input_parameters.ghy_n_oe = 1
-        input_parameters.ghy_n_screen = 2
-        input_parameters.ghy_diff_plane = 2
-        input_parameters.ghy_calcType = 3
-        input_parameters.ghy_mirrorfile = "mirror.dat"
-        input_parameters.ghy_nf = 0
-        input_parameters.ghy_nbins_z = 39
-        input_parameters.ghy_npeak = 10
-        input_parameters.ghy_fftnpts = 1e6
-    else:
-        os.chdir("/Users/labx/Desktop/TEMP/")
-
-        src = ShadowSource.create_src_from_file(dir + "start.00")
-
-        shadow_beam = ShadowBeam.traceFromSource(src)
-        shadow_oe = ShadowOpticalElement.create_oe_from_file(dir + "start.01")
-        shadow_beam = ShadowBeam.traceFromOE(shadow_beam, shadow_oe)
-
-        input_parameters = HybridInputParameters()
-        input_parameters.shadow_beam = shadow_beam
-        input_parameters.ghy_diff_plane = 1
-        input_parameters.ghy_calcType = 3
-        input_parameters.ghy_mirrorfile = "mirror.dat"
-        input_parameters.ghy_nf = 1
-        input_parameters.ghy_nbins_z = 39
-        input_parameters.ghy_npeak = 10
-        input_parameters.ghy_fftnpts = 1e5
-
-    t0 = time.time()
-
-    output_beam, calculation_parameters = hy_run(input_parameters)
-
-    t1 = time.time()
-
-    print("TIME", t1-t0)
-
-    if input_parameters.ghy_calcType == 3:
-        #do_2d_plot(calculation_parameters.w_mirr_2D_values, "Slope Error Distribution")
-        pass
-
-    if input_parameters.ghy_diff_plane != 3:
-        nbins = input_parameters.ghy_npeak*20+1
-
-        if input_parameters.ghy_diff_plane == 1:
-            do_1d_plot(calculation_parameters.wIray_x, "Intensity Distribution")
-            do_1d_plot(calculation_parameters.dif_xp, "DIF XP")
-            do_1d_plot(calculation_parameters.dif_xp, "DIF X")
-        elif input_parameters.ghy_diff_plane == 2:
-            do_1d_plot(calculation_parameters.wIray_z, "Intensity Distribution")
-            do_1d_plot(calculation_parameters.dif_zp, "DIF ZP")
-            #do_1d_plot(calculation_parameters.dif_z, "DIF Z")
-            #do_histo(calculation_parameters.zz_image_ff, nbins)
-            #do_histo(calculation_parameters.zz_image_nf, nbins)
-
-
-            pass
-    else:
-        do_2d_plot(calculation_parameters.wIray_2d, "Intensity Distribution")
-
-
-    output_beam.writeToFile("star_hybrid_godo.01")
-
-    '''
-    widget = ShadowPlot.DetailedPlotWidget()
-    widget.plot_xy(output_beam._beam,
-                   1,
-                   3,
-                   title="X,Z",
-                   xtitle=r'X [$\mu$m]',
-                   ytitle=r'Z [$\mu$m]',
-                   yrange=[-2000, 2000],
-                   xum=("X [" + u"\u03BC" + "m]"),
-                   yum=("Z [" + u"\u03BC" + "m]"))
-    widget.show()
-    '''
-
-    a.exec_()
