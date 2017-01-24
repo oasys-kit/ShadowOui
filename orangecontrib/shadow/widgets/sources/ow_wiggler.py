@@ -2,7 +2,7 @@ import sys
 import numpy, matplotlib
 from PyQt4 import QtGui
 from PyQt4.QtGui import QApplication
-from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
+from silx.gui.plot.PlotWindow import PlotWindow
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -304,7 +304,7 @@ class Wiggler(ow_source.Source):
 
     def plot_wiggler_histo(self, progressBarValue, x, y, plot_canvas_index, title, xtitle, ytitle, is_log_log=False):
         if self.wiggler_plot_canvas[plot_canvas_index] is None:
-            self.wiggler_plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True, plugins=False)
+            self.wiggler_plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True)
             self.wiggler_plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
             self.wiggler_plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
 

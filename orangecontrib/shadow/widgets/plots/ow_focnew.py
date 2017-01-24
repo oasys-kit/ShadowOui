@@ -11,7 +11,7 @@ from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
 from orangecontrib.shadow.widgets.gui import ow_automatic_element
 
-from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
+from silx.gui.plot.PlotWindow import PlotWindow
 
 class FocNew(ow_automatic_element.AutomaticElement):
 
@@ -195,26 +195,26 @@ class FocNew(ow_automatic_element.AutomaticElement):
                 self.focnewInfo.setText(ticket["text"])
 
                 if self.plot_canvas_x is None:
-                    self.plot_canvas_x = PlotWindow(roi=False, control=False, position=True, plugins=False)
+                    self.plot_canvas_x = PlotWindow(roi=False, control=False, position=True)
                     self.plot_canvas_x.setDefaultPlotLines(True)
                     self.plot_canvas_x.setActiveCurveColor(color='blue')
                     self.plot_canvas_x.setDrawModeEnabled(False)
                     self.plot_canvas_x.setZoomModeEnabled(False)
-                    self.plot_canvas_x.toolBar.setVisible(False)
+                    self.plot_canvas_x.toolBar().setVisible(False)
 
-                    self.plot_canvas_z = PlotWindow(roi=False, control=False, position=True, plugins=False)
+                    self.plot_canvas_z = PlotWindow(roi=False, control=False, position=True)
                     self.plot_canvas_z.setDefaultPlotLines(True)
                     self.plot_canvas_z.setActiveCurveColor(color='red')
                     self.plot_canvas_z.setDrawModeEnabled(False)
                     self.plot_canvas_z.setZoomModeEnabled(False)
-                    self.plot_canvas_z.toolBar.setVisible(False)
+                    self.plot_canvas_z.toolBar().setVisible(False)
 
-                    self.plot_canvas_t = PlotWindow(roi=False, control=False, position=True, plugins=False)
+                    self.plot_canvas_t = PlotWindow(roi=False, control=False, position=True)
                     self.plot_canvas_t.setDefaultPlotLines(True)
                     self.plot_canvas_t.setActiveCurveColor(color='green')
                     self.plot_canvas_t.setDrawModeEnabled(False)
                     self.plot_canvas_t.setZoomModeEnabled(False)
-                    self.plot_canvas_t.toolBar.setVisible(False)
+                    self.plot_canvas_t.toolBar().setVisible(False)
 
                     gridLayout = QtGui.QGridLayout()
 
@@ -235,33 +235,33 @@ class FocNew(ow_automatic_element.AutomaticElement):
                 pos = [0.25, 0.15, 0.7, 0.75]
 
                 self.plot_canvas_x.addCurve(y, 2.35*ST.focnew_scan(ticket["AX"], y)*ShadowPlot.get_factor(1, self.workspace_units_to_cm), "x (tangential)", symbol='', color="blue", replace=True) #'+', '^', ','
-                self.plot_canvas_x._plot.graph.ax.get_yaxis().get_major_formatter().set_useOffset(True)
-                self.plot_canvas_x._plot.graph.ax.get_yaxis().get_major_formatter().set_scientific(True)
-                self.plot_canvas_x._plot.graph.ax.set_position(pos)
-                self.plot_canvas_x._plot.graph.ax2.set_position(pos)
+                self.plot_canvas_x._backend.ax.get_yaxis().get_major_formatter().set_useOffset(True)
+                self.plot_canvas_x._backend.ax.get_yaxis().get_major_formatter().set_scientific(True)
+                self.plot_canvas_x._backend.ax.set_position(pos)
+                self.plot_canvas_x._backend.ax2.set_position(pos)
                 self.plot_canvas_x.setGraphXLabel("Y [" + self.workspace_units_label + "]")
                 self.plot_canvas_x.setGraphYLabel("2.35*<X> [$\mu$m]")
-                self.plot_canvas_x._plot.graph.ax.set_title("X", horizontalalignment='left')
+                self.plot_canvas_x._backend.ax.set_title("X", horizontalalignment='left')
                 self.plot_canvas_x.replot()
 
                 self.plot_canvas_z.addCurve(y, 2.35*ST.focnew_scan(ticket["AZ"], y)*ShadowPlot.get_factor(3, self.workspace_units_to_cm), "z (sagittal)", symbol='', color="red", replace=False) #'+', '^', ','
-                self.plot_canvas_z._plot.graph.ax.get_yaxis().get_major_formatter().set_useOffset(True)
-                self.plot_canvas_z._plot.graph.ax.get_yaxis().get_major_formatter().set_scientific(True)
-                self.plot_canvas_z._plot.graph.ax.set_position(pos)
-                self.plot_canvas_z._plot.graph.ax2.set_position(pos)
+                self.plot_canvas_z._backend.ax.get_yaxis().get_major_formatter().set_useOffset(True)
+                self.plot_canvas_z._backend.ax.get_yaxis().get_major_formatter().set_scientific(True)
+                self.plot_canvas_z._backend.ax.set_position(pos)
+                self.plot_canvas_z._backend.ax2.set_position(pos)
                 self.plot_canvas_z.setGraphXLabel("Y [" + self.workspace_units_label + "]")
                 self.plot_canvas_z.setGraphYLabel("2.35*<Z> [$\mu$m]")
-                self.plot_canvas_z._plot.graph.ax.set_title("Z", horizontalalignment='left')
+                self.plot_canvas_z._backend.ax.set_title("Z", horizontalalignment='left')
                 self.plot_canvas_z.replot()
 
                 self.plot_canvas_t.addCurve(y, 2.35*ST.focnew_scan(ticket["AT"], y)*ShadowPlot.get_factor(1, self.workspace_units_to_cm), "combined x,z", symbol='', color="green", replace=True) #'+', '^', ','
-                self.plot_canvas_t._plot.graph.ax.get_yaxis().get_major_formatter().set_useOffset(True)
-                self.plot_canvas_t._plot.graph.ax.get_yaxis().get_major_formatter().set_scientific(True)
-                self.plot_canvas_t._plot.graph.ax.set_position(pos)
-                self.plot_canvas_t._plot.graph.ax2.set_position(pos)
+                self.plot_canvas_t._backend.ax.get_yaxis().get_major_formatter().set_useOffset(True)
+                self.plot_canvas_t._backend.ax.get_yaxis().get_major_formatter().set_scientific(True)
+                self.plot_canvas_t._backend.ax.set_position(pos)
+                self.plot_canvas_t._backend.ax2.set_position(pos)
                 self.plot_canvas_t.setGraphXLabel("Y [" + self.workspace_units_label + "]")
                 self.plot_canvas_t.setGraphYLabel("2.35*<X,Z> [$\mu$m]")
-                self.plot_canvas_t._plot.graph.ax.set_title("X,Z (Combined)", horizontalalignment='left')
+                self.plot_canvas_t._backend.ax.set_title("X,Z (Combined)", horizontalalignment='left')
                 self.plot_canvas_t.replot()
 
 

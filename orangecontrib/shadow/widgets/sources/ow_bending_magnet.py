@@ -145,7 +145,6 @@ class BendingMagnet(ow_source.Source):
            self.magnetic_radius=3.334728*self.energy/self.magnetic_field
 
     def runShadowSource(self):
-        #self.error(self.error_id)
         self.setStatusMessage("")
         self.progressBarInit()
 
@@ -165,7 +164,6 @@ class BendingMagnet(ow_source.Source):
 
             self.progressBarSet(10)
 
-            #self.information(0, "Running SHADOW")
             self.setStatusMessage("Running SHADOW")
 
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
@@ -188,13 +186,11 @@ class BendingMagnet(ow_source.Source):
                 for row in grabber.ttyData:
                    self.writeStdOut(row)
 
-            #self.information(0, "Plotting Results")
             self.setStatusMessage("Plotting Results")
 
             self.progressBarSet(80)
             self.plot_results(beam_out)
 
-            #self.information()
             self.setStatusMessage("")
 
             self.send("Beam", beam_out)
@@ -203,8 +199,7 @@ class BendingMagnet(ow_source.Source):
                                        str(exception),
                 QtGui.QMessageBox.Ok)
 
-            #self.error_id = self.error_id + 1
-            #self.error(self.error_id, "Exception occurred: " + str(exception))
+            #raise exception
 
         self.progressBarFinished()
 

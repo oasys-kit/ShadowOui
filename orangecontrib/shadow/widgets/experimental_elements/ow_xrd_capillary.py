@@ -9,8 +9,9 @@ import numpy
 import orangecanvas.resources as resources
 import scipy
 import xraylib
-from PyMca5.PyMcaGui.plotting.MaskImageWidget import MaskImageWidget
-from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
+
+from silx.gui.plot.PlotWindow import PlotWindow, Plot2D
+
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QApplication, QPalette, QColor, QFont, QDialog
@@ -630,10 +631,9 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         self.area_image_box.setFixedHeight(self.IMAGE_HEIGHT)
         self.area_image_box.setFixedWidth(self.IMAGE_WIDTH)
 
-        self.plot_canvas_area = MaskImageWidget(colormap=True, selection=False, imageicons=False, aspect=True)
-        self.plot_canvas_area.setDefaultColormap(6, False)
-        self.plot_canvas_area.setXLabel("X [pixels]")
-        self.plot_canvas_area.setYLabel("Z [pixels]")
+        self.plot_canvas_area = Plot2D()
+        self.plot_canvas_area.setGraphXLabel("X [pixels]")
+        self.plot_canvas_area.setGraphYLabel("Z [pixels]")
 
         gui.separator(self.area_image_box)
 
@@ -687,7 +687,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         self.setAbsorption()
 
-        self.plot_canvas = PlotWindow(roi=False, control=False, position=True, plugins=False)
+        self.plot_canvas = PlotWindow(roi=False, control=False, position=True)
         self.plot_canvas.setGraphXLabel("2Theta [deg]")
         self.plot_canvas.setGraphYLabel("Intensity (arbitrary units)")
         self.plot_canvas.setDefaultPlotLines(True)
@@ -734,7 +734,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         palette.setColor(QPalette.Base, QColor(243, 240, 160))
         c_W.setPalette(palette)
 
-        self.caglioti_fwhm_canvas = PlotWindow(roi=False, control=False, position=True, plugins=False)
+        self.caglioti_fwhm_canvas = PlotWindow(roi=False, control=False, position=True)
         self.caglioti_fwhm_canvas.setGraphXLabel("2Theta [deg]")
         self.caglioti_fwhm_canvas.setGraphYLabel("FWHM [deg]")
         self.caglioti_fwhm_canvas.setDefaultPlotLines(True)
@@ -783,7 +783,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         palette.setColor(QPalette.Base, QColor(243, 240, 160))
         c_c.setPalette(palette)
 
-        self.caglioti_eta_canvas = PlotWindow(roi=False, control=False, position=True, plugins=False)
+        self.caglioti_eta_canvas = PlotWindow(roi=False, control=False, position=True)
         self.caglioti_eta_canvas.setGraphXLabel("2Theta [deg]")
         self.caglioti_eta_canvas.setGraphYLabel("Eta")
         self.caglioti_eta_canvas.setDefaultPlotLines(True)
@@ -797,7 +797,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         self.caglioti_shift_image_box.setFixedHeight(self.IMAGE_HEIGHT)
         self.caglioti_shift_image_box.setFixedWidth(self.IMAGE_WIDTH)
 
-        self.caglioti_shift_canvas = PlotWindow(roi=False, control=False, position=True, plugins=False)
+        self.caglioti_shift_canvas = PlotWindow(roi=False, control=False, position=True)
         self.caglioti_shift_canvas.setGraphXLabel("2Theta [deg]")
         self.caglioti_shift_canvas.setGraphYLabel("(2Theta_Bragg - 2Theta) [deg]")
         self.caglioti_shift_canvas.setDefaultPlotLines(True)
@@ -1004,11 +1004,11 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
                 data_to_plot.append(x_values)
 
-            self.plot_canvas_area.setImageData(numpy.array(data_to_plot))
-            self.plot_canvas_area.setDefaultColormap(6, False)
-            self.plot_canvas_area.setXLabel("X [pixels]")
-            self.plot_canvas_area.setYLabel("Z [pixels]")
-            self.plot_canvas_area.graphWidget.keepDataAspectRatio(True)
+            self.plot_canvas_area.addImage(numpy.array(data_to_plot),
+                                           colormap={"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256})
+            self.plot_canvas_area.setGraphXLabel("X [pixels]")
+            self.plot_canvas_area.setGraphYLabel("Z [pixels]")
+            self.plot_canvas_area.setKeepDataAspectRatio(True)
 
             time.sleep(0.5)
 
@@ -1035,7 +1035,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
             if not reflections is None:
                 self.populateCagliotisData(reflections)
 
-                self.plot_canvas.addCurve(self.twotheta_angles, self.caglioti_fits, "Caglioti Fits", symbol=',', color='red', linestyle="dashed") #'+', '^',
+                self.plot_canvas.addCurve(self.twotheta_angles, self.caglioti_fits, "Caglioti Fits", symbol=',', color='red', linestyle="--") #'+', '^',
                 self.caglioti_fwhm_canvas.addCurve(self.caglioti_angles, self.caglioti_fwhm, "FWHM", symbol=',', color='blue', replace=True) #'+', '^',
                 self.caglioti_eta_canvas.addCurve(self.caglioti_angles, self.caglioti_eta, "p.V. Mixing Factor", symbol=',', color='blue', replace=True) #'+', '^',
                 self.caglioti_shift_canvas.addCurve(self.caglioti_angles, self.caglioti_shift, "Peak Shift", symbol=',', color='blue', replace=True) #'+', '^',
@@ -1059,7 +1059,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                         for index in range(0, len(self.caglioti_angles)):
                             self.caglioti_fwhm_fit[index] = ShadowMath.caglioti_broadening_function(self.caglioti_angles[index], parameters[0], parameters[1], parameters[2])
 
-                        self.caglioti_fwhm_canvas.addCurve(self.caglioti_angles, self.caglioti_fwhm_fit, symbol=',', color='red', linestyle="dashed") #'+', '^',
+                        self.caglioti_fwhm_canvas.addCurve(self.caglioti_angles, self.caglioti_fwhm_fit, symbol=',', color='red', linestyle="--") #'+', '^',
                     except:
                         self.caglioti_U = -1.000
                         self.caglioti_V = -1.000
@@ -1077,7 +1077,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                         for index in range(0, len(self.caglioti_angles)):
                             self.caglioti_eta_fit[index] = ShadowMath.caglioti_shape_function(self.caglioti_angles[index], parameters[0], parameters[1], parameters[2])
 
-                        self.caglioti_eta_canvas.addCurve(self.caglioti_angles, self.caglioti_eta_fit, symbol=',', color='red', linestyle="dashed") #'+', '^',
+                        self.caglioti_eta_canvas.addCurve(self.caglioti_angles, self.caglioti_eta_fit, symbol=',', color='red', linestyle="--") #'+', '^',
                     except:
                         self.caglioti_U = -1.000
                         self.caglioti_V = -1.000
@@ -1135,7 +1135,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                 self.noise[angle_index] = 0
 
             self.plotResult()
-            self.plot_canvas_area.setImageData(None)
+            self.plot_canvas_area.setImage(None)
             self.writeOutFile()
 
             self.setTabsAndButtonsEnabled(True)
@@ -1376,10 +1376,13 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
             else:
                 self.run_simulation=True
                 self.send("Trigger", ShadowTriggerIn(interrupt=True))
-        except Exception as exception:
-            #self.error_id = self.error_id + 1
-            #self.error(self.error_id, "Exception occurred: " + str(exception))
+        except PermissionError as exception:
+            QtGui.QMessageBox.critical(self, "Permission Error", str(exception), QtGui.QMessageBox.Ok)
 
+            self.setSimulationTabsAndButtonsEnabled(True)
+            self.setStatusMessage("")
+            self.progressBarFinished()
+        except Exception as exception:
             QtGui.QMessageBox.critical(self, "Error", str(exception.args[0]), QtGui.QMessageBox.Ok)
 
             self.setSimulationTabsAndButtonsEnabled(True)

@@ -126,11 +126,8 @@ class Source(ow_generic_element.GenericElement):
 
                     self.deserialize(shadow_file)
 
-                    #os.remove(shadow_temp_file)
-
             except Exception as exception:
                 QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
-
 
     def populateFields(self, shadow_src):
         pass

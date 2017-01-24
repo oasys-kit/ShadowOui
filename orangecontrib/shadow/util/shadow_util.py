@@ -14,13 +14,8 @@ from scipy import optimize, asarray
 from oasys.widgets import gui
 from oasys.widgets import congruence
 
-import PyMca5.PyMcaGui.plotting.PlotWindow as PlotWindow
-
-from PyMca5.PyMcaGui import PyMcaQt as qt
-from PyMca5.PyMcaCore import PyMcaDirs
-from PyMca5.PyMcaIO import ArraySave
-from PyMca5.PyMcaGui.plotting.PyMca_Icons import IconDict
-from PyMca5.PyMcaGui.plotting.ImageView import ImageView
+from silx.gui.plot.PlotWindow import PlotWindow
+from silx.gui.plot.ImageView import ImageView
 
 try:
     import matplotlib
@@ -260,122 +255,6 @@ class ShadowPlot:
     """Sample code to add 2D dataset saving as text to ImageView."""
 
 
-    class ShadowImageView(ImageView):
-        """Subclass ImageView to add save 2D dataset.
-
-        Image origin and scale are not taken into account while saving the image.
-        """
-        def __init__(self, *args, **kwargs):
-            super(ShadowPlot.ShadowImageView, self).__init__(*args, **kwargs)
-
-            # Disable default save behavior and
-            # connect to icon signal to get save icon events
-            self._imagePlot.enableOwnSave(False)
-            self.sigIconSignal.connect(self._handleSaveIcon)
-
-            # Used in getOutputFileName
-            self.outputDir = None
-            self._saveFilter = None
-
-        def getOutputFileName(self):
-            """Open a FileDialog to get the image filename to save to."""
-            # Copied from PyMca5.PyMcaGui.plotting.MaskImageWidget
-            initdir = PyMcaDirs.outputDir
-            if self.outputDir is not None:
-                if os.path.exists(self.outputDir):
-                    initdir = self.outputDir
-            filedialog = qt.QFileDialog(self)
-            filedialog.setFileMode(filedialog.AnyFile)
-            filedialog.setAcceptMode(qt.QFileDialog.AcceptSave)
-            filedialog.setWindowIcon(qt.QIcon(qt.QPixmap(IconDict["gioconda16"])))
-            formatlist = ["ASCII Files *.dat",
-                          "EDF Files *.edf",
-                          'CSV(, separated) Files *.csv',
-                          'CSV(; separated) Files *.csv',
-                          'CSV(tab separated) Files *.csv',
-                          # Added from PlotWindow._getOutputFileName for snapshot
-                          'Widget PNG *.png',
-                          'Widget JPG *.jpg']
-            if hasattr(qt, "QStringList"):
-                strlist = qt.QStringList()
-            else:
-                strlist = []
-            for f in formatlist:
-                    strlist.append(f)
-            if self._saveFilter is None:
-                self._saveFilter = formatlist[0]
-            filedialog.setFilters(strlist)
-            filedialog.selectFilter(self._saveFilter)
-            filedialog.setDirectory(initdir)
-            ret = filedialog.exec_()
-            if not ret:
-                return ""
-            filename = filedialog.selectedFiles()[0]
-            if len(filename):
-                filename = qt.safe_str(filename)
-                self.outputDir = os.path.dirname(filename)
-                self._saveFilter = qt.safe_str(filedialog.selectedFilter())
-                filterused = "." + self._saveFilter[-3:]
-                PyMcaDirs.outputDir = os.path.dirname(filename)
-                if len(filename) < 4:
-                    filename = filename + filterused
-                elif filename[-4:] != filterused:
-                    filename = filename + filterused
-            else:
-                filename = ""
-            return filename
-
-        def _handleSaveIcon(self, event):
-            """Handle save icon events.
-
-            Get current active image and save it as a file.
-            """
-            if event['event'] == 'iconClicked' and event['key'] == 'save':
-                imageData = self.getActiveImage()
-                if imageData is None:
-                    qt.QMessageBox.information(self, "No Data",
-                                               "No image to be saved")
-                    return
-                data, legend, info, pixmap = imageData
-                imageList = [data]
-                labels = ['value']
-
-                # Copied from MaskImageWidget.saveImageList
-                filename = self.getOutputFileName()
-                if not len(filename):
-                    return
-
-                # Add PNG and JPG adapted from PlotWindow.defaultSaveAction
-                if 'WIDGET' in self._saveFilter.upper():
-                    fformat = self._saveFilter[-3:].upper()
-                    pixmap = qt.QPixmap.grabWidget(self._imagePlot)
-                    # Use the following instead to grab the image + histograms
-                    # pixmap = qt.QPixmap.grabWidget(self)
-                    if not pixmap.save(filename, fformat):
-                        msg = qt.QMessageBox(self)
-                        msg.setIcon(qt.QMessageBox.Critical)
-                        msg.setInformativeText(str(sys.exc_info()[1]))
-                        msg.setDetailedText(traceback.format_exc())
-                        msg.exec_()
-                    return
-
-                if filename.lower().endswith(".edf"):
-                    ArraySave.save2DArrayListAsEDF(imageList, filename, labels)
-                elif filename.lower().endswith(".csv"):
-                    if "," in self._saveFilter:
-                        csvseparator = ","
-                    elif ";" in self._saveFilter:
-                        csvseparator = ";"
-                    else:
-                        csvseparator = "\t"
-                    ArraySave.save2DArrayListAsASCII(imageList, filename, labels,
-                                                     csv=True,
-                                                     csvseparator=csvseparator)
-                else:
-                    ArraySave.save2DArrayListAsASCII(imageList, filename, labels,
-                                                     csv=False)
-
-
     #########################################################################################
     #
     # WIDGET FOR DETAILED PLOT
@@ -491,7 +370,7 @@ class ShadowPlot:
         def __init__(self, x_scale_factor = 1.0, y_scale_factor = 1.0):
             super(ShadowPlot.DetailedHistoWidget, self).__init__()
 
-            self.plot_canvas = PlotWindow.PlotWindow(roi=False, control=False, position=True, plugins=False, logx=False, logy=False)
+            self.plot_canvas = PlotWindow(roi=False, control=False, position=True, logScale=False)
             self.plot_canvas.setDefaultPlotLines(True)
             self.plot_canvas.setActiveCurveColor(color='darkblue')
             self.plot_canvas.setMinimumWidth(590*x_scale_factor)
@@ -529,15 +408,15 @@ class ShadowPlot:
 
             if ticket['fwhm'] == None: ticket['fwhm'] = 0.0
 
-            n_patches = len(self.plot_canvas._plot.graph.ax.patches)
-            if (n_patches > 0): self.plot_canvas._plot.graph.ax.patches.remove(self.plot_canvas._plot.graph.ax.patches[n_patches-1])
+            n_patches = len(self.plot_canvas._backend.ax.patches)
+            if (n_patches > 0): self.plot_canvas._backend.ax.patches.remove(self.plot_canvas._backend.ax.patches[n_patches-1])
 
             if not ticket['fwhm'] == 0.0:
                 x_fwhm_i, x_fwhm_f = ticket['fwhm_coordinates']
                 x_fwhm_i, x_fwhm_f = x_fwhm_i*factor, x_fwhm_f*factor
                 y_fwhm   = max(histogram)*0.5
 
-                self.plot_canvas._plot.graph.ax.add_patch(FancyArrowPatch([x_fwhm_i, y_fwhm],
+                self.plot_canvas._backend.ax.add_patch(FancyArrowPatch([x_fwhm_i, y_fwhm],
                                                           [x_fwhm_f, y_fwhm],
                                                           arrowstyle=ArrowStyle.CurveAB(head_width=2, head_length=4),
                                                           color='b',
@@ -567,11 +446,9 @@ class ShadowPlot:
             self.x_scale_factor = x_scale_factor
             self.y_scale_factor = y_scale_factor
 
-            self.plot_canvas = ShadowPlot.ShadowImageView()
+            self.plot_canvas = ImageView()
 
-            colormap = {"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256}
-
-            self.plot_canvas._imagePlot.setDefaultColormap(colormap)
+            self.plot_canvas.setColormap({"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256})
             self.plot_canvas.setMinimumWidth(590 * x_scale_factor)
             self.plot_canvas.setMaximumWidth(590 * y_scale_factor)
 
@@ -621,6 +498,9 @@ class ShadowPlot:
 
                 data_to_plot.append(x_values)
 
+            print (data_to_plot)
+            print(origin, scale)
+
             self.plot_canvas.setImage(numpy.array(data_to_plot), origin=origin, scale=scale)
 
             if xtitle is None: xtitle=ShadowPlot.get_shadow_label(var_x)
@@ -632,46 +512,46 @@ class ShadowPlot:
 
             self.plot_canvas._histoHPlot.setGraphYLabel('Frequency')
 
-            self.plot_canvas._histoHPlot._plot.ax.xaxis.get_label().set_color('white')
-            self.plot_canvas._histoHPlot._plot.ax.xaxis.get_label().set_fontsize(1)
-            for label in self.plot_canvas._histoHPlot._plot.ax.xaxis.get_ticklabels():
+            self.plot_canvas._histoHPlot._backend.ax.xaxis.get_label().set_color('white')
+            self.plot_canvas._histoHPlot._backend.ax.xaxis.get_label().set_fontsize(1)
+            for label in self.plot_canvas._histoHPlot._backend.ax.xaxis.get_ticklabels():
                 label.set_color('white')
                 label.set_fontsize(1)
 
             self.plot_canvas._histoVPlot.setGraphXLabel('Frequency')
 
-            self.plot_canvas._histoVPlot._plot.ax.yaxis.get_label().set_color('white')
-            self.plot_canvas._histoVPlot._plot.ax.yaxis.get_label().set_fontsize(1)
-            for label in self.plot_canvas._histoVPlot._plot.ax.yaxis.get_ticklabels():
+            self.plot_canvas._histoVPlot._backend.ax.yaxis.get_label().set_color('white')
+            self.plot_canvas._histoVPlot._backend.ax.yaxis.get_label().set_fontsize(1)
+            for label in self.plot_canvas._histoVPlot._backend.ax.yaxis.get_ticklabels():
                 label.set_color('white')
                 label.set_fontsize(1)
 
             if ticket['fwhm_h'] == None: ticket['fwhm_h'] = 0.0
             if ticket['fwhm_v'] == None: ticket['fwhm_v'] = 0.0
 
-            n_patches = len(self.plot_canvas._histoHPlot._plot.graph.ax.patches)
-            if (n_patches > 0): self.plot_canvas._histoHPlot._plot.graph.ax.patches.remove(self.plot_canvas._histoHPlot._plot.graph.ax.patches[n_patches-1])
+            n_patches = len(self.plot_canvas._histoHPlot._backend.ax.patches)
+            if (n_patches > 0): self.plot_canvas._histoHPlot._backend.ax.patches.remove(self.plot_canvas._histoHPlot._backend.ax.patches[n_patches-1])
 
             if not ticket['fwhm_h'] == 0.0:
                 x_fwhm_i, x_fwhm_f = ticket['fwhm_coordinates_h']
                 x_fwhm_i, x_fwhm_f = x_fwhm_i*factor1, x_fwhm_f*factor1
                 y_fwhm = max(ticket['histogram_h']) * 0.5
 
-                self.plot_canvas._histoHPlot._plot.graph.ax.add_patch(FancyArrowPatch([x_fwhm_i, y_fwhm],
+                self.plot_canvas._histoHPlot._backend.ax.add_patch(FancyArrowPatch([x_fwhm_i, y_fwhm],
                                                                      [x_fwhm_f, y_fwhm],
                                                                      arrowstyle=ArrowStyle.CurveAB(head_width=2, head_length=4),
                                                                      color='b',
                                                                      linewidth=1.5))
 
-            n_patches = len(self.plot_canvas._histoVPlot._plot.graph.ax.patches)
-            if (n_patches > 0): self.plot_canvas._histoVPlot._plot.graph.ax.patches.remove(self.plot_canvas._histoVPlot._plot.graph.ax.patches[n_patches-1])
+            n_patches = len(self.plot_canvas._histoVPlot._backend.ax.patches)
+            if (n_patches > 0): self.plot_canvas._histoVPlot._backend.ax.patches.remove(self.plot_canvas._histoVPlot._backend.ax.patches[n_patches-1])
 
             if not ticket['fwhm_v'] == 0.0:
                 y_fwhm_i, y_fwhm_f = ticket['fwhm_coordinates_v']
                 y_fwhm_i, y_fwhm_f = y_fwhm_i*factor2, y_fwhm_f*factor2
                 x_fwhm = max(ticket['histogram_v']) * 0.5
 
-                self.plot_canvas._histoVPlot._plot.graph.ax.add_patch(FancyArrowPatch([x_fwhm, y_fwhm_i],
+                self.plot_canvas._histoVPlot._backend.ax.add_patch(FancyArrowPatch([x_fwhm, y_fwhm_i],
                                                                      [x_fwhm, y_fwhm_f],
                                                                      arrowstyle=ArrowStyle.CurveAB(head_width=2, head_length=4),
                                                                      color='r',
@@ -679,7 +559,7 @@ class ShadowPlot:
 
             self.plot_canvas._histoHPlot.replot()
             self.plot_canvas._histoVPlot.replot()
-            self.plot_canvas._imagePlot.replot()
+            self.plot_canvas.replot()
 
             self.info_box.intensity.setText("{:4.3f}".format(ticket['intensity']))
             self.info_box.total_rays.setText(str(ticket['nrays']))
@@ -696,15 +576,15 @@ class ShadowPlot:
             self.plot_canvas._histoHPlot.clear()
             self.plot_canvas._histoVPlot.clear()
 
-            self.plot_canvas._histoHPlot._plot.ax.xaxis.get_label().set_color('white')
-            self.plot_canvas._histoHPlot._plot.ax.xaxis.get_label().set_fontsize(1)
-            for label in self.plot_canvas._histoHPlot._plot.ax.xaxis.get_ticklabels():
+            self.plot_canvas._histoHPlot._backend.ax.xaxis.get_label().set_color('white')
+            self.plot_canvas._histoHPlot._backend.ax.xaxis.get_label().set_fontsize(1)
+            for label in self.plot_canvas._histoHPlot._backend.ax.xaxis.get_ticklabels():
                 label.set_color('white')
                 label.set_fontsize(1)
 
-            self.plot_canvas._histoVPlot._plot.ax.yaxis.get_label().set_color('white')
-            self.plot_canvas._histoVPlot._plot.ax.yaxis.get_label().set_fontsize(1)
-            for label in self.plot_canvas._histoVPlot._plot.ax.yaxis.get_ticklabels():
+            self.plot_canvas._histoVPlot._backend.ax.yaxis.get_label().set_color('white')
+            self.plot_canvas._histoVPlot._backend.ax.yaxis.get_label().set_fontsize(1)
+            for label in self.plot_canvas._histoVPlot._backend.ax.yaxis.get_ticklabels():
                 label.set_color('white')
                 label.set_fontsize(1)
 
@@ -725,7 +605,6 @@ class ShadowPlot:
 
         col1 = beam.getshonecol(var_x, nolost=nolost)
         col2 = beam.getshonecol(var_y, nolost=nolost)
-
 
         if is_footprint:
             factor1 = 1.0

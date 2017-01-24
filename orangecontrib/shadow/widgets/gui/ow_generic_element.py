@@ -1,6 +1,7 @@
 import sys
 
-from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
+from silx.gui.plot.PlotWindow import PlotWindow
+
 from PyQt4 import QtGui
 from PyQt4.QtGui import QApplication
 from orangewidget import gui
@@ -133,7 +134,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
     def plot_xy_fast(self, beam_out, progressBarValue, var_x, var_y, plot_canvas_index, title, xtitle, ytitle, is_footprint=False):
         if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True, plugins=False)
+            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True)
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(False)
             self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
 
@@ -154,7 +155,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
     def plot_histo_fast(self, beam_out, progressBarValue, var, plot_canvas_index, title, xtitle, ytitle):
         if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True, plugins=False)
+            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True)#, plugins=False)
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
             self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
 
@@ -209,7 +210,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                                 self.plot_xy(beam_foot_print, progressBarValue + 20, 2, 1, plot_canvas_index=5, title="Footprint", xtitle="Y [" + self.workspace_units_label +"]", ytitle="X [" + self.workspace_units_label +"]",
                                              xum=("Y [" + self.workspace_units_label +"]"), yum=("X [" + self.workspace_units_label +"]"), is_footprint=True)
 
-                    except Exception:
+                    except Exception as e:
                         self.view_type_combo.setEnabled(True)
 
                         raise Exception("Data not plottable: No good rays or bad content")

@@ -16,7 +16,8 @@ from PyQt4.QtGui import QImage, QLabel, QPixmap, QWidget, QHBoxLayout, QPalette,
 from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticElement
 from orangecontrib.shadow.widgets.special_elements import hybrid_control
 
-from PyMca5.PyMcaGui.plotting.PlotWindow import PlotWindow
+from silx.gui.plot.PlotWindow import PlotWindow
+from silx.gui.plot.ImageView import ImageView
 
 class HybridScreen(AutomaticElement):
 
@@ -249,8 +250,8 @@ class HybridScreen(AutomaticElement):
 
     def plot_xy_hybrid(self, progressBarValue, scaled_matrix, plot_canvas_index, title, xtitle, ytitle, var1, var2):
         if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = ShadowPlot.ShadowImageView()
-            self.plot_canvas[plot_canvas_index]._imagePlot.setDefaultColormap({"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256})
+            self.plot_canvas[plot_canvas_index] = ImageView()
+            self.plot_canvas[plot_canvas_index].setColormap({"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256})
             self.plot_canvas[plot_canvas_index].setMinimumWidth(590)
             self.plot_canvas[plot_canvas_index].setMaximumWidth(590)
 
@@ -285,7 +286,7 @@ class HybridScreen(AutomaticElement):
 
     def plot_histo_hybrid(self, progressBarValue, scaled_array, plot_canvas_index, title, xtitle, ytitle, var):
         if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True, plugins=False)
+            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True)
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
             self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
             self.plot_canvas[plot_canvas_index].setDrawModeEnabled(True, 'rectangle')
@@ -296,8 +297,8 @@ class HybridScreen(AutomaticElement):
         factor = ShadowPlot.get_factor(var, self.workspace_units_to_cm)
 
         self.plot_canvas[plot_canvas_index].addCurve(scaled_array.scale*factor, scaled_array.np_array, "crv_"+ytitle, symbol='', color="blue", replace=True) #'+', '^', ','
-        self.plot_canvas[plot_canvas_index]._plot.graph.ax.get_yaxis().get_major_formatter().set_useOffset(True)
-        self.plot_canvas[plot_canvas_index]._plot.graph.ax.get_yaxis().get_major_formatter().set_scientific(True)
+        self.plot_canvas[plot_canvas_index]._backend.ax.get_yaxis().get_major_formatter().set_useOffset(True)
+        self.plot_canvas[plot_canvas_index]._backend.ax.get_yaxis().get_major_formatter().set_scientific(True)
         self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
         self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
         self.plot_canvas[plot_canvas_index].setGraphTitle(title)
@@ -520,7 +521,7 @@ class HybridScreen(AutomaticElement):
 
             QtGui.QMessageBox.critical(self, "Error", str(exception), QtGui.QMessageBox.Ok)
 
-            #raise exception
+            raise exception
 
         self.setStatusMessage("")
         self.progressBarFinished()
