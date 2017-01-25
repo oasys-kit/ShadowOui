@@ -498,9 +498,6 @@ class ShadowPlot:
 
                 data_to_plot.append(x_values)
 
-            print (data_to_plot)
-            print(origin, scale)
-
             self.plot_canvas.setImage(numpy.array(data_to_plot), origin=origin, scale=scale)
 
             if xtitle is None: xtitle=ShadowPlot.get_shadow_label(var_x)
