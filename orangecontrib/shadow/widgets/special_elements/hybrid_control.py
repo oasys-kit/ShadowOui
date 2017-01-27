@@ -1007,7 +1007,7 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
                                                (imagenpts - 1) / 2 * propagated_wavefront.delta())
 
 
-    dif_xp.np_array = numpy.absolute(propagated_wavefront.get_complex_amplitude_from_abscissas(dif_xp.scale))**2
+    dif_xp.np_array = numpy.absolute(propagated_wavefront.get_interpolated_complex_amplitudes(dif_xp.scale))**2
 
     dif_xp.set_scale_from_range(-(imagenpts - 1) / 2 * propagated_wavefront.delta() / focallength_ff,
                                 (imagenpts - 1) / 2 * propagated_wavefront.delta() / focallength_ff)
@@ -1084,7 +1084,7 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
                                                   -(imagenpts - 1) / 2 * propagated_wavefront.delta(),
                                                   (imagenpts - 1) / 2 * propagated_wavefront.delta())
 
-        dif_x.np_array *= numpy.absolute(propagated_wavefront.get_complex_amplitude_from_abscissas(dif_x.scale))**2
+        dif_x.np_array *= numpy.absolute(propagated_wavefront.get_interpolated_complex_amplitudes(dif_x.scale))**2
 
         calculation_parameters.dif_x = dif_x
 
@@ -1180,7 +1180,7 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
                                                -(imagenpts - 1) / 2 * propagated_wavefront.delta(),
                                                (imagenpts - 1) / 2 * propagated_wavefront.delta())
 
-    dif_zp.np_array *= numpy.absolute(propagated_wavefront.get_complex_amplitude_from_abscissas(dif_zp.scale))**2
+    dif_zp.np_array *= numpy.absolute(propagated_wavefront.get_interpolated_complex_amplitudes(dif_zp.scale))**2
 
     dif_zp.set_scale_from_range(-(imagenpts - 1) / 2 * propagated_wavefront.delta() / focallength_ff,
                                 (imagenpts - 1) / 2 * propagated_wavefront.delta() / focallength_ff)
@@ -1252,7 +1252,7 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
                                                   -(imagenpts - 1) / 2 * propagated_wavefront.delta(),
                                                    (imagenpts - 1) / 2 * propagated_wavefront.delta())
 
-        dif_z.np_array *= numpy.absolute(propagated_wavefront.get_complex_amplitude_from_abscissas(dif_z.scale)**2)
+        dif_z.np_array *= numpy.absolute(propagated_wavefront.get_interpolated_complex_amplitudes(dif_z.scale)**2)
 
         calculation_parameters.dif_z = dif_z
 
