@@ -1370,13 +1370,13 @@ def propagate_2D(calculation_parameters, input_parameters):
     imagesize_x = min(imagesize_x,
                       input_parameters.ghy_npeak*2*0.88*calculation_parameters.gwavelength*focallength_ff/abs(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min))
     delta_x = propagated_wavefront.delta()[0]
-    imagenpts_x = round(imagesize_x/delta_x/2) * 2 + 1
+    imagenpts_x = int(round(imagesize_x/delta_x/2) * 2 + 1)
     
     imagesize_z = min(abs(calculation_parameters.ghy_z_max), abs(calculation_parameters.ghy_z_min)) * 2
     imagesize_z = min(imagesize_z,
                       input_parameters.ghy_npeak*2*0.88*calculation_parameters.gwavelength*focallength_ff/abs(calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min))
     delta_z = propagated_wavefront.delta()[1]
-    imagenpts_z = round(imagesize_z/delta_z/2) * 2 + 1
+    imagenpts_z = int(round(imagesize_z/delta_z/2) * 2 + 1)
 
     dif_xpzp = ScaledMatrix.initialize_from_range(numpy.ones((imagenpts_x, imagenpts_z)),
                                                   min_scale_value_x = -(imagenpts_x - 1) / 2 * delta_x,
