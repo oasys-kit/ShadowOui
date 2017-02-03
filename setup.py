@@ -5,7 +5,7 @@ import os
 from setuptools import find_packages, setup
 
 NAME = 'ShadowOui'
-VERSION = '1.3.98'
+VERSION = '1.4.0'
 ISRELEASED = False
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
@@ -147,5 +147,5 @@ if __name__ == '__main__':
                 elif platform.system() == 'Linux':
                     pass
     except Exception as exception:
-        raise exception
         print(str(exception))
+        raise exception
