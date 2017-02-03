@@ -89,7 +89,7 @@ class OWheight_profile_simulator(OWWidget):
     center_x = Setting(1)
     modify_x = Setting(0)
     new_length_x = Setting(20.1)
-    filler_value = Setting(0.0)
+    filler_value_x = Setting(0.0)
 
     renormalize_x = Setting(0)
 
@@ -101,7 +101,7 @@ class OWheight_profile_simulator(OWWidget):
     center_y = Setting(1)
     modify_y = Setting(0)
     new_length_y = Setting(200.1)
-    filler_value = Setting(0.0)
+    filler_value_y = Setting(0.0)
 
     renormalize_y = Setting(0)
 
@@ -240,7 +240,7 @@ class OWheight_profile_simulator(OWWidget):
 
         self.modify_box_2_3 = oasysgui.widgetBox(self.kind_of_profile_y_box_2, "", addSpace=False, orientation="vertical", height=70)
         self.le_new_length_y_2 = oasysgui.lineEdit(self.modify_box_2_3, self, "new_length_y", "New Length", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.modify_box_2_3, self, "filler_value", "Filler Value (if new length > profile length) [nm]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.modify_box_2_3, self, "filler_value_y", "Filler Value (if new length > profile length) [nm]", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.set_ModifyY()
 
@@ -335,7 +335,7 @@ class OWheight_profile_simulator(OWWidget):
 
         self.modify_box_1_3 = oasysgui.widgetBox(self.kind_of_profile_x_box_2, "", addSpace=False, orientation="vertical", height=70)
         self.le_new_length_x_2 = oasysgui.lineEdit(self.modify_box_1_3, self, "new_length_x", "New Length", labelWidth=300, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.modify_box_1_3, self, "filler_value", "Filler Value (if new length > profile length) [nm]", labelWidth=300, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.modify_box_1_3, self, "filler_value_x", "Filler Value (if new length > profile length) [nm]", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.set_ModifyX()
 
@@ -473,7 +473,7 @@ class OWheight_profile_simulator(OWWidget):
 
 
                         profile_1D_y_x = numpy.arange(n_added_points + n_points_old) * step
-                        profile_1D_y_y = numpy.ones(n_added_points + n_points_old) * self.filler_value * 1e-9 * self.si_to_user_units
+                        profile_1D_y_y = numpy.ones(n_added_points + n_points_old) * self.filler_value_y * 1e-9 * self.si_to_user_units
                         profile_1D_y_y[int(n_added_points/2) : n_points_old + int(n_added_points/2)] = profile_1D_y_y_temp
                     elif self.new_length_y < length:
                         difference = length - self.new_length_y
@@ -506,7 +506,6 @@ class OWheight_profile_simulator(OWWidget):
 
                     profile_1D_y_x_temp = numpy.linspace(-length/2, length/2, len(profile_1D_y_x))
                     profile_1D_y_x = profile_1D_y_x_temp
-
 
                 if self.renormalize_y == 0:
                     rms_y = None
@@ -562,7 +561,7 @@ class OWheight_profile_simulator(OWWidget):
 
 
                         profile_1D_x_x = numpy.arange(n_added_points + n_points_old) * step
-                        profile_1D_x_y = numpy.ones(n_added_points + n_points_old) * self.filler_value * 1e-9 * self.si_to_user_units
+                        profile_1D_x_y = numpy.ones(n_added_points + n_points_old) * self.filler_value_x * 1e-9 * self.si_to_user_units
                         profile_1D_x_y[int(n_added_points/2) : n_points_old + int(n_added_points/2)] = profile_1D_x_y_temp
                     elif self.new_length_x < length:
                         difference = length - self.new_length_x
@@ -652,7 +651,9 @@ class OWheight_profile_simulator(OWWidget):
             sloperms = profiles_simulation.slopes(zz.T, xx, yy, return_only_rms=1)
 
             title = ' Slope error rms in X direction: %f $\mu$rad' % (sloperms[0]*1e6) + '\n' + \
-                    ' Slope error rms in Y direction: %f $\mu$rad' % (sloperms[1]*1e6)
+                    ' Slope error rms in Y direction: %f $\mu$rad' % (sloperms[1]*1e6) + '\n' + \
+                    ' Figure error rms in X direction: %f nm' % (round(zz[0, :].std()*1e7, 6)) + '\n' + \
+                    ' Figure error rms in Y direction: %f nm' % (round(zz[:, 0].std()*1e7, 6))
 
             self.axis.set_xlabel("X [" + self.workspace_units_label + "]")
             self.axis.set_ylabel("Y [" + self.workspace_units_label + "]")
