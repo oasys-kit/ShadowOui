@@ -500,7 +500,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         oasysgui.lineEdit(box_cap_aberrations, self, "vertical_displacement", "Vertical Displacement [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
         gui.comboBox(box_cap_aberrations, self, "calculate_absorption", label="Calculate Absorption", labelWidth=350, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.setAbsorption)
 
-        box_gon_aberrations = oasysgui.widgetBox(self.tab_aberrations, "2D Aberrations", addSpace=True, orientation="vertical")
+        box_gon_aberrations = oasysgui.widgetBox(self.tab_aberrations, "Detection System Aberrations", addSpace=True, orientation="vertical")
 
         oasysgui.lineEdit(box_gon_aberrations, self, "x_sour_offset", "Offset along X [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(box_gon_aberrations, self, "x_sour_rotation", "CW rotation around X [deg] (2Theta shift)", labelWidth=260, valueType=float, orientation="horizontal")
@@ -632,8 +632,8 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         self.area_image_box.setFixedWidth(self.IMAGE_WIDTH)
 
         self.plot_canvas_area = Plot2D()
-        self.plot_canvas_area.setGraphXLabel("X [pixels]")
-        self.plot_canvas_area.setGraphYLabel("Z [pixels]")
+        self.plot_canvas_area.setGraphXLabel("X [" + self.workspace_units_label + "]")
+        self.plot_canvas_area.setGraphYLabel("Z [" + self.workspace_units_label + "]")
 
         gui.separator(self.area_image_box)
 
@@ -2208,6 +2208,24 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                                     cz_slit,
                                     file_scr_ext)
 
+        if (self.x_sour_offset != 0 or self.x_sour_rotation != 0 or
+            self.y_sour_offset != 0 or self.y_sour_rotation != 0 or
+            self.z_sour_offset != 0 or self.z_sour_rotation != 0):
+
+            empty_element._oe.FSTAT = 1
+            empty_element._oe.RTHETA=0
+            empty_element._oe.RDSOUR=0
+            empty_element._oe.ALPHA_S=0
+            empty_element._oe.OFF_SOUX  = self.x_sour_offset * self.micron_to_user_units
+            empty_element._oe.OFF_SOUY  = self.y_sour_offset * self.micron_to_user_units
+            empty_element._oe.OFF_SOUZ  = self.z_sour_offset * self.micron_to_user_units
+            empty_element._oe.X_SOUR = 0
+            empty_element._oe.Y_SOUR = 0
+            empty_element._oe.Z_SOUR = 0
+            empty_element._oe.X_SOUR_ROT = -self.x_sour_rotation
+            empty_element._oe.Y_SOUR_ROT = -self.y_sour_rotation
+            empty_element._oe.Z_SOUR_ROT = -self.z_sour_rotation
+
         out_beam = ShadowBeam.traceFromOE(input_beam, empty_element, history=False)
 
         crystal = ShadowOpticalElement.create_plane_crystal()
@@ -2267,6 +2285,25 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         empty_element._oe.FWRITE = 3
         empty_element._oe.F_ANGLE = 0
+
+        if (self.x_sour_offset != 0 or self.x_sour_rotation != 0 or
+            self.y_sour_offset != 0 or self.y_sour_rotation != 0 or
+            self.z_sour_offset != 0 or self.z_sour_rotation != 0):
+
+            empty_element._oe.FSTAT = 1
+            empty_element._oe.RTHETA=0
+            empty_element._oe.RDSOUR=0
+            empty_element._oe.ALPHA_S=0
+            empty_element._oe.OFF_SOUX  = self.x_sour_offset * self.micron_to_user_units
+            empty_element._oe.OFF_SOUY  = self.y_sour_offset * self.micron_to_user_units
+            empty_element._oe.OFF_SOUZ  = self.z_sour_offset * self.micron_to_user_units
+            empty_element._oe.X_SOUR = 0
+            empty_element._oe.Y_SOUR = 0
+            empty_element._oe.Z_SOUR = 0
+            empty_element._oe.X_SOUR_ROT = -self.x_sour_rotation
+            empty_element._oe.Y_SOUR_ROT = -self.y_sour_rotation
+            empty_element._oe.Z_SOUR_ROT = -self.z_sour_rotation
+
 
         n_screen = 2
         i_screen = numpy.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
