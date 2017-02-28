@@ -992,7 +992,13 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
             nbins_h = int(numpy.floor(self.area_detector_width / (self.area_detector_pixel_size * self.micron_to_user_units)))
             nbins_v = int(numpy.floor(self.area_detector_height / (self.area_detector_pixel_size * self.micron_to_user_units)))
 
-            ticket = self.area_detector_beam._beam.histo2(1, 3, nbins_h=nbins_h, nbins_v=nbins_v)
+            x_range = [-self.area_detector_width/2, self.area_detector_width/2]
+            y_range = [-self.area_detector_height/2, self.area_detector_height/2]
+
+            origin = (-self.area_detector_width/2, -self.area_detector_height/2)
+            scale = ((self.area_detector_pixel_size * self.micron_to_user_units), (self.area_detector_pixel_size * self.micron_to_user_units))
+
+            ticket = self.area_detector_beam._beam.histo2(1, 3, xrange=x_range, yrange=y_range, nbins_h=nbins_h, nbins_v=nbins_v, ref=23)
             normalized_data = (ticket['histogram'] / ticket['histogram'].max()) * 100000  # just for the quality of the plot
 
             # inversion of axis for pyMCA
@@ -1005,12 +1011,14 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                 data_to_plot.append(x_values)
 
             self.plot_canvas_area.addImage(numpy.array(data_to_plot),
+                                           origin=origin,
+                                           scale=scale,
                                            colormap={"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256})
-            self.plot_canvas_area.setGraphXLabel("X [pixels]")
-            self.plot_canvas_area.setGraphYLabel("Z [pixels]")
+            self.plot_canvas_area.setGraphXLabel("X [" + self.workspace_units_label + "]")
+            self.plot_canvas_area.setGraphYLabel("Z [" + self.workspace_units_label + "]")
             self.plot_canvas_area.setKeepDataAspectRatio(True)
 
-            time.sleep(0.5)
+            #time.sleep(0.1)
 
     def plotResult(self, clear_caglioti=True, reflections=None):
         if not len(self.twotheta_angles)==0:
