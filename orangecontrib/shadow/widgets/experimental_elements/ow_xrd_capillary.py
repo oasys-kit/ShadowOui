@@ -632,8 +632,8 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         self.area_image_box.setFixedWidth(self.IMAGE_WIDTH)
 
         self.plot_canvas_area = Plot2D()
-        self.plot_canvas_area.setGraphXLabel("X [" + self.workspace_units_label + "]")
-        self.plot_canvas_area.setGraphYLabel("Z [" + self.workspace_units_label + "]")
+        self.plot_canvas_area.setGraphXLabel("X")
+        self.plot_canvas_area.setGraphYLabel("Z")
 
         gui.separator(self.area_image_box)
 
