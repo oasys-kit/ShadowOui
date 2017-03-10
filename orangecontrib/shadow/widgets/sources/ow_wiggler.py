@@ -304,7 +304,7 @@ class Wiggler(ow_source.Source):
 
     def plot_wiggler_histo(self, progressBarValue, x, y, plot_canvas_index, title, xtitle, ytitle, is_log_log=False):
         if self.wiggler_plot_canvas[plot_canvas_index] is None:
-            self.wiggler_plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True)
+            self.wiggler_plot_canvas[plot_canvas_index] = oasysgui.OasysPlotWindow(roi=False, control=False, position=True)
             self.wiggler_plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
             self.wiggler_plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
 
@@ -316,6 +316,11 @@ class Wiggler(ow_source.Source):
         self.wiggler_plot_canvas[plot_canvas_index].setDrawModeEnabled(True, 'rectangle')
         self.wiggler_plot_canvas[plot_canvas_index].setZoomModeEnabled(True)
 
+        if not title is None: self.wiggler_plot_canvas[plot_canvas_index].setGraphTitle(title)
+        if not xtitle is None: self.wiggler_plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
+        if not ytitle is None: self.wiggler_plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
+
+        self.wiggler_plot_canvas[plot_canvas_index].replot()
 
         if is_log_log:
             order_of_magnitude_min = numpy.floor(numpy.log10(min(y)))
@@ -333,11 +338,6 @@ class Wiggler(ow_source.Source):
             factor = 1.0
 
         self.wiggler_plot_canvas[plot_canvas_index].setGraphYLimits(min(y), max(y)*factor)
-
-        if not title is None: self.wiggler_plot_canvas[plot_canvas_index].setGraphTitle(title)
-        if not xtitle is None: self.wiggler_plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
-        if not ytitle is None: self.wiggler_plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
-        self.wiggler_plot_canvas[plot_canvas_index].replot()
 
         self.progressBarSet(progressBarValue)
 

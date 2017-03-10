@@ -661,7 +661,7 @@ class GeometricalSource(ow_source.Source):
                         index_flux = 2
                     elif exchangeData.get_widget_name() == "BM" :
                         if exchangeData.get_content("is_log_plot") == 1:
-                            raise Exception("Logaritmic X scale of Xoppy Energy distribution not supported")
+                            raise Exception("Logarithmic X scale of Xoppy Energy distribution not supported")
                         if exchangeData.get_content("calculation_type") == 0 and exchangeData.get_content("psi") == 0:
                             self.user_defined_file = "xoppy_bm_flux"
                             index_flux = 5
@@ -669,7 +669,7 @@ class GeometricalSource(ow_source.Source):
                             raise Exception("Xoppy result is not an Flux vs Energy distribution integrated in Psi")
                     elif exchangeData.get_widget_name() =="XWIGGLER" :
                         if exchangeData.get_content("is_log_plot") == 1:
-                            raise Exception("Logaritmic X scale of Xoppy Energy distribution not supported")
+                            raise Exception("Logarithmic X scale of Xoppy Energy distribution not supported")
                         self.user_defined_file = "xoppy_xwiggler_flux"
                         index_flux = 1
                     elif exchangeData.get_widget_name() =="XTUBES" :

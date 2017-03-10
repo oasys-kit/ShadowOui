@@ -7,6 +7,7 @@ from PyQt4.QtGui import QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
+from oasys.widgets.gui import OasysPlotWindow
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 from orangecontrib.shadow.util.shadow_util import ShadowPlot, ShadowCongruence
@@ -121,6 +122,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                 # self.error_id = self.error_id + 1
                 # self.error(self.error_id, "Exception occurred: " + str(exception))
 
+                #raise exception
         self.progressBarFinished()
 
     def plot_xy(self, beam_out, progressBarValue, var_x, var_y, plot_canvas_index, title, xtitle, ytitle, xum="", yum="", is_footprint=False):
@@ -134,7 +136,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
     def plot_xy_fast(self, beam_out, progressBarValue, var_x, var_y, plot_canvas_index, title, xtitle, ytitle, is_footprint=False):
         if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True)
+            self.plot_canvas[plot_canvas_index] = OasysPlotWindow(roi=False, control=False, position=True)
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(False)
             self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
 
@@ -155,7 +157,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
     def plot_histo_fast(self, beam_out, progressBarValue, var, plot_canvas_index, title, xtitle, ytitle):
         if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True)#, plugins=False)
+            self.plot_canvas[plot_canvas_index] = OasysPlotWindow(roi=False, control=False, position=True)
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
             self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
 
@@ -213,7 +215,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                     except Exception as e:
                         self.view_type_combo.setEnabled(True)
 
-                        raise Exception("Data not plottable: No good rays or bad content")
+                        raise Exception("Data not plottable: No good rays or bad content\nexception: " + str(e))
 
                     self.view_type_combo.setEnabled(True)
                 else:

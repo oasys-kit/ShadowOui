@@ -286,7 +286,7 @@ class HybridScreen(AutomaticElement):
 
     def plot_histo_hybrid(self, progressBarValue, scaled_array, plot_canvas_index, title, xtitle, ytitle, var):
         if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True)
+            self.plot_canvas[plot_canvas_index] = oasysgui.OasysPlotWindow(roi=False, control=False, position=True)
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
             self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
             self.plot_canvas[plot_canvas_index].setDrawModeEnabled(True, 'rectangle')
