@@ -20,7 +20,7 @@ LICENSE = 'GPLv3'
 KEYWORDS = (
     'ray-tracing',
     'simulator',
-    'oasys',
+    'oasys1',
 )
 
 CLASSIFIERS = (
