@@ -1760,47 +1760,47 @@ class OpticalElement(ow_generic_element.GenericElement):
                 title_head += title + "\n"
                 title = ""
             if self.c2 < 0 or (self.c2 > 0 and title == ""): title +=       str(self.c2) + u"\u00B7" + "Y" + u"\u00B2"
-            if self.c2 > 0                                 : title += "+" + str(self.c2) + u"\u00B7" + "Y" + u"\u00B2"
+            elif self.c2 > 0                                 : title += "+" + str(self.c2) + u"\u00B7" + "Y" + u"\u00B2"
             if len(title) >=  max_dim:
                 title_head += title + "\n"
                 title = ""
             if self.c3 < 0 or (self.c3 > 0 and title == ""): title +=       str(self.c3) + u"\u00B7" + "Z" + u"\u00B2"
-            if self.c3 > 0                                 : title += "+" + str(self.c3) + u"\u00B7" + "Z" + u"\u00B2"
+            elif self.c3 > 0                                 : title += "+" + str(self.c3) + u"\u00B7" + "Z" + u"\u00B2"
             if len(title) >=  max_dim:
                 title_head += title + "\n"
                 title = ""
             if self.c4 < 0 or (self.c4 > 0 and title == ""): title +=       str(self.c4) + u"\u00B7" + "XY"
-            if self.c4 > 0                                 : title += "+" + str(self.c4) + u"\u00B7" + "XY"
+            elif self.c4 > 0                                 : title += "+" + str(self.c4) + u"\u00B7" + "XY"
             if len(title) >=  max_dim:
                 title_head += title + "\n"
                 title = ""
             if self.c5 < 0 or (self.c5 > 0 and title == ""): title +=       str(self.c5) + u"\u00B7" + "YZ"
-            if self.c5 > 0                                 : title += "+" + str(self.c5) + u"\u00B7" + "YZ"
+            elif self.c5 > 0                                 : title += "+" + str(self.c5) + u"\u00B7" + "YZ"
             if len(title) >=  max_dim:
                 title_head += title + "\n"
                 title = ""
             if self.c6 < 0 or (self.c6 > 0 and title == ""): title +=       str(self.c6) + u"\u00B7" + "XZ"
-            if self.c6 > 0                                 : title += "+" + str(self.c6) + u"\u00B7" + "XZ"
+            elif self.c6 > 0                                 : title += "+" + str(self.c6) + u"\u00B7" + "XZ"
             if len(title) >=  max_dim:
                 title_head += title + "\n"
                 title = ""
             if self.c7 < 0 or (self.c7 > 0 and title == ""): title +=       str(self.c7) + u"\u00B7" + "X"
-            if self.c7 > 0                                 : title += "+" + str(self.c7) + u"\u00B7" + "X"
+            elif self.c7 > 0                                 : title += "+" + str(self.c7) + u"\u00B7" + "X"
             if len(title) >=  max_dim:
                 title_head += title + "\n"
                 title = ""
             if self.c8 < 0 or (self.c8 > 0 and title == ""): title +=       str(self.c8) + u"\u00B7" + "Y"
-            if self.c8 > 0                                 : title += "+" + str(self.c8) + u"\u00B7" + "Y"
+            elif self.c8 > 0                                 : title += "+" + str(self.c8) + u"\u00B7" + "Y"
             if len(title) >=  max_dim:
                 title_head += title + "\n"
                 title = ""
             if self.c9 < 0 or (self.c9 > 0 and title == ""): title +=       str(self.c9) + u"\u00B7" + "Z"
-            if self.c9 > 0                                 : title += "+" + str(self.c9) + u"\u00B7" + "Z"
+            elif self.c9 > 0                                 : title += "+" + str(self.c9) + u"\u00B7" + "Z"
             if len(title) >=  max_dim:
                 title_head += title + "\n"
                 title = ""
             if self.c10< 0 or (self.c10> 0 and title == ""): title +=       str(self.c10)
-            if self.c10> 0                                 : title += "+" + str(self.c10)
+            elif self.c10> 0                                 : title += "+" + str(self.c10)
 
             axis.set_title(title_head + title + " = 0")
 
