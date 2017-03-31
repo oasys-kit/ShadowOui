@@ -245,7 +245,6 @@ class OpticalElement(ow_generic_element.GenericElement):
     grating_file_efficiency = Setting("efficiency.dat")
 
     optical_constants_refraction_index = Setting(0)
-    fresnel_zone_plate = Setting(0)
     refractive_index_in_object_medium = Setting(0.0)
     attenuation_in_object_medium = Setting(0.0)
     file_prerefl_for_object_medium = Setting("NONE SPECIFIED")
@@ -1061,10 +1060,6 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 elif self.graphical_options.is_refractor:
                     refractor_box = oasysgui.widgetBox(tab_bas_refractor, "Optical Constants - Refractive Index", addSpace=False, orientation="vertical", height=320)
-
-                    gui.comboBox(refractor_box, self, "fresnel_zone_plate", label="Fresnel Zone Plate", labelWidth=260,
-                                 items=["No", "Yes"],
-                                 sendSelectedValue=False, orientation="horizontal")
 
                     gui.comboBox(refractor_box, self, "optical_constants_refraction_index", label="optical constants\n/refraction index", labelWidth=120,
                                  items=["constant in both media",
@@ -2253,11 +2248,6 @@ class OpticalElement(ow_generic_element.GenericElement):
                         shadow_oe._oe.BLAZE = self.grating_hunter_blaze_angle
             elif self.graphical_options.is_refractor:
                 shadow_oe._oe.F_R_IND =  self.optical_constants_refraction_index
-
-                shadow_oe._oe.FZP = self.fresnel_zone_plate
-
-                if self.fresnel_zone_plate == 1:
-                    shadow_oe._oe.F_GRATING = 1
 
                 if self.optical_constants_refraction_index == 0:
                     shadow_oe._oe.R_IND_OBJ = self.refractive_index_in_object_medium
