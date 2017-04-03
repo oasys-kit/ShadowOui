@@ -1,37 +1,7 @@
 
 import os, copy, numpy, platform
-from PyQt4 import QtCore
 import Shadow
 from .shadow_util import Properties
-
-class TTYGrabber:
-    def __init__(self,  tmpFileName = 'out.tmp.dat'):
-        self.tmpFileName = tmpFileName
-        self.ttyData = []
-        self.outfile = False
-        self.save = False
-
-    def start(self):
-        self.outfile = os.open(self.tmpFileName, os.O_RDWR|os.O_CREAT)
-        self.save = os.dup(1)
-        os.dup2(self.outfile, 1)
-        return
-
-    def stop(self):
-        if not self.save:
-            return
-        os.dup2(self.save, 1)
-        tmpFile = open(self.tmpFileName, "r")
-        self.ttyData = tmpFile.readlines()
-        tmpFile.close()
-        os.close(self.outfile)
-        os.remove(self.tmpFileName)
-
-class EmittingStream(QtCore.QObject):
-    textWritten = QtCore.pyqtSignal(str)
-
-    def write(self, text):
-        self.textWritten.emit(str(text))
 
 class ShadowPreProcessorData:
 

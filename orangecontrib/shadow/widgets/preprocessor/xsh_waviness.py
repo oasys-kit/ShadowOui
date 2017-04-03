@@ -16,13 +16,14 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.gui import ConfirmDialog
+from oasys.util.oasys_util import EmittingStream
 
 try:
     from mpl_toolkits.mplot3d import Axes3D  # necessario per caricare i plot 3D
 except:
     pass
 
-from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
+from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
 
 class OWxsh_waviness(OWWidget):
     name = "Waviness"

@@ -3,7 +3,6 @@ __author__ = 'labx'
 import os
 import random
 import sys
-import traceback
 
 import numpy
 import xraylib
@@ -15,7 +14,6 @@ from oasys.widgets import gui
 from oasys.widgets.gui import OasysPlotWindow
 from oasys.widgets import congruence
 
-from silx.gui.plot.PlotWindow import PlotWindow
 from silx.gui.plot.ImageView import ImageView
 
 try:
@@ -1272,7 +1270,6 @@ class Properties(object):
             if hasattr(self._props,name):
                 return getattr(self._props, name)
 
-from matplotlib import cm
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 try:

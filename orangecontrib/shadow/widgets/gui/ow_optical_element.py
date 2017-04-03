@@ -19,10 +19,11 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.exchange import DataExchangeObject
+from oasys.util.oasys_util import EmittingStream, TTYGrabber
 
 import orangecanvas.resources as resources
 
-from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerIn, ShadowPreProcessorData, \
+from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn, ShadowPreProcessorData, \
     ShadowOpticalElement, ShadowBeam, ShadowFile
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics, ShadowPreProcessor
 from orangecontrib.shadow.widgets.gui import ow_generic_element

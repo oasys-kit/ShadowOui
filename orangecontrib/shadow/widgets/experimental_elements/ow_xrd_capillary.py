@@ -20,8 +20,9 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.gui import ConfirmDialog
+from oasys.util.oasys_util import EmittingStream, TTYGrabber
 
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowOpticalElement, EmittingStream, TTYGrabber, ShadowPreProcessorData
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowOpticalElement, ShadowPreProcessorData
 from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowMath, ShadowPhysics, MathTextLabel
 from orangecontrib.shadow.widgets.experimental_elements.random_generator import AbsorptionRandom, LorentzianRandom

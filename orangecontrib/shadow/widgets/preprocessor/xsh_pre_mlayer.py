@@ -7,6 +7,7 @@ from orangewidget import gui, widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
+from oasys.util.oasys_util import EmittingStream
 
 try:
     from ..tools.xoppy_calc import xoppy_doc
@@ -17,7 +18,7 @@ except ImportError:
 except SystemError:
     pass
 
-from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
+from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
 from orangecontrib.shadow.util.shadow_util import ShadowPhysics
 
 class OWxsh_pre_mlayer(OWWidget):

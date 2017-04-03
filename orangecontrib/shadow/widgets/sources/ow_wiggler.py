@@ -2,17 +2,15 @@ import sys
 import numpy, matplotlib
 from PyQt4 import QtGui
 from PyQt4.QtGui import QApplication
-from silx.gui.plot.PlotWindow import PlotWindow
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
+from oasys.util.oasys_util import EmittingStream, TTYGrabber
 
 from srxraylib.sources import srfunc
 
-from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowBeam, \
-    ShadowSource
-from orangecontrib.shadow.util.shadow_util import ShadowPlot
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowSource
 from orangecontrib.shadow.widgets.gui import ow_source
 
 class Wiggler(ow_source.Source):

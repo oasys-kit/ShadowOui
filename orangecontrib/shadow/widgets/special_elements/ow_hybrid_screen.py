@@ -6,9 +6,10 @@ from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
+from oasys.util.oasys_util import EmittingStream
 
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream, ShadowTriggerIn
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowTriggerIn
 
 from PyQt4 import QtGui
 from PyQt4.QtGui import QImage, QLabel, QPixmap, QWidget, QHBoxLayout, QPalette, QFont, QColor
@@ -16,7 +17,6 @@ from PyQt4.QtGui import QImage, QLabel, QPixmap, QWidget, QHBoxLayout, QPalette,
 from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticElement
 from orangecontrib.shadow.widgets.special_elements import hybrid_control
 
-from silx.gui.plot.PlotWindow import PlotWindow
 from silx.gui.plot.ImageView import ImageView
 
 class HybridScreen(AutomaticElement):
