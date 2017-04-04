@@ -8,9 +8,10 @@ from orangewidget import gui
 from orangewidget import widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
+from oasys.util.oasys_util import EmittingStream, TTYGrabber
+
 from orangecontrib.shadow.widgets.gui import ow_generic_element
-from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerIn, \
-    ShadowPreProcessorData, ShadowBeam, ShadowCompoundOpticalElement
+from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn, ShadowPreProcessorData, ShadowBeam, ShadowCompoundOpticalElement
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
 class CompoundOpticalElement(ow_generic_element.GenericElement):

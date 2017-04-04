@@ -17,7 +17,8 @@ except ImportError:
 except SystemError:
     pass
 
-from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
+from oasys.util.oasys_util import EmittingStream
+from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
 from orangecontrib.shadow.util.shadow_util import ShadowPhysics
 
 class OWxsh_prerefl(OWWidget):

@@ -6,9 +6,10 @@ from PyQt4.QtGui import QApplication, QFileDialog
 from Shadow import ShadowTools as ST
 from orangewidget import gui
 from oasys.widgets import gui as oasysgui, widget
+from oasys.util.oasys_util import EmittingStream
 
 from orangecontrib.shadow.util.python_script import PythonConsole
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam, EmittingStream, ShadowCompoundOpticalElement
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowCompoundOpticalElement
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
 from Shadow.ShadowLibExtensions import CompoundOE

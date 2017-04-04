@@ -1,13 +1,14 @@
 import sys, numpy
 
-from PyQt4.QtGui import QTextEdit, QTextCursor, QIntValidator, QDoubleValidator, QApplication, QMessageBox
+from PyQt4.QtGui import QTextEdit, QTextCursor, QApplication, QMessageBox
 from oasys.widgets.widget import OWWidget
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
+from oasys.util.oasys_util import EmittingStream
 
-from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, EmittingStream
+from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
 from orangecontrib.shadow.util.shadow_util import ShadowPhysics
 
 raise Exception("not yet released")
