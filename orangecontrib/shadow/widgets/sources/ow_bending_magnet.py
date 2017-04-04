@@ -6,8 +6,9 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
+from oasys.util.oasys_util import EmittingStream, TTYGrabber
 
-from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowBeam, ShadowSource
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowSource
 from orangecontrib.shadow.widgets.gui import ow_source
 
 class BendingMagnet(ow_source.Source):

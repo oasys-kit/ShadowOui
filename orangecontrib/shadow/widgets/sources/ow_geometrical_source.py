@@ -3,19 +3,17 @@ import sys
 import numpy
 import scipy.stats as stats
 from PyQt4 import QtGui
-from PyQt4.QtGui import QApplication, QPalette, QColor, QFont
+from PyQt4.QtGui import QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.exchange import DataExchangeObject
+from oasys.util.oasys_util import EmittingStream, TTYGrabber
 
-from orangecontrib.shadow.util.shadow_objects import EmittingStream, TTYGrabber, ShadowTriggerOut, ShadowBeam, \
-    ShadowSource
+from orangecontrib.shadow.util.shadow_objects import ShadowTriggerOut, ShadowBeam,  ShadowSource
 from orangecontrib.shadow.util.shadow_util import ShadowPhysics
 from orangecontrib.shadow.widgets.gui import ow_source
-
-
 
 class GeometricalSource(ow_source.Source):
     name = "Geometrical Source"
