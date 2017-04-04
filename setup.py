@@ -4,7 +4,7 @@ import os
 
 from setuptools import find_packages, setup
 
-NAME = 'ShadowOui'
+NAME = 'OASYS1-ShadowOui'
 VERSION = '1.4.0'
 ISRELEASED = False
 
@@ -37,7 +37,7 @@ SETUP_REQUIRES = (
 )
 
 INSTALL_REQUIRES = (
-    'oasys>=1.0.0',
+    'oasys1>=1.0.0',
     'shadow3'
 )
 
