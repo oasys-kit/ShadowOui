@@ -2636,7 +2636,7 @@ class OpticalElement(ow_generic_element.GenericElement):
         bragg_angles = []
 
         for index in range(0, len(input_beam._beam.rays)):
-            wavelength = ShadowPhysics.getWavelengthfromShadowK(input_beam._beam.rays[index, 10])
+            wavelength = ShadowPhysics.getWavelengthFromShadowK(input_beam._beam.rays[index, 10])
             bragg_angles.append(90 - math.degrees(ShadowPhysics.calculateBraggAngle(wavelength, 1, 1, 1, 5.43123)))
             if beam_flags[index] == -55000.0: input_beam._beam.rays[index, 9] = 1
 

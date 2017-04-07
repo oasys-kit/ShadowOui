@@ -569,7 +569,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
     calculation_parameters.screen_plane_beam = screen_beam
 
     calculation_parameters.wenergy     = ShadowPhysics.getEnergyFromShadowK(screen_beam._beam.rays[:, 10])
-    calculation_parameters.wwavelength = ShadowPhysics.getWavelengthfromShadowK(screen_beam._beam.rays[:, 10])
+    calculation_parameters.wwavelength = ShadowPhysics.getWavelengthFromShadowK(screen_beam._beam.rays[:, 10])
     calculation_parameters.xp_screen   = screen_beam._beam.rays[:, 3]
     calculation_parameters.yp_screen   = screen_beam._beam.rays[:, 4]
     calculation_parameters.zp_screen   = screen_beam._beam.rays[:, 5]

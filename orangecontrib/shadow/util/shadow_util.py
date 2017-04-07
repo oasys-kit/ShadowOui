@@ -929,7 +929,7 @@ class ShadowPhysics:
     K2EV = 2*numpy.pi/(codata_h*codata_c/codata_ec*1e+2)
 
     @classmethod
-    def getWavelengthfromShadowK(cls, k_mod): # in cm
+    def getWavelengthFromShadowK(cls, k_mod): # in cm
         return (2*numpy.pi/k_mod)*1e+8 # in Angstrom
 
     @classmethod

@@ -1512,7 +1512,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                         rotation_axis_diffraction = ShadowMath.vectorial_product(v_in, z_axis_ray)
                         rotation_axis_debye_circle = v_in
 
-                        wavelength = ShadowPhysics.getWavelengthfromShadowK(k_mod) # in Angstrom
+                        wavelength = ShadowPhysics.getWavelengthFromShadowK(k_mod) # in Angstrom
 
                         if self.calculate_absorption == 1:
                             mu = self.getLinearAbsorptionCoefficient(wavelength) # in cm-1
