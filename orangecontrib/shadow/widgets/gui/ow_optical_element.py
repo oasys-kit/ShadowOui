@@ -116,8 +116,6 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     graphical_options=None
 
-    keep_aspect_ratio = Setting(0)
-
     source_plane_distance = Setting(10.0)
     image_plane_distance = Setting(20.0)
 
