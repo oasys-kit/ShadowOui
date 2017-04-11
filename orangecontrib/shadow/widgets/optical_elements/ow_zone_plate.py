@@ -642,7 +642,6 @@ class ZonePlate(GenericElement):
                 x_int_f = intercepted_rays_f[:, 0]
                 z_int_f = intercepted_rays_f[:, 2]
 
-
                 xp_int = intercepted_rays_f[:, 3]
                 zp_int = intercepted_rays_f[:, 5]
 
