@@ -20,6 +20,10 @@ from oasys.util.oasys_util import ChemicalFormulaParser
 AMPLITUDE_ZP = 0
 PHASE_ZP = 1
 
+LOST = -101
+GOOD = 1
+GOOD_ZP = 2
+
 class ZonePlate(GenericElement):
 
     name = "Zone Plate"
@@ -553,7 +557,7 @@ class ZonePlate(GenericElement):
 
         return ShadowBeam.traceFromOE(self.input_beam, empty_element, history=True)
 
-
+    # ALGORITHM EXTRACTED FROM webAbsorb.py by 11BM - Argonne National Laboratory
     @classmethod
     def get_material_density(cls, material):
         elements = ChemicalFormulaParser.parse_formula(material)
@@ -631,7 +635,7 @@ class ZonePlate(GenericElement):
        
             intercepted_rays[:, 3] = xp_out # XP
             intercepted_rays[:, 5] = zp_out # ZP
-            intercepted_rays[:, 9] = 2
+            intercepted_rays[:, 9] = GOOD_ZP
                         
             focused_beam._beam.rays[t, 3] = intercepted_rays[:, 3]       
             focused_beam._beam.rays[t, 4] = intercepted_rays[:, 4]       
@@ -655,7 +659,7 @@ class ZonePlate(GenericElement):
     
         focused_beam = zone_plate_beam.duplicate(history=True)
 
-        go = numpy.where(zone_plate_beam._beam.rays[:, 9] == 1)
+        go = numpy.where(zone_plate_beam._beam.rays[:, 9] == GOOD)
 
         print("Number of input rays in the ZP", len(zone_plate_beam._beam.rays[go]))
 
@@ -678,13 +682,13 @@ class ZonePlate(GenericElement):
             else: dark_zones.append([r_zone_i_previous, r_zone_i])
             r_zone_i_previous = r_zone_i
                
-        focused_beam._beam.rays[go, 9] = -100
+        focused_beam._beam.rays[go, 9] = LOST
         
         ZonePlate.analyze_zone(clear_zones, focused_beam)
         if type_of_zp == PHASE_ZP: ZonePlate.analyze_zone(dark_zones, focused_beam)
     
-        go_2 = numpy.where(focused_beam._beam.rays[:, 9] == 2)
-        lo_2 = numpy.where(focused_beam._beam.rays[:, 9] == -100)
+        go_2 = numpy.where(focused_beam._beam.rays[:, 9] == GOOD_ZP)
+        lo_2 = numpy.where(focused_beam._beam.rays[:, 9] == LOST)
     
         intensity_go_2 = numpy.sum(focused_beam._beam.rays[go_2, 6] ** 2 + focused_beam._beam.rays[go_2, 7] ** 2 + focused_beam._beam.rays[go_2, 8] ** 2 + \
                                    focused_beam._beam.rays[go_2, 15] ** 2 + focused_beam._beam.rays[go_2, 16] ** 2 + focused_beam._beam.rays[go_2, 17] ** 2)
@@ -714,6 +718,6 @@ class ZonePlate(GenericElement):
         focused_beam._beam.rays[go_2, 15] = focused_beam._beam.rays[go_2, 15]*efficiency_weight_factor[:]
         focused_beam._beam.rays[go_2, 16] = focused_beam._beam.rays[go_2, 16]*efficiency_weight_factor[:]
         focused_beam._beam.rays[go_2, 17] = focused_beam._beam.rays[go_2, 17]*efficiency_weight_factor[:]
-        focused_beam._beam.rays[go_2, 9] = 1
+        focused_beam._beam.rays[go_2, 9] = GOOD
 
         return focused_beam
