@@ -9,8 +9,8 @@ from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.util.oasys_util import EmittingStream, TTYGrabber
 
-from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn, ShadowOpticalElement, ShadowBeam, ShadowFile
-from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics
+from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn, ShadowOpticalElement, ShadowBeam
+from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics, ShadowMath
 from orangecontrib.shadow.widgets.gui.ow_generic_element import GenericElement
 
 import xraylib
@@ -387,12 +387,12 @@ class ZonePlate(GenericElement):
                                                                       self.substrate_material,
                                                                       self.substrate_thickness,
                                                                       self.zone_plate_material,
-                                                                      self.zone_plate_thickness)
+                                                                      self.zone_plate_thickness,
+                                                                      self.source_distance,
+                                                                      self.workspace_units_to_m)
 
+                    beam_out = self.get_output_beam(focused_beam)
 
-                    focused_beam._beam.retrace(self.image_plane_distance)
-
-                    beam_out = focused_beam
 
                     if self.trace_shadow:
                         grabber.stop()
@@ -557,6 +557,25 @@ class ZonePlate(GenericElement):
 
         return ShadowBeam.traceFromOE(self.input_beam, empty_element, history=True)
 
+
+    def get_output_beam(self, focused_beam):
+
+        empty_element = ShadowOpticalElement.create_empty_oe()
+
+        empty_element._oe.DUMMY = 1.0 # self.workspace_units_to_cm
+
+        empty_element._oe.T_SOURCE     = 0.0
+        empty_element._oe.T_IMAGE      = self.image_plane_distance
+        empty_element._oe.T_INCIDENCE  = 0.0
+        empty_element._oe.T_REFLECTION = 180.0
+        empty_element._oe.ALPHA        = 0.0
+
+        empty_element._oe.FWRITE = 3
+        empty_element._oe.F_ANGLE = 0
+
+        return ShadowBeam.traceFromOE(focused_beam, empty_element, history=True)
+
+
     # ALGORITHM EXTRACTED FROM webAbsorb.py by 11BM - Argonne National Laboratory
     @classmethod
     def get_material_density(cls, material):
@@ -599,7 +618,10 @@ class ZonePlate(GenericElement):
         return delta, beta 
     
     @classmethod
-    def analyze_zone(cls, zones, focused_beam):
+    def analyze_zone(cls, delta_rn, diameter, zones, focused_beam, p, workspace_units_to_m):
+        retraced_beam = focused_beam.duplicate(history = False)
+        retraced_beam._beam.retrace(-p)
+
         x = focused_beam._beam.rays[:, 0]
         z = focused_beam._beam.rays[:, 2]
         r = numpy.sqrt(x**2 + z**2) 
@@ -607,41 +629,83 @@ class ZonePlate(GenericElement):
         for zone in zones:
             t = numpy.where(numpy.logical_and(r >= zone[0], r <= zone[1]))
     
-            intercepted_rays = focused_beam._beam.rays[t]
-                    
-            # (see formulas in A.G. Michette, "X-ray science and technology"
-            #  Institute of Physics Publishing (1993))
-    
-            x_int = intercepted_rays[:, 0]
-            z_int = intercepted_rays[:, 2]
-            xp_int = intercepted_rays[:, 3]
-            zp_int = intercepted_rays[:, 5]
-            k_mod_int = intercepted_rays[:, 10]
-    
-            r_int = numpy.sqrt(x_int**2 + z_int**2) 
-          
-            k_x_int = k_mod_int*xp_int
-            k_z_int = k_mod_int*zp_int
-            d = zone[1] - zone[0]
-            
-            # computing G (the "grating" wavevector in Angstrom^-1)
-            gx = -numpy.pi / d * (x_int/r_int)
-            gz = -numpy.pi / d * (z_int/r_int)
-           
-            k_x_out = k_x_int + gx
-            k_z_out = k_z_int + gz
-            xp_out = k_x_out / k_mod_int
-            zp_out = k_z_out / k_mod_int
-       
-            intercepted_rays[:, 3] = xp_out # XP
-            intercepted_rays[:, 5] = zp_out # ZP
-            intercepted_rays[:, 9] = GOOD_ZP
-                        
-            focused_beam._beam.rays[t, 3] = intercepted_rays[:, 3]       
-            focused_beam._beam.rays[t, 4] = intercepted_rays[:, 4]       
-            focused_beam._beam.rays[t, 5] = intercepted_rays[:, 5]       
-            focused_beam._beam.rays[t, 9] = intercepted_rays[:, 9]    
-    
+            intercepted_rays_i = retraced_beam._beam.rays[t]
+            intercepted_rays_f = focused_beam._beam.rays[t]
+
+            if len(intercepted_rays_f) > 0:
+
+                # (see formulas in A.G. Michette, "X-ray science and technology"
+                #  Institute of Physics Publishing (1993))
+
+                x_int_i = intercepted_rays_i[:, 0]
+                z_int_i = intercepted_rays_i[:, 2]
+                x_int_f = intercepted_rays_f[:, 0]
+                z_int_f = intercepted_rays_f[:, 2]
+
+
+                xp_int = intercepted_rays_f[:, 3]
+                zp_int = intercepted_rays_f[:, 5]
+
+                k_mod_int = intercepted_rays_f[:, 10]
+                lambda_ray = ShadowPhysics.getWavelengthFromShadowK(k_mod_int)*1e-1 #ANGSTROM->nm
+                f_ray = (delta_rn*(diameter*1000)/lambda_ray)* (1e-9/workspace_units_to_m)
+                q_ray = f_ray*p/(p-f_ray)
+
+                r_int = numpy.sqrt((x_int_f-x_int_i)**2 + (z_int_f-z_int_i)**2)
+
+                '''
+                theta_r = numpy.arctan(r_int/q_ray)
+                theta_i = numpy.arctan(r_int/p)
+
+                ray_versor = [xp_int, yp_int, zp_int]
+
+                print("MODI", ShadowMath.vector_modulus(ray_versor))
+
+
+                y_axis = [0, 1, 0]
+
+                rotation_axis = ShadowMath.vectorial_product(ray_versor, y_axis)
+                rotation_angle = -(theta_i + theta_r)
+
+                print (numpy.degrees(theta_i), numpy.degrees(theta_r), numpy.degrees(rotation_angle))
+
+                ray_versor_r = ShadowMath.vector_rotate(rotation_axis, rotation_angle, ray_versor)
+                ray_versor_r /= ShadowMath.vector_modulus(ray_versor_r)
+
+                '''
+
+                k_x_int = k_mod_int*xp_int
+                k_z_int = k_mod_int*zp_int
+
+                d = (zone[1] - zone[0])
+                d_eff = d * q_ray/f_ray
+
+                # computing G (the "grating" wavevector in workspace units^-1)
+                gx = -numpy.pi / d_eff * ((x_int_f-x_int_i)/r_int)
+                gz = -numpy.pi / d_eff * ((z_int_f-z_int_i)/r_int)
+
+                k_x_out = k_x_int + gx
+                k_z_out = k_z_int + gz
+
+                xp_out = k_x_out / k_mod_int
+                zp_out = k_z_out / k_mod_int
+                yp_out = numpy.sqrt(1 - (xp_out**2 + zp_out**2))
+
+                print ("DICAN", ShadowMath.vector_modulus([xp_out, yp_out, zp_out]))
+
+
+                focused_beam._beam.rays[t, 3] = xp_out
+                focused_beam._beam.rays[t, 4] = yp_out # YP
+                focused_beam._beam.rays[t, 5] = zp_out
+                focused_beam._beam.rays[t, 9] = GOOD_ZP
+                '''
+
+                focused_beam._beam.rays[t, 3] = ray_versor_r[0] # XP
+                focused_beam._beam.rays[t, 4] = ray_versor_r[1] # YP
+                focused_beam._beam.rays[t, 5] = ray_versor_r[2] # ZP
+                focused_beam._beam.rays[t, 9] = GOOD_ZP
+                '''
+
     @classmethod
     def apply_fresnel_zone_plate(cls, 
                                  zone_plate_beam,
@@ -651,7 +715,9 @@ class ZonePlate(GenericElement):
                                  substrate_material, 
                                  substrate_thickness,
                                  zone_plate_material,
-                                 zone_plate_thickness):
+                                 zone_plate_thickness,
+                                 source_distance,
+                                 workspace_units_to_m):
         
         max_zones_number = int(diameter*1000/(4*delta_rn))
     
@@ -677,15 +743,15 @@ class ZonePlate(GenericElement):
         dark_zones = []
         r_zone_i_previous = 0.0
         for i in range(1, max_zones_number+1):
-            r_zone_i = numpy.sqrt(i*diameter*1000*delta_rn)*1e-7
+            r_zone_i = numpy.sqrt(i*diameter*1e-6*delta_rn*1e-9)/workspace_units_to_m # to workspace unit
             if i % 2 == 0: clear_zones.append([r_zone_i_previous, r_zone_i])
             else: dark_zones.append([r_zone_i_previous, r_zone_i])
             r_zone_i_previous = r_zone_i
                
         focused_beam._beam.rays[go, 9] = LOST
         
-        ZonePlate.analyze_zone(clear_zones, focused_beam)
-        if type_of_zp == PHASE_ZP: ZonePlate.analyze_zone(dark_zones, focused_beam)
+        ZonePlate.analyze_zone(delta_rn, diameter, clear_zones, focused_beam, source_distance, workspace_units_to_m)
+        if type_of_zp == PHASE_ZP: ZonePlate.analyze_zone(delta_rn, diameter, dark_zones, focused_beam, source_distance, workspace_units_to_m)
     
         go_2 = numpy.where(focused_beam._beam.rays[:, 9] == GOOD_ZP)
         lo_2 = numpy.where(focused_beam._beam.rays[:, 9] == LOST)
@@ -697,10 +763,10 @@ class ZonePlate(GenericElement):
                                    focused_beam._beam.rays[lo_2, 15] ** 2 + focused_beam._beam.rays[lo_2, 16] ** 2 + focused_beam._beam.rays[lo_2, 17] ** 2)
 
         if type_of_zp == PHASE_ZP:
-            wavelength = ShadowPhysics.getWavelengthFromShadowK(focused_beam._beam.rays[go, 10])*1e-8 #cm
+            wavelength = ShadowPhysics.getWavelengthFromShadowK(focused_beam._beam.rays[go, 10])*1e-10 # m
             delta, beta = ZonePlate.get_delta_beta(focused_beam._beam.rays[go], zone_plate_material)
             
-            phi = 2*numpy.pi*(zone_plate_thickness*1e-7)*delta/wavelength
+            phi = 2*numpy.pi*(zone_plate_thickness*1e-9)*delta/wavelength
             r = beta/delta
                
             efficiency_zp = ((1 + numpy.exp(-2*r*phi) - (2*numpy.exp(-r*phi)*numpy.cos(phi)))/numpy.pi)**2

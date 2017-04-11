@@ -906,7 +906,7 @@ class ShadowMath:
         result_temp_2 = ShadowMath.vector_multiply(ShadowMath.vectorial_product(rotation_axis, vector),
                                                    numpy.sin(rotation_angle))
         result_temp_3 = ShadowMath.vector_multiply(rotation_axis,
-                                                   ShadowMath.scalar_product(rotation_axis, vector) * (1 - numpy.cos(rotation_angle)))
+                                                   ShadowMath.scalar_product(rotation_axis, vector)) * (1 - numpy.cos(rotation_angle))
 
         result = ShadowMath.vector_sum(result_temp_1,
                                        ShadowMath.vector_sum(result_temp_2, result_temp_3))
