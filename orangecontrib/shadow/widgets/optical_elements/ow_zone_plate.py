@@ -65,6 +65,7 @@ class ZonePlate(GenericElement):
 
     delta_rn = Setting(25) # nm
     diameter = Setting(618) # micron
+    source_distance_flag = Setting(0)
     source_distance = Setting(0.0)
 
     type_of_zp = Setting(1)
@@ -79,6 +80,8 @@ class ZonePlate(GenericElement):
     image_position = 0.0
     magnification  = 0.0
     efficiency     = 0.0
+
+    automatically_set_image_plane = Setting(0)
 
     ##################################################
 
@@ -166,11 +169,21 @@ class ZonePlate(GenericElement):
 
         tab_zone_plate = oasysgui.createTabPage(tabs_basic_setting, "Zone Plate")
 
-        zp_box = oasysgui.widgetBox(tab_zone_plate, "Zone Plate Input Parameters", addSpace=False, orientation="vertical", height=230)
+        zp_box = oasysgui.widgetBox(tab_zone_plate, "Zone Plate Input Parameters", addSpace=False, orientation="vertical", height=280)
 
         oasysgui.lineEdit(zp_box, self, "delta_rn",  u"\u03B4" + "rn [nm]", labelWidth=260, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(zp_box, self, "diameter", "Z.P. Diameter [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
-        self.le_source_distance = oasysgui.lineEdit(zp_box, self, "source_distance", "Source Distance", labelWidth=260, valueType=float, orientation="horizontal")
+
+        gui.comboBox(zp_box, self, "source_distance_flag", label="Source Distance", labelWidth=350,
+                     items=["Same as Source Plane", "Different"],
+                     callback=self.set_SourceDistanceFlag, sendSelectedValue=False, orientation="horizontal")
+
+        self.zp_box_1 = oasysgui.widgetBox(zp_box, "", addSpace=False, orientation="vertical", height=30)
+        self.zp_box_2 = oasysgui.widgetBox(zp_box, "", addSpace=False, orientation="vertical", height=30)
+
+        self.le_source_distance = oasysgui.lineEdit(self.zp_box_1, self, "source_distance", "Source Distance", labelWidth=260, valueType=float, orientation="horizontal")
+
+        self.set_SourceDistanceFlag()
 
         gui.comboBox(zp_box, self, "type_of_zp", label="Type of Zone Plate", labelWidth=350,
                      items=["Amplitude", "Phase"],
@@ -178,16 +191,16 @@ class ZonePlate(GenericElement):
 
         gui.separator(zp_box, height=5)
 
-        self.zp_box_1 = oasysgui.widgetBox(zp_box, "", addSpace=False, orientation="vertical")
+        self.zp_box_3 = oasysgui.widgetBox(zp_box, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.zp_box_1, self, "zone_plate_material",  "Zone Plate Material", labelWidth=260, valueType=str, orientation="horizontal")
-        oasysgui.lineEdit(self.zp_box_1, self, "zone_plate_thickness",  "Zone Plate Thickness [nm]", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.zp_box_1, self, "substrate_material", "Substrate Material", labelWidth=260, valueType=str, orientation="horizontal")
-        oasysgui.lineEdit(self.zp_box_1, self, "substrate_thickness",  "Substrate Thickness [nm]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.zp_box_3, self, "zone_plate_material",  "Zone Plate Material", labelWidth=260, valueType=str, orientation="horizontal")
+        oasysgui.lineEdit(self.zp_box_3, self, "zone_plate_thickness",  "Zone Plate Thickness [nm]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.zp_box_3, self, "substrate_material", "Substrate Material", labelWidth=260, valueType=str, orientation="horizontal")
+        oasysgui.lineEdit(self.zp_box_3, self, "substrate_thickness",  "Substrate Thickness [nm]", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.set_TypeOfZP()
 
-        zp_out_box = oasysgui.widgetBox(tab_zone_plate, "Zone Plate Output Parameters", addSpace=False, orientation="vertical", height=230)
+        zp_out_box = oasysgui.widgetBox(tab_zone_plate, "Zone Plate Output Parameters", addSpace=False, orientation="vertical", height=190)
 
         self.le_avg_wavelength = oasysgui.lineEdit(zp_out_box, self, "avg_wavelength", "Average Wavelenght [nm]", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_avg_wavelength.setReadOnly(True)
@@ -238,6 +251,11 @@ class ZonePlate(GenericElement):
         palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
         palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
         self.le_efficiency.setPalette(palette)
+
+        gui.separator(zp_out_box, height=5)
+
+        gui.comboBox(zp_out_box, self, "automatically_set_image_plane", label="Automatically set Image Plane Distance", labelWidth=350,
+                     items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
 
         ##########################################
@@ -355,6 +373,8 @@ class ZonePlate(GenericElement):
 
                     self.progressBarSet(10)
 
+                    if self.source_distance_flag == 1:
+                        self.source_distance = self.source_plane_distance
 
                     zone_plate_beam = self.get_zone_plate_beam()
 
@@ -366,6 +386,10 @@ class ZonePlate(GenericElement):
                     self.image_position = numpy.round(self.focal_distance*self.source_distance/(self.source_distance-self.focal_distance), 4)
                     self.magnification = numpy.round(numpy.abs(self.image_position/self.source_distance), 4)
 
+                    if self.automatically_set_image_plane == 1:
+                        self.image_plane_distance = self.image_position
+
+                    self.progressBarSet(30)
 
                     if self.type_of_zp == PHASE_ZP:
                         avg_energy_in_KeV = ShadowPhysics.getEnergyFromWavelength(self.avg_wavelength*10)/1000
@@ -391,8 +415,11 @@ class ZonePlate(GenericElement):
                                                                       self.source_distance,
                                                                       self.workspace_units_to_m)
 
+                    self.progressBarSet(60)
+
                     beam_out = self.get_output_beam(focused_beam)
 
+                    self.progressBarSet(80)
 
                     if self.trace_shadow:
                         grabber.stop()
@@ -439,7 +466,8 @@ class ZonePlate(GenericElement):
 
         congruence.checkStrictlyPositiveNumber(self.delta_rn, u"\u03B4" + "rn" )
         congruence.checkStrictlyPositiveNumber(self.diameter, "Z.P. Diameter")
-        congruence.checkPositiveNumber(self.source_distance, "Source Distance" )
+        if (self.source_distance_flag == 1):
+            congruence.checkPositiveNumber(self.source_distance, "Source Distance" )
 
         if self.type_of_zp == PHASE_ZP:
             congruence.checkEmptyString(self.zone_plate_material, "Zone Plate Material")
@@ -495,8 +523,12 @@ class ZonePlate(GenericElement):
     def set_MirrorMovement(self):
         self.mir_mov_box_1.setVisible(self.mirror_movement == 1)
 
+    def set_SourceDistanceFlag(self):
+        self.zp_box_1.setVisible(self.source_distance_flag == 1)
+        self.zp_box_2.setVisible(self.source_distance_flag == 0)
+
     def set_TypeOfZP(self):
-        self.zp_box_1.setVisible(self.type_of_zp == PHASE_ZP)
+        self.zp_box_3.setVisible(self.type_of_zp == PHASE_ZP)
 
 
     ######################################################################
@@ -618,9 +650,9 @@ class ZonePlate(GenericElement):
         return delta, beta 
     
     @classmethod
-    def analyze_zone(cls, delta_rn, diameter, zones, focused_beam, p, workspace_units_to_m):
+    def analyze_zone(cls, delta_rn, diameter, zones, focused_beam, p_zp, workspace_units_to_m):
         retraced_beam = focused_beam.duplicate(history = False)
-        retraced_beam._beam.retrace(-p)
+        retraced_beam._beam.retrace(-p_zp)
 
         x = focused_beam._beam.rays[:, 0]
         z = focused_beam._beam.rays[:, 2]
@@ -648,30 +680,9 @@ class ZonePlate(GenericElement):
                 k_mod_int = intercepted_rays_f[:, 10]
                 lambda_ray = ShadowPhysics.getWavelengthFromShadowK(k_mod_int)*1e-1 #ANGSTROM->nm
                 f_ray = (delta_rn*(diameter*1000)/lambda_ray)* (1e-9/workspace_units_to_m)
-                q_ray = f_ray*p/(p-f_ray)
+                q_ray = f_ray*p_zp/(p_zp-f_ray)
 
                 r_int = numpy.sqrt((x_int_f-x_int_i)**2 + (z_int_f-z_int_i)**2)
-
-                '''
-                theta_r = numpy.arctan(r_int/q_ray)
-                theta_i = numpy.arctan(r_int/p)
-
-                ray_versor = [xp_int, yp_int, zp_int]
-
-                print("MODI", ShadowMath.vector_modulus(ray_versor))
-
-
-                y_axis = [0, 1, 0]
-
-                rotation_axis = ShadowMath.vectorial_product(ray_versor, y_axis)
-                rotation_angle = -(theta_i + theta_r)
-
-                print (numpy.degrees(theta_i), numpy.degrees(theta_r), numpy.degrees(rotation_angle))
-
-                ray_versor_r = ShadowMath.vector_rotate(rotation_axis, rotation_angle, ray_versor)
-                ray_versor_r /= ShadowMath.vector_modulus(ray_versor_r)
-
-                '''
 
                 k_x_int = k_mod_int*xp_int
                 k_z_int = k_mod_int*zp_int
@@ -680,30 +691,25 @@ class ZonePlate(GenericElement):
                 d_eff = d * q_ray/f_ray
 
                 # computing G (the "grating" wavevector in workspace units^-1)
-                gx = -numpy.pi / d_eff * ((x_int_f-x_int_i)/r_int)
-                gz = -numpy.pi / d_eff * ((z_int_f-z_int_i)/r_int)
+                gx = -numpy.pi / d_eff * ((x_int_f-x_int_i)/r_int) # cos(theta_i)
+                gz = -numpy.pi / d_eff * ((z_int_f-z_int_i)/r_int) # sen(theta_i)
 
                 k_x_out = k_x_int + gx
                 k_z_out = k_z_int + gz
 
+                k_y_out = numpy.sqrt(k_mod_int**2 - (k_z_out**2 + k_x_out**2)) # keep energy of the photon constant
+
                 xp_out = k_x_out / k_mod_int
+                yp_out = k_y_out / k_mod_int
                 zp_out = k_z_out / k_mod_int
-                yp_out = numpy.sqrt(1 - (xp_out**2 + zp_out**2))
 
-                print ("DICAN", ShadowMath.vector_modulus([xp_out, yp_out, zp_out]))
-
+                #print (ShadowMath.vector_modulus([xp_out, yp_out, zp_out]))
 
                 focused_beam._beam.rays[t, 3] = xp_out
-                focused_beam._beam.rays[t, 4] = yp_out # YP
+                focused_beam._beam.rays[t, 4] = yp_out
                 focused_beam._beam.rays[t, 5] = zp_out
                 focused_beam._beam.rays[t, 9] = GOOD_ZP
-                '''
 
-                focused_beam._beam.rays[t, 3] = ray_versor_r[0] # XP
-                focused_beam._beam.rays[t, 4] = ray_versor_r[1] # YP
-                focused_beam._beam.rays[t, 5] = ray_versor_r[2] # ZP
-                focused_beam._beam.rays[t, 9] = GOOD_ZP
-                '''
 
     @classmethod
     def apply_fresnel_zone_plate(cls, 
@@ -719,14 +725,12 @@ class ZonePlate(GenericElement):
                                  workspace_units_to_m):
         
         max_zones_number = int(diameter*1000/(4*delta_rn))
-    
+
         print ("Max Zone Number", max_zones_number)
-    
+
         focused_beam = zone_plate_beam.duplicate(history=True)
 
         go = numpy.where(zone_plate_beam._beam.rays[:, 9] == GOOD)
-
-        print("Number of input rays in the ZP", len(zone_plate_beam._beam.rays[go]))
 
         if type_of_zp == PHASE_ZP: 
             substrate_weight_factor = ZonePlate.get_material_weight_factor(focused_beam._beam.rays[go], substrate_material, substrate_thickness)
@@ -762,8 +766,8 @@ class ZonePlate(GenericElement):
                                    focused_beam._beam.rays[lo_2, 15] ** 2 + focused_beam._beam.rays[lo_2, 16] ** 2 + focused_beam._beam.rays[lo_2, 17] ** 2)
 
         if type_of_zp == PHASE_ZP:
-            wavelength = ShadowPhysics.getWavelengthFromShadowK(focused_beam._beam.rays[go, 10])*1e-10 # m
-            delta, beta = ZonePlate.get_delta_beta(focused_beam._beam.rays[go], zone_plate_material)
+            wavelength = ShadowPhysics.getWavelengthFromShadowK(focused_beam._beam.rays[go_2, 10])*1e-10 # m
+            delta, beta = ZonePlate.get_delta_beta(focused_beam._beam.rays[go_2], zone_plate_material)
             
             phi = 2*numpy.pi*(zone_plate_thickness*1e-9)*delta/wavelength
             r = beta/delta
@@ -774,8 +778,6 @@ class ZonePlate(GenericElement):
         elif type_of_zp == AMPLITUDE_ZP:
             efficiency_zp = numpy.ones(len(focused_beam._beam.rays[go_2]))/(numpy.pi**2)
             efficiency_weight_factor = numpy.sqrt(efficiency_zp*(1 + (intensity_lo_2/intensity_go_2)))
-        
-        print ("Efficiency (max, min)", numpy.max(efficiency_weight_factor**2), numpy.min(efficiency_weight_factor**2))
 
         focused_beam._beam.rays[go_2, 6] = focused_beam._beam.rays[go_2, 6]*efficiency_weight_factor[:]
         focused_beam._beam.rays[go_2, 7] = focused_beam._beam.rays[go_2, 7]*efficiency_weight_factor[:]
