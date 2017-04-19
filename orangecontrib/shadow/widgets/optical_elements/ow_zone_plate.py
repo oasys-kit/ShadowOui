@@ -680,7 +680,6 @@ class ZonePlate(GenericElement):
                 k_mod_int = intercepted_rays_f[:, 10]
                 lambda_ray = ShadowPhysics.getWavelengthFromShadowK(k_mod_int)*1e-1 #ANGSTROM->nm
                 f_ray = (delta_rn*(diameter*1000)/lambda_ray)* (1e-9/workspace_units_to_m)
-                q_ray = f_ray*p_zp/(p_zp-f_ray)
 
                 r_int = numpy.sqrt((x_int_f-x_int_i)**2 + (z_int_f-z_int_i)**2)
 
@@ -688,11 +687,10 @@ class ZonePlate(GenericElement):
                 k_z_int = k_mod_int*zp_int
 
                 d = (zone[1] - zone[0])
-                d_eff = d * q_ray/f_ray
 
                 # computing G (the "grating" wavevector in workspace units^-1)
-                gx = -numpy.pi / d_eff * ((x_int_f-x_int_i)/r_int) # cos(theta_i)
-                gz = -numpy.pi / d_eff * ((z_int_f-z_int_i)/r_int) # sen(theta_i)
+                gx = -numpy.pi / d * ((x_int_f-x_int_i)/r_int) # cos(theta_i)
+                gz = -numpy.pi / d * ((z_int_f-z_int_i)/r_int) # sen(theta_i)
 
                 k_x_out = k_x_int + gx
                 k_z_out = k_z_int + gz
@@ -702,8 +700,6 @@ class ZonePlate(GenericElement):
                 xp_out = k_x_out / k_mod_int
                 yp_out = k_y_out / k_mod_int
                 zp_out = k_z_out / k_mod_int
-
-                #print (ShadowMath.vector_modulus([xp_out, yp_out, zp_out]))
 
                 focused_beam._beam.rays[t, 3] = xp_out
                 focused_beam._beam.rays[t, 4] = yp_out
