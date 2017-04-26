@@ -373,18 +373,23 @@ class ZonePlate(GenericElement):
 
                     self.progressBarSet(10)
 
-                    if self.source_distance_flag == 1:
+                    if self.source_distance_flag == 0:
                         self.source_distance = self.source_plane_distance
 
                     zone_plate_beam = self.get_zone_plate_beam()
 
                     go = numpy.where(zone_plate_beam._beam.rays[:, 9] == 1)
 
-                    self.avg_wavelength = numpy.round(ShadowPhysics.getWavelengthFromShadowK(numpy.average(zone_plate_beam._beam.rays[go, 10]))*1e-1, 4) #ANGSTROM->nm
+                    self.avg_wavelength = ShadowPhysics.getWavelengthFromShadowK(numpy.average(zone_plate_beam._beam.rays[go, 10]))*1e-1 #ANGSTROM->nm
 
-                    self.focal_distance = numpy.round((self.delta_rn*(self.diameter*1000)/self.avg_wavelength)* (1e-9/self.workspace_units_to_m), 4)
-                    self.image_position = numpy.round(self.focal_distance*self.source_distance/(self.source_distance-self.focal_distance), 4)
-                    self.magnification = numpy.round(numpy.abs(self.image_position/self.source_distance), 4)
+                    self.focal_distance = (self.delta_rn*(self.diameter*1000)/self.avg_wavelength)* (1e-9/self.workspace_units_to_m)
+                    self.image_position = self.focal_distance*self.source_distance/(self.source_distance-self.focal_distance)
+                    self.magnification = numpy.abs(self.image_position/self.source_distance)
+
+                    self.avg_wavelength = numpy.round(self.avg_wavelength, 6)
+                    self.focal_distance = numpy.round(self.focal_distance, 6)
+                    self.image_position = numpy.round(self.image_position, 6)
+                    self.magnification = numpy.round(self.magnification, 6)
 
                     if self.automatically_set_image_plane == 1:
                         self.image_plane_distance = self.image_position
