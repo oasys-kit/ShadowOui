@@ -14,7 +14,12 @@ from orangecontrib.shadow.widgets.gui import ow_source
 
 from srxraylib.sources import srfunc
 
-class UndulatorGaussian(ow_source.Source):
+from syned.widget.widget_decorator import WidgetDecorator
+
+import syned.beamline.beamline as synedb
+import syned.storage_ring.magnetic_structures.insertion_device as synedid
+
+class UndulatorGaussian(ow_source.Source, WidgetDecorator):
 
     name = "Undulator Gaussian"
     description = "Shadow Source: Undulator Gaussian"
@@ -33,6 +38,8 @@ class UndulatorGaussian(ow_source.Source):
     sigma_divergence_z=Setting(1e-06)
 
     undulator_length=Setting(4.0)
+
+    inputs = [WidgetDecorator.syned_input_data()]
 
     def __init__(self):
         super().__init__()
@@ -203,6 +210,29 @@ class UndulatorGaussian(ow_source.Source):
         photon_vp = numpy.sqrt(numpy.power(sigdi_z,2) + numpy.power(sp_phot,2) )
 
         return (photon_h/user_unit_to_m, photon_v/user_unit_to_m, photon_hp,photon_vp)
+
+
+    def receive_syned_data(self, data):
+
+        if isinstance(data, synedb.Beamline):
+            if not data._light_source is None and isinstance(data._light_source._magnetic_structure, synedid.InsertionDevice):
+                light_source = data._light_source
+
+                self.energy = light_source._electron_beam._energy_in_GeV
+                self.delta_e = self.energy*light_source._electron_beam._energy_spread
+
+                x, xp, y, yp = light_source._electron_beam.get_sigmas_all()
+
+                self.sigma_x = x/self.workspace_units_to_m
+                self.sigma_z = y/self.workspace_units_to_m
+                self.sigma_divergence_x = xp
+                self.sigma_divergence_z = yp
+                self.undulator_length = light_source._magnetic_structure._period_length*light_source._magnetic_structure._number_of_periods # in meter
+
+            else:
+                raise ValueError("Syned data not correct")
+        else:
+            raise ValueError("Syned data not correct")
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)
