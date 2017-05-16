@@ -17,6 +17,7 @@ from srxraylib.sources import srfunc
 from syned.widget.widget_decorator import WidgetDecorator
 
 import syned.beamline.beamline as synedb
+import syned.storage_ring.magnetic_structures.undulator as synedu
 import syned.storage_ring.magnetic_structures.insertion_device as synedid
 
 class UndulatorGaussian(ow_source.Source, WidgetDecorator):
@@ -159,6 +160,8 @@ class UndulatorGaussian(ow_source.Source, WidgetDecorator):
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))
 
+            #raise exception
+
         self.progressBarFinished()
 
     def sendNewBeam(self, trigger):
@@ -215,11 +218,11 @@ class UndulatorGaussian(ow_source.Source, WidgetDecorator):
     def receive_syned_data(self, data):
 
         if isinstance(data, synedb.Beamline):
-            if not data._light_source is None and isinstance(data._light_source._magnetic_structure, synedid.InsertionDevice):
+            if not data._light_source is None and isinstance(data._light_source._magnetic_structure, synedu.Undulator):
                 light_source = data._light_source
 
-                self.energy = light_source._electron_beam._energy_in_GeV
-                self.delta_e = self.energy*light_source._electron_beam._energy_spread
+                self.energy =  round(light_source._magnetic_structure.resonance_energy(light_source._electron_beam.gamma()), 3)
+                self.delta_e = 0.0
 
                 x, xp, y, yp = light_source._electron_beam.get_sigmas_all()
 
