@@ -13,6 +13,8 @@ from srxraylib.sources import srfunc
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowSource
 from orangecontrib.shadow.widgets.gui import ow_source
 
+from silx.gui.plot.PlotWindow import PlotWindow
+
 class Wiggler(ow_source.Source):
     name = "Wiggler"
     description = "Shadow Source: Wiggler"
@@ -302,9 +304,9 @@ class Wiggler(ow_source.Source):
 
     def plot_wiggler_histo(self, progressBarValue, x, y, plot_canvas_index, title, xtitle, ytitle, is_log_log=False):
         if self.wiggler_plot_canvas[plot_canvas_index] is None:
-            self.wiggler_plot_canvas[plot_canvas_index] = oasysgui.OasysPlotWindow(roi=False, control=False, position=True)
+            self.wiggler_plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True)
             self.wiggler_plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
-            self.wiggler_plot_canvas[plot_canvas_index].setActiveCurveColor(color='darkblue')
+            self.wiggler_plot_canvas[plot_canvas_index].setActiveCurveColor(color='blue')
 
             self.wiggler_tab[plot_canvas_index].layout().addWidget(self.wiggler_plot_canvas[plot_canvas_index])
 

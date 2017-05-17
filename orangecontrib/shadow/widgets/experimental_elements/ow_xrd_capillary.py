@@ -688,11 +688,11 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         self.setAbsorption()
 
-        self.plot_canvas = oasysgui.OasysPlotWindow(roi=False, control=False, position=True)
+        self.plot_canvas = PlotWindow(roi=False, control=False, position=True)
         self.plot_canvas.setGraphXLabel("2Theta [deg]")
         self.plot_canvas.setGraphYLabel("Intensity (arbitrary units)")
         self.plot_canvas.setDefaultPlotLines(True)
-        self.plot_canvas.setActiveCurveColor(color='darkblue')
+        self.plot_canvas.setActiveCurveColor(color='blue')
 
         self.image_box.layout().addWidget(self.plot_canvas)
 
@@ -735,11 +735,11 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         palette.setColor(QPalette.Base, QColor(243, 240, 160))
         c_W.setPalette(palette)
 
-        self.caglioti_fwhm_canvas = oasysgui.OasysPlotWindow(roi=False, control=False, position=True)
+        self.caglioti_fwhm_canvas = PlotWindow(roi=False, control=False, position=True)
         self.caglioti_fwhm_canvas.setGraphXLabel("2Theta [deg]")
         self.caglioti_fwhm_canvas.setGraphYLabel("FWHM [deg]")
         self.caglioti_fwhm_canvas.setDefaultPlotLines(True)
-        self.caglioti_fwhm_canvas.setActiveCurveColor(color='darkblue')
+        self.caglioti_fwhm_canvas.setActiveCurveColor(color='blue')
 
         self.caglioti_fwhm_image_box.layout().addWidget(self.caglioti_fwhm_canvas)
         
@@ -784,11 +784,11 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         palette.setColor(QPalette.Base, QColor(243, 240, 160))
         c_c.setPalette(palette)
 
-        self.caglioti_eta_canvas = oasysgui.OasysPlotWindow(roi=False, control=False, position=True)
+        self.caglioti_eta_canvas = PlotWindow(roi=False, control=False, position=True)
         self.caglioti_eta_canvas.setGraphXLabel("2Theta [deg]")
         self.caglioti_eta_canvas.setGraphYLabel("Eta")
         self.caglioti_eta_canvas.setDefaultPlotLines(True)
-        self.caglioti_eta_canvas.setActiveCurveColor(color='darkblue')
+        self.caglioti_eta_canvas.setActiveCurveColor(color='blue')
 
         self.caglioti_eta_image_box.layout().addWidget(self.caglioti_eta_canvas)
 
@@ -798,11 +798,11 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         self.caglioti_shift_image_box.setFixedHeight(self.IMAGE_HEIGHT)
         self.caglioti_shift_image_box.setFixedWidth(self.IMAGE_WIDTH)
 
-        self.caglioti_shift_canvas = oasysgui.OasysPlotWindow(roi=False, control=False, position=True)
+        self.caglioti_shift_canvas = PlotWindow(roi=False, control=False, position=True)
         self.caglioti_shift_canvas.setGraphXLabel("2Theta [deg]")
         self.caglioti_shift_canvas.setGraphYLabel("(2Theta_Bragg - 2Theta) [deg]")
         self.caglioti_shift_canvas.setDefaultPlotLines(True)
-        self.caglioti_shift_canvas.setActiveCurveColor(color='darkblue')
+        self.caglioti_shift_canvas.setActiveCurveColor(color='blue')
 
         self.caglioti_shift_image_box.layout().addWidget(self.caglioti_shift_canvas)
 
