@@ -2,10 +2,13 @@
 
 import os
 
-from setuptools import find_packages, setup
+try:
+    from setuptools import find_packages, setup
+except AttributeError:
+    from setuptools import find_packages, setup
 
 NAME = 'OASYS1-ShadowOui'
-VERSION = '1.4.3'
+VERSION = '1.4.5'
 ISRELEASED = False
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
@@ -24,7 +27,7 @@ KEYWORDS = (
 )
 
 CLASSIFIERS = (
-    'Development Status :: 4 - Beta',
+    'Development Status :: 5 - Production/Stable',
     'Environment :: X11 Applications :: Qt',
     'Environment :: Console',
     'Environment :: Plugins',
