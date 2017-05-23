@@ -186,14 +186,12 @@ class OWxsh_bragg(OWWidget):
 
         self.show_at(self.unitFlags()[idx], box)
 
-        self.shadow_output = QTextEdit()
-        self.shadow_output.setReadOnly(True)
+        self.shadow_output = oasysgui.textArea()
 
         out_box = oasysgui.widgetBox(self.controlArea, "System Output", addSpace=True, orientation="horizontal", height=150)
         out_box.layout().addWidget(self.shadow_output)
 
         self.process_showers()
-
 
         gui.rubber(self.controlArea)
 

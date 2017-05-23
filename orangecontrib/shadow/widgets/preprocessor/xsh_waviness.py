@@ -303,7 +303,7 @@ class OWxsh_waviness(OWWidget):
 
         gui.separator(self.controlArea)
 
-        tabs_setting = gui.tabWidget(self.controlArea)
+        tabs_setting = oasysgui.TabWidget(self.controlArea)
         tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
         tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
@@ -364,8 +364,7 @@ class OWxsh_waviness(OWWidget):
 
         self.harmonics_box.layout().addWidget(self.scrollarea, alignment=Qt.AlignHCenter)
 
-        self.shadow_output = QTextEdit()
-        self.shadow_output.setReadOnly(True)
+        self.shadow_output = oasysgui.textArea()
 
         out_box = oasysgui.widgetBox(tab_out, "System Output", addSpace=True, orientation="horizontal", height=580)
         out_box.layout().addWidget(self.shadow_output)

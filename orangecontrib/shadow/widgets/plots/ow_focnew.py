@@ -104,16 +104,14 @@ class FocNew(ow_automatic_element.AutomaticElement):
 
         gui.separator(self.controlArea, height=200)
 
-        tabs_setting = gui.tabWidget(self.mainArea)
+        tabs_setting = oasysgui.TabWidget(self.mainArea)
         tabs_setting.setFixedHeight(self.IMAGE_HEIGHT+5)
         tabs_setting.setFixedWidth(self.IMAGE_WIDTH)
 
         tab_info = oasysgui.createTabPage(tabs_setting, "Focnew Info")
         tab_scan = oasysgui.createTabPage(tabs_setting, "Focnew Scan")
 
-        self.focnewInfo = QtWidgets.QTextEdit()
-        self.focnewInfo.setReadOnly(True)
-        self.focnewInfo.setMaximumHeight(self.IMAGE_HEIGHT-35)
+        self.focnewInfo = oasysgui.textArea(height=self.IMAGE_HEIGHT-35)
 
         info_box = oasysgui.widgetBox(tab_info, "", addSpace=True, orientation="horizontal", height = self.IMAGE_HEIGHT-20, width = self.IMAGE_WIDTH-20)
         info_box.layout().addWidget(self.focnewInfo)

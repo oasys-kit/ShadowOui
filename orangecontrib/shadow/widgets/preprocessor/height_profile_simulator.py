@@ -156,14 +156,14 @@ class OWheight_profile_simulator(OWWidget):
 
         gui.separator(self.controlArea)
 
-        tabs_setting = gui.tabWidget(self.controlArea)
+        tabs_setting = oasysgui.TabWidget(self.controlArea)
         tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
         tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
         tab_input = oasysgui.createTabPage(tabs_setting, "Input Parameters")
         tab_out = oasysgui.createTabPage(tabs_setting, "Output")
 
-        tabs_input = gui.tabWidget(tab_input)
+        tabs_input = oasysgui.TabWidget(tab_input)
         tab_length = oasysgui.createTabPage(tabs_input, "Length")
         tab_width = oasysgui.createTabPage(tabs_input, "Width")
 
@@ -364,8 +364,7 @@ class OWheight_profile_simulator(OWWidget):
 
         gui.button(self.select_file_box, self, "...", callback=self.selectFile)
 
-        self.shadow_output = QTextEdit()
-        self.shadow_output.setReadOnly(True)
+        self.shadow_output = oasysgui.textArea()
 
         out_box = oasysgui.widgetBox(tab_out, "System Output", addSpace=True, orientation="horizontal", height=580)
         out_box.layout().addWidget(self.shadow_output)

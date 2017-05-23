@@ -44,15 +44,10 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
         self.enableFootprint(False)
 
-        self.shadow_output = QtWidgets.QTextEdit()
-        self.shadow_output.setReadOnly(True)
+        self.shadow_output = oasysgui.textArea(height=600, width=600)
 
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)
-
-        self.shadow_output.setFixedHeight(600)
-        self.shadow_output.setFixedWidth(600)
-
 
     def initializeTabs(self):
         current_tab = self.tabs.currentIndex()

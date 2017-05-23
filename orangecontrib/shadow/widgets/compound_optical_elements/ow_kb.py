@@ -70,7 +70,7 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
 
         self.set_use_different_focal_positions()
 
-        self.tab_mirrors = gui.tabWidget(self.tab_bas)
+        self.tab_mirrors = oasysgui.TabWidget(self.tab_bas)
 
         tab_vertical = oasysgui.createTabPage(self.tab_mirrors, "Vertical Focusing Mirror")
         tab_horizontal = oasysgui.createTabPage(self.tab_mirrors, "Horizontal Focusing Mirror")
@@ -535,7 +535,7 @@ class MirrorBox(QtWidgets.QWidget):
                  surface_error_files=KB.NONE_SPECIFIED):
         super().__init__(parent)
 
-        self.setLayout(QtGui.QVBoxLayout())
+        self.setLayout(QtWidgets.QVBoxLayout())
         self.layout().setAlignment(Qt.AlignTop)
 
         self.kb = kb

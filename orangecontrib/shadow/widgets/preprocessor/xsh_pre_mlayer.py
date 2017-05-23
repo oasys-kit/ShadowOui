@@ -93,7 +93,7 @@ class OWxsh_pre_mlayer(OWWidget):
 
         gui.separator(self.controlArea)
 
-        tabs_setting = gui.tabWidget(self.controlArea)
+        tabs_setting = oasysgui.TabWidget(self.controlArea)
         tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
         tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
@@ -297,8 +297,7 @@ class OWxsh_pre_mlayer(OWWidget):
 
         self.process_showers()
 
-        self.shadow_output = QTextEdit()
-        self.shadow_output.setReadOnly(True)
+        self.shadow_output = oasysgui.textArea()
 
         out_box = oasysgui.widgetBox(self.controlArea, "System Output", addSpace=True, orientation="horizontal", height=150)
         out_box.layout().addWidget(self.shadow_output)

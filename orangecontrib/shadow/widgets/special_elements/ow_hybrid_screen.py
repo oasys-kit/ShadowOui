@@ -90,9 +90,9 @@ class HybridScreen(AutomaticElement):
         button.setPalette(palette) # assign new palette
         button.setFixedHeight(45)
 
-        main_tabs = gui.tabWidget(self.mainArea)
-        plot_tab = gui.createTabPage(main_tabs, "Plots")
-        out_tab = gui.createTabPage(main_tabs, "Output")
+        main_tabs = oasysgui.TabWidget(self.mainArea)
+        plot_tab = oasysgui.createTabPage(main_tabs, "Plots")
+        out_tab = oasysgui.createTabPage(main_tabs, "Output")
 
         self.tabs = oasysgui.tabWidget(plot_tab)
 
@@ -161,14 +161,10 @@ class HybridScreen(AutomaticElement):
                      sendSelectedValue=False,
                      orientation="horizontal")
 
-        self.shadow_output = QtWidgets.QTextEdit()
-        self.shadow_output.setReadOnly(True)
+        self.shadow_output = oasysgui.textArea(height=600, width=600)
 
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)
-
-        self.shadow_output.setFixedHeight(600)
-        self.shadow_output.setFixedWidth(600)
 
     def after_change_workspace_units(self):
         label = self.le_focal_length.parent().layout().itemAt(0).widget()

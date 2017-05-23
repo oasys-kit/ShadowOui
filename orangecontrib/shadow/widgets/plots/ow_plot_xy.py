@@ -70,7 +70,7 @@ class PlotXY(AutomaticElement):
         gui.button(self.controlArea, self, "Refresh", callback=self.plot_results, height=45)
         gui.separator(self.controlArea, 10)
 
-        self.tabs_setting = gui.tabWidget(self.controlArea)
+        self.tabs_setting = oasysgui.TabWidget(self.controlArea)
         self.tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
         # graph tab
@@ -257,22 +257,18 @@ class PlotXY(AutomaticElement):
                                          items=["No", "Yes"],
                                          sendSelectedValue=False, orientation="horizontal")
 
-        self.main_tabs = gui.tabWidget(self.mainArea)
-        plot_tab = gui.createTabPage(self.main_tabs, "Plots")
-        out_tab = gui.createTabPage(self.main_tabs, "Output")
+        self.main_tabs = oasysgui.TabWidget(self.mainArea)
+        plot_tab = oasysgui.createTabPage(self.main_tabs, "Plots")
+        out_tab = oasysgui.createTabPage(self.main_tabs, "Output")
 
         self.image_box = gui.widgetBox(plot_tab, "Plot Result", addSpace=True, orientation="vertical")
         self.image_box.setFixedHeight(self.IMAGE_HEIGHT)
         self.image_box.setFixedWidth(self.IMAGE_WIDTH)
 
-        self.shadow_output = QtWidgets.QTextEdit()
-        self.shadow_output.setReadOnly(True)
+        self.shadow_output = oasysgui.textArea(height=600, width=600)
 
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)
-
-        self.shadow_output.setFixedHeight(600)
-        self.shadow_output.setFixedWidth(600)
 
     def clearResults(self):
         if ConfirmDialog.confirmed(parent=self):

@@ -549,7 +549,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         
         gui.comboBox(self.box_background_1, self, "n_sigma", label="Noise (Nr. Sigma)", labelWidth=347, items=["0.5", "1", "1.5", "2", "2.5", "3"], sendSelectedValue=False, orientation="horizontal")
 
-        tabs_background = gui.tabWidget(self.box_background_1)
+        tabs_background = oasysgui.TabWidget(self.box_background_1)
 
         tab_constant = oasysgui.createTabPage(tabs_background, "Constant")
         tab_exponential = oasysgui.createTabPage(tabs_background, "Exponential")
@@ -611,23 +611,20 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         #####################
 
-        self.shadow_output = QtWidgets.QTextEdit()
-        self.shadow_output.setReadOnly(True)
+        self.shadow_output = oasysgui.textArea(height=400)
 
         out_box = gui.widgetBox(self.tab_output, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)
-
-        self.shadow_output.setFixedHeight(400)
 
         #####################
 
         gui.rubber(self.controlArea)
 
-        self.plot_tabs = gui.tabWidget(self.mainArea)
+        self.plot_tabs = oasysgui.TabWidget(self.mainArea)
 
         # ---------------------------------------------
 
-        self.tab_results_area = gui.createTabPage(self.plot_tabs, "XRD 2D Pattern")
+        self.tab_results_area = oasysgui.createTabPage(self.plot_tabs, "XRD 2D Pattern")
 
         self.area_image_box = gui.widgetBox(self.tab_results_area, "", addSpace=True, orientation="vertical")
         self.area_image_box.setFixedHeight(self.IMAGE_HEIGHT)
@@ -643,10 +640,10 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         #---------------------------------------------
 
-        tab_results = gui.createTabPage(self.plot_tabs, "XRD Pattern")
-        tab_caglioti_fwhm = gui.createTabPage(self.plot_tabs, "Instrumental Broadening")
-        tab_caglioti_eta = gui.createTabPage(self.plot_tabs, "Instrumental Peak Shape")
-        tab_caglioti_shift = gui.createTabPage(self.plot_tabs, "Instrumental Peak Shift")
+        tab_results = oasysgui.createTabPage(self.plot_tabs, "XRD Pattern")
+        tab_caglioti_fwhm = oasysgui.createTabPage(self.plot_tabs, "Instrumental Broadening")
+        tab_caglioti_eta = oasysgui.createTabPage(self.plot_tabs, "Instrumental Peak Shape")
+        tab_caglioti_shift = oasysgui.createTabPage(self.plot_tabs, "Instrumental Peak Shift")
 
         self.image_box = gui.widgetBox(tab_results, "", addSpace=True, orientation="vertical")
         self.image_box.setFixedHeight(self.IMAGE_HEIGHT)

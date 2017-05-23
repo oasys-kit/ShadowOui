@@ -56,7 +56,7 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
         for btn in btns:
             btn.setFixedHeight(20)
 
-        self.tab_crls = gui.tabWidget(self.tab_bas)
+        self.tab_crls = oasysgui.TabWidget(self.tab_bas)
         self.crl_box_array = []
 
         for index in range(len(self.p)):
@@ -583,7 +583,7 @@ class CRLBox(QtWidgets.QWidget):
                  use_ccc=0):
         super().__init__(parent)
 
-        self.setLayout(QtGui.QVBoxLayout())
+        self.setLayout(QtWidgets.QVBoxLayout())
         self.layout().setAlignment(Qt.AlignTop)
         self.setFixedWidth(470)
         self.setFixedHeight(700)

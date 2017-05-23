@@ -47,7 +47,7 @@ class Info(widget.OWWidget):
 
         gen_box = gui.widgetBox(self.mainArea, "Beamline Info", addSpace=True, orientation="horizontal")
 
-        tabs_setting = gui.tabWidget(gen_box)
+        tabs_setting = oasysgui.TabWidget(gen_box)
         tabs_setting.setFixedHeight(self.WIDGET_HEIGHT-60)
         tabs_setting.setFixedWidth(self.WIDGET_WIDTH-60)
 
@@ -58,20 +58,15 @@ class Info(widget.OWWidget):
         tab_scr = oasysgui.createTabPage(tabs_setting, "Python Script")
         tab_out = oasysgui.createTabPage(tabs_setting, "System Output")
 
-        self.sysInfo = QtWidgets.QTextEdit()
-        self.sysInfo.setReadOnly(True)
+        self.sysInfo = oasysgui.textArea()
         self.sysInfo.setMaximumHeight(self.WIDGET_HEIGHT-100)
-        self.mirInfo = QtWidgets.QTextEdit()
-        self.mirInfo.setReadOnly(True)
+        self.mirInfo = oasysgui.textArea()
         self.mirInfo.setMaximumHeight(self.WIDGET_HEIGHT-100)
-        self.sourceInfo = QtWidgets.QTextEdit()
-        self.sourceInfo.setReadOnly(True)
+        self.sourceInfo = oasysgui.textArea()
         self.sourceInfo.setMaximumHeight(self.WIDGET_HEIGHT-100)
-        self.distancesSummary = QtWidgets.QTextEdit()
-        self.distancesSummary.setReadOnly(True)
+        self.distancesSummary = oasysgui.textArea()
         self.distancesSummary.setMaximumHeight(self.WIDGET_HEIGHT-100)
-        self.pythonScript = QtWidgets.QTextEdit()
-        self.pythonScript.setReadOnly(False)  # asked by Manolo
+        self.pythonScript = oasysgui.textArea(readOnly=False)
         self.pythonScript.setMaximumHeight(self.WIDGET_HEIGHT - 300)
 
         sys_box = oasysgui.widgetBox(tab_sys, "", addSpace=True, orientation="horizontal", height = self.WIDGET_HEIGHT-80, width = self.WIDGET_WIDTH-80)
@@ -95,8 +90,7 @@ class Info(widget.OWWidget):
         self.console = PythonConsole(self.__dict__, self)
         console_box.layout().addWidget(self.console)
 
-        self.shadow_output = QtWidgets.QTextEdit()
-        self.shadow_output.setReadOnly(True)
+        self.shadow_output = oasysgui.textArea()
 
         out_box = oasysgui.widgetBox(tab_out, "System Output", addSpace=True, orientation="horizontal", height=self.WIDGET_HEIGHT - 80)
         out_box.layout().addWidget(self.shadow_output)

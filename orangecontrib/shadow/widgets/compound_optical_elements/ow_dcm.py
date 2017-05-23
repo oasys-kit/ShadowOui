@@ -48,7 +48,7 @@ class DCM(ow_compound_optical_element.CompoundOpticalElement):
 
         gui.button(file_box, self, "...", callback=self.selectFilePrerefl)
 
-        self.tab_crystals = gui.tabWidget(self.tab_bas)
+        self.tab_crystals = oasysgui.TabWidget(self.tab_bas)
 
         tab_first_crystal = oasysgui.createTabPage(self.tab_crystals, "First Crystal")
         tab_second_crystal = oasysgui.createTabPage(self.tab_crystals, "Second Crystal")
@@ -219,7 +219,7 @@ class CrystalBox(QtWidgets.QWidget):
                  dimensions=[0.0, 0.0]):
         super().__init__(parent)
 
-        self.setLayout(QtGui.QVBoxLayout())
+        self.setLayout(QtWidgets.QVBoxLayout())
         self.layout().setAlignment(Qt.AlignTop)
 
         self.dcm = dcm

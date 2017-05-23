@@ -426,7 +426,7 @@ class OpticalElement(ow_generic_element.GenericElement):
         ##########################################
         ##########################################
 
-        tabs_advanced_setting = gui.tabWidget(tab_adv)
+        tabs_advanced_setting = oasysgui.TabWidget(tab_adv)
 
         if not (self.graphical_options.is_empty or graphical_options.is_screen_slit):
             tab_adv_mod_surf = oasysgui.createTabPage(tabs_advanced_setting, "Modified Surface")
@@ -595,7 +595,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                 if self.graphical_options.is_crystal:
                     tab_dcm = oasysgui.createTabPage(tabs_setting, "D.C.M. Utility")
 
-                tabs_basic_setting = gui.tabWidget(tab_bas)
+                tabs_basic_setting = oasysgui.TabWidget(tab_bas)
 
                 if self.graphical_options.is_curved: tab_bas_shape = oasysgui.createTabPage(tabs_basic_setting, "Surface Shape")
                 if self.graphical_options.is_mirror: tab_bas_refl = oasysgui.createTabPage(tabs_basic_setting, "Reflectivity")
@@ -829,7 +829,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     ####################################
 
-                    tabs_crystal_setting = gui.tabWidget(tab_bas_crystal)
+                    tabs_crystal_setting = oasysgui.TabWidget(tab_bas_crystal)
 
                     self.tab_cryst_1 = oasysgui.createTabPage(tabs_crystal_setting, "Diffraction Settings")
                     self.tab_cryst_2 = oasysgui.createTabPage(tabs_crystal_setting, "Geometric Setting")
@@ -944,7 +944,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     self.set_Mosaic()
                 elif self.graphical_options.is_grating:
-                    tabs_grating_setting = gui.tabWidget(tab_bas_grating)
+                    tabs_grating_setting = oasysgui.TabWidget(tab_bas_grating)
 
                     tab_grating_2 = oasysgui.createTabPage(tabs_grating_setting, "Ruling Setting")
                     tab_grating_1 = oasysgui.createTabPage(tabs_grating_setting, "Diffraction Settings")

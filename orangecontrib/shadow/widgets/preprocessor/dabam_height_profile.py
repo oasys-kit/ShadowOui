@@ -185,7 +185,7 @@ class OWdabam_height_profile(OWWidget):
         self.le_dimension_y_to = oasysgui.lineEdit(input_box_2, self, "dimension_y_to", "To",
                            labelWidth=60, valueType=float, orientation="horizontal")
 
-        table_box = oasysgui.widgetBox(tab_input, "Search Results", addSpace=True, orientation="vertical", height=290)
+        table_box = oasysgui.widgetBox(tab_input, "Search Results", addSpace=True, orientation="vertical", height=250)
 
         self.overlay_search = Overlay(table_box, self.search_profiles)
         self.overlay_search.hide()
@@ -205,6 +205,7 @@ class OWdabam_height_profile(OWWidget):
         table_box.layout().addWidget(self.scrollarea, alignment=Qt.AlignHCenter)
 
         self.table = QTableWidget(1, 5)
+        self.table.setStyleSheet("background-color: #FBFBFB;")
         self.table.setAlternatingRowColors(True)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
         self.table.verticalHeader().setVisible(False)
@@ -269,8 +270,7 @@ class OWdabam_height_profile(OWWidget):
 
         gui.button(select_file_box, self, "...", callback=self.selectFile)
 
-        self.shadow_output = QTextEdit()
-        self.shadow_output.setReadOnly(True)
+        self.shadow_output = oasysgui.textArea(height=400)
 
         out_box = oasysgui.widgetBox(tab_out, "System Output", addSpace=True, orientation="horizontal", height=500)
         out_box.layout().addWidget(self.shadow_output)
@@ -383,14 +383,9 @@ class OWdabam_height_profile(OWWidget):
 
         self.plot_canvas[5] = FigureCanvasQTAgg(self.figure)
 
-        self.profileInfo = QTextEdit()
-        self.profileInfo.setReadOnly(True)
-        self.profileInfo.setMinimumHeight(self.IMAGE_HEIGHT-5)
-        self.profileInfo.setMaximumHeight(self.IMAGE_HEIGHT-5)
-        self.profileInfo.setMinimumWidth(310)
-        self.profileInfo.setMaximumWidth(310)
+        self.profileInfo = oasysgui.textArea(height=self.IMAGE_HEIGHT-5, width=400)
 
-        profile_box = oasysgui.widgetBox(self.tab[0], "", addSpace=True, orientation="horizontal", height = self.IMAGE_HEIGHT, width=320)
+        profile_box = oasysgui.widgetBox(self.tab[0], "", addSpace=True, orientation="horizontal", height = self.IMAGE_HEIGHT, width=410)
         profile_box.layout().addWidget(self.profileInfo)
 
         for index in range(0, 6):

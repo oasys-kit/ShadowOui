@@ -121,8 +121,7 @@ class OWxsh_prerefl(OWWidget):
 
         self.process_showers()
 
-        self.shadow_output = QTextEdit()
-        self.shadow_output.setReadOnly(True)
+        self.shadow_output = oasysgui.textArea()
 
         out_box = oasysgui.widgetBox(self.controlArea, "System Output", addSpace=True, orientation="horizontal", height=150)
         out_box.layout().addWidget(self.shadow_output)
