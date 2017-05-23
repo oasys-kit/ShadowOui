@@ -6,7 +6,7 @@ from oasys.widgets import gui as oasysgui
 from oasys.widgets.gui import ConfirmDialog
 
 from orangewidget import gui
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 from orangewidget.settings import Setting
 from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn, ShadowTriggerOut
 

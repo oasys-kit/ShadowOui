@@ -3,8 +3,9 @@ import os
 import sys
 
 import numpy
-from PyQt4 import QtGui
-from PyQt4.QtGui import QPalette, QColor, QFont, QDialog, QWidget
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtWidgets import QDialog, QWidget
+from PyQt5.QtGui import QPalette, QColor, QFont
 
 from matplotlib import cm
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
@@ -775,7 +776,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     figure_box = oasysgui.widgetBox(dcm_box, "", addSpace=True, orientation="horizontal")
 
-                    label = QtGui.QLabel("")
+                    label = QtWidgets.QLabel("")
                     label.setPixmap(QtGui.QPixmap(self.image_path))
 
                     figure_box.layout().addWidget(label)
@@ -1626,7 +1627,7 @@ class OpticalElement(ow_generic_element.GenericElement):
         def __init__(self, parent=None, filename=""):
             QDialog.__init__(self, parent)
             self.setWindowTitle('Defect File - Surface Error Profile')
-            layout = QtGui.QVBoxLayout(self)
+            layout = QtWidgets.QVBoxLayout(self)
 
             figure = Figure(figsize=(100, 100))
             figure.patch.set_facecolor('white')
@@ -1659,7 +1660,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             axis.mouse_init()
 
-            bbox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
+            bbox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok)
 
             bbox.accepted.connect(self.accept)
             layout.addWidget(figure_canvas)
@@ -1671,8 +1672,8 @@ class OpticalElement(ow_generic_element.GenericElement):
                                                          filename=self.ms_defect_file_name)
             dialog.show()
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
-                                       str(exception), QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, "Error",
+                                       str(exception), QtWidgets.QMessageBox.Ok)
 
     class ShowSurfaceShapeDialog(QDialog):
 
@@ -1693,7 +1694,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             self.setFixedWidth(750)
 
-            layout = QtGui.QGridLayout(self)
+            layout = QtWidgets.QGridLayout(self)
 
             figure = Figure(figsize=(100, 100))
             figure.patch.set_facecolor('white')
@@ -1838,7 +1839,7 @@ class OpticalElement(ow_generic_element.GenericElement):
             le_8.setReadOnly(True)
             le_9.setReadOnly(True)
 
-            bbox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
+            bbox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok)
 
             bbox.accepted.connect(self.accept)
             layout.addWidget(figure_canvas, 0, 0)
@@ -1852,8 +1853,8 @@ class OpticalElement(ow_generic_element.GenericElement):
             dialog = OpticalElement.ShowSurfaceShapeDialog(parent=self)
             dialog.show()
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
-                                       str(exception), QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, "Error",
+                                       str(exception), QtWidgets.QMessageBox.Ok)
 
             #raise exception
 
@@ -2802,8 +2803,8 @@ class OpticalElement(ow_generic_element.GenericElement):
                 raise Exception("Empty Input Beam")
 
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
-                                       str(exception), QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, "Error",
+                                       str(exception), QtWidgets.QMessageBox.Ok)
 
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))
@@ -2830,9 +2831,9 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     self.set_DiffractionCalculation()
                 else:
-                    QtGui.QMessageBox.warning(self, "Warning",
+                    QtWidgets.QMessageBox.warning(self, "Warning",
                               "This O.E. is not a crystal: bragg parameter will be ignored",
-                              QtGui.QMessageBox.Ok)
+                              QtWidgets.QMessageBox.Ok)
 
             if data.prerefl_data_file != ShadowPreProcessorData.NONE:
                 if self.graphical_options.is_mirror:
@@ -2847,9 +2848,9 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     self.set_Absorption()
                 else:
-                    QtGui.QMessageBox.warning(self, "Warning",
+                    QtWidgets.QMessageBox.warning(self, "Warning",
                               "This O.E. is not a mirror or screen/slit: prerefl parameter will be ignored",
-                              QtGui.QMessageBox.Ok)
+                              QtWidgets.QMessageBox.Ok)
 
             if data.m_layer_data_file_dat != ShadowPreProcessorData.NONE:
                 if self.graphical_options.is_mirror:
@@ -2860,9 +2861,9 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     self.set_Refl_Parameters()
                 else:
-                    QtGui.QMessageBox.warning(self, "Warning",
+                    QtWidgets.QMessageBox.warning(self, "Warning",
                               "This O.E. is not a mirror: prerefl_m parameter will be ignored",
-                              QtGui.QMessageBox.Ok)
+                              QtWidgets.QMessageBox.Ok)
 
             if data.error_profile_data_file != ShadowPreProcessorData.NONE:
                 if self.graphical_options.is_mirror or self.graphical_options.is_grating:
@@ -2882,9 +2883,9 @@ class OpticalElement(ow_generic_element.GenericElement):
                             changed = True
 
                         if changed:
-                            if QtGui.QMessageBox.information(self, "Confirm Modification",
+                            if QtWidgets.QMessageBox.information(self, "Confirm Modification",
                                                           "Dimensions of this O.E. must be changed in order to ensure congruence with the error profile surface, accept?",
-                                                          QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
+                                                          QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No) == QtWidgets.QMessageBox.Yes:
                                 if self.dim_x_plus > data.error_profile_x_dim/2:
                                     self.dim_x_plus = data.error_profile_x_dim/2
                                 if self.dim_x_minus > data.error_profile_x_dim/2:
@@ -2894,13 +2895,13 @@ class OpticalElement(ow_generic_element.GenericElement):
                                 if self.dim_y_minus > data.error_profile_y_dim/2:
                                     self.dim_y_minus = data.error_profile_y_dim/2
 
-                                QtGui.QMessageBox.information(self, "QMessageBox.information()",
+                                QtWidgets.QMessageBox.information(self, "QMessageBox.information()",
                                                               "Dimensions of this O.E. were changed",
-                                                              QtGui.QMessageBox.Ok)
+                                                              QtWidgets.QMessageBox.Ok)
                     else:
-                        if QtGui.QMessageBox.information(self, "Confirm Modification",
+                        if QtWidgets.QMessageBox.information(self, "Confirm Modification",
                                                       "This O.E. must become rectangular with finite dimensions in order to ensure congruence with the error surface, accept?",
-                                                      QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
+                                                      QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No) == QtWidgets.QMessageBox.Yes:
                             self.is_infinite = 1
                             self.mirror_shape = 0
                             self.dim_x_plus = data.error_profile_x_dim/2
@@ -2908,15 +2909,15 @@ class OpticalElement(ow_generic_element.GenericElement):
                             self.dim_y_plus = data.error_profile_y_dim/2
                             self.dim_y_minus = data.error_profile_y_dim/2
 
-                            QtGui.QMessageBox.warning(self, "Warning",
+                            QtWidgets.QMessageBox.warning(self, "Warning",
                                                           "Dimensions of this O.E. were changed",
-                                                          QtGui.QMessageBox.Ok)
+                                                          QtWidgets.QMessageBox.Ok)
 
                     self.set_Dim_Parameters()
                 else:
-                    QtGui.QMessageBox.warning(self, "Warning",
+                    QtWidgets.QMessageBox.warning(self, "Warning",
                               "This O.E. is not a mirror or grating: surface error file will be ignored",
-                              QtGui.QMessageBox.Ok)
+                              QtWidgets.QMessageBox.Ok)
 
 
     def acceptExchangeData(self, exchangeData):
@@ -3010,9 +3011,9 @@ class OpticalElement(ow_generic_element.GenericElement):
                         raise Exception("X-Ray Server data not recognized")
 
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
+            QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception),
-                QtGui.QMessageBox.Ok)
+                QtWidgets.QMessageBox.Ok)
 
             #raise exception
 
@@ -3276,9 +3277,9 @@ class OpticalElement(ow_generic_element.GenericElement):
         global shadow_oe_to_copy
 
         if not shadow_oe_to_copy is None:
-            if QtGui.QMessageBox.information(self, "Confirm Operation",
+            if QtWidgets.QMessageBox.information(self, "Confirm Operation",
                                           "Confirm Paste Operation?",
-                                          QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
+                                          QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No) == QtWidgets.QMessageBox.Yes:
                 try:
                     shadow_temp_file = congruence.checkFileName("tmp_oe_buffer.dat")
                     shadow_oe_to_copy._oe.write(shadow_temp_file)
@@ -3289,7 +3290,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     os.remove(shadow_temp_file)
                 except Exception as exception:
-                    QtGui.QMessageBox.critical(self, "Error", str(exception),  QtGui.QMessageBox.Ok)
+                    QtWidgets.QMessageBox.critical(self, "Error", str(exception),  QtWidgets.QMessageBox.Ok)
 
     def setupUI(self):
         if self.graphical_options.is_screen_slit:

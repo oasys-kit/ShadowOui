@@ -2,8 +2,8 @@ import sys
 
 import numpy
 import scipy.stats as stats
-from PyQt4 import QtGui
-from PyQt4.QtGui import QApplication
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtWidgets import QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -537,9 +537,9 @@ class GeometricalSource(ow_source.Source):
             self.send("Beam", beam_out)
 
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
+            QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception),
-                QtGui.QMessageBox.Ok)
+                QtWidgets.QMessageBox.Ok)
 
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))
@@ -707,9 +707,9 @@ class GeometricalSource(ow_source.Source):
 
                     self.set_PhotonEnergyDistribution()
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
+            QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception),
-                QtGui.QMessageBox.Ok)
+                QtWidgets.QMessageBox.Ok)
 
             #raise exception
 

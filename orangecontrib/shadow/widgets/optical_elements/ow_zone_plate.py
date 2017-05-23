@@ -1,7 +1,7 @@
 import sys, numpy, copy
 
-from PyQt4 import QtGui
-from PyQt4.QtGui import QPalette, QColor, QFont, QDialog, QWidget
+from PyQt5.QtGui import QPalette, QColor, QFont
+from PyQt5.QtWidgets import QDialog, QWidget, QMessageBox
 
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
@@ -204,52 +204,52 @@ class ZonePlate(GenericElement):
 
         self.le_avg_wavelength = oasysgui.lineEdit(zp_out_box, self, "avg_wavelength", "Average Wavelenght [nm]", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_avg_wavelength.setReadOnly(True)
-        font = QtGui.QFont(self.le_avg_wavelength.font())
+        font = QFont(self.le_avg_wavelength.font())
         font.setBold(True)
         self.le_avg_wavelength.setFont(font)
-        palette = QtGui.QPalette(self.le_avg_wavelength.palette()) # make a copy of the palette
-        palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
-        palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
+        palette = QPalette(self.le_avg_wavelength.palette()) # make a copy of the palette
+        palette.setColor(QPalette.Text, QColor('dark blue'))
+        palette.setColor(QPalette.Base, QColor(243, 240, 160))
         self.le_avg_wavelength.setPalette(palette)
 
         self.le_focal_distance = oasysgui.lineEdit(zp_out_box, self, "focal_distance", "Focal Distance", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_focal_distance.setReadOnly(True)
-        font = QtGui.QFont(self.le_focal_distance.font())
+        font = QFont(self.le_focal_distance.font())
         font.setBold(True)
         self.le_focal_distance.setFont(font)
-        palette = QtGui.QPalette(self.le_focal_distance.palette()) # make a copy of the palette
-        palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
-        palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
+        palette = QPalette(self.le_focal_distance.palette()) # make a copy of the palette
+        palette.setColor(QPalette.Text, QColor('dark blue'))
+        palette.setColor(QPalette.Base, QColor(243, 240, 160))
         self.le_focal_distance.setPalette(palette)
 
         self.le_image_position = oasysgui.lineEdit(zp_out_box, self, "image_position", "Image Position (Q)", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_image_position.setReadOnly(True)
-        font = QtGui.QFont(self.le_image_position.font())
+        font = QFont(self.le_image_position.font())
         font.setBold(True)
         self.le_image_position.setFont(font)
-        palette = QtGui.QPalette(self.le_image_position.palette()) # make a copy of the palette
-        palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
-        palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
+        palette = QPalette(self.le_image_position.palette()) # make a copy of the palette
+        palette.setColor(QPalette.Text, QColor('dark blue'))
+        palette.setColor(QPalette.Base, QColor(243, 240, 160))
         self.le_image_position.setPalette(palette)
 
         self.le_magnification = oasysgui.lineEdit(zp_out_box, self, "magnification", "Magnification", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_magnification.setReadOnly(True)
-        font = QtGui.QFont(self.le_magnification.font())
+        font = QFont(self.le_magnification.font())
         font.setBold(True)
         self.le_magnification.setFont(font)
-        palette = QtGui.QPalette(self.le_magnification.palette()) # make a copy of the palette
-        palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
-        palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
+        palette = QPalette(self.le_magnification.palette()) # make a copy of the palette
+        palette.setColor(QPalette.Text, QColor('dark blue'))
+        palette.setColor(QPalette.Base, QColor(243, 240, 160))
         self.le_magnification.setPalette(palette)
 
         self.le_efficiency = oasysgui.lineEdit(zp_out_box, self, "efficiency", "Efficiency(Avg. Wavelength)", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_efficiency.setReadOnly(True)
-        font = QtGui.QFont(self.le_efficiency.font())
+        font = QFont(self.le_efficiency.font())
         font.setBold(True)
         self.le_efficiency.setFont(font)
-        palette = QtGui.QPalette(self.le_efficiency.palette()) # make a copy of the palette
-        palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
-        palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
+        palette = QPalette(self.le_efficiency.palette()) # make a copy of the palette
+        palette.setColor(QPalette.Text, QColor('dark blue'))
+        palette.setColor(QPalette.Base, QColor(243, 240, 160))
         self.le_efficiency.setPalette(palette)
 
         gui.separator(zp_out_box, height=5)
@@ -448,8 +448,8 @@ class ZonePlate(GenericElement):
                 raise Exception("Empty Input Beam")
 
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
-                                       str(exception), QtGui.QMessageBox.Ok)
+            QMessageBox.critical(self, "Error",
+                                       str(exception), QMessageBox.Ok)
 
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))

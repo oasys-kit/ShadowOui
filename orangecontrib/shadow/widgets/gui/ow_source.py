@@ -2,7 +2,8 @@ __author__ = 'labx'
 
 import os, sys
 
-from PyQt4.QtGui import QPalette, QColor, QFont, QMessageBox
+from PyQt5.QtGui import QPalette, QColor, QFont
+from PyQt5.QtWidgets import QMessageBox
 from orangewidget import gui
 from orangewidget import widget
 from orangewidget.settings import Setting

@@ -1,7 +1,7 @@
 
 from oasys.widgets import gui as oasysgui, congruence
 
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
 from srxraylib.plot import gol
 import numpy, sys, os
 import xraylib
@@ -9,7 +9,7 @@ import xraylib
 from orangecontrib.xoppy.util.xoppy_xraylib_util import f1f2_calc
 
 if __name__ == "__main__":
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
 #file_name = None
 file_name = "/Users/labx/Desktop/AnnaB/efficiencies.asc"

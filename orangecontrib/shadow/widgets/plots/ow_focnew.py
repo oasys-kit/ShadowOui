@@ -1,7 +1,7 @@
 import sys
 import numpy
-from PyQt4 import QtGui
-from PyQt4.QtGui import QApplication
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtWidgets import QApplication
 from Shadow import ShadowTools as ST
 from orangewidget import gui
 from orangewidget.settings import Setting
@@ -111,7 +111,7 @@ class FocNew(ow_automatic_element.AutomaticElement):
         tab_info = oasysgui.createTabPage(tabs_setting, "Focnew Info")
         tab_scan = oasysgui.createTabPage(tabs_setting, "Focnew Scan")
 
-        self.focnewInfo = QtGui.QTextEdit()
+        self.focnewInfo = QtWidgets.QTextEdit()
         self.focnewInfo.setReadOnly(True)
         self.focnewInfo.setMaximumHeight(self.IMAGE_HEIGHT-35)
 
@@ -152,9 +152,9 @@ class FocNew(ow_automatic_element.AutomaticElement):
                 if self.is_automatic_run:
                     self.calculate()
             else:
-                QtGui.QMessageBox.critical(self, "Error",
+                QtWidgets.QMessageBox.critical(self, "Error",
                                            "Data not displayable: No good rays or bad content",
-                                           QtGui.QMessageBox.Ok)
+                                           QtWidgets.QMessageBox.Ok)
 
     def calculate(self):
         if ShadowCongruence.checkEmptyBeam(self.input_beam):
@@ -216,13 +216,13 @@ class FocNew(ow_automatic_element.AutomaticElement):
                     self.plot_canvas_t.setZoomModeEnabled(False)
                     self.plot_canvas_t.toolBar().setVisible(False)
 
-                    gridLayout = QtGui.QGridLayout()
+                    gridLayout = QtWidgets.QGridLayout()
 
                     gridLayout.addWidget(self.plot_canvas_x, 0, 0)
                     gridLayout.addWidget(self.plot_canvas_z, 0, 1)
                     gridLayout.addWidget(self.plot_canvas_t, 1, 0)
 
-                    widget = QtGui.QWidget()
+                    widget = QtWidgets.QWidget()
                     widget.setLayout(gridLayout)
 
                     self.image_box.layout().addWidget(widget)

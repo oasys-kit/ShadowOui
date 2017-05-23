@@ -1,8 +1,9 @@
 import numpy
 import sys
 
-from PyQt4 import QtGui
-from PyQt4.QtGui import QApplication, QPalette, QColor, QFont
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QPalette, QColor, QFont
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -18,7 +19,6 @@ from syned.widget.widget_decorator import WidgetDecorator
 
 import syned.beamline.beamline as synedb
 import syned.storage_ring.magnetic_structures.undulator as synedu
-import syned.storage_ring.magnetic_structures.insertion_device as synedid
 
 class UndulatorGaussian(ow_source.Source, WidgetDecorator):
 
@@ -153,9 +153,9 @@ class UndulatorGaussian(ow_source.Source, WidgetDecorator):
 
             self.send("Beam", beam_out)
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
+            QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception),
-                QtGui.QMessageBox.Ok)
+                QtWidgets.QMessageBox.Ok)
 
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))

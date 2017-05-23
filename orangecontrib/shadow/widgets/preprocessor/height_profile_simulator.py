@@ -1,14 +1,13 @@
 import sys
 
 import numpy
-from PyQt4.QtCore import QRect
-from PyQt4.QtGui import QTextEdit, QTextCursor, QApplication, QFont, QPalette, QColor, \
-    QMessageBox
-
+from PyQt5.QtCore import QRect
+from PyQt5.QtWidgets import QTextEdit, QApplication, QMessageBox
+from PyQt5.QtGui import QTextCursor, QFont, QPalette, QColor
 from srxraylib.metrology import profiles_simulation
 from Shadow import ShadowTools as ST
 from matplotlib import cm
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from oasys.widgets.widget import OWWidget
 from orangewidget import gui, widget

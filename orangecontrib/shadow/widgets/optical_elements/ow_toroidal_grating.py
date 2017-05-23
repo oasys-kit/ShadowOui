@@ -2,7 +2,7 @@ import sys
 from numpy import array
 
 from orangewidget import gui
-from PyQt4.QtGui import QApplication
+from PyQt5.QtWidgets import QApplication
 
 from orangecontrib.shadow.widgets.gui import ow_toroidal_element, ow_optical_element
 from orangecontrib.shadow.util import ShadowOpticalElement

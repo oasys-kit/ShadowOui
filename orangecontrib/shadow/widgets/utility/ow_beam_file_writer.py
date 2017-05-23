@@ -1,6 +1,6 @@
 import os
 
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
@@ -75,9 +75,9 @@ class BeamFileWriter(widget.OWWidget):
                 if self.is_automatic_run:
                     self.write_file()
             else:
-                QtGui.QMessageBox.critical(self, "Error",
+                QtWidgets.QMessageBox.critical(self, "Error",
                                            "No good rays or bad content",
-                                           QtGui.QMessageBox.Ok)
+                                           QtWidgets.QMessageBox.Ok)
 
     def write_file(self):
         self.setStatusMessage("")
@@ -94,11 +94,11 @@ class BeamFileWriter(widget.OWWidget):
 
                         self.send("Beam", self.input_beam)
                 else:
-                    QtGui.QMessageBox.critical(self, "Error",
+                    QtWidgets.QMessageBox.critical(self, "Error",
                                                "No good rays or bad content",
-                                               QtGui.QMessageBox.Ok)
+                                               QtWidgets.QMessageBox.Ok)
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
-                                       str(exception), QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, "Error",
+                                       str(exception), QtWidgets.QMessageBox.Ok)
 
 

@@ -1,6 +1,6 @@
 import sys
 from orangewidget import gui
-from PyQt4.QtGui import QApplication
+from PyQt5.QtWidgets import QApplication
 
 from orangecontrib.shadow.widgets.gui import ow_optical_element
 from orangecontrib.shadow.util import ShadowOpticalElement

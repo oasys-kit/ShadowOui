@@ -3,7 +3,7 @@ import numpy
 
 from orangewidget import gui
 from oasys.widgets import congruence
-from PyQt4.QtGui import QApplication
+from PyQt5.QtWidgets import QApplication
 
 from orangecontrib.shadow.widgets.gui.ow_optical_element import OpticalElement, GraphicalOptions
 from orangecontrib.shadow.util import ShadowOpticalElement

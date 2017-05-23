@@ -3,7 +3,7 @@ import sys
 from oasys.widgets import widget
 
 from orangewidget import  gui
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
 from orangecontrib.shadow.util.shadow_objects import ShadowTriggerOut
 

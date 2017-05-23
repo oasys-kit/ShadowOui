@@ -1,6 +1,6 @@
 import os, numpy
 
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 from orangewidget import gui,widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
@@ -78,8 +78,8 @@ class BeamFileReader(oasyswidget.OWWidget):
 
                 self.send("Beam", beam_out)
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
-                                       str(exception), QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, "Error",
+                                       str(exception), QtWidgets.QMessageBox.Ok)
 
 
     def create_dummy_oe(self):

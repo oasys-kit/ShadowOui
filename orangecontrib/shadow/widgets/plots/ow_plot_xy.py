@@ -3,7 +3,7 @@ import sys
 import time
 
 import numpy
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -265,7 +265,7 @@ class PlotXY(AutomaticElement):
         self.image_box.setFixedHeight(self.IMAGE_HEIGHT)
         self.image_box.setFixedWidth(self.IMAGE_WIDTH)
 
-        self.shadow_output = QtGui.QTextEdit()
+        self.shadow_output = QtWidgets.QTextEdit()
         self.shadow_output.setReadOnly(True)
 
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
@@ -415,9 +415,9 @@ class PlotXY(AutomaticElement):
 
             return plotted
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
+            QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception),
-                                       QtGui.QMessageBox.Ok)
+                                       QtWidgets.QMessageBox.Ok)
 
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))
@@ -521,9 +521,9 @@ class PlotXY(AutomaticElement):
                 if self.is_automatic_run:
                     self.plot_results()
             else:
-                QtGui.QMessageBox.critical(self, "Error",
+                QtWidgets.QMessageBox.critical(self, "Error",
                                            "Data not displayable: No good rays, bad content, bad limits or axes",
-                                           QtGui.QMessageBox.Ok)
+                                           QtWidgets.QMessageBox.Ok)
 
 
     def writeStdOut(self, text):

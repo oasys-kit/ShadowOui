@@ -12,9 +12,10 @@ import xraylib
 
 from silx.gui.plot.PlotWindow import PlotWindow, Plot2D
 
-from PyQt4 import QtGui
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QApplication, QPalette, QColor, QFont, QDialog
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QDialog
+from PyQt5.QtGui import QPalette, QColor, QFont
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -570,7 +571,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         gui.checkBox(box_equation_che, self, "add_chebyshev", "add Background", callback=self.setChebyshev)
 
         box_equation_che_1 = oasysgui.widgetBox(box_equation_che, "", addSpace=False, orientation="horizontal")
-        box_equation_che_1.setLayout(QtGui.QVBoxLayout())
+        box_equation_che_1.setLayout(QtWidgets.QVBoxLayout())
         box_equation_che_1.layout().addWidget(MathTextLabel(r'$\sum_{i=0}^{5}A_{i}T_{i}(2\theta) }$', 18, box_equation_che_1), alignment=Qt.AlignRight)
 
         self.box_chebyshev_2 = oasysgui.widgetBox(self.box_chebyshev, "", addSpace=False, orientation="vertical")
@@ -588,7 +589,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         gui.checkBox(box_equation_exp, self, "add_expdecay", "add Background", callback=self.setExpDecay)
 
         box_equation_exp_1 = oasysgui.widgetBox(box_equation_exp, "", addSpace=False, orientation="horizontal")
-        box_equation_exp_1.setLayout(QtGui.QVBoxLayout())
+        box_equation_exp_1.setLayout(QtWidgets.QVBoxLayout())
         box_equation_exp_1.layout().addWidget(MathTextLabel(r'$\sum_{i=0}^{5}A_{i}e^{-H_{i}2\theta }$', 18, box_equation_exp_1), alignment=Qt.AlignRight)
 
         self.box_expdecay_2 = oasysgui.widgetBox(self.box_expdecay, "", addSpace=False, orientation="vertical")
@@ -610,7 +611,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         #####################
 
-        self.shadow_output = QtGui.QTextEdit()
+        self.shadow_output = QtWidgets.QTextEdit()
         self.shadow_output.setReadOnly(True)
 
         out_box = gui.widgetBox(self.tab_output, "System Output", addSpace=True, orientation="horizontal")
@@ -950,14 +951,14 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         def __init__(self, parent=None):
             QDialog.__init__(self, parent)
             self.setWindowTitle('Axis System')
-            layout = QtGui.QVBoxLayout(self)
-            label = QtGui.QLabel("")
+            layout = QtWidgets.QVBoxLayout(self)
+            label = QtWidgets.QLabel("")
 
             directory_files = resources.package_dirname("orangecontrib.shadow.widgets.experimental_elements") + "/misc"
 
             label.setPixmap(QtGui.QPixmap(directory_files + "/axis.png"))
 
-            bbox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
+            bbox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok)
 
             bbox.accepted.connect(self.accept)
             layout.addWidget(label)
@@ -1386,13 +1387,13 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                 self.run_simulation=True
                 self.send("Trigger", ShadowTriggerIn(interrupt=True))
         except PermissionError as exception:
-            QtGui.QMessageBox.critical(self, "Permission Error", str(exception), QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, "Permission Error", str(exception), QtWidgets.QMessageBox.Ok)
 
             self.setSimulationTabsAndButtonsEnabled(True)
             self.setStatusMessage("")
             self.progressBarFinished()
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error", str(exception.args[0]), QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, "Error", str(exception.args[0]), QtWidgets.QMessageBox.Ok)
 
             self.setSimulationTabsAndButtonsEnabled(True)
             self.setStatusMessage("")

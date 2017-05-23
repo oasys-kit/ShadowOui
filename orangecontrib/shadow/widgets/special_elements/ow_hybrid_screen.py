@@ -11,8 +11,8 @@ from oasys.util.oasys_util import EmittingStream
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowTriggerIn
 
-from PyQt4 import QtGui
-from PyQt4.QtGui import QImage, QLabel, QPixmap, QWidget, QHBoxLayout, QPalette, QFont, QColor
+from PyQt5.QtGui import QImage, QPixmap,  QPalette, QFont, QColor, QTextCursor
+from PyQt5.QtWidgets import QLabel, QWidget, QHBoxLayout
 
 from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticElement
 from orangecontrib.shadow.widgets.special_elements import hybrid_control
@@ -161,7 +161,7 @@ class HybridScreen(AutomaticElement):
                      sendSelectedValue=False,
                      orientation="horizontal")
 
-        self.shadow_output = QtGui.QTextEdit()
+        self.shadow_output = QtWidgets.QTextEdit()
         self.shadow_output.setReadOnly(True)
 
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
@@ -520,7 +520,7 @@ class HybridScreen(AutomaticElement):
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))
 
-            QtGui.QMessageBox.critical(self, "Error", str(exception), QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, "Error", str(exception), QtWidgets.QMessageBox.Ok)
 
             #raise exception
 
@@ -555,7 +555,7 @@ class HybridScreen(AutomaticElement):
 
     def write_stdout(self, text):
         cursor = self.shadow_output.textCursor()
-        cursor.movePosition(QtGui.QTextCursor.End)
+        cursor.movePosition(QTextCursor.End)
         cursor.insertText(text)
         self.shadow_output.setTextCursor(cursor)
         self.shadow_output.ensureCursorVisible()

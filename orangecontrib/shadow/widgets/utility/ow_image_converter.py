@@ -7,8 +7,8 @@ from oasys.widgets import gui as oasysgui
 from orangewidget import gui
 from orangewidget.settings import Setting
 
-from PyQt4 import QtGui
-from PyQt4.QtGui import QColor
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtGui import QColor
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 

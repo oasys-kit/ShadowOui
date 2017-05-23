@@ -4,7 +4,7 @@ import math
 import os
 
 import xraylib
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
 from oasys.menus.menu import OMenu
 from orangecanvas.scheme.link import SchemeLink
 
@@ -64,7 +64,7 @@ class ShadowToolsMenu(OMenu):
             if self.default_dir == None:
                 self.default_dir = os.getcwd()
 
-            filenames = QtGui.QFileDialog.getOpenFileNames(None, 'Open Shadow OE file', self.default_dir, "SHADOW Input File (start.*)")
+            filenames = QtWidgets.QFileDialog.getOpenFileNames(None, 'Open Shadow OE file', self.default_dir, "SHADOW Input File (start.*)")
 
             if not filenames:
                 return
@@ -89,7 +89,7 @@ class ShadowToolsMenu(OMenu):
 
     def executeAction_2(self, action):
         try:
-            shadow_system_filename = QtGui.QFileDialog.getOpenFileName(None, 'Select Shadow File: systemfile.dat', self.default_dir, "systemfile.dat")
+            shadow_system_filename = QtWidgets.QFileDialog.getOpenFileName(None, 'Select Shadow File: systemfile.dat', self.default_dir, "systemfile.dat")
 
             if not shadow_system_filename:
                 return
@@ -128,7 +128,7 @@ class ShadowToolsMenu(OMenu):
                     else:
                         ret = self.showConfirmMessage("File " + str(filename).strip() + " doesn't exist")
 
-                        if ret == QtGui.QMessageBox.No: break
+                        if ret == QtWidgets.QMessageBox.No: break
                         else:
                             nodes.append(ShadowToolsMenu.OMIT_WIDGET)
                             messages.append("File " + str(filename).strip() + " doesn't exist")
@@ -140,14 +140,14 @@ class ShadowToolsMenu(OMenu):
 
                 for message in messages: total_message = total_message + message + "\n"
 
-                QtGui.QMessageBox.warning(None, "Warning",
+                QtWidgets.QMessageBox.warning(None, "Warning",
                     total_message,
-                    QtGui.QMessageBox.Ok)
+                    QtWidgets.QMessageBox.Ok)
 
         except Exception as exception:
-            QtGui.QMessageBox.critical(None, "Error",
+            QtWidgets.QMessageBox.critical(None, "Error",
                 exception.args[0],
-                QtGui.QMessageBox.Ok)
+                QtWidgets.QMessageBox.Ok)
 
 
     #ENABLE PLOTS
@@ -163,9 +163,9 @@ class ShadowToolsMenu(OMenu):
                        isinstance(widget, ow_info.Info):
                         link.set_enabled(True)
         except Exception as exception:
-            QtGui.QMessageBox.critical(None, "Error",
+            QtWidgets.QMessageBox.critical(None, "Error",
                 exception.args[0],
-                QtGui.QMessageBox.Ok)
+                QtWidgets.QMessageBox.Ok)
 
     def executeAction_4(self, action):
         try:
@@ -179,9 +179,9 @@ class ShadowToolsMenu(OMenu):
                        isinstance(widget, ow_info.Info):
                         link.set_enabled(False)
         except Exception as exception:
-            QtGui.QMessageBox.critical(None, "Error",
+            QtWidgets.QMessageBox.critical(None, "Error",
                 exception.args[0],
-                QtGui.QMessageBox.Ok)
+                QtWidgets.QMessageBox.Ok)
 
     def executeAction_5(self, action):
         try:
@@ -195,9 +195,9 @@ class ShadowToolsMenu(OMenu):
                     widget.plot_graph = 1
                     widget.set_PlotGraphs()
         except Exception as exception:
-            QtGui.QMessageBox.critical(None, "Error",
+            QtWidgets.QMessageBox.critical(None, "Error",
                 exception.args[0],
-                QtGui.QMessageBox.Ok)
+                QtWidgets.QMessageBox.Ok)
 
     def executeAction_6(self, action):
         try:
@@ -211,9 +211,9 @@ class ShadowToolsMenu(OMenu):
                     widget.plot_graph = 1
                     widget.set_PlotGraphs()
         except Exception as exception:
-            QtGui.QMessageBox.critical(None, "Error",
+            QtWidgets.QMessageBox.critical(None, "Error",
                 exception.args[0],
-                QtGui.QMessageBox.Ok)
+                QtWidgets.QMessageBox.Ok)
 
     def executeAction_7(self, action):
         try:
@@ -227,9 +227,9 @@ class ShadowToolsMenu(OMenu):
                     widget.plot_graph = 0
                     widget.set_PlotGraphs()
         except Exception as exception:
-            QtGui.QMessageBox.critical(None, "Error",
+            QtWidgets.QMessageBox.critical(None, "Error",
                 exception.args[0],
-                QtGui.QMessageBox.Ok)
+                QtWidgets.QMessageBox.Ok)
 
     def executeAction_8(self, action):
         try:
@@ -249,14 +249,14 @@ class ShadowToolsMenu(OMenu):
                     widget.calculate_heigth_profile(not_interactive_mode=True)
                     widget.generate_heigth_profile_file(not_interactive_mode=True)
                 elif isinstance(widget, dabam_height_profile.OWdabam_height_profile):
-                    QtGui.QMessageBox.warning(None, "Warning",
+                    QtWidgets.QMessageBox.warning(None, "Warning",
                         "DABAM Widget must be executed interactively",
-                        QtGui.QMessageBox.Ok)
+                        QtWidgets.QMessageBox.Ok)
 
         except Exception as exception:
-            QtGui.QMessageBox.critical(None, "Error",
+            QtWidgets.QMessageBox.critical(None, "Error",
                 exception.args[0],
-                QtGui.QMessageBox.Ok)
+                QtWidgets.QMessageBox.Ok)
 
     ###############################################################
     #
@@ -394,34 +394,34 @@ class ShadowToolsMenu(OMenu):
         except Exception as exception:
             ret = self.showConfirmMessage(exception.args[0])
 
-            if ret == QtGui.QMessageBox.No: widget_name = ShadowToolsMenu.ABORT_IMPORT
+            if ret == QtWidgets.QMessageBox.No: widget_name = ShadowToolsMenu.ABORT_IMPORT
             else: widget_name = ShadowToolsMenu.OMIT_WIDGET
 
         return widget_name, messages
 
     def showConfirmMessage(self, message):
-        msgBox = QtGui.QMessageBox()
-        msgBox.setIcon(QtGui.QMessageBox.Question)
+        msgBox = QtWidgets.QMessageBox()
+        msgBox.setIcon(QtWidgets.QMessageBox.Question)
         msgBox.setText(message)
         msgBox.setInformativeText(
             "Element will be omitted.\nDo you want to continue importing procedure (a broken link will appear)?")
-        msgBox.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        msgBox.setDefaultButton(QtGui.QMessageBox.No)
+        msgBox.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        msgBox.setDefaultButton(QtWidgets.QMessageBox.No)
         ret = msgBox.exec_()
         return ret
 
     def showWarningMessage(self, message):
-        msgBox = QtGui.QMessageBox()
-        msgBox.setIcon(QtGui.QMessageBox.Warning)
+        msgBox = QtWidgets.QMessageBox()
+        msgBox.setIcon(QtWidgets.QMessageBox.Warning)
         msgBox.setText(message)
-        msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
+        msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
         msgBox.exec_()
 
     def showCriticalMessage(self, message):
-        msgBox = QtGui.QMessageBox()
-        msgBox.setIcon(QtGui.QMessageBox.Critical)
+        msgBox = QtWidgets.QMessageBox()
+        msgBox.setIcon(QtWidgets.QMessageBox.Critical)
         msgBox.setText(message)
-        msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
+        msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
         msgBox.exec_()
 
     #################################################################

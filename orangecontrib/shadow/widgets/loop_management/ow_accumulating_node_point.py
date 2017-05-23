@@ -2,8 +2,8 @@ import copy
 import numpy
 import sys
 
-from PyQt4 import QtGui
-from PyQt4.QtGui import QPalette, QColor, QFont
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtGui import QPalette, QColor, QFont
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -195,9 +195,9 @@ class AccumulatingLoopPoint(AutomaticElement):
                         self.current_number_of_total_rays = 0
                         self.input_beam = None
                     else:
-                        QtGui.QMessageBox.critical(self, "Error",
+                        QtWidgets.QMessageBox.critical(self, "Error",
                                                    "Number of Accumulated Rays reached, please push \'Send Signal\' button",
-                                                   QtGui.QMessageBox.Ok)
+                                                   QtWidgets.QMessageBox.Ok)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 import sys
 
-from PyQt4.QtGui import QTextEdit, QTextCursor, QIntValidator, QDoubleValidator, QApplication, QMessageBox
+from PyQt5.QtWidgets import QTextEdit, QApplication, QMessageBox
+from PyQt5.QtGui import QTextCursor, QIntValidator, QDoubleValidator
 from Shadow.ShadowPreprocessorsXraylib import bragg
 from oasys.widgets.widget import OWWidget
 from orangewidget import gui, widget

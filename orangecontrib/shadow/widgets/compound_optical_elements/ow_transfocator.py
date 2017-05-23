@@ -1,7 +1,7 @@
 import copy
 
-from PyQt4 import QtGui
-from PyQt4.QtCore import Qt, QRect
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import Qt, QRect
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -168,9 +168,9 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
 
     def crl_remove(self):
         if self.tab_crls.count() <= 1:
-            QtGui.QMessageBox.critical(self, "Error",
+            QtWidgets.QMessageBox.critical(self, "Error",
                                        "Remove not possible, transfocator needs at least 1 element",
-                                       QtGui.QMessageBox.Ok)
+                                       QtWidgets.QMessageBox.Ok)
         else:
             current_index = self.tab_crls.currentIndex()
 
@@ -519,9 +519,9 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
 
                     box.set_ri_calculation_mode()
             else:
-                QtGui.QMessageBox.warning(self, "Warning",
+                QtWidgets.QMessageBox.warning(self, "Warning",
                           "Incompatible Preprocessor Data",
-                          QtGui.QMessageBox.Ok)
+                          QtWidgets.QMessageBox.Ok)
 
                 self.dump_prerefl_file()
 
@@ -530,7 +530,7 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
             box.setupUI()
 
 
-class CRLBox(QtGui.QWidget):
+class CRLBox(QtWidgets.QWidget):
     nlenses = 30
     slots_empty = 0
     thickness = 625e-4

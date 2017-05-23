@@ -2,9 +2,10 @@ import copy
 import sys
 
 import numpy
-from PyQt4.QtCore import QRect, Qt
-from PyQt4.QtGui import QTextEdit, QTextCursor, QApplication, QScrollArea, QTableWidget, QTableWidgetItem, QFont, QPalette, QColor, \
-    QMessageBox, QHeaderView
+from PyQt5.QtCore import QRect, Qt
+from PyQt5.QtWidgets import QTextEdit, QApplication, QMessageBox, QScrollArea, QTableWidget, QTableWidgetItem, QHeaderView
+from PyQt5.QtGui import QTextCursor, QIntValidator, QDoubleValidator, QFont, QPalette, QColor
+
 from Shadow import ShadowTools as ST
 from matplotlib import cm
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg

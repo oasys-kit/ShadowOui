@@ -1,7 +1,7 @@
 import copy
 
-from PyQt4 import QtGui
-from PyQt4.QtCore import Qt
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import Qt
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -391,9 +391,9 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
                         changed = True
 
                     if changed:
-                        if QtGui.QMessageBox.information(self, "Confirm Modification",
+                        if QtWidgets.QMessageBox.information(self, "Confirm Modification",
                                                       "Dimensions of this mirror must be changed in order to ensure congruence with the error profile surface, accept?",
-                                                      QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
+                                                      QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No) == QtWidgets.QMessageBox.Yes:
                             if self.v_box.mirror_width > data.error_profile_x_dim:
                                 self.v_box.mirror_width = data.error_profile_x_dim
                                 self.v_box.le_mirror_width.setText(str(data.error_profile_x_dim))
@@ -401,13 +401,13 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
                                 self.v_box.mirror_length = data.error_profile_y_dim
                                 self.v_box.le_mirror_length.setText(str(data.error_profile_y_dim))
 
-                            QtGui.QMessageBox.information(self, "QMessageBox.information()",
+                            QtWidgets.QMessageBox.information(self, "QMessageBox.information()",
                                                           "Dimensions of this mirror were changed",
-                                                          QtGui.QMessageBox.Ok)
+                                                          QtWidgets.QMessageBox.Ok)
                 else:
-                    if QtGui.QMessageBox.information(self, "Confirm Modification",
+                    if QtWidgets.QMessageBox.information(self, "Confirm Modification",
                                                   "This mirror must become with finite dimensions in order to ensure congruence with the error surface, accept?",
-                                                  QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
+                                                  QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No) == QtWidgets.QMessageBox.Yes:
                         self.v_box.has_finite_dimensions = 0
                         self.v_box.has_finite_dimensions_combo.setCurrentIndex(0)
                         self.v_box.mirror_width = data.error_profile_x_dim
@@ -415,9 +415,9 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
                         self.v_box.mirror_length = data.error_profile_y_dim
                         self.v_box.le_mirror_length.setText(str(data.error_profile_y_dim))
 
-                        QtGui.QMessageBox.warning(self, "Warning",
+                        QtWidgets.QMessageBox.warning(self, "Warning",
                                                       "Dimensions of this mirror were changed",
-                                                      QtGui.QMessageBox.Ok)
+                                                      QtWidgets.QMessageBox.Ok)
 
 
                 self.v_box.set_dimensions()
@@ -427,9 +427,9 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
                 self.dump_surface_error_files()
                 
             if data.bragg_data_file != ShadowPreProcessorData.NONE:
-                QtGui.QMessageBox.warning(self, "Warning",
+                QtWidgets.QMessageBox.warning(self, "Warning",
                           "This O.E. is not a crystal: bragg parameter will be ignored",
-                          QtGui.QMessageBox.Ok)
+                          QtWidgets.QMessageBox.Ok)
 
     def setPreProcessorDataH(self, data):
         if data is not None:
@@ -465,9 +465,9 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
                         changed = True
 
                     if changed:
-                        if QtGui.QMessageBox.information(self, "Confirm Modification",
+                        if QtWidgets.QMessageBox.information(self, "Confirm Modification",
                                                       "Dimensions of this mirror must be changed in order to ensure congruence with the error profile surface, accept?",
-                                                      QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
+                                                      QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No) == QtWidgets.QMessageBox.Yes:
                             if self.h_box.mirror_width > data.error_profile_x_dim:
                                 self.h_box.mirror_width = data.error_profile_x_dim
                                 self.h_box.le_mirror_width.setText(str(data.error_profile_x_dim))
@@ -475,13 +475,13 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
                                 self.h_box.mirror_length = data.error_profile_y_dim
                                 self.h_box.le_mirror_length.setText(str(data.error_profile_y_dim))
 
-                            QtGui.QMessageBox.information(self, "QMessageBox.information()",
+                            QtWidgets.QMessageBox.information(self, "QMessageBox.information()",
                                                           "Dimensions of this mirror were changed",
-                                                          QtGui.QMessageBox.Ok)
+                                                          QtWidgets.QMessageBox.Ok)
                 else:
-                    if QtGui.QMessageBox.information(self, "Confirm Modification",
+                    if QtWidgets.QMessageBox.information(self, "Confirm Modification",
                                                   "This mirror must become with finite dimensions in order to ensure congruence with the error surface, accept?",
-                                                  QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
+                                                  QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No) == QtWidgets.QMessageBox.Yes:
                         self.h_box.has_finite_dimensions = 0
                         self.h_box.has_finite_dimensions_combo.setCurrentIndex(0)
                         self.h_box.mirror_width = data.error_profile_x_dim
@@ -489,9 +489,9 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
                         self.h_box.mirror_length = data.error_profile_y_dim
                         self.h_box.le_mirror_length.setText(str(data.error_profile_y_dim))
 
-                        QtGui.QMessageBox.warning(self, "Warning",
+                        QtWidgets.QMessageBox.warning(self, "Warning",
                                                       "Dimensions of this mirror were changed",
-                                                      QtGui.QMessageBox.Ok)
+                                                      QtWidgets.QMessageBox.Ok)
 
 
                 self.h_box.set_dimensions()
@@ -507,7 +507,7 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
         self.h_box.setupUI()
 
 
-class MirrorBox(QtGui.QWidget):
+class MirrorBox(QtWidgets.QWidget):
     grazing_angles_mrad = 3.0
     shape = 1
     has_finite_dimensions = 0

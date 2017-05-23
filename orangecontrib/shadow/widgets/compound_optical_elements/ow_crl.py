@@ -1,4 +1,4 @@
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
 from orangewidget import gui
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
@@ -236,9 +236,9 @@ class CRL(ow_compound_optical_element.CompoundOpticalElement):
 
                 self.set_ri_calculation_mode()
             else:
-                QtGui.QMessageBox.warning(self, "Warning",
+                QtWidgets.QMessageBox.warning(self, "Warning",
                           "Incompatible Preprocessor Data",
-                          QtGui.QMessageBox.Ok)
+                          QtWidgets.QMessageBox.Ok)
 
 
     def setupUI(self):

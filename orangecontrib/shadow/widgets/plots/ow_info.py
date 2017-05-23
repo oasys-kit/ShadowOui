@@ -1,8 +1,8 @@
 import sys
 
-from PyQt4 import QtGui
-from PyQt4.QtCore import QRect
-from PyQt4.QtGui import QApplication, QFileDialog
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import QRect
+from PyQt5.QtWidgets import QApplication, QFileDialog
 from Shadow import ShadowTools as ST
 from orangewidget import gui
 from oasys.widgets import gui as oasysgui, widget
@@ -58,19 +58,19 @@ class Info(widget.OWWidget):
         tab_scr = oasysgui.createTabPage(tabs_setting, "Python Script")
         tab_out = oasysgui.createTabPage(tabs_setting, "System Output")
 
-        self.sysInfo = QtGui.QTextEdit()
+        self.sysInfo = QtWidgets.QTextEdit()
         self.sysInfo.setReadOnly(True)
         self.sysInfo.setMaximumHeight(self.WIDGET_HEIGHT-100)
-        self.mirInfo = QtGui.QTextEdit()
+        self.mirInfo = QtWidgets.QTextEdit()
         self.mirInfo.setReadOnly(True)
         self.mirInfo.setMaximumHeight(self.WIDGET_HEIGHT-100)
-        self.sourceInfo = QtGui.QTextEdit()
+        self.sourceInfo = QtWidgets.QTextEdit()
         self.sourceInfo.setReadOnly(True)
         self.sourceInfo.setMaximumHeight(self.WIDGET_HEIGHT-100)
-        self.distancesSummary = QtGui.QTextEdit()
+        self.distancesSummary = QtWidgets.QTextEdit()
         self.distancesSummary.setReadOnly(True)
         self.distancesSummary.setMaximumHeight(self.WIDGET_HEIGHT-100)
-        self.pythonScript = QtGui.QTextEdit()
+        self.pythonScript = QtWidgets.QTextEdit()
         self.pythonScript.setReadOnly(False)  # asked by Manolo
         self.pythonScript.setMaximumHeight(self.WIDGET_HEIGHT - 300)
 
@@ -95,7 +95,7 @@ class Info(widget.OWWidget):
         self.console = PythonConsole(self.__dict__, self)
         console_box.layout().addWidget(self.console)
 
-        self.shadow_output = QtGui.QTextEdit()
+        self.shadow_output = QtWidgets.QTextEdit()
         self.shadow_output.setReadOnly(True)
 
         out_box = oasysgui.widgetBox(tab_out, "System Output", addSpace=True, orientation="horizontal", height=self.WIDGET_HEIGHT - 80)
@@ -123,9 +123,9 @@ class Info(widget.OWWidget):
                 file.write(str(self.pythonScript.toPlainText()))
                 file.close()
 
-                QtGui.QMessageBox.information(self, "QMessageBox.information()",
+                QtWidgets.QMessageBox.information(self, "QMessageBox.information()",
                                               "File " + file_name + " written to disk",
-                                              QtGui.QMessageBox.Ok)
+                                              QtWidgets.QMessageBox.Ok)
 
     def setBeam(self, beam):
         if ShadowCongruence.checkEmptyBeam(beam):
@@ -188,9 +188,9 @@ class Info(widget.OWWidget):
                 except:
                     self.pythonScript.setText("Problem in writing python script:\n" + str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]))
             else:
-                QtGui.QMessageBox.critical(self, "Error",
+                QtWidgets.QMessageBox.critical(self, "Error",
                                            "Data not displayable: No good rays or bad content",
-                                           QtGui.QMessageBox.Ok)
+                                           QtWidgets.QMessageBox.Ok)
 
     def writeStdOut(self, text):
         cursor = self.shadow_output.textCursor()

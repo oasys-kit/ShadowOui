@@ -1,6 +1,8 @@
 import sys, numpy
 
-from PyQt4.QtGui import QTextEdit, QTextCursor, QApplication, QMessageBox
+from PyQt5.QtWidgets import QTextEdit, QApplication, QMessageBox
+from PyQt5.QtGui import QTextCursor
+
 from oasys.widgets.widget import OWWidget
 from orangewidget import gui, widget
 from orangewidget.settings import Setting

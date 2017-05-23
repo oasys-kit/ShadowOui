@@ -6,7 +6,8 @@ import sys
 
 import numpy
 import xraylib
-from PyQt4.QtGui import QWidget, QFont, QPalette, QColor, QGridLayout, QLabel
+from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel
+from PyQt5.QtGui import QFont, QPalette, QColor
 from matplotlib.patches import FancyArrowPatch, ArrowStyle
 from scipy import optimize, asarray
 
@@ -1270,15 +1271,15 @@ class Properties(object):
             if hasattr(self._props,name):
                 return getattr(self._props, name)
 
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 try:
     from mpl_toolkits.mplot3d import Axes3D  # necessario per caricare i plot 3D
 except:
     pass
 
-from PyQt4.QtGui import QApplication, QVBoxLayout
-from PyQt4.QtCore import QCoreApplication
+from PyQt5.QtWidgets import QApplication, QVBoxLayout
+from PyQt5.QtCore import QCoreApplication
 
 class MathTextLabel(QWidget):
     def __init__(self, mathText, size=None, parent=None, **kwargs):

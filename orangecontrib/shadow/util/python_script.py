@@ -5,13 +5,14 @@ import code
 import keyword
 import itertools
 
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
-from PyQt4.QtGui import (
-    QTextCursor, QFont, QColor, QPalette, QItemSelectionModel
+from PyQt5.QtCore import QItemSelectionModel
+from PyQt5.QtGui import (
+    QTextCursor, QFont, QColor, QPalette
 )
 
-from PyQt4.QtCore import Qt, QRegExp
+from PyQt5.QtCore import Qt, QRegExp
 
 
 def text_format(foreground=Qt.black, weight=QFont.Normal):
@@ -82,7 +83,7 @@ class PythonSyntaxHighlighter(QtGui.QSyntaxHighlighter):
                                 3)
 
 
-class PythonScriptEditor(QtGui.QPlainTextEdit):
+class PythonScriptEditor(QtWidgets.QPlainTextEdit):
     INDENT = 4
 
     def lastLine(self):
@@ -117,9 +118,9 @@ class PythonScriptEditor(QtGui.QPlainTextEdit):
             super().keyPressEvent(event)
 
 
-class PythonConsole(QtGui.QPlainTextEdit, code.InteractiveConsole):
+class PythonConsole(QtWidgets.QPlainTextEdit, code.InteractiveConsole):
     def __init__(self, locals=None, parent=None):
-        QtGui.QPlainTextEdit.__init__(self, parent)
+        QtWidgets.QPlainTextEdit.__init__(self, parent)
         code.InteractiveConsole.__init__(self, locals)
         self.history, self.historyInd = [""], 0
         self.loop = self.interact()
@@ -217,9 +218,9 @@ class PythonConsole(QtGui.QPlainTextEdit, code.InteractiveConsole):
             self.complete()
         elif event.key() in [Qt.Key_Left, Qt.Key_Backspace]:
             if self.textCursor().position() > self.newPromptPos:
-                QtGui.QPlainTextEdit.keyPressEvent(self, event)
+                QtWidgets.QPlainTextEdit.keyPressEvent(self, event)
         else:
-            QtGui.QPlainTextEdit.keyPressEvent(self, event)
+            QtWidgets.QPlainTextEdit.keyPressEvent(self, event)
 
     def historyUp(self):
         self.setLine(self.history[self.historyInd])
@@ -297,7 +298,7 @@ class Script(object):
         self.filename = filename
 
 
-class ScriptItemDelegate(QtGui.QStyledItemDelegate):
+class ScriptItemDelegate(QtWidgets.QStyledItemDelegate):
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -311,13 +312,13 @@ class ScriptItemDelegate(QtGui.QStyledItemDelegate):
         script = index.data(Qt.DisplayRole)
 
         if script.flags & Script.Modified:
-            option = QtGui.QStyleOptionViewItemV4(option)
+            option = QtWidgets.QStyleOptionViewItem(option)
             option.palette.setColor(QPalette.Text, QColor(Qt.red))
             option.palette.setColor(QPalette.Highlight, QColor(Qt.darkRed))
         super().paint(painter, option, index)
 
     def createEditor(self, parent, option, index):
-        return QtGui.QLineEdit(parent)
+        return QtWidgets.QLineEdit(parent)
 
     def setEditorData(self, editor, index):
         script = index.data(Qt.DisplayRole)

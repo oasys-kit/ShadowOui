@@ -2,8 +2,8 @@ __author__ = 'labx'
 
 import sys
 
-from PyQt4 import QtGui
-from PyQt4.QtGui import QPalette, QColor, QFont
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtGui import QPalette, QColor, QFont
 from orangewidget import gui
 from orangewidget import widget
 from orangewidget.settings import Setting
@@ -119,9 +119,9 @@ class CompoundOpticalElement(ow_generic_element.GenericElement):
                 raise Exception("Empty Input Beam")
 
         except Exception as exception:
-            QtGui.QMessageBox.critical(self, "Error",
+            QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception),
-                                       QtGui.QMessageBox.Ok)
+                                       QtWidgets.QMessageBox.Ok)
 
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))

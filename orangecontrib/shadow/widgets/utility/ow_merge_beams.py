@@ -1,7 +1,7 @@
 import sys, numpy
-from PyQt4 import QtGui
-from PyQt4.QtGui import QApplication
-from PyQt4.QtGui import QPalette, QColor, QFont
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QPalette, QColor, QFont
 
 from orangewidget import widget, gui
 from oasys.widgets import gui as oasysgui
@@ -147,9 +147,9 @@ class MergeBeams(widget.OWWidget):
                 self.input_beam1 = beam
                 if self.use_weights==1: self.le_weight_input_beam1.setEnabled(True)
             else:
-                QtGui.QMessageBox.critical(self, "Error",
+                QtWidgets.QMessageBox.critical(self, "Error",
                                            "Data #1 not displayable: No good rays or bad content",
-                                           QtGui.QMessageBox.Ok)
+                                           QtWidgets.QMessageBox.Ok)
 
     def setBeam2(self, beam):
         self.le_weight_input_beam2.setEnabled(False)
@@ -160,9 +160,9 @@ class MergeBeams(widget.OWWidget):
                 self.input_beam2 = beam
                 if self.use_weights==1: self.le_weight_input_beam2.setEnabled(True)
             else:
-                QtGui.QMessageBox.critical(self, "Error",
+                QtWidgets.QMessageBox.critical(self, "Error",
                                            "Data #2 not displayable: No good rays or bad content",
-                                           QtGui.QMessageBox.Ok)
+                                           QtWidgets.QMessageBox.Ok)
 
     def setBeam3(self, beam):
         self.le_weight_input_beam3.setEnabled(False)
@@ -173,9 +173,9 @@ class MergeBeams(widget.OWWidget):
                 self.input_beam3 = beam
                 if self.use_weights==1: self.le_weight_input_beam3.setEnabled(True)
             else:
-                QtGui.QMessageBox.critical(self, "Error",
+                QtWidgets.QMessageBox.critical(self, "Error",
                                            "Data #3 not displayable: No good rays or bad content",
-                                           QtGui.QMessageBox.Ok)
+                                           QtWidgets.QMessageBox.Ok)
 
     def setBeam4(self, beam):
         self.le_weight_input_beam4.setEnabled(False)
@@ -186,9 +186,9 @@ class MergeBeams(widget.OWWidget):
                 self.input_beam4 = beam
                 if self.use_weights==1: self.le_weight_input_beam4.setEnabled(True)
             else:
-                QtGui.QMessageBox.critical(self, "Error",
+                QtWidgets.QMessageBox.critical(self, "Error",
                                            "Data #4 not displayable: No good rays or bad content",
-                                           QtGui.QMessageBox.Ok)
+                                           QtWidgets.QMessageBox.Ok)
 
     def setBeam5(self, beam):
         self.le_weight_input_beam5.setEnabled(False)
@@ -199,9 +199,9 @@ class MergeBeams(widget.OWWidget):
                 self.input_beam5 = beam
                 if self.use_weights==1: self.le_weight_input_beam5.setEnabled(True)
             else:
-                QtGui.QMessageBox.critical(self, "Error",
+                QtWidgets.QMessageBox.critical(self, "Error",
                                            "Data #5 not displayable: No good rays or bad content",
-                                           QtGui.QMessageBox.Ok)
+                                           QtWidgets.QMessageBox.Ok)
 
     def setBeam6(self, beam):
         self.le_weight_input_beam6.setEnabled(False)
@@ -212,9 +212,9 @@ class MergeBeams(widget.OWWidget):
                 self.input_beam6 = beam
                 if self.use_weights==1: self.le_weight_input_beam6.setEnabled(True)
             else:
-                QtGui.QMessageBox.critical(self, "Error",
+                QtWidgets.QMessageBox.critical(self, "Error",
                                            "Data #6 not displayable: No good rays or bad content",
-                                           QtGui.QMessageBox.Ok)
+                                           QtWidgets.QMessageBox.Ok)
 
     def setBeam7(self, beam):
         self.le_weight_input_beam7.setEnabled(False)
@@ -225,9 +225,9 @@ class MergeBeams(widget.OWWidget):
                 self.input_beam7 = beam
                 if self.use_weights==1: self.le_weight_input_beam7.setEnabled(True)
             else:
-                QtGui.QMessageBox.critical(self, "Error",
+                QtWidgets.QMessageBox.critical(self, "Error",
                                            "Data #7 not displayable: No good rays or bad content",
-                                           QtGui.QMessageBox.Ok)
+                                           QtWidgets.QMessageBox.Ok)
 
     def setBeam8(self, beam):
         self.le_weight_input_beam8.setEnabled(False)
@@ -238,9 +238,9 @@ class MergeBeams(widget.OWWidget):
                 self.input_beam8 = beam
                 if self.use_weights==1: self.le_weight_input_beam8.setEnabled(True)
             else:
-                QtGui.QMessageBox.critical(self, "Error",
+                QtWidgets.QMessageBox.critical(self, "Error",
                                            "Data #8 not displayable: No good rays or bad content",
-                                           QtGui.QMessageBox.Ok)
+                                           QtWidgets.QMessageBox.Ok)
 
     def setBeam9(self, beam):
         self.le_weight_input_beam9.setEnabled(False)
@@ -251,9 +251,9 @@ class MergeBeams(widget.OWWidget):
                 self.input_beam9 = beam
                 if self.use_weights==1: self.le_weight_input_beam9.setEnabled(True)
             else:
-                QtGui.QMessageBox.critical(self, "Error",
+                QtWidgets.QMessageBox.critical(self, "Error",
                                            "Data #9 not displayable: No good rays or bad content",
-                                           QtGui.QMessageBox.Ok)
+                                           QtWidgets.QMessageBox.Ok)
 
     def setBeam10(self, beam):
         self.le_weight_input_beam10.setEnabled(False)
@@ -264,9 +264,9 @@ class MergeBeams(widget.OWWidget):
                 self.input_beam10 = beam
                 if self.use_weights==1: self.le_weight_input_beam10.setEnabled(True)
             else:
-                QtGui.QMessageBox.critical(self, "Error",
+                QtWidgets.QMessageBox.critical(self, "Error",
                                            "Data #10 not displayable: No good rays or bad content",
-                                           QtGui.QMessageBox.Ok)
+                                           QtWidgets.QMessageBox.Ok)
 
     def merge_beams(self):
         merged_beam = None

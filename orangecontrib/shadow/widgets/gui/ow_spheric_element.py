@@ -1,5 +1,5 @@
 import sys
-from PyQt4.QtGui import QApplication
+from PyQt5.QtWidgets import QApplication
 
 from . import ow_optical_element, ow_curved_element
 

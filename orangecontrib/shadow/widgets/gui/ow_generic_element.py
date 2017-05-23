@@ -2,8 +2,8 @@ import sys
 
 from silx.gui.plot.PlotWindow import PlotWindow
 
-from PyQt4 import QtGui
-from PyQt4.QtGui import QApplication
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtWidgets import QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -26,9 +26,9 @@ class GenericElement(ow_automatic_element.AutomaticElement):
     def __init__(self, show_automatic_box=True):
         super().__init__(show_automatic_box)
 
-        self.main_tabs = gui.tabWidget(self.mainArea)
-        plot_tab = gui.createTabPage(self.main_tabs, "Plots")
-        out_tab = gui.createTabPage(self.main_tabs, "Output")
+        self.main_tabs = oasysgui.tabWidget(self.mainArea)
+        plot_tab = oasysgui.createTabPage(self.main_tabs, "Plots")
+        out_tab = oasysgui.createTabPage(self.main_tabs, "Output")
 
         view_box = oasysgui.widgetBox(plot_tab, "Plotting Style", addSpace=False, orientation="horizontal")
         view_box_1 = oasysgui.widgetBox(view_box, "", addSpace=False, orientation="vertical", width=350)
@@ -38,13 +38,13 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                                             items=["Detailed Plot", "Preview", "None"],
                                             callback=self.set_PlotQuality, sendSelectedValue=False, orientation="horizontal")
         self.tab = []
-        self.tabs = gui.tabWidget(plot_tab)
+        self.tabs = oasysgui.tabWidget(plot_tab)
 
         self.initializeTabs()
 
         self.enableFootprint(False)
 
-        self.shadow_output = QtGui.QTextEdit()
+        self.shadow_output = QtWidgets.QTextEdit()
         self.shadow_output.setReadOnly(True)
 
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
@@ -66,11 +66,11 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
         titles = self.getTitles()
 
-        self.tab = [gui.createTabPage(self.tabs, titles[0]),
-                    gui.createTabPage(self.tabs, titles[1]),
-                    gui.createTabPage(self.tabs, titles[2]),
-                    gui.createTabPage(self.tabs, titles[3]),
-                    gui.createTabPage(self.tabs, titles[4]),
+        self.tab = [oasysgui.createTabPage(self.tabs, titles[0]),
+                    oasysgui.createTabPage(self.tabs, titles[1]),
+                    oasysgui.createTabPage(self.tabs, titles[2]),
+                    oasysgui.createTabPage(self.tabs, titles[3]),
+                    oasysgui.createTabPage(self.tabs, titles[4]),
         ]
 
         for tab in self.tab:
@@ -114,9 +114,9 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
                 self.plot_results(self.plotted_beam, 80)
             except Exception as exception:
-                QtGui.QMessageBox.critical(self, "Error",
+                QtWidgets.QMessageBox.critical(self, "Error",
                                            str(exception),
-                    QtGui.QMessageBox.Ok)
+                    QtWidgets.QMessageBox.Ok)
 
                 # CORRELATED TO QScrollArea Bug - see class Orange.canvas.gui.toolbox._ToolBoxScrollArea
                 # self.error_id = self.error_id + 1

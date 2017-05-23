@@ -1,6 +1,6 @@
 import sys
 
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -228,9 +228,9 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
 
                 self.set_ri_calculation_mode()
             else:
-                QtGui.QMessageBox.warning(self, "Warning",
+                QtWidgets.QMessageBox.warning(self, "Warning",
                           "Incompatible Preprocessor Data",
-                          QtGui.QMessageBox.Ok)
+                          QtWidgets.QMessageBox.Ok)
 
     def setupUI(self):
         self.set_surface_shape()

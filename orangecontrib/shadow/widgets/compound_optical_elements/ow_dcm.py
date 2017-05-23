@@ -1,7 +1,7 @@
 import copy
 
-from PyQt4 import QtGui
-from PyQt4.QtCore import Qt
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import Qt
 
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
@@ -192,9 +192,9 @@ class DCM(ow_compound_optical_element.CompoundOpticalElement):
                 self.le_reflectivity_file.setText(data.bragg_data_file)
 
             else:
-                QtGui.QMessageBox.warning(self, "Warning",
+                QtWidgets.QMessageBox.warning(self, "Warning",
                           "Incompatible Preprocessor Data",
-                          QtGui.QMessageBox.Ok)
+                          QtWidgets.QMessageBox.Ok)
 
     def setupUI(self):
         self.set_use_different_focal_positions()
@@ -203,7 +203,7 @@ class DCM(ow_compound_optical_element.CompoundOpticalElement):
         self.crystal_2_box.setupUI()
 
 
-class CrystalBox(QtGui.QWidget):
+class CrystalBox(QtWidgets.QWidget):
     has_finite_dimensions = 0
     mirror_width = 0.0
     mirror_length = 0.0

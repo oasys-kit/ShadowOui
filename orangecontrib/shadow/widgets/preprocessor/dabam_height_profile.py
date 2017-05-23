@@ -3,14 +3,14 @@ import time
 import numpy
 import threading
 
-from PyQt4.QtCore import QRect, Qt
-from PyQt4.QtGui import QTextEdit, QTextCursor, QApplication, QFont, QPalette, QColor, \
-    QMessageBox, QScrollArea, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QWidget, QPainter, QBrush, QPen
+from PyQt5.QtCore import QRect, Qt
+from PyQt5.QtWidgets import QTextEdit, QApplication, QMessageBox, QScrollArea, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QWidget
+from PyQt5.QtGui import QTextCursor,QFont, QPalette, QColor, QPainter, QBrush, QPen
 
 from silx.gui.plot.PlotWindow import PlotWindow
 
 from matplotlib import cm
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
 from orangewidget import gui, widget
@@ -144,7 +144,7 @@ class OWdabam_height_profile(OWWidget):
 
         gui.separator(self.controlArea)
 
-        tabs_setting = gui.tabWidget(self.controlArea)
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
         tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
         tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
@@ -206,7 +206,7 @@ class OWdabam_height_profile(OWWidget):
 
         self.table = QTableWidget(1, 5)
         self.table.setAlternatingRowColors(True)
-        self.table.horizontalHeader().setResizeMode(QHeaderView.Fixed)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
         self.table.verticalHeader().setVisible(False)
 
         self.table.setColumnWidth(0, 40)
@@ -311,15 +311,15 @@ class OWdabam_height_profile(OWWidget):
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
     def initializeTabs(self):
-        self.tabs = gui.tabWidget(self.mainArea)
+        self.tabs = oasysgui.tabWidget(self.mainArea)
 
-        self.tab = [gui.createTabPage(self.tabs, "Info"),
-                    gui.createTabPage(self.tabs, "Heights Profile"),
-                    gui.createTabPage(self.tabs, "Slopes Profile"),
-                    gui.createTabPage(self.tabs, "PSD Heights"),
-                    gui.createTabPage(self.tabs, "CSD Heights"),
-                    gui.createTabPage(self.tabs, "ACF"),
-                    gui.createTabPage(self.tabs, "Generated 2D Profile"),
+        self.tab = [oasysgui.createTabPage(self.tabs, "Info"),
+                    oasysgui.createTabPage(self.tabs, "Heights Profile"),
+                    oasysgui.createTabPage(self.tabs, "Slopes Profile"),
+                    oasysgui.createTabPage(self.tabs, "PSD Heights"),
+                    oasysgui.createTabPage(self.tabs, "CSD Heights"),
+                    oasysgui.createTabPage(self.tabs, "ACF"),
+                    oasysgui.createTabPage(self.tabs, "Generated 2D Profile"),
         ]
 
         for tab in self.tab:
@@ -550,6 +550,9 @@ class OWdabam_height_profile(OWWidget):
 
             self.check_fields()
 
+            # PREVENTS CRASH WITH PYQT5
+            if not not_interactive_mode:  self.tabs.setCurrentIndex(6)
+
             combination = "EF"
 
             if self.modify_y == 2:
@@ -663,8 +666,6 @@ class OWdabam_height_profile(OWWidget):
                     self.plot_canvas[5].draw()
                 except:
                     pass
-
-                self.tabs.setCurrentIndex(6)
 
                 QMessageBox.information(self, "QMessageBox.information()",
                                         "Height Profile calculated: if the result is satisfactory,\nclick \'Generate Height Profile File\' to complete the operation ",
