@@ -70,7 +70,7 @@ class PlotXY(AutomaticElement):
         gui.button(self.controlArea, self, "Refresh", callback=self.plot_results, height=45)
         gui.separator(self.controlArea, 10)
 
-        self.tabs_setting = oasysgui.TabWidget(self.controlArea)
+        self.tabs_setting = oasysgui.tabWidget(self.controlArea)
         self.tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
         # graph tab
@@ -257,7 +257,7 @@ class PlotXY(AutomaticElement):
                                          items=["No", "Yes"],
                                          sendSelectedValue=False, orientation="horizontal")
 
-        self.main_tabs = oasysgui.TabWidget(self.mainArea)
+        self.main_tabs = oasysgui.tabWidget(self.mainArea)
         plot_tab = oasysgui.createTabPage(self.main_tabs, "Plots")
         out_tab = oasysgui.createTabPage(self.main_tabs, "Output")
 

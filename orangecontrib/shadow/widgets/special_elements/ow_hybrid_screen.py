@@ -90,7 +90,7 @@ class HybridScreen(AutomaticElement):
         button.setPalette(palette) # assign new palette
         button.setFixedHeight(45)
 
-        main_tabs = oasysgui.TabWidget(self.mainArea)
+        main_tabs = oasysgui.tabWidget(self.mainArea)
         plot_tab = oasysgui.createTabPage(main_tabs, "Plots")
         out_tab = oasysgui.createTabPage(main_tabs, "Output")
 

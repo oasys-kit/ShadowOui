@@ -201,7 +201,7 @@ class Wiggler(ow_source.Source):
                                             callback=self.set_PlotGraphs, sendSelectedValue=False, orientation="horizontal")
 
         self.wiggler_tab = []
-        self.wiggler_tabs = oasysgui.TabWidget(wiggler_plot_tab)
+        self.wiggler_tabs = oasysgui.tabWidget(wiggler_plot_tab)
 
         self.initializeWigglerTabs()
 

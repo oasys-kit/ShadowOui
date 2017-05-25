@@ -156,14 +156,14 @@ class OWheight_profile_simulator(OWWidget):
 
         gui.separator(self.controlArea)
 
-        tabs_setting = oasysgui.TabWidget(self.controlArea)
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
         tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
         tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
         tab_input = oasysgui.createTabPage(tabs_setting, "Input Parameters")
         tab_out = oasysgui.createTabPage(tabs_setting, "Output")
 
-        tabs_input = oasysgui.TabWidget(tab_input)
+        tabs_input = oasysgui.tabWidget(tab_input)
         tab_length = oasysgui.createTabPage(tabs_input, "Length")
         tab_width = oasysgui.createTabPage(tabs_input, "Width")
 

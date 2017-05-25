@@ -93,7 +93,7 @@ class OWxsh_pre_mlayer(OWWidget):
 
         gui.separator(self.controlArea)
 
-        tabs_setting = oasysgui.TabWidget(self.controlArea)
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
         tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
         tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 

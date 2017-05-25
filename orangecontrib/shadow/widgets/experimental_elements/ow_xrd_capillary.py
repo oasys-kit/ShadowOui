@@ -549,7 +549,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         
         gui.comboBox(self.box_background_1, self, "n_sigma", label="Noise (Nr. Sigma)", labelWidth=347, items=["0.5", "1", "1.5", "2", "2.5", "3"], sendSelectedValue=False, orientation="horizontal")
 
-        tabs_background = oasysgui.TabWidget(self.box_background_1)
+        tabs_background = oasysgui.tabWidget(self.box_background_1)
 
         tab_constant = oasysgui.createTabPage(tabs_background, "Constant")
         tab_exponential = oasysgui.createTabPage(tabs_background, "Exponential")
@@ -620,7 +620,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         gui.rubber(self.controlArea)
 
-        self.plot_tabs = oasysgui.TabWidget(self.mainArea)
+        self.plot_tabs = oasysgui.tabWidget(self.mainArea)
 
         # ---------------------------------------------
 

@@ -104,7 +104,7 @@ class FocNew(ow_automatic_element.AutomaticElement):
 
         gui.separator(self.controlArea, height=200)
 
-        tabs_setting = oasysgui.TabWidget(self.mainArea)
+        tabs_setting = oasysgui.tabWidget(self.mainArea)
         tabs_setting.setFixedHeight(self.IMAGE_HEIGHT+5)
         tabs_setting.setFixedWidth(self.IMAGE_WIDTH)
 

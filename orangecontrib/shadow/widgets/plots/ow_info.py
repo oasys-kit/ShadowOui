@@ -47,7 +47,7 @@ class Info(widget.OWWidget):
 
         gen_box = gui.widgetBox(self.mainArea, "Beamline Info", addSpace=True, orientation="horizontal")
 
-        tabs_setting = oasysgui.TabWidget(gen_box)
+        tabs_setting = oasysgui.tabWidget(gen_box)
         tabs_setting.setFixedHeight(self.WIDGET_HEIGHT-60)
         tabs_setting.setFixedWidth(self.WIDGET_WIDTH-60)
 

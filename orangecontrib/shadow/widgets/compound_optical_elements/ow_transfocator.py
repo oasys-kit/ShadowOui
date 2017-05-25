@@ -56,7 +56,7 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
         for btn in btns:
             btn.setFixedHeight(20)
 
-        self.tab_crls = oasysgui.TabWidget(self.tab_bas)
+        self.tab_crls = oasysgui.tabWidget(self.tab_bas)
         self.crl_box_array = []
 
         for index in range(len(self.p)):

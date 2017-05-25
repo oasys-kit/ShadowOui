@@ -165,7 +165,7 @@ class ZonePlate(GenericElement):
         ##########################################
         ##########################################
 
-        tabs_basic_setting = oasysgui.TabWidget(tab_bas)
+        tabs_basic_setting = oasysgui.tabWidget(tab_bas)
 
         tab_zone_plate = oasysgui.createTabPage(tabs_basic_setting, "Zone Plate")
 
@@ -264,7 +264,7 @@ class ZonePlate(GenericElement):
         ##########################################
         ##########################################
 
-        tabs_advanced_setting = oasysgui.TabWidget(tab_adv)
+        tabs_advanced_setting = oasysgui.tabWidget(tab_adv)
 
         tab_adv_mir_mov = oasysgui.createTabPage(tabs_advanced_setting, "O.E. Movement")
         tab_adv_sou_mov = oasysgui.createTabPage(tabs_advanced_setting, "Source Movement")
