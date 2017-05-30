@@ -18,7 +18,6 @@ from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticEleme
 from orangecontrib.shadow.widgets.special_elements import hybrid_control
 
 from silx.gui.plot.ImageView import ImageView
-from silx.gui.plot.PlotWindow import PlotWindow
 
 class HybridScreen(AutomaticElement):
 
@@ -100,7 +99,8 @@ class HybridScreen(AutomaticElement):
         tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
         tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
-        tab_bas = oasysgui.createTabPage(tabs_setting, "Hybrid Setting")
+        tab_bas = oasysgui.createTabPage(tabs_setting, "Basic Setting")
+        tab_adv = oasysgui.createTabPage(tabs_setting, "Advanced Setting")
 
         box_1 = oasysgui.widgetBox(tab_bas, "Calculation Parameters", addSpace=True, orientation="vertical", height=250)
 
@@ -283,7 +283,7 @@ class HybridScreen(AutomaticElement):
 
     def plot_histo_hybrid(self, progressBarValue, scaled_array, plot_canvas_index, title, xtitle, ytitle, var):
         if self.plot_canvas[plot_canvas_index] is None:
-            self.plot_canvas[plot_canvas_index] = PlotWindow(roi=False, control=False, position=True)
+            self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow(roi=False, control=False, position=True)
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
             self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='blue')
             self.plot_canvas[plot_canvas_index].setDrawModeEnabled(True, 'rectangle')

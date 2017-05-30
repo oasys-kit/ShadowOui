@@ -4,10 +4,8 @@ import numpy
 import threading
 
 from PyQt5.QtCore import QRect, Qt
-from PyQt5.QtWidgets import QTextEdit, QApplication, QMessageBox, QScrollArea, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QWidget
+from PyQt5.QtWidgets import QApplication, QMessageBox, QScrollArea, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QWidget
 from PyQt5.QtGui import QTextCursor,QFont, QPalette, QColor, QPainter, QBrush, QPen
-
-from silx.gui.plot.PlotWindow import PlotWindow
 
 from matplotlib import cm
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
@@ -328,7 +326,7 @@ class OWdabam_height_profile(OWWidget):
 
         self.plot_canvas = [None, None, None, None, None, None]
 
-        self.plot_canvas[0] = PlotWindow(roi=False, control=False, position=True)
+        self.plot_canvas[0] = oasysgui.plotWindow(roi=False, control=False, position=True)
         self.plot_canvas[0].setDefaultPlotLines(True)
         self.plot_canvas[0].setActiveCurveColor(color='blue')
         self.plot_canvas[0].setGraphYLabel("Z [nm]")
@@ -336,7 +334,7 @@ class OWdabam_height_profile(OWWidget):
         self.plot_canvas[0].setDrawModeEnabled(True, 'rectangle')
         self.plot_canvas[0].setZoomModeEnabled(True)
 
-        self.plot_canvas[1] = PlotWindow(roi=False, control=False, position=True)
+        self.plot_canvas[1] = oasysgui.plotWindow(roi=False, control=False, position=True)
         self.plot_canvas[1].setDefaultPlotLines(True)
         self.plot_canvas[1].setActiveCurveColor(color='blue')
         self.plot_canvas[1].setGraphYLabel("Zp [$\mu$rad]")
@@ -344,7 +342,7 @@ class OWdabam_height_profile(OWWidget):
         self.plot_canvas[1].setDrawModeEnabled(True, 'rectangle')
         self.plot_canvas[1].setZoomModeEnabled(True)
 
-        self.plot_canvas[2] = PlotWindow(roi=False, control=False, position=True)
+        self.plot_canvas[2] = oasysgui.plotWindow(roi=False, control=False, position=True)
         self.plot_canvas[2].setDefaultPlotLines(True)
         self.plot_canvas[2].setActiveCurveColor(color='blue')
         self.plot_canvas[2].setGraphXLabel("f [m^-1]")
@@ -355,7 +353,7 @@ class OWdabam_height_profile(OWWidget):
         self.plot_canvas[2].setXAxisLogarithmic(True)
         self.plot_canvas[2].setYAxisLogarithmic(True)
 
-        self.plot_canvas[3] = PlotWindow(roi=False, control=False, position=True)
+        self.plot_canvas[3] = oasysgui.plotWindow(roi=False, control=False, position=True)
         self.plot_canvas[3].setDefaultPlotLines(True)
         self.plot_canvas[3].setActiveCurveColor(color='blue')
         self.plot_canvas[3].setGraphXLabel("f [m^-1]")
@@ -365,7 +363,7 @@ class OWdabam_height_profile(OWWidget):
         self.plot_canvas[3].setZoomModeEnabled(True)
         self.plot_canvas[3].setXAxisLogarithmic(True)
 
-        self.plot_canvas[4] = PlotWindow(roi=False, control=False, position=True)
+        self.plot_canvas[4] = oasysgui.plotWindow(roi=False, control=False, position=True)
         self.plot_canvas[4].setDefaultPlotLines(True)
         self.plot_canvas[4].setActiveCurveColor(color='blue')
         self.plot_canvas[4].setGraphXLabel("Length [m]")

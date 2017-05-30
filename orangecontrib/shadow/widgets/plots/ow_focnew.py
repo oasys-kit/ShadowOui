@@ -11,8 +11,6 @@ from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
 from orangecontrib.shadow.widgets.gui import ow_automatic_element
 
-from silx.gui.plot.PlotWindow import PlotWindow
-
 class FocNew(ow_automatic_element.AutomaticElement):
 
     name = "FocNew"
@@ -193,21 +191,21 @@ class FocNew(ow_automatic_element.AutomaticElement):
                 self.focnewInfo.setText(ticket["text"])
 
                 if self.plot_canvas_x is None:
-                    self.plot_canvas_x = PlotWindow(roi=False, control=False, position=True)
+                    self.plot_canvas_x = oasysgui.plotWindow(roi=False, control=False, position=True)
                     self.plot_canvas_x.setDefaultPlotLines(True)
                     self.plot_canvas_x.setActiveCurveColor(color='blue')
                     self.plot_canvas_x.setDrawModeEnabled(False)
                     self.plot_canvas_x.setZoomModeEnabled(False)
                     self.plot_canvas_x.toolBar().setVisible(False)
 
-                    self.plot_canvas_z = PlotWindow(roi=False, control=False, position=True)
+                    self.plot_canvas_z = oasysgui.plotWindow(roi=False, control=False, position=True)
                     self.plot_canvas_z.setDefaultPlotLines(True)
                     self.plot_canvas_z.setActiveCurveColor(color='red')
                     self.plot_canvas_z.setDrawModeEnabled(False)
                     self.plot_canvas_z.setZoomModeEnabled(False)
                     self.plot_canvas_z.toolBar().setVisible(False)
 
-                    self.plot_canvas_t = PlotWindow(roi=False, control=False, position=True)
+                    self.plot_canvas_t = oasysgui.plotWindow(roi=False, control=False, position=True)
                     self.plot_canvas_t.setDefaultPlotLines(True)
                     self.plot_canvas_t.setActiveCurveColor(color='green')
                     self.plot_canvas_t.setDrawModeEnabled(False)
