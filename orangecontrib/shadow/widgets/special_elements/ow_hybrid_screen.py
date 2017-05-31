@@ -12,7 +12,7 @@ from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowTriggerIn
 
 from PyQt5.QtGui import QImage, QPixmap,  QPalette, QFont, QColor, QTextCursor
-from PyQt5.QtWidgets import QLabel, QWidget, QHBoxLayout
+from PyQt5.QtWidgets import QLabel, QWidget, QHBoxLayout, QMessageBox
 
 from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticElement
 from orangecontrib.shadow.widgets.special_elements import hybrid_control
@@ -61,6 +61,8 @@ class HybridScreen(AutomaticElement):
 
     file_to_write_out = Setting(0)
 
+    ghy_automatic = Setting(1)
+
     input_beam = None
 
     TABS_AREA_HEIGHT = 560
@@ -102,7 +104,7 @@ class HybridScreen(AutomaticElement):
         tab_bas = oasysgui.createTabPage(tabs_setting, "Basic Setting")
         tab_adv = oasysgui.createTabPage(tabs_setting, "Advanced Setting")
 
-        box_1 = oasysgui.widgetBox(tab_bas, "Calculation Parameters", addSpace=True, orientation="vertical", height=250)
+        box_1 = oasysgui.widgetBox(tab_bas, "Calculation Parameters", addSpace=True, orientation="vertical", height=110)
 
         gui.comboBox(box_1, self, "ghy_diff_plane", label="Diffraction Plane", labelWidth=310,
                      items=["Sagittal", "Tangential", "Both (2D)", "Both (1D+1D)"],
@@ -120,32 +122,45 @@ class HybridScreen(AutomaticElement):
 
         gui.separator(box_1, 10)
 
-        self.cb_nf = gui.comboBox(box_1, self, "ghy_nf", label="Near Field Calculation", labelWidth=310,
-                                             items=["No", "Yes"],
-                                             sendSelectedValue=False, orientation="horizontal", callback=self.set_NF)
 
-        self.cb_focal_length_calc = gui.comboBox(box_1, self, "focal_length_calc", label="Focal Length", labelWidth=180,
-                     items=["Use O.E. Focal Distance", "Specify Value"],
-                     callback=self.set_FocalLengthCalc,
-                     sendSelectedValue=False, orientation="horizontal")
-
-        self.le_focal_length = oasysgui.lineEdit(box_1, self, "ghy_focallength", "Focal Length value", labelWidth=260, valueType=float, orientation="horizontal")
-
-        gui.separator(box_1)
-
-        self.cb_distance_to_image_calc = gui.comboBox(box_1, self, "distance_to_image_calc", label="Distance to image", labelWidth=150,
-                     items=["Use O.E. Image Plane Distance", "Specify Value"],
-                     callback=self.set_DistanceToImageCalc,
-                     sendSelectedValue=False, orientation="horizontal")
-
-        self.le_distance_to_image = oasysgui.lineEdit(box_1, self, "ghy_distance", "Distance to Image value", labelWidth=260, valueType=float, orientation="horizontal")
-
-        box_2 = oasysgui.widgetBox(tab_bas, "Numerical Control Parameters", addSpace=True, orientation="vertical", height=120)
+        box_2 = oasysgui.widgetBox(tab_bas, "Numerical Control Parameters", addSpace=True, orientation="vertical", height=140)
 
         self.le_nbins_x = oasysgui.lineEdit(box_2, self, "ghy_nbins_x", "Number of bins for I(Sagittal) histogram", labelWidth=260, valueType=int, orientation="horizontal")
         self.le_nbins_z = oasysgui.lineEdit(box_2, self, "ghy_nbins_z", "Number of bins for I(Tangential) histogram", labelWidth=260, valueType=int, orientation="horizontal")
         self.le_npeak   = oasysgui.lineEdit(box_2, self, "ghy_npeak", "Number of diffraction peaks", labelWidth=260, valueType=int, orientation="horizontal")
         self.le_fftnpts = oasysgui.lineEdit(box_2, self, "ghy_fftnpts", "Number of points for FFT", labelWidth=260, valueType=int, orientation="horizontal")
+
+        box_3 = oasysgui.widgetBox(tab_adv, "Propagation Parameters", addSpace=True, orientation="vertical", height=200)
+
+
+        self.cb_focal_length_calc = gui.comboBox(box_3, self, "focal_length_calc", label="Focal Length", labelWidth=180,
+                     items=["Use O.E. Focal Distance", "Specify Value"],
+                     callback=self.set_FocalLengthCalc,
+                     sendSelectedValue=False, orientation="horizontal")
+
+        self.le_focal_length = oasysgui.lineEdit(box_3, self, "ghy_focallength", "Focal Length value", labelWidth=260, valueType=float, orientation="horizontal")
+
+        gui.separator(box_3)
+
+        self.cb_distance_to_image_calc = gui.comboBox(box_3, self, "distance_to_image_calc", label="Distance to image", labelWidth=150,
+                     items=["Use O.E. Image Plane Distance", "Specify Value"],
+                     callback=self.set_DistanceToImageCalc,
+                     sendSelectedValue=False, orientation="horizontal")
+
+        self.le_distance_to_image = oasysgui.lineEdit(box_3, self, "ghy_distance", "Distance to Image value", labelWidth=260, valueType=float, orientation="horizontal")
+
+        gui.separator(box_3)
+
+        self.cb_nf = gui.comboBox(box_3, self, "ghy_nf", label="Near Field Calculation", labelWidth=310,
+                                             items=["No", "Yes"],
+                                             sendSelectedValue=False, orientation="horizontal", callback=self.set_NF)
+
+
+        box_4 = oasysgui.widgetBox(tab_adv, "Geometrical Parameters", addSpace=True, orientation="vertical", height=70)
+
+        gui.comboBox(box_4, self, "ghy_automatic", label="Analize geometry to avoid unuseful calculations", labelWidth=310,
+                     items=["No", "Yes"],
+                     sendSelectedValue=False, orientation="horizontal")
 
         self.set_DiffPlane()
         self.set_DistanceToImageCalc()
@@ -391,6 +406,8 @@ class HybridScreen(AutomaticElement):
                     input_parameters.ghy_fftnpts = int(self.ghy_fftnpts)
                     input_parameters.file_to_write_out = self.file_to_write_out
 
+                    input_parameters.ghy_automatic = self.ghy_automatic
+
                     calculation_parameters = hybrid_control.hy_run(input_parameters)
 
                     self.ghy_focallength = input_parameters.ghy_focallength
@@ -404,8 +421,12 @@ class HybridScreen(AutomaticElement):
                         do_plot_x = True
                         do_plot_z = True
                     else:
-                        do_plot_x = not calculation_parameters.beam_not_cut_in_x
-                        do_plot_z = not calculation_parameters.beam_not_cut_in_z
+                        if self.ghy_automatic == 1:
+                            do_plot_x = not calculation_parameters.beam_not_cut_in_x
+                            do_plot_z = not calculation_parameters.beam_not_cut_in_z
+                        else:
+                            do_plot_x = True
+                            do_plot_z = True
 
                     do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
 
@@ -516,9 +537,9 @@ class HybridScreen(AutomaticElement):
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))
 
-            QtWidgets.QMessageBox.critical(self, "Error", str(exception), QtWidgets.QMessageBox.Ok)
+            QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
-            #raise exception
+            raise exception
 
         self.setStatusMessage("")
         self.progressBarFinished()

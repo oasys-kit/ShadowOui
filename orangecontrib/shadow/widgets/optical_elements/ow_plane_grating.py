@@ -3,10 +3,11 @@ import sys
 from orangewidget import gui
 from PyQt5.QtWidgets import QApplication
 
-import Shadow
-from orangecontrib.shadow.widgets.gui import ow_plane_element, ow_optical_element
-from orangecontrib.shadow.util import ShadowOpticalElement
+from oasys.widgets.exchange import DataExchangeObject
 
+from orangecontrib.shadow.widgets.gui import ow_plane_element, ow_optical_element
+from orangecontrib.shadow.util import ShadowOpticalElement, ShadowBeam, ShadowPreProcessorData
+from orangecontrib.shadow.util.shadow_objects import VlsPgmPreProcessorData
 
 class PlaneGrating(ow_plane_element.PlaneElement):
 
@@ -19,6 +20,12 @@ class PlaneGrating(ow_plane_element.PlaneElement):
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]
 
+    inputs = [("Input Beam", ShadowBeam, "setBeam"),
+              ("PreProcessor Data #1", ShadowPreProcessorData, "setPreProcessorData"),
+              ("PreProcessor Data #2", ShadowPreProcessorData, "setPreProcessorData"),
+              ("ExchangeData", DataExchangeObject, "acceptExchangeData"),
+              ("VLS-PGM PreProcessor Data", VlsPgmPreProcessorData, "setVlsPgmPreProcessorData")]
+
     def __init__(self):
         graphical_Options=ow_optical_element.GraphicalOptions(is_grating=True)
 
@@ -30,6 +37,29 @@ class PlaneGrating(ow_plane_element.PlaneElement):
 
     def instantiateShadowOE(self):
         return ShadowOpticalElement.create_plane_grating()
+
+    def setVlsPgmPreProcessorData(self, data):
+        if data is not None:
+            self.source_plane_distance = data.d_mirror_to_grating/2
+            self.image_plane_distance = data.d_grating_to_exit_slits
+            self.angles_respect_to = 0
+            self.incidence_angle_deg = data.alpha
+            self.reflection_angle_deg =data.beta
+            self.mirror_orientation_angle = 2
+            self.grating_diffraction_order = -1
+            self.grating_auto_setting = 0
+            self.grating_ruling_type = 4
+            self.grating_ruling_density = data.shadow_coeff_0
+            self.grating_poly_coeff_1 = data.shadow_coeff_1
+            self.grating_poly_coeff_2 = data.shadow_coeff_2
+            self.grating_poly_coeff_3 = data.shadow_coeff_3
+            self.grating_poly_coeff_4 = 0.0
+            self.grating_poly_signed_absolute = 1
+
+            self.calculate_incidence_angle_mrad()
+            self.calculate_reflection_angle_mrad()
+            self.set_GratingAutosetting()
+            self.set_GratingRulingType()
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)

@@ -109,7 +109,7 @@ class Info(widget.OWWidget):
         self.console.new_prompt(sys.ps1)
 
     def save_script(self):
-        file_name = QFileDialog.getSaveFileName(self, "Save File to Disk", ".", "*.py")
+        file_name = QFileDialog.getSaveFileName(self, "Save File to Disk", ".", "*.py")[0]
 
         if not file_name is None:
             if not file_name.strip() == "":

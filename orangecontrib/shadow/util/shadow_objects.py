@@ -29,6 +29,27 @@ class ShadowPreProcessorData:
         self.error_profile_x_slope = error_profile_x_slope
         self.error_profile_y_slope = error_profile_y_slope
 
+class VlsPgmPreProcessorData:
+    def __init__(self,
+                 shadow_coeff_0 = 0.0,
+                 shadow_coeff_1 = 0.0,
+                 shadow_coeff_2 = 0.0,
+                 shadow_coeff_3 = 0.0,
+                 d_source_to_mirror = 0.0,
+                 d_mirror_to_grating = 0.0,
+                 d_grating_to_exit_slits = 0.0,
+                 alpha = 0.0,
+                 beta = 0.0):
+        self.shadow_coeff_0 = shadow_coeff_0
+        self.shadow_coeff_1 = shadow_coeff_1
+        self.shadow_coeff_2 = shadow_coeff_2
+        self.shadow_coeff_3 = shadow_coeff_3
+        self.d_source_to_mirror  = d_source_to_mirror
+        self.d_mirror_to_grating = d_mirror_to_grating
+        self.d_grating_to_exit_slits = d_grating_to_exit_slits
+        self.alpha=alpha
+        self.beta=beta
+
 class ShadowTriggerOut:
     def __init__(self, new_beam=False):
         super().__init__()

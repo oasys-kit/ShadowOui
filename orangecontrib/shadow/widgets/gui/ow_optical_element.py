@@ -120,7 +120,7 @@ class OpticalElement(ow_generic_element.GenericElement):
     source_plane_distance = Setting(10.0)
     image_plane_distance = Setting(20.0)
 
-    angles_respect_to = Setting(0.0)
+    angles_respect_to = Setting(0)
 
     incidence_angle_deg = Setting(88.0)
     incidence_angle_mrad = Setting(0.0)

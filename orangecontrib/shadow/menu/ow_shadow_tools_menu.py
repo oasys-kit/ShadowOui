@@ -64,7 +64,7 @@ class ShadowToolsMenu(OMenu):
             if self.default_dir == None:
                 self.default_dir = os.getcwd()
 
-            filenames = QtWidgets.QFileDialog.getOpenFileNames(None, 'Open Shadow OE file', self.default_dir, "SHADOW Input File (start.*)")
+            filenames = QtWidgets.QFileDialog.getOpenFileNames(None, 'Open Shadow OE file', self.default_dir, "SHADOW Input File (start.*)")[0]
 
             if not filenames:
                 return
@@ -89,7 +89,7 @@ class ShadowToolsMenu(OMenu):
 
     def executeAction_2(self, action):
         try:
-            shadow_system_filename = QtWidgets.QFileDialog.getOpenFileName(None, 'Select Shadow File: systemfile.dat', self.default_dir, "systemfile.dat")
+            shadow_system_filename = QtWidgets.QFileDialog.getOpenFileName(None, 'Select Shadow File: systemfile.dat', self.default_dir, "systemfile.dat")[0]
 
             if not shadow_system_filename:
                 return
@@ -113,6 +113,8 @@ class ShadowToolsMenu(OMenu):
                     filename_complete = self.default_dir + "/" + str(filename).strip()
 
                     if os.path.exists(filename_complete):
+                        print("filename_complete", filename_complete)
+
                         tmp_nodes, tmp_messages = self.manageShadowFile(filename_complete)
 
                         messages = messages + tmp_messages
@@ -149,6 +151,7 @@ class ShadowToolsMenu(OMenu):
                 exception.args[0],
                 QtWidgets.QMessageBox.Ok)
 
+            raise exception
 
     #ENABLE PLOTS
     def executeAction_3(self, action):
@@ -318,35 +321,35 @@ class ShadowToolsMenu(OMenu):
 
                 fmirr = int(shadow_file.getProperty("FMIRR"))
 
-                if int(shadow_file.getProperty("F_REFRAC")) != 0 and int(shadow_file.getProperty("F_CRYSTAL")) == 0:
-                    if fmirr == 5:
-                        widget_name = "orangecontrib.shadow.widgets.special_elements.ow_empty_element.EmptyElement"
-                    elif fmirr == 10:
-                        widget_name = "orangecontrib.shadow.widgets.special_elements.ow_conic_coefficients_refractor.ConicCoefficientsRefractor"
-                    else:
-                        raise Exception("Only Refractor OE Type with conic coefficients are supported")
-
                 if int(shadow_file.getProperty("F_CRYSTAL")) == 0 and int(shadow_file.getProperty("F_GRATING")) == 0: # MIRRORS
-                    if  fmirr == 1:
-                        widget_name = widget_name + "ow_spheric_mirror.SphericMirror"
-                    elif fmirr == 2:
-                        widget_name = widget_name + "ow_ellipsoid_mirror.EllipsoidMirror"
-                    elif fmirr == 3:
-                        widget_name = widget_name + "ow_toroidal_mirror.ToroidalMirror"
-                    elif fmirr == 4:
-                        widget_name = widget_name + "ow_paraboloid_mirror.ParaboloidMirror"
-                    elif fmirr == 5:
-                        widget_name = widget_name + "ow_plane_mirror.PlaneMirror"
-                    elif fmirr == 6:
-                        raise Exception("Unsupported SHADOW element: FMIRR=6")
-                    elif fmirr == 7:
-                        widget_name = widget_name + "ow_hyperboloid_mirror.HyperboloidMirror"
-                    elif fmirr == 8:
-                        raise Exception("Unsupported SHADOW element: FMIRR=8")
-                    elif fmirr == 9:
-                        raise Exception("Unsupported SHADOW element: FMIRR=9")
-                    elif fmirr == 10:
-                        widget_name = widget_name + "ow_conic_coefficients_mirror.ConicCoefficientsMirror"
+                    if int(shadow_file.getProperty("F_REFRAC")) != 0:
+                        if fmirr == 5:
+                            widget_name = "orangecontrib.shadow.widgets.special_elements.ow_empty_element.EmptyElement"
+                        elif fmirr == 10:
+                            widget_name = "orangecontrib.shadow.widgets.special_elements.ow_conic_coefficients_refractor.ConicCoefficientsRefractor"
+                        else:
+                            raise Exception("Only Refractor OE Type with conic coefficients are supported")
+                    else:
+                        if  fmirr == 1:
+                            widget_name = widget_name + "ow_spheric_mirror.SphericMirror"
+                        elif fmirr == 2:
+                            widget_name = widget_name + "ow_ellipsoid_mirror.EllipsoidMirror"
+                        elif fmirr == 3:
+                            widget_name = widget_name + "ow_toroidal_mirror.ToroidalMirror"
+                        elif fmirr == 4:
+                            widget_name = widget_name + "ow_paraboloid_mirror.ParaboloidMirror"
+                        elif fmirr == 5:
+                            widget_name = widget_name + "ow_plane_mirror.PlaneMirror"
+                        elif fmirr == 6:
+                            raise Exception("Unsupported SHADOW element: FMIRR=6")
+                        elif fmirr == 7:
+                            widget_name = widget_name + "ow_hyperboloid_mirror.HyperboloidMirror"
+                        elif fmirr == 8:
+                            raise Exception("Unsupported SHADOW element: FMIRR=8")
+                        elif fmirr == 9:
+                            raise Exception("Unsupported SHADOW element: FMIRR=9")
+                        elif fmirr == 10:
+                            widget_name = widget_name + "ow_conic_coefficients_mirror.ConicCoefficientsMirror"
                 elif int(shadow_file.getProperty("F_CRYSTAL")) == 1: # CRYSTAL
                     if  fmirr == 1:
                         widget_name = widget_name + "ow_spheric_crystal.SphericCrystal"

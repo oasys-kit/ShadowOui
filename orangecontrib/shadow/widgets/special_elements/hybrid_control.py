@@ -58,6 +58,8 @@ class HybridInputParameters(object):
 
     file_to_write_out = 0
 
+    ghy_automatic = 1
+
     def __init__(self):
         super().__init__()
 
@@ -267,7 +269,7 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
             calculation_parameters.beam_not_cut_in_x = True
             calculation_parameters.beam_not_cut_in_z = True
 
-            if input_parameters.ghy_calcType != 3 and input_parameters.ghy_calcType != 4:
+            if input_parameters.ghy_calcType != 3 and input_parameters.ghy_calcType != 4 and input_parameters.ghy_automatic == 1:
                 calculation_parameters.ff_beam = input_parameters.shadow_beam
 
                 raise HybridNotNecessaryWarning("O.E. contains the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
@@ -367,8 +369,8 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
 
             # REQUEST FILTERING OR REFUSING
 
-            if not (input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4):
-                if input_parameters.ghy_diff_plane == 1 and calculation_parameters.beam_not_cut_in_x:
+            if not (input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4) and input_parameters.ghy_automatic == 1:
+                if input_parameters.ghy_diff_plane == 1 and calculation_parameters.beam_not_cut_in_x :
                     calculation_parameters.ff_beam = input_parameters.shadow_beam
 
                     raise HybridNotNecessaryWarning("O.E. contains almost the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
@@ -999,7 +1001,7 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
     imagesize = min(imagesize,
                     input_parameters.ghy_npeak*2*0.88*calculation_parameters.gwavelength*focallength_ff/abs(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min))
 
-    imagenpts = round(imagesize / propagated_wavefront.delta() / 2) * 2 + 1
+    imagenpts = int(round(imagesize / propagated_wavefront.delta() / 2) * 2 + 1)
 
 
     dif_xp = ScaledArray.initialize_from_range(numpy.ones(propagated_wavefront.size()),
@@ -1075,7 +1077,7 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
             imagesize = max(imagesize,
                             8 * rms_slope * input_parameters.ghy_focallength * (numpy.sin(average_incident_angle / 1e3) + numpy.sin(average_reflection_angle / 1e3)))
 
-        imagenpts = round(imagesize / propagated_wavefront.delta() / 2) * 2 + 1
+        imagenpts = int(round(imagesize / propagated_wavefront.delta() / 2) * 2 + 1)
 
         input_parameters.widget.set_progress_bar(75)
         input_parameters.widget.status_message("dif_x: begin calculation")
