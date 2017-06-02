@@ -1,21 +1,21 @@
 import sys, numpy
 
-from PyQt5.QtWidgets import QLabel, QApplication, QMessageBox
-from PyQt5.QtGui import QTextCursor, QPixmap
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QLabel, QApplication, QMessageBox, QSizePolicy
+from PyQt5.QtGui import QTextCursor, QPixmap
 
-from oasys.widgets.widget import OWWidget
+import orangecanvas.resources as resources
+
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
+
+from oasys.widgets.widget import OWWidget
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.util.oasys_util import EmittingStream
-import orangecanvas.resources as resources
 
 from orangecontrib.shadow.util.shadow_objects import VlsPgmPreProcessorData
 from orangecontrib.shadow.util.shadow_util import ShadowPhysics
-
-#raise Exception("not yet released")
 
 class OWVlsPgmCoefficientsCalculator(OWWidget):
     name = "VLS PGM Coefficients Calculator"
@@ -53,7 +53,7 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
     new_photon_energy = Setting(500.0)
 
     image_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/vls_pgm_layout.png"
-
+    usage_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/vls_pgm_usage.png"
 
     design_alpha = 0.0
     design_beta = 0.0
@@ -93,12 +93,23 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
         button.setFixedHeight(45)
 
         tabs_setting = oasysgui.tabWidget(self.controlArea)
+        tabs_setting.setFixedHeight(425)
 
         tab_step_1 = oasysgui.createTabPage(tabs_setting, "Line Density Calculation")
         tab_step_2 = oasysgui.createTabPage(tabs_setting, "Angles Calculation")
+        tab_usa = oasysgui.createTabPage(tabs_setting, "Use of the Widget")
+        tab_usa.setStyleSheet("background-color: white;")
+
+        usage_box = oasysgui.widgetBox(tab_usa, "", addSpace=True, orientation="horizontal")
+
+        label = QLabel("")
+        label.setAlignment(Qt.AlignCenter)
+        label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        label.setPixmap(QPixmap(self.usage_path))
+
+        usage_box.layout().addWidget(label)
 
         box = oasysgui.widgetBox(tab_step_1, "VLS-PGM Layout Parameters", orientation="vertical")
-
 
         self.le_r_a = oasysgui.lineEdit(box, self, "r_a", "Distance Source-Grating", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_r_b = oasysgui.lineEdit(box, self, "r_b", "Distance Grating-Exit Slits", labelWidth=260, valueType=float, orientation="horizontal")
@@ -146,17 +157,17 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
 
         self.set_UnitsInUse2()
 
-
         tabs_out = oasysgui.tabWidget(self.mainArea)
 
         tab_out_1 = oasysgui.createTabPage(tabs_out, "Calculation Results")
+        tab_out_2 = oasysgui.createTabPage(tabs_out, "Output")
 
-        figure_box = oasysgui.widgetBox(tab_out_1, "", addSpace=True, orientation="horizontal")
+        figure_box_1 = oasysgui.widgetBox(tab_out_1, "", addSpace=True, orientation="horizontal")
 
         label = QLabel("")
         label.setPixmap(QPixmap(self.image_path))
 
-        figure_box.layout().addWidget(label)
+        figure_box_1.layout().addWidget(label)
 
         output_box = oasysgui.widgetBox(tab_out_1, "", addSpace=True, orientation="horizontal")
 
@@ -178,7 +189,6 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
         self.le_d_source_to_mirror = oasysgui.lineEdit(output_box_2, self, "d_source_to_mirror", "Source to Mirror distance", labelWidth=210, valueType=float, orientation="horizontal")
         self.le_d_mirror_to_grating = oasysgui.lineEdit(output_box_2, self, "d_mirror_to_grating", "Mirror to Grating distance", labelWidth=210, valueType=float, orientation="horizontal")
 
-        tab_out_2 = oasysgui.createTabPage(tabs_out, "Output")
 
         self.shadow_output = oasysgui.textArea()
 

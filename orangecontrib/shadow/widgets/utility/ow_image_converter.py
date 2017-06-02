@@ -70,7 +70,7 @@ class ImageToBeamConverter(widget.OWWidget):
 
         figure_box = oasysgui.widgetBox(self.select_file_box_2, "Preview", addSpace=True, orientation="vertical", width=350, height=180)
 
-        self.preview_box = QtGui.QLabel("")
+        self.preview_box = QtWidgets.QLabel("")
         self.preview_box.setFixedHeight(100)
 
         figure_box.layout().addWidget(self.preview_box)

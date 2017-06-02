@@ -4,12 +4,14 @@ import numpy
 import threading
 
 from PyQt5.QtCore import QRect, Qt
-from PyQt5.QtWidgets import QApplication, QMessageBox, QScrollArea, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QWidget
-from PyQt5.QtGui import QTextCursor,QFont, QPalette, QColor, QPainter, QBrush, QPen
+from PyQt5.QtWidgets import QApplication, QMessageBox, QScrollArea, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QWidget, QLabel, QSizePolicy
+from PyQt5.QtGui import QTextCursor,QFont, QPalette, QColor, QPainter, QBrush, QPen, QPixmap
 
 from matplotlib import cm
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
+
+import orangecanvas.resources as resources
 
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
@@ -90,6 +92,8 @@ class OWdabam_height_profile(OWWidget):
 
     tab=[]
 
+    usage_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/dabam_height_profile_usage.png"
+
     def __init__(self):
         super().__init__()
 
@@ -149,6 +153,17 @@ class OWdabam_height_profile(OWWidget):
         tab_input = oasysgui.createTabPage(tabs_setting, "DABAM Search Setting")
         tab_gener = oasysgui.createTabPage(tabs_setting, "DABAM Generation Setting")
         tab_out = oasysgui.createTabPage(tabs_setting, "Output")
+        tab_usa = oasysgui.createTabPage(tabs_setting, "Use of the Widget")
+        tab_usa.setStyleSheet("background-color: white;")
+
+        usage_box = oasysgui.widgetBox(tab_usa, "", addSpace=True, orientation="horizontal")
+
+        label = QLabel("")
+        label.setAlignment(Qt.AlignCenter)
+        label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        label.setPixmap(QPixmap(self.usage_path))
+
+        usage_box.layout().addWidget(label)
 
         manual_box = oasysgui.widgetBox(tab_input, "Manual Entry", addSpace=True, orientation="vertical")
 

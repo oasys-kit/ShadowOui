@@ -41,16 +41,20 @@ class CRL(ow_compound_optical_element.CompoundOpticalElement):
     def __init__(self):
         super().__init__()
 
-        crl_box = oasysgui.widgetBox(self.tab_bas, "C.R.L. Input Parameters", addSpace=False, orientation="vertical", height=100)
+        tabs = oasysgui.tabWidget(self.tab_bas)
+        tab_1 = oasysgui.createTabPage(tabs, "C.R.L. Input Parameters")
+        tab_2 = oasysgui.createTabPage(tabs, "Single Lens Input Parameters")
+
+        crl_box = oasysgui.widgetBox(tab_1, "C.R.L. Input Parameters", addSpace=False, orientation="vertical", height=120)
 
         oasysgui.lineEdit(crl_box, self, "nlenses", "Number of lenses", labelWidth=260, valueType=int, orientation="horizontal")
         oasysgui.lineEdit(crl_box, self, "slots_empty", "Number of empty slots", labelWidth=260, valueType=int, orientation="horizontal")
         self.le_thickness = oasysgui.lineEdit(crl_box, self, "thickness", "Piling thickness", labelWidth=260, valueType=float, orientation="horizontal")
 
-        lens_box = oasysgui.widgetBox(self.tab_bas, "Single Lens Input Parameters", addSpace=False, orientation="vertical", height=410)
+        lens_box = oasysgui.widgetBox(tab_2, "Single Lens Input Parameters", addSpace=False, orientation="vertical", height=450)
 
-        self.le_p = oasysgui.lineEdit(lens_box, self, "p", "Source Plane Distance to First Interface (P)", labelWidth=280, valueType=float, orientation="horizontal")
-        self.le_q = oasysgui.lineEdit(lens_box, self, "q", "Last Interface Distance to Image plane (Q)"  , labelWidth=280, valueType=float, orientation="horizontal")
+        self.le_p = oasysgui.lineEdit(lens_box, self, "p", "Source Plane Distance to First Interface (P)", labelWidth=290, valueType=float, orientation="horizontal")
+        self.le_q = oasysgui.lineEdit(lens_box, self, "q", "Last Interface Distance to Image Plane (Q)"  , labelWidth=290, valueType=float, orientation="horizontal")
 
         gui.comboBox(lens_box, self, "has_finite_diameter", label="Lens Diameter", labelWidth=260,
                      items=["Finite", "Infinite"], callback=self.set_diameter, sendSelectedValue=False, orientation="horizontal")
@@ -77,7 +81,8 @@ class CRL(ow_compound_optical_element.CompoundOpticalElement):
         gui.comboBox(lens_box, self, "use_ccc", label="Use C.C.C.", labelWidth=310,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
-        gui.comboBox(lens_box, self, "convex_to_the_beam", label="Convexity of the 1st interface exposed to the beam\n(the 2nd interface has opposite convexity)",
+        gui.comboBox(oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=40),
+                     self, "convex_to_the_beam", label="Convexity of the 1st interface exposed to the\nbeam (the 2nd interface has opposite convexity)",
                      labelWidth=310,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 

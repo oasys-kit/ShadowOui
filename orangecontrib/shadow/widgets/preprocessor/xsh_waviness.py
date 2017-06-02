@@ -3,17 +3,20 @@ import sys
 
 import numpy
 from PyQt5.QtCore import QRect, Qt
-from PyQt5.QtWidgets import QTextEdit, QApplication, QMessageBox, QScrollArea, QTableWidget, QTableWidgetItem, QHeaderView
-from PyQt5.QtGui import QTextCursor, QIntValidator, QDoubleValidator, QFont, QPalette, QColor
+from PyQt5.QtWidgets import QApplication, QMessageBox, QScrollArea, QTableWidget, QTableWidgetItem, QHeaderView, QLabel, QSizePolicy
+from PyQt5.QtGui import QTextCursor, QFont, QPalette, QColor, QPixmap
 
 from Shadow import ShadowTools as ST
 from matplotlib import cm
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-from oasys.widgets.widget import OWWidget
+
+import orangecanvas.resources as resources
+
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
 
+from oasys.widgets.widget import OWWidget
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.gui import ConfirmDialog
@@ -255,6 +258,8 @@ class OWxsh_waviness(OWWidget):
                           '0.0',
                           '0.0']})
 
+    usage_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/waviness_usage.png"
+
     def __init__(self):
         super().__init__()
 
@@ -310,6 +315,17 @@ class OWxsh_waviness(OWWidget):
         tab_input = oasysgui.createTabPage(tabs_setting, "Input Parameter")
         tab_harmonics = oasysgui.createTabPage(tabs_setting, "Harmonics")
         tab_out = oasysgui.createTabPage(tabs_setting, "Output")
+        tab_usa = oasysgui.createTabPage(tabs_setting, "Use of the Widget")
+        tab_usa.setStyleSheet("background-color: white;")
+
+        usage_box = oasysgui.widgetBox(tab_usa, "", addSpace=True, orientation="horizontal")
+
+        label = QLabel("")
+        label.setAlignment(Qt.AlignCenter)
+        label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        label.setPixmap(QPixmap(self.usage_path))
+
+        usage_box.layout().addWidget(label)
 
         self.input_box = oasysgui.widgetBox(tab_input, "Inputs", addSpace=True, orientation="vertical")
 
@@ -398,8 +414,9 @@ class OWxsh_waviness(OWWidget):
         super().restoreWidgetPosition()
 
         self.table = QTableWidget(self.harmonic_maximum_index + 1, 3)
+        self.table.setStyleSheet("background-color: white;")
         self.table.setAlternatingRowColors(True)
-        self.table.horizontalHeader().setResizeMode(QHeaderView.Fixed)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
 
         for i in range(0, 3):
             self.table.setColumnWidth(i, 70)

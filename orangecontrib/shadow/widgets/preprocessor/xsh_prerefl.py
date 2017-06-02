@@ -1,19 +1,22 @@
 import sys
 
-from PyQt5.QtWidgets import QTextEdit, QApplication, QMessageBox
-from PyQt5.QtGui import QTextCursor, QIntValidator, QDoubleValidator
+from PyQt5.QtWidgets import QLabel, QApplication, QMessageBox, QSizePolicy
+from PyQt5.QtGui import QTextCursor, QPixmap, QDoubleValidator
+from PyQt5.QtCore import Qt
 from Shadow.ShadowPreprocessorsXraylib import prerefl
-from oasys.widgets.widget import OWWidget
+
+import orangecanvas.resources as resources
+
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
+
+from oasys.widgets.widget import OWWidget
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 
 try:
     from ..tools.xoppy_calc import xoppy_doc
 except ImportError:
-    #print("Error importing: xoppy_doc")
-    #raise
     pass
 except SystemError:
     pass
@@ -47,6 +50,7 @@ class OWxsh_prerefl(OWWidget):
     E_MAX = Setting(20000.0)
     E_STEP = Setting(100.0)
 
+    usage_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/prerefl_usage.png"
 
     def __init__(self):
         super().__init__()
@@ -55,8 +59,8 @@ class OWxsh_prerefl(OWWidget):
         self.runaction.triggered.connect(self.compute)
         self.addAction(self.runaction)
 
-        self.setFixedWidth(500)
-        self.setFixedHeight(485)
+        self.setFixedWidth(550)
+        self.setFixedHeight(550)
 
         gui.separator(self.controlArea)
 
@@ -71,7 +75,23 @@ class OWxsh_prerefl(OWWidget):
 
         gui.separator(self.controlArea)
 
-        box = oasysgui.widgetBox(self.controlArea, "Reflectivity Parameters", orientation="vertical")
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+
+        tab_bas = oasysgui.createTabPage(tabs_setting, "Reflectivity Settings")
+        tab_out = oasysgui.createTabPage(tabs_setting, "Output")
+        tab_usa = oasysgui.createTabPage(tabs_setting, "Use of the Widget")
+        tab_usa.setStyleSheet("background-color: white;")
+
+        usage_box = oasysgui.widgetBox(tab_usa, "", addSpace=True, orientation="horizontal")
+
+        label = QLabel("")
+        label.setAlignment(Qt.AlignCenter)
+        label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        label.setPixmap(QPixmap(self.usage_path))
+
+        usage_box.layout().addWidget(label)
+
+        box = oasysgui.widgetBox(tab_bas, "Reflectivity Parameters", orientation="vertical")
         
         idx = -1 
         
@@ -123,7 +143,7 @@ class OWxsh_prerefl(OWWidget):
 
         self.shadow_output = oasysgui.textArea()
 
-        out_box = oasysgui.widgetBox(self.controlArea, "System Output", addSpace=True, orientation="horizontal", height=150)
+        out_box = oasysgui.widgetBox(tab_out, "System Output", addSpace=True, orientation="horizontal", height=400)
         out_box.layout().addWidget(self.shadow_output)
 
         gui.rubber(self.controlArea)

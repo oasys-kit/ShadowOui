@@ -1,19 +1,22 @@
 import sys
 
-from PyQt5.QtWidgets import QTextEdit, QApplication, QMessageBox
-from PyQt5.QtGui import QTextCursor, QIntValidator, QDoubleValidator
+from PyQt5.QtWidgets import QLabel, QApplication, QMessageBox, QSizePolicy
+from PyQt5.QtGui import QTextCursor, QIntValidator, QDoubleValidator, QPixmap
+from PyQt5.QtCore import Qt
 from Shadow.ShadowPreprocessorsXraylib import bragg
-from oasys.widgets.widget import OWWidget
+
+import orangecanvas.resources as resources
+
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
+
+from oasys.widgets.widget import OWWidget
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.util.oasys_util import EmittingStream
 try:
     from ..tools.xoppy_calc import xoppy_doc
 except ImportError:
-    #print("Error importing: xoppy_doc")
-    #raise
     pass
 except SystemError:
     pass
@@ -89,6 +92,7 @@ class OWxsh_bragg(OWWidget):
         "Titanium"
     ]
 
+    usage_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/bragg_usage.png"
 
     def __init__(self):
         super().__init__()
@@ -97,8 +101,8 @@ class OWxsh_bragg(OWWidget):
         self.runaction.triggered.connect(self.compute)
         self.addAction(self.runaction)
 
-        self.setFixedWidth(500)
-        self.setFixedHeight(520)
+        self.setFixedWidth(550)
+        self.setFixedHeight(550)
 
         idx = -1 
         
@@ -115,9 +119,26 @@ class OWxsh_bragg(OWWidget):
 
         gui.separator(self.controlArea)
 
+        tabs_setting = oasysgui.tabWidget(self.controlArea)
+
+        tab_bas = oasysgui.createTabPage(tabs_setting, "Crystal Settings")
+        tab_out = oasysgui.createTabPage(tabs_setting, "Output")
+        tab_usa = oasysgui.createTabPage(tabs_setting, "Use of the Widget")
+        tab_usa.setStyleSheet("background-color: white;")
+
+        usage_box = oasysgui.widgetBox(tab_usa, "", addSpace=True, orientation="horizontal")
+
+        label = QLabel("")
+        label.setAlignment(Qt.AlignCenter)
+        label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        label.setPixmap(QPixmap(self.usage_path))
+
+        usage_box.layout().addWidget(label)
+
+
         #widget index 0
         idx += 1 
-        box = oasysgui.widgetBox(self.controlArea, "Crystal Parameters", orientation="vertical")
+        box = oasysgui.widgetBox(tab_bas, "Crystal Parameters", orientation="vertical")
         gui.comboBox(box, self, "DESCRIPTOR",
                      label=self.unitLabels()[idx], addSpace=True,
                      items=self.crystals, sendSelectedValue=False,
@@ -188,7 +209,7 @@ class OWxsh_bragg(OWWidget):
 
         self.shadow_output = oasysgui.textArea()
 
-        out_box = oasysgui.widgetBox(self.controlArea, "System Output", addSpace=True, orientation="horizontal", height=150)
+        out_box = oasysgui.widgetBox(tab_out, "System Output", addSpace=True, orientation="horizontal", height=400)
         out_box.layout().addWidget(self.shadow_output)
 
         self.process_showers()

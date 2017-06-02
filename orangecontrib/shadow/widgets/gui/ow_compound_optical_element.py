@@ -79,7 +79,7 @@ class CompoundOpticalElement(ow_generic_element.GenericElement):
         gui.separator(self.controlArea)
         
         self.tabs_setting = oasysgui.tabWidget(self.controlArea)
-        self.tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
+        self.tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT-5)
         self.tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
         self.tab_bas = oasysgui.createTabPage(self.tabs_setting, "Basic Setting")

@@ -405,7 +405,7 @@ class OpticalElement(ow_generic_element.GenericElement):
         gui.separator(self.controlArea)
 
         tabs_setting = oasysgui.tabWidget(self.controlArea)
-        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
+        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT-5)
         tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
         tab_pos = oasysgui.createTabPage(tabs_setting, "Position")

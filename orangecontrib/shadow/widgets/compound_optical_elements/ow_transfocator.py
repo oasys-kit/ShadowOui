@@ -54,7 +54,7 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
                 gui.button(tabs_button_box, self, "Remove C.R.L.", callback=self.crl_remove)]
 
         for btn in btns:
-            btn.setFixedHeight(20)
+            btn.setFixedHeight(40)
 
         self.tab_crls = oasysgui.tabWidget(self.tab_bas)
         self.crl_box_array = []
@@ -609,18 +609,22 @@ class CRLBox(QtWidgets.QWidget):
         self.interthickness = interthickness
         self.use_ccc = use_ccc
 
-        crl_box = oasysgui.widgetBox(self, "C.R.L. Input Parameters", addSpace=False, orientation="vertical", height=100, width=self.transfocator.CONTROL_AREA_WIDTH-40)
+        tabs = oasysgui.tabWidget(self, height=420, width=self.transfocator.CONTROL_AREA_WIDTH-35)
+        tab_1 = oasysgui.createTabPage(tabs, "C.R.L. Input Parameters")
+        tab_2 = oasysgui.createTabPage(tabs, "Single Lens Input Parameters")
+
+        crl_box = oasysgui.widgetBox(tab_1, "C.R.L. Input Parameters", addSpace=False, orientation="vertical", height=120, width=self.transfocator.CONTROL_AREA_WIDTH-45)
 
         oasysgui.lineEdit(crl_box, self, "nlenses", "Number of lenses", labelWidth=260, valueType=int, orientation="horizontal", callback=self.transfocator.dump_nlenses)
         oasysgui.lineEdit(crl_box, self, "slots_empty", "Number of empty slots", labelWidth=260, valueType=int, orientation="horizontal",
                            callback=self.transfocator.dump_slots_empty)
         self.le_thickness = oasysgui.lineEdit(crl_box, self, "thickness", "Piling thickness", labelWidth=260, valueType=float, orientation="horizontal", callback=self.transfocator.dump_thickness)
 
-        lens_box = oasysgui.widgetBox(self, "Single Lens Input Parameters", addSpace=False, orientation="vertical", height=350, width=self.transfocator.CONTROL_AREA_WIDTH-40)
+        lens_box = oasysgui.widgetBox(tab_2, "Single Lens Input Parameters", addSpace=False, orientation="vertical", height=380, width=self.transfocator.CONTROL_AREA_WIDTH-45)
 
-        self.le_p = oasysgui.lineEdit(lens_box, self, "p", "Source Plane Distance to First Interface (P)", labelWidth=280, valueType=float, orientation="horizontal",
+        self.le_p = oasysgui.lineEdit(lens_box, self, "p", "Source Plane Distance to First Interface (P)", labelWidth=290, valueType=float, orientation="horizontal",
                                       callback=self.transfocator.dump_p)
-        self.le_q = oasysgui.lineEdit(lens_box, self, "q", "Last Interface distance to Image plane (Q)"  , labelWidth=280, valueType=float, orientation="horizontal",
+        self.le_q = oasysgui.lineEdit(lens_box, self, "q", "Last Interface distance to Image plane (Q)"  , labelWidth=290, valueType=float, orientation="horizontal",
                                       callback=self.transfocator.dump_q)
 
         diameter_box_outer = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="horizontal")
@@ -655,12 +659,11 @@ class CRLBox(QtWidgets.QWidget):
         gui.comboBox(lens_box, self, "use_ccc", label="Use C.C.C.", labelWidth=310,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.transfocator.dump_use_ccc)
 
-        gui.comboBox(lens_box, self, "convex_to_the_beam", label="Convexity of the 1st interface exposed to the\nbeam (the 2nd interface has opposite convexity)",
+        gui.comboBox(oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=40),
+                     self, "convex_to_the_beam", label="Convexity of the 1st interface exposed to the\nbeam (the 2nd interface has opposite convexity)",
                             labelWidth=310,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.transfocator.dump_convex_to_the_beam)
 
-
-        #box_cyl_outer = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="horizontal")
 
         gui.comboBox(lens_box, self, "is_cylinder", label="Cylindrical", labelWidth=310,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.set_cylindrical)

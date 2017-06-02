@@ -41,10 +41,10 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
     def __init__(self):
         super().__init__()
 
-        lens_box = oasysgui.widgetBox(self.tab_bas, "Input Parameters", addSpace=False, orientation="vertical", height=400)
+        lens_box = oasysgui.widgetBox(self.tab_bas, "Input Parameters", addSpace=False, orientation="vertical", height=450)
 
-        self.le_p = oasysgui.lineEdit(lens_box, self, "p", "Source Plane Distance to First interface (P)", labelWidth=280, valueType=float, orientation="horizontal")
-        self.le_q = oasysgui.lineEdit(lens_box, self, "q", "Last interface distance to Image plane (Q)"  , labelWidth=280, valueType=float, orientation="horizontal")
+        self.le_p = oasysgui.lineEdit(lens_box, self, "p", "Source Plane Distance to First Interface (P)", labelWidth=290, valueType=float, orientation="horizontal")
+        self.le_q = oasysgui.lineEdit(lens_box, self, "q", "Last Interface Distance to Image plane (Q)"  , labelWidth=290, valueType=float, orientation="horizontal")
 
         gui.comboBox(lens_box, self, "has_finite_diameter", label="Lens Diameter", labelWidth=260,
                      items=["Finite", "Infinite"], callback=self.set_diameter, sendSelectedValue=False, orientation="horizontal")
@@ -71,7 +71,9 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
         gui.comboBox(lens_box, self, "use_ccc", label="Use C.C.C.", labelWidth=310,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
-        gui.comboBox(lens_box, self, "convex_to_the_beam", label="Convexity of the 1st interface exposed to the beam\n(the 2nd interface has opposite convexity)",
+        gui.comboBox(oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=40),
+                     self,
+                     "convex_to_the_beam", label="Convexity of the 1st interface exposed to the beam\n(the 2nd interface has opposite convexity)",
                      labelWidth=310,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 

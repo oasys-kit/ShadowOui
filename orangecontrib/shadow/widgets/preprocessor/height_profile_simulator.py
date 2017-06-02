@@ -1,18 +1,21 @@
 import sys
 
 import numpy
-from PyQt5.QtCore import QRect
-from PyQt5.QtWidgets import QTextEdit, QApplication, QMessageBox
-from PyQt5.QtGui import QTextCursor, QFont, QPalette, QColor
+from PyQt5.QtCore import QRect, Qt
+from PyQt5.QtWidgets import QApplication, QMessageBox, QLabel, QSizePolicy
+from PyQt5.QtGui import QTextCursor, QFont, QPalette, QColor, QPixmap
 from srxraylib.metrology import profiles_simulation
 from Shadow import ShadowTools as ST
 from matplotlib import cm
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-from oasys.widgets.widget import OWWidget
+
+import orangecanvas.resources as resources
+
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
 
+from oasys.widgets.widget import OWWidget
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.gui import ConfirmDialog
@@ -105,8 +108,9 @@ class OWheight_profile_simulator(OWWidget):
 
     renormalize_y = Setting(0)
 
-
     heigth_profile_file_name = Setting('mirror.dat')
+
+    usage_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/height_error_profile_usage.png"
 
     def __init__(self):
         super().__init__()
@@ -166,6 +170,17 @@ class OWheight_profile_simulator(OWWidget):
         tabs_input = oasysgui.tabWidget(tab_input)
         tab_length = oasysgui.createTabPage(tabs_input, "Length")
         tab_width = oasysgui.createTabPage(tabs_input, "Width")
+        tab_usa = oasysgui.createTabPage(tabs_setting, "Use of the Widget")
+        tab_usa.setStyleSheet("background-color: white;")
+
+        usage_box = oasysgui.widgetBox(tab_usa, "", addSpace=True, orientation="horizontal")
+
+        label = QLabel("")
+        label.setAlignment(Qt.AlignCenter)
+        label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        label.setPixmap(QPixmap(self.usage_path))
+
+        usage_box.layout().addWidget(label)
 
         #/ ---------------------------------------
 

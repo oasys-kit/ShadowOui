@@ -166,10 +166,13 @@ class ZonePlate(GenericElement):
         ##########################################
 
         tabs_basic_setting = oasysgui.tabWidget(tab_bas)
+        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT-5)
+        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
-        tab_zone_plate = oasysgui.createTabPage(tabs_basic_setting, "Zone Plate")
+        tab_zone_plate_1 = oasysgui.createTabPage(tabs_basic_setting, "Zone Plate Input Parameters")
+        tab_zone_plate_2 = oasysgui.createTabPage(tabs_basic_setting, "Zone Plate Output Parameters")
 
-        zp_box = oasysgui.widgetBox(tab_zone_plate, "Zone Plate Input Parameters", addSpace=False, orientation="vertical", height=280)
+        zp_box = oasysgui.widgetBox(tab_zone_plate_1, "Input Parameters", addSpace=False, orientation="vertical", height=290)
 
         oasysgui.lineEdit(zp_box, self, "delta_rn",  u"\u03B4" + "rn [nm]", labelWidth=260, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(zp_box, self, "diameter", "Z.P. Diameter [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
@@ -200,7 +203,7 @@ class ZonePlate(GenericElement):
 
         self.set_TypeOfZP()
 
-        zp_out_box = oasysgui.widgetBox(tab_zone_plate, "Zone Plate Output Parameters", addSpace=False, orientation="vertical", height=190)
+        zp_out_box = oasysgui.widgetBox(tab_zone_plate_2, "Output Parameters", addSpace=False, orientation="vertical", height=200)
 
         self.le_avg_wavelength = oasysgui.lineEdit(zp_out_box, self, "avg_wavelength", "Average Wavelenght [nm]", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_avg_wavelength.setReadOnly(True)
