@@ -7,6 +7,7 @@ from oasys.widgets import gui as oasysgui
 from orangewidget import gui
 from orangewidget.settings import Setting
 
+from PyQt5.QtCore import Qt
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtGui import QColor
 
@@ -51,7 +52,7 @@ class ImageToBeamConverter(widget.OWWidget):
 
         ########################################
 
-        self.select_file_box_1 = oasysgui.widgetBox(left_box_1, "Textual Image Parameters", addSpace=True, orientation="horizontal", height=250)
+        self.select_file_box_1 = oasysgui.widgetBox(left_box_1, "Textual Image Parameters", addSpace=False, orientation="horizontal", height=250)
 
         self.le_image_txt_file_name = oasysgui.lineEdit(self.select_file_box_1, self, "image_file_name", "Image File Name", labelWidth=120, valueType=str, orientation="horizontal")
         self.le_image_txt_file_name.setFixedWidth(300)
@@ -59,23 +60,28 @@ class ImageToBeamConverter(widget.OWWidget):
         gui.button(self.select_file_box_1, self, "...", callback=self.selectTxtFile)
 
 
-        self.select_file_box_2 = oasysgui.widgetBox(left_box_1, "Image Parameters", addSpace=True, orientation="vertical", height=250)
+        self.select_file_box_2 = oasysgui.widgetBox(left_box_1, "Image Parameters", addSpace=False, orientation="vertical", height=250)
 
-        select_file_box_2_int = oasysgui.widgetBox(self.select_file_box_2, "", addSpace=True, orientation="horizontal")
+        select_file_box_2_int = oasysgui.widgetBox(self.select_file_box_2, "", addSpace=False, orientation="horizontal")
 
         self.le_image_file_name = oasysgui.lineEdit(select_file_box_2_int, self, "image_file_name", "Image File Name", labelWidth=120, valueType=str, orientation="horizontal")
         self.le_image_file_name.setFixedWidth(300)
 
         gui.button(select_file_box_2_int, self, "...", callback=self.selectFile)
 
-        figure_box = oasysgui.widgetBox(self.select_file_box_2, "Preview", addSpace=True, orientation="vertical", width=350, height=180)
+        select_file_box_2_figure = oasysgui.widgetBox(self.select_file_box_2, "", addSpace=False, orientation="horizontal")
+
+        figure_box = oasysgui.widgetBox(select_file_box_2_figure, "Preview", addSpace=False, orientation="vertical", width=350, height=180)
 
         self.preview_box = QtWidgets.QLabel("")
-        self.preview_box.setFixedHeight(100)
+        self.preview_box.setAlignment(Qt.AlignCenter)
+        self.preview_box.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         figure_box.layout().addWidget(self.preview_box)
 
-        le = oasysgui.lineEdit(figure_box, self, "number_of_x_pixels", "Number of x Pixels", labelWidth=200, valueType=int, orientation="horizontal")
+        data_box = oasysgui.widgetBox(select_file_box_2_figure, "Data", addSpace=False, orientation="vertical")
+
+        le = oasysgui.lineEdit(data_box, self, "number_of_x_pixels", "Number of x Pixels", valueType=int, orientation="horizontal")
         le.setReadOnly(True)
         font = QtGui.QFont(le.font())
         font.setBold(True)
@@ -84,7 +90,7 @@ class ImageToBeamConverter(widget.OWWidget):
         palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
         palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
         le.setPalette(palette)
-        le = oasysgui.lineEdit(figure_box, self, "number_of_z_pixels", "Number of z Pixels", labelWidth=200, valueType=int, orientation="horizontal")
+        le = oasysgui.lineEdit(data_box, self, "number_of_z_pixels", "Number of z Pixels", valueType=int, orientation="horizontal")
         le.setReadOnly(True)
         font = QtGui.QFont(le.font())
         font.setBold(True)
@@ -133,42 +139,46 @@ class ImageToBeamConverter(widget.OWWidget):
 
 
     def convertToBeam(self):
+        try:
+            self.progressBarInit()
+            self.progressBarSet(10)
 
-        self.progressBarInit()
-        self.progressBarSet(10)
+            #self.information(0, "Converting Image Map")
+            self.setStatusMessage("Converting Image Map")
 
-        #self.information(0, "Converting Image Map")
-        self.setStatusMessage("Converting Image Map")
+            text_image = self.image_file_name
 
-        text_image = self.image_file_name
+            if not self.is_textual:
+                text_image = self.convertImagetoText()
 
-        if not self.is_textual:
-            text_image = self.convertImagetoText()
+            map = self.convertTextImageToXYMap(text_image)
 
-        map = self.convertTextImageToXYMap(text_image)
+            self.progressBarSet(50)
 
-        self.progressBarSet(50)
+            beam_out = self.convertMapToBeam(map)
 
-        beam_out = self.convertMapToBeam(map)
+            #self.information(0, "Plotting Results")
+            self.setStatusMessage("Plotting Results")
 
-        #self.information(0, "Plotting Results")
-        self.setStatusMessage("Plotting Results")
+            self.progressBarSet(80)
 
-        self.progressBarSet(80)
+            #self.information()
+            self.setStatusMessage("")
 
-        #self.information()
-        self.setStatusMessage("")
+            self.progressBarFinished()
 
-        self.progressBarFinished()
-
-        self.send("Beam", beam_out)
+            self.send("Beam", beam_out)
+        except Exception as exception:
+            QtWidgets.QMessageBox.critical(self, "Error",
+                                 str(exception),
+                                 QtWidgets.QMessageBox.Ok)
 
     def convertImagetoText(self):
         if str(self.image_file_name).endswith("txt") or str(self.image_file_name).endswith("TXT"):
           return self.image_file_name
 
         else:
-            out_file_name = os.getcwd() + "/Output/temp_image.txt"
+            out_file_name = os.getcwd() + "/temp_image.txt"
             out_file = open(out_file_name, "w")
 
             separator = '	'
@@ -196,7 +206,9 @@ class ImageToBeamConverter(widget.OWWidget):
                     else:
                         row += str(int(grey)) + separator
 
-                out_file.write(row + "\r")
+                row += "\r"
+
+                out_file.write(row)
 
             out_file.flush()
             out_file.close()
@@ -217,10 +229,12 @@ class ImageToBeamConverter(widget.OWWidget):
             number_of_x_pixels = len(rows[0].split('	'))
             number_of_z_pixels = len(rows)
 
-            if (number_of_x_pixels*number_of_z_pixels*self.number_of_x_bins*self.number_of_z_bins) > 500000: raise Exception("Number of Pixels too high (>500000)")
+            if (number_of_x_pixels*number_of_z_pixels*self.number_of_x_bins*self.number_of_z_bins) > 1000000: raise Exception("Number of Pixels too high (>1000000)")
 
             x0 = -p0*number_of_x_pixels*0.5
             z0 = -p0*number_of_z_pixels*0.5
+
+            print (z0)
 
             for z_index in range (0, len(rows)):
                 values = rows[z_index].split('	')
@@ -229,12 +243,12 @@ class ImageToBeamConverter(widget.OWWidget):
                     if (self.flip_vertically):
                         z = z0 + (p0*z_index + p0_bin_z*z_pixel_bin_index)
                     else:
-                        z = z0 - (p0*z_index + p0_bin_z*z_pixel_bin_index)
+                        z = -z0 - (p0*z_index + p0_bin_z*z_pixel_bin_index)
 
                     for x_index in range(0, len(values)):
                         for x_pixel_bin_index in range(0, self.number_of_x_bins):
                             if (self.flip_horizontally):
-                                x = x0 - (p0*x_index + p0_bin_x*x_pixel_bin_index)
+                                x = -x0 - (p0*x_index + p0_bin_x*x_pixel_bin_index)
                             else:
                                 x = x0 + (p0*x_index + p0_bin_x*x_pixel_bin_index)
 

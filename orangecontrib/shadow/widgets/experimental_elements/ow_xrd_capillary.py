@@ -246,7 +246,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         palette.setColor(QPalette.ButtonText, QColor('red'))
         stop_button.setPalette(palette) # assign new palette
 
-        button_box_2 = oasysgui.widgetBox(self.controlArea, "", addSpace=True, orientation="horizontal", height=25)
+        button_box_2 = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal", height=25)
 
         self.reset_fields_button = gui.button(button_box_2, self, "Reset Fields", callback=self.callResetSettings)
         font = QFont(self.reset_fields_button.font())
@@ -296,7 +296,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         box_simulation = oasysgui.widgetBox(self.tab_simulation, "Simulation Management", addSpace=False, orientation="vertical")
 
-        file_box = oasysgui.widgetBox(box_simulation, "", addSpace=False, orientation="horizontal", height=20)
+        file_box = oasysgui.widgetBox(box_simulation, "", addSpace=False, orientation="horizontal", height=25)
 
         self.le_output_file_name = oasysgui.lineEdit(file_box, self, "output_file_name", "Output File Name", labelWidth=120, valueType=str, orientation="horizontal")
 
@@ -335,7 +335,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         self.box_ray_tracing_1 = oasysgui.widgetBox(box_ray_tracing, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.box_ray_tracing_1, self, "beam_energy", "Set Beam energy [eV]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_ray_tracing_1, self, "beam_energy", "Beam energy [eV]", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.box_ray_tracing_2 = oasysgui.widgetBox(box_ray_tracing, "", addSpace=False, orientation="vertical")
 
@@ -345,7 +345,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         box_ipf = oasysgui.widgetBox(self.tab_simulation, "IPF Calculation Management", addSpace=False, orientation="vertical")
 
-        gui.comboBox(box_ipf, self, "kind_of_fit", label="Fitting function to calculate FWHM of peaks", labelWidth=320,
+        gui.comboBox(box_ipf, self, "kind_of_fit", label="FWHM of Peaks Fitting Function", labelWidth=320,
                      items=["Gaussian", "Pseudo-Voigt"],
                      sendSelectedValue=False, orientation="horizontal")
 
@@ -358,12 +358,15 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         tab_exp_1 = oasysgui.createTabPage(tabs_experiment, "Diffractometer")
         tab_exp_2 = oasysgui.createTabPage(tabs_experiment, "Scan")
 
-        box_sample = oasysgui.widgetBox(tab_exp_1, "Sample Parameters", addSpace=True, orientation="vertical")
+        box_sample = oasysgui.widgetBox(tab_exp_1, "Sample Parameters", addSpace=False, orientation="vertical")
 
         box_capillary = oasysgui.widgetBox(box_sample, "", addSpace=False, orientation="horizontal")
 
-        oasysgui.lineEdit(box_capillary, self, "capillary_diameter", "Capillary:  Diameter [mm]", labelWidth=147, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(box_capillary, self, "capillary_thickness", "          Thickness [" + u"\u03BC" + "m]", labelWidth=130, valueType=float, orientation="horizontal")
+        box_capillary_1 = oasysgui.widgetBox(box_capillary, "", addSpace=False, orientation="vertical", width=210)
+        box_capillary_2 = oasysgui.widgetBox(box_capillary, "", addSpace=False, orientation="vertical", width=140)
+
+        oasysgui.lineEdit(box_capillary_1, self, "capillary_diameter", "Capillary: Diameter [mm]", valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_capillary_2, self, "capillary_thickness", " Thickness [" + u"\u03BC" + "m]", valueType=float, orientation="horizontal")
 
         capillary_names = []
 
@@ -382,65 +385,65 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         oasysgui.lineEdit(box_sample, self, "packing_factor", "Packing Factor (0.0 ... 1.0)", labelWidth=300, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(box_sample, self, "residual_average_size", "Residual Average Size [" + u"\u03BC" + "m]", labelWidth=300, valueType=float, orientation="horizontal")
 
-        box_2theta_arm = oasysgui.widgetBox(tab_exp_1, "2Theta Arm Parameters", addSpace=True, orientation="vertical", height=260)
+        box_2theta_arm = oasysgui.widgetBox(tab_exp_1, "2Theta Arm Parameters", addSpace=False, orientation="vertical", height=275)
 
         gui.comboBox(box_2theta_arm, self, "diffracted_arm_type", label="Diffracted Arm Setup", items=["Slits", "Analyzer", "Area Detector"], labelWidth=260, sendSelectedValue=False, orientation="horizontal", callback=self.setDiffractedArmType)
 
         self.box_2theta_arm_1 = oasysgui.widgetBox(box_2theta_arm, "", addSpace=False, orientation="vertical")
 
-        self.le_detector_distance = oasysgui.lineEdit(self.box_2theta_arm_1, self, "detector_distance", "Detector Distance", labelWidth=260, tooltip="Detector Distance [cm]", valueType=float, orientation="horizontal")
+        self.le_detector_distance = oasysgui.lineEdit(self.box_2theta_arm_1, self, "detector_distance", "Detector Distance", labelWidth=270, tooltip="Detector Distance [cm]", valueType=float, orientation="horizontal")
 
         gui.separator(self.box_2theta_arm_1)
 
-        self.le_slit_1_distance = oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_1_distance", "Slit 1 Distance from Goniometer Center", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_1_vertical_aperture", "Slit 1 Vertical Aperture [" + u"\u03BC" + "m]",  labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_1_horizontal_aperture", "Slit 1 Horizontal Aperture [" + u"\u03BC" + "m]",  labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_slit_1_distance = oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_1_distance", "Slit 1 Distance from Goniometer Center", labelWidth=270, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_1_vertical_aperture", "Slit 1 Vertical Aperture [" + u"\u03BC" + "m]",  labelWidth=270, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_1_horizontal_aperture", "Slit 1 Horizontal Aperture [" + u"\u03BC" + "m]",  labelWidth=270, valueType=float, orientation="horizontal")
 
         gui.separator(self.box_2theta_arm_1)
 
-        self.le_slit_2_distance = oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_2_distance", "Slit 2 Distance from Goniometer Center", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_2_vertical_aperture", "Slit 2 Vertical Aperture [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_2_horizontal_aperture", "Slit 2 Horizontal Aperture [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_slit_2_distance = oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_2_distance", "Slit 2 Distance from Goniometer Center", labelWidth=270, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_2_vertical_aperture", "Slit 2 Vertical Aperture [" + u"\u03BC" + "m]", labelWidth=270, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_1, self, "slit_2_horizontal_aperture", "Slit 2 Horizontal Aperture [" + u"\u03BC" + "m]", labelWidth=270, valueType=float, orientation="horizontal")
 
         self.box_2theta_arm_2 = oasysgui.widgetBox(box_2theta_arm, "", addSpace=False, orientation="vertical")
 
-        self.le_acceptance_slit_distance = oasysgui.lineEdit(self.box_2theta_arm_2, self, "acceptance_slit_distance", "Slit Distance from Goniometer Center", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_2, self, "acceptance_slit_vertical_aperture", "Slit Vertical Aperture [" + u"\u03BC" + "m]",  labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_2, self, "acceptance_slit_horizontal_aperture", "Slit Horizontal Aperture [" + u"\u03BC" + "m]",  labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_acceptance_slit_distance = oasysgui.lineEdit(self.box_2theta_arm_2, self, "acceptance_slit_distance", "Slit Distance from Goniometer Center", labelWidth=270, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_2, self, "acceptance_slit_vertical_aperture", "Slit Vertical Aperture [" + u"\u03BC" + "m]",  labelWidth=270, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_2, self, "acceptance_slit_horizontal_aperture", "Slit Horizontal Aperture [" + u"\u03BC" + "m]",  labelWidth=270, valueType=float, orientation="horizontal")
 
         gui.separator(self.box_2theta_arm_2)
 
-        self.le_analyzer_distance = oasysgui.lineEdit(self.box_2theta_arm_2, self, "analyzer_distance", "Crystal Distance from Goniometer Center", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_2, self, "analyzer_bragg_angle", "Analyzer Incidence Angle [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_analyzer_distance = oasysgui.lineEdit(self.box_2theta_arm_2, self, "analyzer_distance", "Crystal Distance from Goniometer Center", labelWidth=280, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_2, self, "analyzer_bragg_angle", "Analyzer Incidence Angle [deg]", labelWidth=270, valueType=float, orientation="horizontal")
 
-        file_box_2 = oasysgui.widgetBox(self.box_2theta_arm_2, "", addSpace=True, orientation="horizontal", height=25)
+        file_box_2 = oasysgui.widgetBox(self.box_2theta_arm_2, "", addSpace=False, orientation="horizontal", height=25)
 
-        self.le_rocking_curve_file = oasysgui.lineEdit(file_box_2, self, "rocking_curve_file", "File with Crystal parameter",  labelWidth=150, valueType=str, orientation="horizontal")
+        self.le_rocking_curve_file = oasysgui.lineEdit(file_box_2, self, "rocking_curve_file", "Crystal Parameters File",  labelWidth=150, valueType=str, orientation="horizontal")
 
         gui.button(file_box_2, self, "...", callback=self.selectRockingCurveFile)
 
-        oasysgui.lineEdit(self.box_2theta_arm_2, self, "mosaic_angle_spread_fwhm", "Mosaic Angle Spread FWHM [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.box_2theta_arm_2, self, "mosaic_angle_spread_fwhm", "Mosaic Angle Spread FWHM [deg]", labelWidth=270, valueType=float, orientation="horizontal")
 
         self.box_2theta_arm_3 = oasysgui.widgetBox(box_2theta_arm, "", addSpace=False, orientation="vertical")
 
         gui.separator(self.box_2theta_arm_3)
 
         self.le_area_detector_distance = oasysgui.lineEdit(self.box_2theta_arm_3, self, "area_detector_distance", "Detector Distance",
-                           labelWidth=260, valueType=float, orientation="horizontal")
-        self.le_area_detector_height = oasysgui.lineEdit(self.box_2theta_arm_3, self, "area_detector_height", "Detector Height", labelWidth=260,
+                           labelWidth=270, valueType=float, orientation="horizontal")
+        self.le_area_detector_height = oasysgui.lineEdit(self.box_2theta_arm_3, self, "area_detector_height", "Detector Height", labelWidth=270,
                            tooltip="Detector Height [cm]", valueType=float, orientation="horizontal")
-        self.le_area_detector_width = oasysgui.lineEdit(self.box_2theta_arm_3, self, "area_detector_width", "Detector Width", labelWidth=260,
+        self.le_area_detector_width = oasysgui.lineEdit(self.box_2theta_arm_3, self, "area_detector_width", "Detector Width", labelWidth=270,
                            tooltip="Detector Width [cm]", valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.box_2theta_arm_3, self, "area_detector_pixel_size", "Pixel Size [" + u"\u03BC" + "m]", labelWidth=260,
+        oasysgui.lineEdit(self.box_2theta_arm_3, self, "area_detector_pixel_size", "Pixel Size [" + u"\u03BC" + "m]", labelWidth=270,
                            tooltip="Pixel Size [" + u"\u03BC" + "m]", valueType=float, orientation="horizontal")
 
-        box_scan = oasysgui.widgetBox(tab_exp_2, "Scan Parameters", addSpace=True, orientation="vertical")
+        box_scan = oasysgui.widgetBox(tab_exp_2, "Scan Parameters", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(box_scan, self, "start_angle_na", "Start Angle [deg]", labelWidth=260, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(box_scan, self, "stop_angle_na", "Stop Angle [deg]", labelWidth=260, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(box_scan, self, "step", "Step [deg]", labelWidth=260, valueType=float, orientation="horizontal")
 
-        box_diffraction = oasysgui.widgetBox(tab_exp_2, "Diffraction Parameters", addSpace=True, orientation="vertical")
+        box_diffraction = oasysgui.widgetBox(tab_exp_2, "Diffraction Parameters", addSpace=False, orientation="vertical")
 
         gui.comboBox(box_diffraction, self, "set_number_of_peaks", label="set Number of Peaks", labelWidth=350, callback=self.setNumberOfPeaks, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
         self.le_number_of_peaks = oasysgui.lineEdit(box_diffraction, self, "number_of_peaks", "Number of Peaks", labelWidth=320, valueType=int, orientation="horizontal")
@@ -449,38 +452,38 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         #####################
 
-        box_beam = oasysgui.widgetBox(self.tab_beam, "Lorentz-Polarization Factor", addSpace=True, orientation="vertical")
+        box_beam = oasysgui.widgetBox(self.tab_beam, "Lorentz-Polarization Factor", addSpace=False, orientation="vertical")
 
         gui.comboBox(box_beam, self, "add_lorentz_polarization_factor", label="Add Lorentz-Polarization Factor", labelWidth=350, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.setPolarization)
 
         gui.separator(box_beam)
 
-        self.box_polarization =  oasysgui.widgetBox(box_beam, "", addSpace=True, orientation="vertical")
+        self.box_polarization =  oasysgui.widgetBox(box_beam, "", addSpace=False, orientation="vertical")
 
         gui.comboBox(self.box_polarization, self, "pm2k_fullprof", label="Kind of Calculation", labelWidth=340, items=["PM2K", "FULLPROF"], sendSelectedValue=False, orientation="horizontal", callback=self.setKindOfCalculation)
 
-        self.box_degree_of_polarization_pm2k =  oasysgui.widgetBox(self.box_polarization, "", addSpace=True, orientation="vertical")
+        self.box_degree_of_polarization_pm2k =  oasysgui.widgetBox(self.box_polarization, "", addSpace=False, orientation="vertical")
         oasysgui.lineEdit(self.box_degree_of_polarization_pm2k, self, "degree_of_polarization", "Q Factor [(Ih-Iv)/(Ih+Iv)]", labelWidth=320, valueType=float, orientation="horizontal")
-        self.box_degree_of_polarization_fullprof =  oasysgui.widgetBox(self.box_polarization, "", addSpace=True, orientation="vertical")
+        self.box_degree_of_polarization_fullprof =  oasysgui.widgetBox(self.box_polarization, "", addSpace=False, orientation="vertical")
         oasysgui.lineEdit(self.box_degree_of_polarization_fullprof, self, "degree_of_polarization", "K Factor", labelWidth=320, valueType=float, orientation="horizontal")
 
         oasysgui.lineEdit(self.box_polarization, self, "monochromator_angle", "Monochromator Theta Angle [deg]", labelWidth=300, valueType=float, orientation="horizontal")
 
         self.setPolarization()
 
-        box_beam_2 = oasysgui.widgetBox(self.tab_beam, "Debye-Waller Factor", addSpace=True, orientation="vertical")
+        box_beam_2 = oasysgui.widgetBox(self.tab_beam, "Debye-Waller Factor", addSpace=False, orientation="vertical")
 
         gui.comboBox(box_beam_2, self, "add_debye_waller_factor", label="Add Debye-Waller Factor", labelWidth=350, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.setDebyeWallerFactor)
 
         gui.separator(box_beam_2)
 
-        self.box_debye_waller =  oasysgui.widgetBox(box_beam_2, "", addSpace=True, orientation="vertical")
+        self.box_debye_waller =  oasysgui.widgetBox(box_beam_2, "", addSpace=False, orientation="vertical")
 
         gui.comboBox(self.box_debye_waller, self, "use_default_dwf", label="Use Stored D.W.F. (B) [Angstrom-2]", labelWidth=350, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.setUseDefaultDWF)
 
-        self.box_use_default_dwf_1 =  oasysgui.widgetBox(self.box_debye_waller, "", addSpace=True, orientation="vertical")
+        self.box_use_default_dwf_1 =  oasysgui.widgetBox(self.box_debye_waller, "", addSpace=False, orientation="vertical")
         oasysgui.lineEdit(self.box_use_default_dwf_1, self, "new_debye_waller_B", "Debye-Waller Factor (B)", labelWidth=300, valueType=float, orientation="horizontal")
-        self.box_use_default_dwf_2 =  oasysgui.widgetBox(self.box_debye_waller, "", addSpace=True, orientation="vertical")
+        self.box_use_default_dwf_2 =  oasysgui.widgetBox(self.box_debye_waller, "", addSpace=False, orientation="vertical")
         le_dwf = oasysgui.lineEdit(self.box_use_default_dwf_2, self, "default_debye_waller_B", "Stored Debye-Waller Factor (B) [Angstrom-2]", labelWidth=300, valueType=float, orientation="horizontal")
         le_dwf.setReadOnly(True)
         font = QFont(le_dwf.font())
@@ -495,29 +498,31 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         #####################
 
-        box_cap_aberrations = oasysgui.widgetBox(self.tab_aberrations, "Capillary Aberrations", addSpace=True, orientation="vertical")
+        box_cap_aberrations = oasysgui.widgetBox(self.tab_aberrations, "Capillary Aberrations", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(box_cap_aberrations, self, "positioning_error", "Position Error % (wobbling)", labelWidth=320, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(box_cap_aberrations, self, "horizontal_displacement", "Horizontal Displacement [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(box_cap_aberrations, self, "vertical_displacement", "Vertical Displacement [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
         gui.comboBox(box_cap_aberrations, self, "calculate_absorption", label="Calculate Absorption", labelWidth=350, items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.setAbsorption)
 
-        box_gon_aberrations = oasysgui.widgetBox(self.tab_aberrations, "Detection System Aberrations", addSpace=True, orientation="vertical")
+        box = oasysgui.widgetBox(self.tab_aberrations, "Detection System Aberrations", addSpace=False, orientation="horizontal")
 
-        oasysgui.lineEdit(box_gon_aberrations, self, "x_sour_offset", "Offset along X [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(box_gon_aberrations, self, "x_sour_rotation", "CW rotation around X [deg] (2Theta shift)", labelWidth=260, valueType=float, orientation="horizontal")
+        box_gon_aberrations = oasysgui.widgetBox(box, "", addSpace=False, orientation="vertical", width=300)
 
-        oasysgui.lineEdit(box_gon_aberrations, self, "y_sour_offset", "Offset along Y [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(box_gon_aberrations, self, "y_sour_rotation", "CW rotation around Y [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_gon_aberrations, self, "x_sour_offset", "Offset along X [" + u"\u03BC" + "m]", labelWidth=180, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_gon_aberrations, self, "x_sour_rotation", "CW rotation around X [deg]", labelWidth=180, valueType=float, orientation="horizontal")
 
-        oasysgui.lineEdit(box_gon_aberrations, self, "z_sour_offset", "Offset along Z [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(box_gon_aberrations, self, "z_sour_rotation", "CW rotation around Z [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_gon_aberrations, self, "y_sour_offset", "Offset along Y [" + u"\u03BC" + "m]", labelWidth=180, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_gon_aberrations, self, "y_sour_rotation", "CW rotation around Y [deg]", labelWidth=180, valueType=float, orientation="horizontal")
 
-        gui.separator(box_gon_aberrations)
+        oasysgui.lineEdit(box_gon_aberrations, self, "z_sour_offset", "Offset along Z [" + u"\u03BC" + "m]", labelWidth=180, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(box_gon_aberrations, self, "z_sour_rotation", "CW rotation around Z [deg]", labelWidth=180, valueType=float, orientation="horizontal")
 
-        gui.button(box_gon_aberrations, self, "Show Axis System", callback=self.showAxisSystem)
+        box_gon_aberrations_button = oasysgui.widgetBox(box, "", addSpace=False, orientation="vertical", width=65)
 
-        box_det_aberrations = oasysgui.widgetBox(self.tab_aberrations, "Detector Arm Aberrations", addSpace=True, orientation="vertical")
+        gui.button(box_gon_aberrations_button, self, "Show\nAxis\nSystem", callback=self.showAxisSystem, height=165)
+
+        box_det_aberrations = oasysgui.widgetBox(self.tab_aberrations, "Detector Arm Aberrations", addSpace=False, orientation="vertical")
 
         self.slit_1_vertical_displacement_le = oasysgui.lineEdit(box_det_aberrations, self,
                                                                   "slit_1_vertical_displacement",
@@ -537,12 +542,12 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         #####################
 
         box_background = oasysgui.widgetBox(self.tab_background, "Background Parameters", addSpace=False,
-                                             orientation="vertical", height=510)
+                                             orientation="vertical", height=505)
 
         gui.comboBox(box_background, self, "add_background", label="Add Background", labelWidth=350, items=["No", "Yes"],
                      callback=self.setAddBackground, sendSelectedValue=False, orientation="horizontal")
 
-        gui.separator(box_background)
+        #gui.separator(box_background)
 
         self.box_background_1_hidden = oasysgui.widgetBox(box_background, "", addSpace=False, orientation="vertical")
         self.box_background_1 = oasysgui.widgetBox(box_background, "", addSpace=False, orientation="vertical")
@@ -555,10 +560,10 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         tab_exponential = oasysgui.createTabPage(tabs_background, "Exponential")
         tab_chebyshev = oasysgui.createTabPage(tabs_background, "Chebyshev")
 
-        self.box_background_const  = oasysgui.widgetBox(tab_constant, "Constant", addSpace=True, orientation="vertical")
+        self.box_background_const  = oasysgui.widgetBox(tab_constant, "Constant", addSpace=False, orientation="vertical")
 
         gui.checkBox(self.box_background_const, self, "add_constant", "add Background", callback=self.setConstant)
-        gui.separator(self.box_background_const)
+        #gui.separator(self.box_background_const)
 
         self.box_background_const_2 = oasysgui.widgetBox(self.box_background_const, "", addSpace=False, orientation="vertical")
 
@@ -572,7 +577,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         box_equation_che_1 = oasysgui.widgetBox(box_equation_che, "", addSpace=False, orientation="horizontal")
         box_equation_che_1.setLayout(QtWidgets.QVBoxLayout())
-        box_equation_che_1.layout().addWidget(MathTextLabel(r'$\sum_{i=0}^{5}A_{i}T_{i}(2\theta) }$', 18, box_equation_che_1), alignment=Qt.AlignRight)
+        box_equation_che_1.layout().addWidget(MathTextLabel(r'$\sum_{i=0}^{5}A_{i}T_{i}(2\theta) }$', 9, box_equation_che_1), alignment=Qt.AlignRight)
 
         self.box_chebyshev_2 = oasysgui.widgetBox(self.box_chebyshev, "", addSpace=False, orientation="vertical")
         oasysgui.lineEdit(self.box_chebyshev_2, self, "cheb_coeff_0", "A0", labelWidth=240, valueType=float, orientation="horizontal")
@@ -590,7 +595,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         box_equation_exp_1 = oasysgui.widgetBox(box_equation_exp, "", addSpace=False, orientation="horizontal")
         box_equation_exp_1.setLayout(QtWidgets.QVBoxLayout())
-        box_equation_exp_1.layout().addWidget(MathTextLabel(r'$\sum_{i=0}^{5}A_{i}e^{-H_{i}2\theta }$', 18, box_equation_exp_1), alignment=Qt.AlignRight)
+        box_equation_exp_1.layout().addWidget(MathTextLabel(r'$\sum_{i=0}^{5}A_{i}e^{-H_{i}2\theta }$', 9, box_equation_exp_1), alignment=Qt.AlignRight)
 
         self.box_expdecay_2 = oasysgui.widgetBox(self.box_expdecay, "", addSpace=False, orientation="vertical")
         oasysgui.lineEdit(self.box_expdecay_2, self, "expd_coeff_0", "A0", labelWidth=240, valueType=float, orientation="horizontal")
@@ -599,7 +604,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         oasysgui.lineEdit(self.box_expdecay_2, self, "expd_coeff_3", "A3", labelWidth=240, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.box_expdecay_2, self, "expd_coeff_4", "A4", labelWidth=240, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.box_expdecay_2, self, "expd_coeff_5", "A5", labelWidth=240, valueType=float, orientation="horizontal")
-        gui.separator(self.box_expdecay_2, height=2)
+        gui.separator(self.box_expdecay_2, height=1)
         oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_0", "H0", labelWidth=240, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_1", "H1", labelWidth=240, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.box_expdecay_2, self, "expd_decayp_2", "H2", labelWidth=240, valueType=float, orientation="horizontal")
@@ -613,7 +618,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         self.shadow_output = oasysgui.textArea(height=400)
 
-        out_box = gui.widgetBox(self.tab_output, "System Output", addSpace=True, orientation="horizontal")
+        out_box = gui.widgetBox(self.tab_output, "System Output", addSpace=False, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)
 
         #####################
@@ -626,7 +631,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         self.tab_results_area = oasysgui.createTabPage(self.plot_tabs, "XRD 2D Pattern")
 
-        self.area_image_box = gui.widgetBox(self.tab_results_area, "", addSpace=True, orientation="vertical")
+        self.area_image_box = gui.widgetBox(self.tab_results_area, "", addSpace=False, orientation="vertical")
         self.area_image_box.setFixedHeight(self.IMAGE_HEIGHT)
         self.area_image_box.setFixedWidth(self.IMAGE_WIDTH)
 
@@ -645,11 +650,11 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         tab_caglioti_eta = oasysgui.createTabPage(self.plot_tabs, "Instrumental Peak Shape")
         tab_caglioti_shift = oasysgui.createTabPage(self.plot_tabs, "Instrumental Peak Shift")
 
-        self.image_box = gui.widgetBox(tab_results, "", addSpace=True, orientation="vertical")
+        self.image_box = gui.widgetBox(tab_results, "", addSpace=False, orientation="vertical")
         self.image_box.setFixedHeight(self.IMAGE_HEIGHT)
         self.image_box.setFixedWidth(self.IMAGE_WIDTH)
 
-        self.absorption_coefficient_box = gui.widgetBox(self.image_box, "", addSpace=True, orientation="vertical")
+        self.absorption_coefficient_box = gui.widgetBox(self.image_box, "", addSpace=False, orientation="vertical")
         self.absorption_coefficient_box.setFixedWidth(420)
 
         gui.separator(self.absorption_coefficient_box)
@@ -694,11 +699,11 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         self.image_box.layout().addWidget(self.plot_canvas)
 
-        self.caglioti_fwhm_image_box = gui.widgetBox(tab_caglioti_fwhm, "", addSpace=True, orientation="vertical")
+        self.caglioti_fwhm_image_box = gui.widgetBox(tab_caglioti_fwhm, "", addSpace=False, orientation="vertical")
         self.caglioti_fwhm_image_box.setFixedHeight(self.IMAGE_HEIGHT)
         self.caglioti_fwhm_image_box.setFixedWidth(self.IMAGE_WIDTH)
 
-        self.caglioti_fwhm_coefficient_box = gui.widgetBox(self.caglioti_fwhm_image_box, "", addSpace=True, orientation="vertical")
+        self.caglioti_fwhm_coefficient_box = gui.widgetBox(self.caglioti_fwhm_image_box, "", addSpace=False, orientation="vertical")
         self.caglioti_fwhm_coefficient_box.setFixedWidth(200)
 
         gui.separator(self.caglioti_fwhm_coefficient_box)
@@ -743,11 +748,11 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         
         # --------------------------------------
 
-        self.caglioti_eta_image_box = gui.widgetBox(tab_caglioti_eta, "", addSpace=True, orientation="vertical")
+        self.caglioti_eta_image_box = gui.widgetBox(tab_caglioti_eta, "", addSpace=False, orientation="vertical")
         self.caglioti_eta_image_box.setFixedHeight(self.IMAGE_HEIGHT)
         self.caglioti_eta_image_box.setFixedWidth(self.IMAGE_WIDTH)
 
-        self.caglioti_eta_coefficient_box = gui.widgetBox(self.caglioti_eta_image_box, "", addSpace=True, orientation="vertical")
+        self.caglioti_eta_coefficient_box = gui.widgetBox(self.caglioti_eta_image_box, "", addSpace=False, orientation="vertical")
         self.caglioti_eta_coefficient_box.setFixedWidth(200)
 
         gui.separator(self.caglioti_eta_coefficient_box)
@@ -792,7 +797,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         # ----------------------------------------
 
-        self.caglioti_shift_image_box = gui.widgetBox(tab_caglioti_shift, "", addSpace=True, orientation="vertical")
+        self.caglioti_shift_image_box = gui.widgetBox(tab_caglioti_shift, "", addSpace=False, orientation="vertical")
         self.caglioti_shift_image_box.setFixedHeight(self.IMAGE_HEIGHT)
         self.caglioti_shift_image_box.setFixedWidth(self.IMAGE_WIDTH)
 

@@ -3,7 +3,9 @@ import sys
 from oasys.widgets import widget
 
 from orangewidget import  gui
-from PyQt5 import QtGui, QtWidgets
+from oasys.widgets import gui as oasysgui
+
+from PyQt5 import QtGui
 
 from orangecontrib.shadow.util.shadow_objects import ShadowTriggerOut
 
@@ -34,7 +36,7 @@ class Pin(widget.OWWidget):
          self.setFixedHeight(100)
 
          gui.separator(self.controlArea, height=20)
-         gui.label(self.controlArea, self, "         SIMPLE PASSAGE POINT", orientation="horizontal")
+         oasysgui.label(self.controlArea, self, "         SIMPLE PASSAGE POINT", orientation="horizontal")
          gui.rubber(self.controlArea)
 
     def passTrigger(self, trigger):

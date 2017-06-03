@@ -49,7 +49,7 @@ class LoopPoint(widget.OWWidget):
         self.setFixedWidth(400)
         self.setFixedHeight(185)
 
-        button_box = gui.widgetBox(self.controlArea, "", addSpace=True, orientation="horizontal")
+        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=True, orientation="horizontal")
 
         self.start_button = gui.button(button_box, self, "Start Loop", callback=self.startLoop)
         self.start_button.setFixedHeight(45)

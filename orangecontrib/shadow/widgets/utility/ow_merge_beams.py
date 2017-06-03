@@ -1,16 +1,17 @@
 import sys, numpy
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QPalette, QColor, QFont
 
 from orangewidget import widget, gui
 from oasys.widgets import gui as oasysgui
 from orangewidget.settings import Setting
+from oasys.widgets.widget import OWWidget
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
-class MergeBeams(widget.OWWidget):
+class MergeBeams(OWWidget):
 
     name = "Merge Shadow Beam"
     description = "Display Data: Merge Shadow Beam"
@@ -71,9 +72,8 @@ class MergeBeams(widget.OWWidget):
         self.runaction.triggered.connect(self.merge_beams)
         self.addAction(self.runaction)
 
-
-        self.setFixedWidth(400)
-        self.setFixedHeight(400)
+        self.setFixedWidth(470)
+        self.setFixedHeight(470)
 
         gen_box = gui.widgetBox(self.controlArea, "Merge Shadow Beams", addSpace=True, orientation="vertical")
 

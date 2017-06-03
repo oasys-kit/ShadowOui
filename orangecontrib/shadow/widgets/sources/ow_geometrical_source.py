@@ -169,7 +169,7 @@ class GeometricalSource(ow_source.Source):
 
         self.set_SpatialType()
 
-        angular_distribution_box = oasysgui.widgetBox(left_box_2, "Angular Distribution", addSpace=True, orientation="vertical", height=250)
+        angular_distribution_box = oasysgui.widgetBox(left_box_2, "Angular Distribution", addSpace=True, orientation="vertical", height=260)
 
         gui.comboBox(angular_distribution_box, self, "angular_distribution", label="Angular Distribution", labelWidth=355,
                      items=["Flat", "Uniform", "Gaussian", "Conical"], orientation="horizontal", callback=self.set_AngularDistribution)
@@ -223,27 +223,21 @@ class GeometricalSource(ow_source.Source):
         ##############################
         # ENERGY
 
-        left_box_3 = oasysgui.widgetBox(tab_energy, "", addSpace=True, orientation="vertical", height=640)
-
-        gui.separator(left_box_3)
+        left_box_3 = oasysgui.widgetBox(tab_energy, "", addSpace=False, orientation="vertical", height=640)
 
         ######
 
-        energy_wavelength_box = oasysgui.widgetBox(left_box_3, "Energy/Wavelength", addSpace=True, orientation="vertical", height=420)
+        energy_wavelength_box = oasysgui.widgetBox(left_box_3, "Energy/Wavelength", addSpace=False, orientation="vertical", height=430)
 
         gui.comboBox(energy_wavelength_box, self, "photon_energy_distribution", label="Photon Energy Distribution", labelWidth=260,
                      items=["Single Line", "Several Lines", "Uniform", "Relative Intensities", "Gaussian", "User Defined"], orientation="horizontal", callback=self.set_PhotonEnergyDistribution)
 
-        gui.separator(energy_wavelength_box)
-
         gui.comboBox(energy_wavelength_box, self, "units", label="Units", labelWidth=260,
                      items=["Energy/eV", "Wavelength/Å"], orientation="horizontal", callback=self.set_PhotonEnergyDistribution)
 
-        gui.separator(energy_wavelength_box)
-
         self.ewp_box_5 = oasysgui.widgetBox(energy_wavelength_box, "", addSpace=False, orientation="vertical")
 
-        gui.comboBox(self.ewp_box_5, self, "number_of_lines", label="Number of Lines", labelWidth=350,
+        gui.comboBox(self.ewp_box_5, self, "number_of_lines", label="Number of Lines", labelWidth=330,
                      items=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"], orientation="horizontal", callback=self.set_NumberOfLines)
 
         container =  oasysgui.widgetBox(energy_wavelength_box, "", addSpace=False, orientation="horizontal")
@@ -254,7 +248,7 @@ class GeometricalSource(ow_source.Source):
 
         oasysgui.lineEdit(self.ewp_box_1, self, "single_line_value", "Value", labelWidth=260, valueType=float, orientation="horizontal")
 
-        self.ewp_box_2 = oasysgui.widgetBox(self.container_left, "Values", addSpace=True, orientation="vertical")
+        self.ewp_box_2 = oasysgui.widgetBox(self.container_left, "Values", addSpace=False, orientation="vertical")
 
         self.le_line_value_1 = oasysgui.lineEdit(self.ewp_box_2, self, "line_value_1", "Line 1", valueType=float, orientation="horizontal")
         self.le_line_value_2 = oasysgui.lineEdit(self.ewp_box_2, self, "line_value_2", "Line 2", valueType=float, orientation="horizontal")
@@ -272,7 +266,7 @@ class GeometricalSource(ow_source.Source):
         oasysgui.lineEdit(self.ewp_box_3, self, "uniform_minimum", "Minimum Energy/Wavelength", labelWidth=260, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.ewp_box_3, self, "uniform_maximum", "Maximum Energy/Wavelength", labelWidth=260, valueType=float, orientation="horizontal")
 
-        self.ewp_box_4 = oasysgui.widgetBox(self.container_right, "Relative Intensities", addSpace=True, orientation="vertical")
+        self.ewp_box_4 = oasysgui.widgetBox(self.container_right, "Relative Intensities", addSpace=False, orientation="vertical")
         
         self.le_line_int_1 = oasysgui.lineEdit(self.ewp_box_4, self, "line_int_1", "Int 1", labelWidth=100, valueType=float, orientation="horizontal")
         self.le_line_int_2 = oasysgui.lineEdit(self.ewp_box_4, self, "line_int_2", "Int 2", labelWidth=100, valueType=float, orientation="horizontal")
@@ -285,8 +279,7 @@ class GeometricalSource(ow_source.Source):
         self.le_line_int_9 = oasysgui.lineEdit(self.ewp_box_4, self, "line_int_9", "Int 9", labelWidth=100, valueType=float, orientation="horizontal")
         self.le_line_int_10 = oasysgui.lineEdit(self.ewp_box_4, self, "line_int_10", "Int 10", labelWidth=100, valueType=float, orientation="horizontal")
 
-
-        self.ewp_box_6 = oasysgui.widgetBox(energy_wavelength_box, "Gaussian", addSpace=True, orientation="vertical")
+        self.ewp_box_6 = oasysgui.widgetBox(energy_wavelength_box, "Gaussian", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(self.ewp_box_6, self, "gaussian_central_value", "Central Value", labelWidth=260, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.ewp_box_6, self, "gaussian_sigma", "Sigma", labelWidth=260, valueType=float, orientation="horizontal")
@@ -296,7 +289,7 @@ class GeometricalSource(ow_source.Source):
         oasysgui.lineEdit(self.ewp_box_6, self, "gaussian_minimum", "Minimum Energy/Wavelength", labelWidth=260, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.ewp_box_6, self, "gaussian_maximum", "Maximum Energy/Wavelength", labelWidth=260, valueType=float, orientation="horizontal")
 
-        self.ewp_box_7 = oasysgui.widgetBox(energy_wavelength_box, "User Defined", addSpace=True, orientation="vertical")
+        self.ewp_box_7 = oasysgui.widgetBox(energy_wavelength_box, "User Defined", addSpace=False, orientation="vertical")
 
         file_box = oasysgui.widgetBox(self.ewp_box_7, "", addSpace=True, orientation="horizontal", height=25)
 
@@ -312,24 +305,24 @@ class GeometricalSource(ow_source.Source):
 
         self.set_PhotonEnergyDistribution()
 
-        polarization_box = oasysgui.widgetBox(left_box_3, "Polarization", addSpace=True, orientation="vertical", height=145)
+        polarization_box = oasysgui.widgetBox(left_box_3, "Polarization", addSpace=False, orientation="vertical")
 
-        gui.comboBox(polarization_box, self, "polarization", label="Polarization", labelWidth=475,
+        gui.comboBox(polarization_box, self, "polarization", label="Polarization", labelWidth=310,
                      items=["No", "Yes"], orientation="horizontal", callback=self.set_Polarization)
 
-        self.ewp_box_8 = oasysgui.widgetBox(polarization_box, "", addSpace=True, orientation="vertical")
+        self.ewp_box_8 = oasysgui.widgetBox(polarization_box, "", addSpace=False, orientation="vertical")
 
-        gui.comboBox(self.ewp_box_8, self, "coherent_beam", label="Coherent Beam", labelWidth=475,
+        gui.comboBox(self.ewp_box_8, self, "coherent_beam", label="Coherent Beam", labelWidth=310,
                      items=["No", "Yes"], orientation="horizontal")
 
-        oasysgui.lineEdit(self.ewp_box_8, self, "phase_diff", "Phase Difference [deg,0=linear,+90=ell/right]", labelWidth=330, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.ewp_box_8, self, "polarization_degree", "Polarization Degree [cos_s/(cos_s+sin_s)]", labelWidth=330, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_8, self, "phase_diff", "Phase Difference [deg,0=linear,+90=ell/right]", labelWidth=310, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_8, self, "polarization_degree", "Polarization Degree [cos_s/(cos_s+sin_s)]", labelWidth=310, valueType=float, orientation="horizontal")
 
         self.set_Polarization()
 
         ##############################
 
-        left_box_4 = oasysgui.widgetBox(tab_basic, "Reject Rays", addSpace=True, orientation="vertical", height=120)
+        left_box_4 = oasysgui.widgetBox(tab_basic, "Reject Rays", addSpace=True, orientation="vertical", height=130)
 
         gui.comboBox(left_box_4, self, "optimize_source", label="Optimize Source", items=["No", "Using file with phase/space volume)", "Using file with slit/acceptance"],
                      labelWidth=120, callback=self.set_OptimizeSource, orientation="horizontal")
@@ -430,16 +423,16 @@ class GeometricalSource(ow_source.Source):
             self.le_line_value_9.parentWidget().children()[1].setFixedWidth(100)
             self.le_line_value_10.parentWidget().children()[1].setFixedWidth(100)
         else:
-            self.le_line_value_1.parentWidget().children()[1].setFixedWidth(300)
-            self.le_line_value_2.parentWidget().children()[1].setFixedWidth(300)
-            self.le_line_value_3.parentWidget().children()[1].setFixedWidth(300)
-            self.le_line_value_4.parentWidget().children()[1].setFixedWidth(300)
-            self.le_line_value_5.parentWidget().children()[1].setFixedWidth(300)
-            self.le_line_value_6.parentWidget().children()[1].setFixedWidth(300)
-            self.le_line_value_7.parentWidget().children()[1].setFixedWidth(300)
-            self.le_line_value_8.parentWidget().children()[1].setFixedWidth(300)
-            self.le_line_value_9.parentWidget().children()[1].setFixedWidth(300)
-            self.le_line_value_10.parentWidget().children()[1].setFixedWidth(300)
+            self.le_line_value_1.parentWidget().children()[1].setFixedWidth(260)
+            self.le_line_value_2.parentWidget().children()[1].setFixedWidth(260)
+            self.le_line_value_3.parentWidget().children()[1].setFixedWidth(260)
+            self.le_line_value_4.parentWidget().children()[1].setFixedWidth(260)
+            self.le_line_value_5.parentWidget().children()[1].setFixedWidth(260)
+            self.le_line_value_6.parentWidget().children()[1].setFixedWidth(260)
+            self.le_line_value_7.parentWidget().children()[1].setFixedWidth(260)
+            self.le_line_value_8.parentWidget().children()[1].setFixedWidth(260)
+            self.le_line_value_9.parentWidget().children()[1].setFixedWidth(260)
+            self.le_line_value_10.parentWidget().children()[1].setFixedWidth(260)
 
         self.container_right.setVisible(self.photon_energy_distribution == 3)
 

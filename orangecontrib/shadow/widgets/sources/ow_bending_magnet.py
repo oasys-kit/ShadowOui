@@ -90,7 +90,7 @@ class BendingMagnet(ow_source.Source):
         oasysgui.lineEdit(left_box_3, self, "max_vertical_half_divergence_to", "Max vertical half-divergence [rads] To [-]", labelWidth=260, tooltip="Max vertical half-divergence [rads] To [-]", valueType=float, orientation="horizontal")
         gui.comboBox(left_box_3, self, "calculation_mode_combo", label="Calculation Mode", items=["Precomputed", "Exact"], labelWidth=260, orientation="horizontal")
 
-        left_box_4 = oasysgui.widgetBox(tab_bas, "Reject Rays", addSpace=True, orientation="vertical", height=120)
+        left_box_4 = oasysgui.widgetBox(tab_bas, "Reject Rays", addSpace=True, orientation="vertical", height=130)
 
         gui.comboBox(left_box_4, self, "optimize_source", label="Optimize Source", items=["No", "Using file with phase/space volume)", "Using file with slit/acceptance"],
                      labelWidth=120, callback=self.set_OptimizeSource, orientation="horizontal")

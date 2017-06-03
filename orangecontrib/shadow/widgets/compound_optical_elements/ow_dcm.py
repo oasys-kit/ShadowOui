@@ -42,7 +42,7 @@ class DCM(ow_compound_optical_element.CompoundOpticalElement):
         oasysgui.lineEdit(self.tab_bas, self, "photon_energy_ev", "Photon Energy [eV]", labelWidth=280, valueType=float, orientation="horizontal")
 
 
-        file_box = oasysgui.widgetBox(self.tab_bas, "", addSpace=True, orientation="horizontal", height=20)
+        file_box = oasysgui.widgetBox(self.tab_bas, "", addSpace=True, orientation="horizontal", height=25)
 
         self.le_reflectivity_file = oasysgui.lineEdit(file_box, self, "reflectivity_file", "Reflectivity File", labelWidth=150, valueType=str, orientation="horizontal")
 
@@ -225,13 +225,13 @@ class CrystalBox(QtWidgets.QWidget):
         self.dcm = dcm
 
         self.setFixedWidth(self.dcm.CONTROL_AREA_WIDTH-20)
-        self.setFixedHeight(120)
+        self.setFixedHeight(130)
 
         self.has_finite_dimensions = has_finite_dimensions
         self.mirror_width = dimensions[0]
         self.mirror_length = dimensions[1]
 
-        mirror_box = oasysgui.widgetBox(self, "Crystal Input Parameters", addSpace=False, orientation="vertical", height=110)
+        mirror_box = oasysgui.widgetBox(self, "Crystal Input Parameters", addSpace=False, orientation="vertical", height=120)
 
         gui.comboBox(mirror_box, self, "has_finite_dimensions", label="Dimensions", labelWidth=260,
                      items=["Finite", "Infinite"], sendSelectedValue=False, orientation="horizontal", callback=self.set_dimensions)

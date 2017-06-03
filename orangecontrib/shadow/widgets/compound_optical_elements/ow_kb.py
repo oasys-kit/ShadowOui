@@ -62,8 +62,8 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
         gui.comboBox(self.tab_bas, self, "use_different_focal_positions", label="Different Focal Positions", labelWidth=280,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.set_use_different_focal_positions)
 
-        self.focal_positions_box = oasysgui.widgetBox(self.tab_bas, "", addSpace=False, orientation="vertical")
-        self.focal_positions_empty = oasysgui.widgetBox(self.tab_bas, "", addSpace=False, orientation="vertical", height=40)
+        self.focal_positions_box = oasysgui.widgetBox(self.tab_bas, "", addSpace=False, orientation="vertical", height=50)
+        self.focal_positions_empty = oasysgui.widgetBox(self.tab_bas, "", addSpace=False, orientation="vertical", height=50)
 
         self.le_focal_positions_p = oasysgui.lineEdit(self.focal_positions_box, self, "focal_positions_p", "Focal Position P", labelWidth=280, valueType=float, orientation="horizontal")
         self.le_focal_positions_q = oasysgui.lineEdit(self.focal_positions_box, self, "focal_positions_q", "Focal Position Q", labelWidth=280, valueType=float, orientation="horizontal")
@@ -103,7 +103,7 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
         label = self.le_q.parent().layout().itemAt(0).widget()
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_separation.parent().layout().itemAt(0).widget()
-        label.setText("Separation between the Mirrors [" + self.workspace_units_label + "]\n(ffrom center of V.F.M. to center of H.F.M.)")
+        label.setText("Separation between the Mirrors [" + self.workspace_units_label + "]\n(from center of V.F.M. to center of H.F.M.)")
         label = self.le_focal_positions_p.parent().layout().itemAt(0).widget()
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_focal_positions_q.parent().layout().itemAt(0).widget()
@@ -553,7 +553,7 @@ class MirrorBox(QtWidgets.QWidget):
         self.has_surface_error = has_surface_error
         self.surface_error_files = surface_error_files
 
-        mirror_box = oasysgui.widgetBox(self, "Mirror Input Parameters", addSpace=False, orientation="vertical", height=280)
+        mirror_box = oasysgui.widgetBox(self, "Mirror Input Parameters", addSpace=False, orientation="vertical", height=260)
 
         oasysgui.lineEdit(mirror_box, self, "grazing_angles_mrad", "Grazing Angle [mrad]", labelWidth=260, valueType=float, orientation="horizontal",
                            callback=self.kb.dump_grazing_angles_mrad)
@@ -564,13 +564,13 @@ class MirrorBox(QtWidgets.QWidget):
         self.has_finite_dimensions_combo = gui.comboBox(mirror_box, self, "has_finite_dimensions", label="Dimensions", labelWidth=260,
                      items=["Finite", "Infinite"], sendSelectedValue=False, orientation="horizontal", callback=self.set_dimensions)
 
-        self.dimension_box = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=50)
-        self.dimension_box_empty = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=50)
+        self.dimension_box = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="horizontal", height=25)
+        self.dimension_box_empty = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=25)
 
-        self.le_mirror_width = oasysgui.lineEdit(self.dimension_box, self, "mirror_width", "Mirror Width", labelWidth=260, valueType=float, orientation="horizontal",
+        self.le_mirror_width = oasysgui.lineEdit(self.dimension_box, self, "mirror_width", "Width", labelWidth=100, valueType=float, orientation="horizontal",
                            callback=self.kb.dump_dimensions_0)
 
-        self.le_mirror_length = oasysgui.lineEdit(self.dimension_box, self, "mirror_length", "Mirror Length", labelWidth=260, valueType=float, orientation="horizontal",
+        self.le_mirror_length = oasysgui.lineEdit(self.dimension_box, self, "mirror_length", "Length", labelWidth=100, valueType=float, orientation="horizontal",
                            callback=self.kb.dump_dimensions_1)
 
         self.set_dimensions()
@@ -581,13 +581,13 @@ class MirrorBox(QtWidgets.QWidget):
                                                     sendSelectedValue=False, orientation="horizontal",
                                                     callback=self.set_reflectivity_kind)
 
-        self.reflectivity_box = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical")
-        self.reflectivity_box_empty = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=20)
+        self.reflectivity_box = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=25)
+        self.reflectivity_box_empty = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=25)
 
         file_box = oasysgui.widgetBox(self.reflectivity_box, "", addSpace=False, orientation="horizontal")
 
         self.le_reflectivity_files = oasysgui.lineEdit(file_box, self, "reflectivity_files", "Reflectivity File",
-                                                       labelWidth=100, valueType=str, orientation="horizontal",
+                                                       labelWidth=110, valueType=str, orientation="horizontal",
                                                        callback=self.kb.dump_reflectivity_files)
 
         gui.button(file_box, self, "...", callback=self.selectFilePrerefl)
@@ -599,14 +599,14 @@ class MirrorBox(QtWidgets.QWidget):
                                                     items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal",
                                                     callback=self.set_has_surface_error)
 
-        self.surface_error_box = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical")
-        self.surface_error_box_empty = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical")
+        self.surface_error_box = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=25)
+        self.surface_error_box_empty = oasysgui.widgetBox(mirror_box, "", addSpace=False, orientation="vertical", height=25)
 
 
         file_box = oasysgui.widgetBox(self.surface_error_box, "", addSpace=False, orientation="horizontal")
 
         self.le_surface_error_files = oasysgui.lineEdit(file_box, self, "surface_error_files", "Surface Error File",
-                                                        labelWidth=100, valueType=str,orientation="horizontal",
+                                                        labelWidth=110, valueType=str,orientation="horizontal",
                                                         callback=self.kb.dump_surface_error_files)
 
         gui.button(file_box, self, "...", callback=self.selectFileSurfaceError)

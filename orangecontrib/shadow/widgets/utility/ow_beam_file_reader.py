@@ -39,9 +39,9 @@ class BeamFileReader(oasyswidget.OWWidget):
         self.setFixedHeight(150)
 
         left_box_1 = oasysgui.widgetBox(self.controlArea, "Shadow File Selection", addSpace=True, orientation="vertical",
-                                         width=570, height=60)
+                                         width=570, height=70)
 
-        figure_box = oasysgui.widgetBox(left_box_1, "", addSpace=True, orientation="horizontal", width=550, height=50)
+        figure_box = oasysgui.widgetBox(left_box_1, "", addSpace=True, orientation="horizontal", width=550, height=35)
 
         self.le_beam_file_name = oasysgui.lineEdit(figure_box, self, "beam_file_name", "Shadow File Name",
                                                     labelWidth=120, valueType=str, orientation="horizontal")
@@ -49,7 +49,7 @@ class BeamFileReader(oasyswidget.OWWidget):
 
         gui.button(figure_box, self, "...", callback=self.selectFile)
 
-        gui.separator(left_box_1, height=20)
+        #gui.separator(left_box_1, height=20)
 
         button = gui.button(self.controlArea, self, "Read Shadow File", callback=self.read_file)
         button.setFixedHeight(45)

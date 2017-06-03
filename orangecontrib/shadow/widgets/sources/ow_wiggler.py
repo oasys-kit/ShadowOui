@@ -76,7 +76,7 @@ class Wiggler(ow_source.Source):
         tab_bas = oasysgui.createTabPage(tabs_setting, "Basic Setting")
         tab_sou = oasysgui.createTabPage(tabs_setting, "Source Setting")
 
-        left_box_1 = oasysgui.widgetBox(tab_bas, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical", height=130)
+        left_box_1 = oasysgui.widgetBox(tab_bas, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical", height=140)
 
         oasysgui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=260, valueType=int, orientation="horizontal")
 
@@ -86,7 +86,7 @@ class Wiggler(ow_source.Source):
 
         ##############################
 
-        left_box_4 = oasysgui.widgetBox(tab_bas, "Reject Rays", addSpace=True, orientation="vertical", height=200)
+        left_box_4 = oasysgui.widgetBox(tab_bas, "Reject Rays", addSpace=True, orientation="vertical", height=220)
 
 
         gui.comboBox(left_box_4, self, "optimize_source_combo", label="Optimize Source", items=["No", "Using file with phase space volume", "Using slit/acceptance"],
@@ -119,14 +119,14 @@ class Wiggler(ow_source.Source):
                      items=["None", "Begin.dat", "Debug (begin.dat + start.xx/end.xx)"],
                      sendSelectedValue=False, orientation="horizontal")
 
-        left_box_2 = oasysgui.widgetBox(tab_sou, "Machine Parameters", addSpace=True, orientation="vertical", height=260)
+        left_box_2 = oasysgui.widgetBox(tab_sou, "Machine Parameters", addSpace=False, orientation="vertical", height=280)
 
         oasysgui.lineEdit(left_box_2, self, "energy", "Electron Energy [GeV]", tooltip="Energy [GeV]", labelWidth=260, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(left_box_2, self, "electron_current", "Electron Current [mA]", tooltip="Electron Current [mA]", labelWidth=260, valueType=float, orientation="horizontal")
 
         gui.comboBox(left_box_2, self, "use_emittances_combo", label="Use Emittances?", items=["No", "Yes"], callback=self.set_UseEmittances, labelWidth=260, orientation="horizontal")
 
-        self.box_use_emittances = oasysgui.widgetBox(left_box_2, "", addSpace=True, orientation="vertical")
+        self.box_use_emittances = oasysgui.widgetBox(left_box_2, "", addSpace=False, orientation="vertical")
 
         self.le_sigma_x = oasysgui.lineEdit(self.box_use_emittances, self, "sigma_x", "Sigma X", labelWidth=260, tooltip="Sigma X", valueType=float, orientation="horizontal")
         self.le_sigma_z = oasysgui.lineEdit(self.box_use_emittances, self, "sigma_z", "Sigma Z", labelWidth=260, tooltip="Sigma Z", valueType=float, orientation="horizontal")
@@ -137,7 +137,7 @@ class Wiggler(ow_source.Source):
 
         self.set_UseEmittances()
 
-        left_box_10 = oasysgui.widgetBox(tab_sou, "Electron Beam Parameters", addSpace=True, orientation="vertical", height=140)
+        left_box_10 = oasysgui.widgetBox(tab_sou, "Electron Beam Parameters", addSpace=False, orientation="vertical", height=145)
 
         gui.comboBox(left_box_10, self, "shift_betax_flag", label="Shift Transversal Velocity", items=["No shift", "Half excursion", "Minimum", "Maximum", "Value at zero", "User value"], callback=self.set_ShiftBetaXFlag, labelWidth=260, orientation="horizontal")
         self.shift_betax_value_box = oasysgui.widgetBox(left_box_10, "", addSpace=False, orientation="vertical", height=25)
@@ -153,7 +153,7 @@ class Wiggler(ow_source.Source):
         self.set_ShiftXFlag()
         self.set_ShiftBetaXFlag()
 
-        left_box_3 = oasysgui.widgetBox(tab_sou, "Wiggler Parameters", addSpace=True, orientation="vertical", height=140)
+        left_box_3 = oasysgui.widgetBox(tab_sou, "Wiggler Parameters", addSpace=False, orientation="vertical", height=145)
 
         gui.comboBox(left_box_3, self, "type_combo", label="Type", items=["conventional/sinusoidal", "B from file (y [m], Bz [T])", "B from harmonics"], callback=self.set_Type, labelWidth=220, orientation="horizontal")
 

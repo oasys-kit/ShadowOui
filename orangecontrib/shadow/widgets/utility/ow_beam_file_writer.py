@@ -1,14 +1,15 @@
 import os
 
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtWidgets
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
+from oasys.widgets.widget import OWWidget
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
-class BeamFileWriter(widget.OWWidget):
+class BeamFileWriter(OWWidget):
     name = "Shadow File Writer"
     description = "Utility: Shadow File Writer"
     icon = "icons/beam_file_writer.png"
@@ -40,24 +41,22 @@ class BeamFileWriter(widget.OWWidget):
         self.addAction(self.runaction)
 
         self.setFixedWidth(590)
-        self.setFixedHeight(180)
+        self.setFixedHeight(190)
 
         left_box_1 = oasysgui.widgetBox(self.controlArea, "Shadow File Selection", addSpace=True, orientation="vertical",
-                                         width=570, height=100)
+                                         width=570, height=110)
 
         gui.checkBox(left_box_1, self, 'is_automatic_run', 'Automatic Execution')
 
         gui.separator(left_box_1, height=10)
 
-        figure_box = oasysgui.widgetBox(left_box_1, "", addSpace=True, orientation="horizontal", width=550, height=50)
+        figure_box = oasysgui.widgetBox(left_box_1, "", addSpace=True, orientation="horizontal", width=550, height=35)
 
         self.le_beam_file_name = oasysgui.lineEdit(figure_box, self, "beam_file_name", "Shadow File Name",
                                                     labelWidth=120, valueType=str, orientation="horizontal")
         self.le_beam_file_name.setFixedWidth(330)
 
         gui.button(figure_box, self, "...", callback=self.selectFile)
-
-        gui.separator(left_box_1, height=10)
 
         button = gui.button(self.controlArea, self, "Write Shadow File", callback=self.write_file)
         button.setFixedHeight(45)
