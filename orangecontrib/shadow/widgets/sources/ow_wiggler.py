@@ -80,7 +80,7 @@ class Wiggler(ow_source.Source):
 
         oasysgui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=260, valueType=int, orientation="horizontal")
 
-        oasysgui.lineEdit(left_box_1, self, "seed", "Seed", tooltip="Seed", labelWidth=260, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "seed", "Seed (0=clock)", tooltip="Seed", labelWidth=260, valueType=int, orientation="horizontal")
         oasysgui.lineEdit(left_box_1, self, "e_min", "Minimum Photon Energy [eV]", tooltip="Minimum Energy [eV]", labelWidth=260, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(left_box_1, self, "e_max", "Maximum Photon Energy [eV]", tooltip="Maximum Energy [eV]", labelWidth=260, valueType=float, orientation="horizontal")
 

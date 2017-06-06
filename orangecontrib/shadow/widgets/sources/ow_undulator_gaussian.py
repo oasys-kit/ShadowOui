@@ -57,7 +57,7 @@ class UndulatorGaussian(ow_source.Source, WidgetDecorator):
         left_box_1 = oasysgui.widgetBox(tab_bas, "Monte Carlo and Energy Spectrum", addSpace=True, orientation="vertical")
 
         oasysgui.lineEdit(left_box_1, self, "number_of_rays", "Number of Rays", tooltip="Number of Rays", labelWidth=250, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(left_box_1, self, "seed", "Seed", tooltip="Seed", labelWidth=250, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_1, self, "seed", "Seed", tooltip="Seed (0=clock)", labelWidth=250, valueType=int, orientation="horizontal")
         oasysgui.lineEdit(left_box_1, self, "energy", "Set undulator to energy [eV]", tooltip="Set undulator to energy [eV]", labelWidth=250, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(left_box_1, self, "delta_e", "Delta Energy [eV]", tooltip="Delta Energy [eV]", labelWidth=250, valueType=float, orientation="horizontal")
 

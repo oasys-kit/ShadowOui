@@ -133,7 +133,7 @@ class GeometricalSource(ow_source.Source):
         self.sample_box_1 = oasysgui.widgetBox(left_box_1, "", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(self.sample_box_1, self, "number_of_rays", "Number of Random Rays", labelWidth=260, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(self.sample_box_1, self, "seed", "Seed", labelWidth=260, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.sample_box_1, self, "seed", "Seed (0=clock)", labelWidth=260, valueType=int, orientation="horizontal")
 
 
         ##############################

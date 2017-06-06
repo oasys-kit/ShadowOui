@@ -111,12 +111,12 @@ class HybridScreen(AutomaticElement):
                      callback=self.set_DiffPlane,
                      sendSelectedValue=False, orientation="horizontal")
 
-        gui.comboBox(box_1, self, "ghy_calcType", label="Calculation Type", labelWidth=100,
+        gui.comboBox(box_1, self, "ghy_calcType", label="Calculation", labelWidth=70,
                      items=["Diffraction by Simple Aperture",
                             "Diffraction by Mirror or Grating Size",
                             "Diffraction by Mirror Size + Figure Errors",
                             "Diffraction by Grating Size + Figure Errors",
-                            "Diffraction by Lens or C.R.L. Size",],
+                            "Diffraction by Lens/C.R.L./Transfocator Size",],
                      callback=self.set_CalculationType,
                      sendSelectedValue=False, orientation="horizontal")
 

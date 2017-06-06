@@ -255,8 +255,8 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
             raise Exception("Grating calculation runs for Gratings widgets only")
 
     if input_parameters.ghy_calcType == 5:
-        if not ("Lens" in widget_class_name or "CRL" in widget_class_name):
-            raise Exception("CRL calculation runs for Lens or CRL widgets only")
+        if not ("Lens" in widget_class_name or "CRL" in widget_class_name or "Transfocator"):
+            raise Exception("CRL calculation runs for Lens, CRLs or Transfocators widgets only")
 
     if input_parameters.ghy_n_oe < 0:
         beam_before = history_entry._input_beam.duplicate()
@@ -323,22 +323,34 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
                     ticket_tangential = mirror_beam._beam.histo1(2, nbins=500, nolost=0, ref=23) # ALL THE RAYS FOR ANALYSIS
                     ticket_sagittal = mirror_beam._beam.histo1(1, nbins=500, nolost=0, ref=23) # ALL THE RAYS  FOR ANALYSIS
 
-            elif input_parameters.ghy_calcType == 5: # CRL
-                first_oe = history_entry._shadow_oe_end._oe.list[0]
+            elif input_parameters.ghy_calcType == 5: # CRL/LENS/TRANSFOCATOR
+                oes_list = history_entry._shadow_oe_end._oe.list
 
-                if first_oe.FHIT_C == 0: #infinite
-                    is_infinite = True
-                else:
-                    beam_at_the_slit = beam_before.duplicate(history=False)
-                    beam_at_the_slit._beam.retrace(first_oe.T_SOURCE) # TRACE INCIDENT BEAM UP TO THE SLIT
+                beam_at_the_slit = beam_before.duplicate(history=False)
+                beam_at_the_slit._beam.retrace(oes_list[0].T_SOURCE) # TRACE INCIDENT BEAM UP TO THE SLIT
 
-                    max_tangential = numpy.abs(first_oe.RLEN2)
-                    min_tangential = -numpy.abs(first_oe.RLEN2)
-                    max_sagittal = numpy.abs(first_oe.RWIDX2)
-                    min_sagittal = -numpy.abs(first_oe.RWIDX2)
+                is_infinite = True
+                max_tangential_list = []
+                min_tangential_list = []
+                max_sagittal_list = []
+                min_sagittal_list = []
+                for oe in oes_list:
+                    if oe.FHIT_C == 1:
+                        is_infinite = False
 
-                    ticket_tangential = beam_at_the_slit._beam.histo1(3, nbins=500, nolost=1, ref=23)
-                    ticket_sagittal = beam_at_the_slit._beam.histo1(1, nbins=500, nolost=1, ref=23)
+                        max_tangential_list.append(numpy.abs(oe.RLEN2))
+                        min_tangential_list.append(-numpy.abs(oe.RLEN2))
+                        max_sagittal_list.append(numpy.abs(oe.RWIDX2))
+                        min_sagittal_list.append(-numpy.abs(oe.RWIDX2))
+
+                if not is_infinite:
+                    max_tangential = numpy.min(max_tangential_list)
+                    min_tangential = numpy.max(min_tangential_list)
+                    max_sagittal = numpy.min(max_sagittal_list)
+                    min_sagittal = numpy.max(min_sagittal_list)
+
+                ticket_tangential = beam_at_the_slit._beam.histo1(3, nbins=500, nolost=1, ref=23)
+                ticket_sagittal = beam_at_the_slit._beam.histo1(1, nbins=500, nolost=1, ref=23)
 
             ############################################################################
 

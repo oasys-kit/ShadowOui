@@ -161,6 +161,8 @@ class OpticalElement(ow_generic_element.GenericElement):
 
     object_side_focal_distance = Setting(0.0)
     image_side_focal_distance = Setting(0.0)
+
+    incidence_angle_respect_to_normal_type = Setting(0)
     incidence_angle_respect_to_normal = Setting(0.0)
 
     surface_curvature = Setting(0)
@@ -410,7 +412,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
         tab_pos = oasysgui.createTabPage(tabs_setting, "Position")
 
-        upper_box = oasysgui.widgetBox(tab_pos, "Optical Element Orientation", addSpace=True, orientation="vertical")
+        upper_box = oasysgui.widgetBox(tab_pos, "Optical Element Orientation", addSpace=False, orientation="vertical")
 
         self.le_source_plane_distance = oasysgui.lineEdit(upper_box, self, "source_plane_distance", "Source Plane Distance", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_image_plane_distance  = oasysgui.lineEdit(upper_box, self, "image_plane_distance", "Image Plane Distance", labelWidth=260, valueType=float, orientation="horizontal")
@@ -511,7 +513,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
 
         if self.graphical_options.is_screen_slit:
-            box_aperturing = oasysgui.widgetBox(tab_bas, "Screen/Slit Shape", addSpace=True, orientation="vertical", height=240)
+            box_aperturing = oasysgui.widgetBox(tab_bas, "Screen/Slit Shape", addSpace=False, orientation="vertical", height=240)
 
             gui.comboBox(box_aperturing, self, "aperturing", label="Aperturing", labelWidth=350,
                          items=["No", "Yes"],
@@ -546,7 +548,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             self.set_Aperturing()
 
-            box_absorption = oasysgui.widgetBox(tab_bas, "Absorption Parameters", addSpace=True, orientation="vertical", height=130)
+            box_absorption = oasysgui.widgetBox(tab_bas, "Absorption Parameters", addSpace=False, orientation="vertical", height=130)
 
             gui.comboBox(box_absorption, self, "absorption", label="Absorption", labelWidth=350,
                          items=["No", "Yes"],
@@ -559,7 +561,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             self.le_thickness = oasysgui.lineEdit(self.box_absorption_1, self, "thickness", "Thickness", labelWidth=300, valueType=float, orientation="horizontal")
 
-            file_box = oasysgui.widgetBox(self.box_absorption_1, "", addSpace=True, orientation="horizontal", height=25)
+            file_box = oasysgui.widgetBox(self.box_absorption_1, "", addSpace=False, orientation="horizontal", height=25)
 
             self.le_opt_const_file_name = oasysgui.lineEdit(file_box, self, "opt_const_file_name", "Opt. const. file name", labelWidth=130, valueType=str, orientation="horizontal")
 
@@ -629,7 +631,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                         gui.comboBox(surface_box, self, "surface_shape_parameters", label="Type", items=["internal/calculated", "external/user_defined"], labelWidth=240,
                                      callback=self.set_IntExt_Parameters, sendSelectedValue=False, orientation="horizontal")
 
-                        self.surface_box_ext = oasysgui.widgetBox(surface_box, "", addSpace=True, orientation="vertical", height=150)
+                        self.surface_box_ext = oasysgui.widgetBox(surface_box, "", addSpace=False, orientation="vertical", height=150)
                         gui.separator(self.surface_box_ext)
 
                         if self.graphical_options.is_spheric:
@@ -644,23 +646,34 @@ class OpticalElement(ow_generic_element.GenericElement):
                         elif self.graphical_options.is_paraboloid:
                             self.le_paraboloid_parameter = oasysgui.lineEdit(self.surface_box_ext, self, "paraboloid_parameter", "Paraboloid parameter", labelWidth=260, valueType=float, orientation="horizontal")
 
-                        self.surface_box_int = oasysgui.widgetBox(surface_box, "", addSpace=True, orientation="vertical", height=150)
+                        self.surface_box_int = oasysgui.widgetBox(surface_box, "", addSpace=False, orientation="vertical", height=150)
 
                         gui.comboBox(self.surface_box_int, self, "focii_and_continuation_plane", label="Focii and Continuation Plane", labelWidth=280,
                                      items=["Coincident", "Different"], callback=self.set_FociiCont_Parameters, sendSelectedValue=False, orientation="horizontal")
 
-                        self.surface_box_int_2 = oasysgui.widgetBox(self.surface_box_int, "", addSpace=True, orientation="vertical", width=self.INNER_BOX_WIDTH_L1)
-                        self.surface_box_int_2_empty = oasysgui.widgetBox(self.surface_box_int, "", addSpace=True, orientation="vertical", width=self.INNER_BOX_WIDTH_L1)
+                        self.surface_box_int_2 = oasysgui.widgetBox(self.surface_box_int, "", addSpace=False, orientation="vertical", width=self.INNER_BOX_WIDTH_L1-5)
+                        self.surface_box_int_2_empty = oasysgui.widgetBox(self.surface_box_int, "", addSpace=False, orientation="vertical", width=self.INNER_BOX_WIDTH_L1-5)
 
                         self.w_object_side_focal_distance = oasysgui.lineEdit(self.surface_box_int_2, self, "object_side_focal_distance", "Object Side_Focal Distance", labelWidth=260, valueType=float, orientation="horizontal")
                         self.w_image_side_focal_distance = oasysgui.lineEdit(self.surface_box_int_2, self, "image_side_focal_distance", "Image Side_Focal Distance", labelWidth=260, valueType=float, orientation="horizontal")
-                        self.w_incidence_angle_respect_to_normal = oasysgui.lineEdit(self.surface_box_int_2, self, "incidence_angle_respect_to_normal", "Incidence Angle Respect to Normal [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+
+                        gui.comboBox(self.surface_box_int_2, self, "incidence_angle_respect_to_normal_type", label="Incidence Angle", labelWidth=260,
+                                         items=["Copied from position",
+                                                "User value"],
+                                         sendSelectedValue=False, orientation="horizontal", callback=self.set_incidenceAngleRespectToNormal)
+
+                        self.surface_box_int_3 = oasysgui.widgetBox(self.surface_box_int_2, "", addSpace=False, orientation="vertical", height=25, width=self.INNER_BOX_WIDTH_L1-5)
+                        self.surface_box_int_3_empty = oasysgui.widgetBox(self.surface_box_int_2, "", addSpace=False, orientation="vertical", height=25, width=self.INNER_BOX_WIDTH_L1-5)
+
+                        self.w_incidence_angle_respect_to_normal = oasysgui.lineEdit(self.surface_box_int_3, self, "incidence_angle_respect_to_normal", "Incidence Angle Respect to Normal [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+
+                        self.set_incidenceAngleRespectToNormal()
 
                         if self.graphical_options.is_paraboloid:
                             gui.comboBox(self.surface_box_int, self, "focus_location", label="Focus location", labelWidth=220, items=["Image is at Infinity", "Source is at Infinity"], sendSelectedValue=False, orientation="horizontal")
 
                         if self.graphical_options.is_toroidal:
-                            surface_box_thorus = oasysgui.widgetBox(surface_box, "", addSpace=True, orientation="vertical")
+                            surface_box_thorus = oasysgui.widgetBox(surface_box, "", addSpace=False, orientation="vertical")
 
                             gui.comboBox(surface_box_thorus, self, "toroidal_mirror_pole_location", label="Torus pole location", labelWidth=145,
                                          items=["lower/outer (concave/concave)",
@@ -670,13 +683,13 @@ class OpticalElement(ow_generic_element.GenericElement):
                                          sendSelectedValue=False, orientation="horizontal")
 
                         if not self.graphical_options.is_toroidal:
-                            surface_box_2 = oasysgui.widgetBox(tab_bas_shape, "Cylinder Parameter", addSpace=True, orientation="vertical", height=125)
+                            surface_box_2 = oasysgui.widgetBox(tab_bas_shape, "Cylinder Parameter", addSpace=False, orientation="vertical", height=125)
 
                             gui.comboBox(surface_box_2, self, "surface_curvature", label="Surface Curvature", items=["Concave", "Convex"], labelWidth=280, sendSelectedValue=False, orientation="horizontal")
                             gui.comboBox(surface_box_2, self, "is_cylinder", label="Cylindrical", items=["No", "Yes"],  labelWidth=350, callback=self.set_isCyl_Parameters, sendSelectedValue=False, orientation="horizontal")
 
-                            self.surface_box_cyl = oasysgui.widgetBox(surface_box_2, "", addSpace=True, orientation="vertical", width=self.INNER_BOX_WIDTH_L1)
-                            self.surface_box_cyl_empty = oasysgui.widgetBox(surface_box_2, "", addSpace=True, orientation="vertical", width=self.INNER_BOX_WIDTH_L1)
+                            self.surface_box_cyl = oasysgui.widgetBox(surface_box_2, "", addSpace=False, orientation="vertical", width=self.INNER_BOX_WIDTH_L1)
+                            self.surface_box_cyl_empty = oasysgui.widgetBox(surface_box_2, "", addSpace=False, orientation="vertical", width=self.INNER_BOX_WIDTH_L1)
 
                             gui.comboBox(self.surface_box_cyl, self, "cylinder_orientation", label="Cylinder Orientation (deg) [CCW from X axis]", labelWidth=350,
                                          items=[0, 90],
@@ -685,7 +698,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                             self.set_isCyl_Parameters()
 
-                    view_shape_box = oasysgui.widgetBox(tab_bas_shape, "Calculated Surface Shape", addSpace=True, orientation="vertical")
+                    view_shape_box = oasysgui.widgetBox(tab_bas_shape, "Calculated Surface Shape", addSpace=False, orientation="vertical")
 
                     if not self.graphical_options.is_conic_coefficients:
                         if self.graphical_options.is_spheric:
@@ -727,18 +740,18 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     gui.separator(refl_box, width=self.INNER_BOX_WIDTH_L2, height=10)
 
-                    self.refl_box_pol = oasysgui.widgetBox(refl_box, "", addSpace=True, orientation="vertical", width=self.INNER_BOX_WIDTH_L1)
-                    self.refl_box_pol_empty = oasysgui.widgetBox(refl_box, "", addSpace=True, orientation="vertical", width=self.INNER_BOX_WIDTH_L1)
+                    self.refl_box_pol = oasysgui.widgetBox(refl_box, "", addSpace=False, orientation="vertical", width=self.INNER_BOX_WIDTH_L1)
+                    self.refl_box_pol_empty = oasysgui.widgetBox(refl_box, "", addSpace=False, orientation="vertical", width=self.INNER_BOX_WIDTH_L1)
 
                     gui.comboBox(self.refl_box_pol, self, "source_of_reflectivity", label="Source of Reflectivity", labelWidth=150,
                                  items=["file generated by PREREFL", "electric susceptibility", "file generated by pre_mlayer", "user defined file"],
                                  callback=self.set_ReflSource_Parameters, sendSelectedValue=False, orientation="horizontal")
 
-                    self.refl_box_pol_1 = oasysgui.widgetBox(self.refl_box_pol, "", addSpace=True, orientation="vertical")
+                    self.refl_box_pol_1 = oasysgui.widgetBox(self.refl_box_pol, "", addSpace=False, orientation="vertical")
 
                     gui.separator(self.refl_box_pol_1, width=self.INNER_BOX_WIDTH_L1)
 
-                    file_box = oasysgui.widgetBox(self.refl_box_pol_1, "", addSpace=True, orientation="horizontal", height=25)
+                    file_box = oasysgui.widgetBox(self.refl_box_pol_1, "", addSpace=False, orientation="horizontal", height=25)
 
                     self.le_file_prerefl = oasysgui.lineEdit(file_box, self, "file_prerefl", "File Name", labelWidth=100, valueType=str, orientation="horizontal")
 
@@ -749,9 +762,9 @@ class OpticalElement(ow_generic_element.GenericElement):
                     oasysgui.lineEdit(self.refl_box_pol_2, self, "alpha", "Alpha [epsilon=(1-alpha)+i gamma]", labelWidth=260, valueType=float, orientation="horizontal")
                     oasysgui.lineEdit(self.refl_box_pol_2, self, "gamma", "Gamma [epsilon=(1-alpha)+i gamma]", labelWidth=260, valueType=float, orientation="horizontal")
 
-                    self.refl_box_pol_3 = gui.widgetBox(self.refl_box_pol, "", addSpace=True, orientation="vertical")
+                    self.refl_box_pol_3 = gui.widgetBox(self.refl_box_pol, "", addSpace=False, orientation="vertical")
 
-                    file_box = oasysgui.widgetBox(self.refl_box_pol_3, "", addSpace=True, orientation="horizontal", height=25)
+                    file_box = oasysgui.widgetBox(self.refl_box_pol_3, "", addSpace=False, orientation="horizontal", height=25)
 
                     self.le_file_prerefl_m = oasysgui.lineEdit(file_box, self, "file_prerefl_m", "File Name", labelWidth=100, valueType=str, orientation="horizontal")
 
@@ -761,9 +774,9 @@ class OpticalElement(ow_generic_element.GenericElement):
                                  items=["No", "Yes"],
                                  sendSelectedValue=False, orientation="horizontal")
 
-                    self.refl_box_pol_4 = gui.widgetBox(self.refl_box_pol, "", addSpace=True, orientation="vertical")
+                    self.refl_box_pol_4 = gui.widgetBox(self.refl_box_pol, "", addSpace=False, orientation="vertical")
 
-                    file_box = oasysgui.widgetBox(self.refl_box_pol_4, "", addSpace=True, orientation="horizontal", height=25)
+                    file_box = oasysgui.widgetBox(self.refl_box_pol_4, "", addSpace=False, orientation="horizontal", height=25)
 
                     self.le_file_reflectivity = oasysgui.lineEdit(file_box, self, "file_reflectivity", "File Name", labelWidth=100, valueType=str, orientation="horizontal")
 
@@ -772,9 +785,9 @@ class OpticalElement(ow_generic_element.GenericElement):
                     self.set_Refl_Parameters()
                 elif self.graphical_options.is_crystal:
 
-                    dcm_box = oasysgui.widgetBox(tab_dcm, "Optical Parameters", addSpace=True, orientation="vertical")
+                    dcm_box = oasysgui.widgetBox(tab_dcm, "Optical Parameters", addSpace=False, orientation="vertical")
 
-                    figure_box = oasysgui.widgetBox(dcm_box, "", addSpace=True, orientation="horizontal")
+                    figure_box = oasysgui.widgetBox(dcm_box, "", addSpace=False, orientation="horizontal")
 
                     label = QtWidgets.QLabel("")
                     label.setPixmap(QtGui.QPixmap(self.image_path))
@@ -784,7 +797,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     self.le_vertical_quote = oasysgui.lineEdit(dcm_box, self, "vertical_quote", "H (Vertical Distance)", labelWidth=260, valueType=float, orientation="horizontal", callback=self.calculate_dcm_distances)
                     self.le_total_distance = oasysgui.lineEdit(dcm_box, self, "total_distance", "D (First Crystal to Next O.E.)", labelWidth=260, valueType=float, orientation="horizontal", callback=self.calculate_dcm_distances)
 
-                    dcm_box_1 = oasysgui.widgetBox(dcm_box, "", addSpace=True, orientation="horizontal", width=(self.INNER_BOX_WIDTH_L0+3))
+                    dcm_box_1 = oasysgui.widgetBox(dcm_box, "", addSpace=False, orientation="horizontal", width=(self.INNER_BOX_WIDTH_L0+3))
                     oasysgui.lineEdit(dcm_box_1, self, "twotheta_bragg", "Bragg Angle [deg]",
                                        labelWidth=190, valueType=float, orientation="horizontal", callback=self.calculate_dcm_distances)
 
@@ -792,7 +805,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     gui.separator(dcm_box_1)
 
-                    dcm_box_2 = oasysgui.widgetBox(dcm_box, "", addSpace=True, orientation="horizontal")
+                    dcm_box_2 = oasysgui.widgetBox(dcm_box, "", addSpace=False, orientation="horizontal")
 
                     self.le_d_1 = oasysgui.lineEdit(dcm_box_2, self, "d_1", "d_1", labelWidth=100, valueType=float, orientation="horizontal")
                     self.le_d_1.setReadOnly(True)
@@ -808,7 +821,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     dcm_button2_2 = gui.button(dcm_box_2, self, "set as I.P.", callback=self.set_d1_as_image_plane)
 
-                    dcm_box_3 = oasysgui.widgetBox(dcm_box, "", addSpace=True, orientation="horizontal")
+                    dcm_box_3 = oasysgui.widgetBox(dcm_box, "", addSpace=False, orientation="horizontal")
 
                     self.le_d_2 = oasysgui.lineEdit(dcm_box_3, self, "d_2", "d_2", labelWidth=100, valueType=float, orientation="horizontal")
                     self.le_d_2.setReadOnly(True)
@@ -834,7 +847,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     self.tab_cryst_1 = oasysgui.createTabPage(tabs_crystal_setting, "Diffraction Settings")
                     self.tab_cryst_2 = oasysgui.createTabPage(tabs_crystal_setting, "Geometric Setting")
 
-                    crystal_box = oasysgui.widgetBox(self.tab_cryst_1, "Diffraction Parameters", addSpace=True,
+                    crystal_box = oasysgui.widgetBox(self.tab_cryst_1, "Diffraction Parameters", addSpace=False,
                                                       orientation="vertical", height=240)
 
                     gui.comboBox(crystal_box, self, "diffraction_geometry", label="Diffraction Geometry", labelWidth=250,
@@ -848,11 +861,11 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     gui.separator(crystal_box, height=10)
 
-                    self.crystal_box_1 = oasysgui.widgetBox(crystal_box, "", addSpace=True, orientation="vertical",
+                    self.crystal_box_1 = oasysgui.widgetBox(crystal_box, "", addSpace=False, orientation="vertical",
                                                              height=150)
 
 
-                    file_box = oasysgui.widgetBox(self.crystal_box_1, "", addSpace=True, orientation="horizontal", height=30)
+                    file_box = oasysgui.widgetBox(self.crystal_box_1, "", addSpace=False, orientation="horizontal", height=30)
 
                     self.le_file_crystal_parameters = oasysgui.lineEdit(file_box, self, "file_crystal_parameters", "File with crystal\nparameters",
                                        labelWidth=150, valueType=str, orientation="horizontal")
@@ -865,12 +878,12 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     gui.separator(self.crystal_box_1, height=10)
 
-                    self.autosetting_box = oasysgui.widgetBox(self.crystal_box_1, "", addSpace=True,
+                    self.autosetting_box = oasysgui.widgetBox(self.crystal_box_1, "", addSpace=False,
                                                                orientation="vertical")
-                    self.autosetting_box_empty = oasysgui.widgetBox(self.crystal_box_1, "", addSpace=True,
+                    self.autosetting_box_empty = oasysgui.widgetBox(self.crystal_box_1, "", addSpace=False,
                                                                      orientation="vertical")
 
-                    self.autosetting_box_units = oasysgui.widgetBox(self.autosetting_box, "", addSpace=True, orientation="vertical")
+                    self.autosetting_box_units = oasysgui.widgetBox(self.autosetting_box, "", addSpace=False, orientation="vertical")
 
                     gui.comboBox(self.autosetting_box_units, self, "units_in_use", label="Units in use", labelWidth=260,
                                  items=["eV", "Angstroms"],
@@ -884,7 +897,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     oasysgui.lineEdit(self.autosetting_box_units_2, self, "photon_wavelength", "Set wavelength [Å]", labelWidth=260, valueType=float, orientation="horizontal")
 
-                    self.crystal_box_2 = oasysgui.widgetBox(crystal_box, "", addSpace=True, orientation="horizontal",
+                    self.crystal_box_2 = oasysgui.widgetBox(crystal_box, "", addSpace=False, orientation="horizontal",
                                                              height=150)
 
                     self.le_file_diffraction_profile = oasysgui.lineEdit(self.crystal_box_2, self, "file_diffraction_profile",
@@ -895,7 +908,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     self.set_DiffractionCalculation()
 
-                    mosaic_box = oasysgui.widgetBox(self.tab_cryst_2, "Geometric Parameters", addSpace=True,
+                    mosaic_box = oasysgui.widgetBox(self.tab_cryst_2, "Geometric Parameters", addSpace=False,
                                                      orientation="vertical", height=350)
 
                     gui.comboBox(mosaic_box, self, "mosaic_crystal", label="Mosaic Crystal", labelWidth=355,
@@ -949,7 +962,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                     tab_grating_2 = oasysgui.createTabPage(tabs_grating_setting, "Ruling Setting")
                     tab_grating_1 = oasysgui.createTabPage(tabs_grating_setting, "Diffraction Settings")
 
-                    grating_box = oasysgui.widgetBox(tab_grating_1, "Diffraction Parameters", addSpace=True, orientation="vertical", height=350)
+                    grating_box = oasysgui.widgetBox(tab_grating_1, "Diffraction Parameters", addSpace=False, orientation="vertical", height=350)
 
                     oasysgui.lineEdit(grating_box, self, "grating_diffraction_order", "Diffraction Order (- for inside orders)", labelWidth=260, valueType=int, orientation="horizontal")
 
@@ -959,10 +972,10 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     gui.separator(grating_box, height=10)
 
-                    self.grating_autosetting_box = oasysgui.widgetBox(grating_box, "", addSpace=True, orientation="vertical")
-                    self.grating_autosetting_box_empty = oasysgui.widgetBox(grating_box, "", addSpace=True, orientation="vertical")
+                    self.grating_autosetting_box = oasysgui.widgetBox(grating_box, "", addSpace=False, orientation="vertical")
+                    self.grating_autosetting_box_empty = oasysgui.widgetBox(grating_box, "", addSpace=False, orientation="vertical")
 
-                    self.grating_autosetting_box_units = oasysgui.widgetBox(self.grating_autosetting_box, "", addSpace=True, orientation="vertical")
+                    self.grating_autosetting_box_units = oasysgui.widgetBox(self.grating_autosetting_box, "", addSpace=False, orientation="vertical")
 
                     gui.comboBox(self.grating_autosetting_box_units, self, "grating_units_in_use", label="Units in use", labelWidth=260,
                                  items=["eV", "Angstroms"],
@@ -976,7 +989,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     oasysgui.lineEdit(self.grating_autosetting_box_units_2, self, "grating_photon_wavelength", "Set wavelength [Å]", labelWidth=260, valueType=float, orientation="horizontal")
 
-                    self.grating_mount_box = oasysgui.widgetBox(grating_box, "", addSpace=True, orientation="vertical")
+                    self.grating_mount_box = oasysgui.widgetBox(grating_box, "", addSpace=False, orientation="vertical")
 
                     gui.comboBox(self.grating_mount_box, self, "grating_mount_type", label="Mount Type", labelWidth=250,
                                  items=["TGM/Seya", "ERG", "Constant Incidence Angle", "Costant Diffraction Angle", "Hunter"],
@@ -984,7 +997,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     gui.separator(self.grating_mount_box)
 
-                    self.grating_mount_box_1 = oasysgui.widgetBox(self.grating_mount_box, "", addSpace=True, orientation="vertical")
+                    self.grating_mount_box_1 = oasysgui.widgetBox(self.grating_mount_box, "", addSpace=False, orientation="vertical")
 
                     oasysgui.lineEdit(self.grating_mount_box_1, self, "grating_hunter_blaze_angle", "Blaze angle [deg]", labelWidth=250, valueType=float, orientation="horizontal")
                     gui.comboBox(self.grating_mount_box_1, self, "grating_hunter_grating_selected", label="Grating selected", labelWidth=250,
@@ -994,14 +1007,14 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     self.set_GratingAutosetting()
 
-                    efficiency_box = oasysgui.widgetBox(tab_grating_1, "Efficiency Parameters", addSpace=True, orientation="vertical")
+                    efficiency_box = oasysgui.widgetBox(tab_grating_1, "Efficiency Parameters", addSpace=False, orientation="vertical")
 
 
                     gui.comboBox(efficiency_box, self, "grating_use_efficiency", label="Use Efficiency", labelWidth=250,
                                  items=["No", "User File"], sendSelectedValue=False, orientation="horizontal", callback=self.set_Efficiency)
 
-                    self.efficiency_box_1 = oasysgui.widgetBox(efficiency_box, "", addSpace=True, orientation="horizontal", height=30)
-                    self.efficiency_box_empty = oasysgui.widgetBox(efficiency_box, "", addSpace=True, orientation="horizontal", height=30, width=400)
+                    self.efficiency_box_1 = oasysgui.widgetBox(efficiency_box, "", addSpace=False, orientation="horizontal", height=30)
+                    self.efficiency_box_empty = oasysgui.widgetBox(efficiency_box, "", addSpace=False, orientation="horizontal", height=30, width=400)
 
                     self.le_grating_file_efficiency = oasysgui.lineEdit(self.efficiency_box_1, self, "grating_file_efficiency", "File Name\n(Energy vs. Effic.)",
                                                                         labelWidth=110, valueType=str, orientation="horizontal")
@@ -1012,7 +1025,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     ################
 
-                    ruling_box = oasysgui.widgetBox(tab_grating_2, "Ruling Parameters", addSpace=True, orientation="vertical", height=380)
+                    ruling_box = oasysgui.widgetBox(tab_grating_2, "Ruling Parameters", addSpace=False, orientation="vertical", height=380)
 
                     gui.comboBox(ruling_box, self, "grating_ruling_type", label="Ruling Type", labelWidth=150,
                                  items=["Constant on X-Y Plane", "Constant on Mirror Surface", "Holographic", "Fan Type", "Polynomial Line Density"],
@@ -1020,7 +1033,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                     gui.separator(ruling_box)
 
-                    self.ruling_box_1 = oasysgui.widgetBox(ruling_box, "", addSpace=True, orientation="horizontal")
+                    self.ruling_box_1 = oasysgui.widgetBox(ruling_box, "", addSpace=False, orientation="horizontal")
 
                     self.ruling_density_label = gui.widgetLabel(self.ruling_box_1, "Ruling Density at origin", labelWidth=260)
                     oasysgui.lineEdit(self.ruling_box_1, self, "grating_ruling_density", "", labelWidth=1, valueType=float, orientation="horizontal")
@@ -1164,7 +1177,7 @@ class OpticalElement(ow_generic_element.GenericElement):
 
                 self.faceted_surface_box =  oasysgui.widgetBox(mod_surf_box, box="", addSpace=False, orientation="vertical")
 
-                file_box = oasysgui.widgetBox(self.faceted_surface_box, "", addSpace=True, orientation="horizontal", height=25)
+                file_box = oasysgui.widgetBox(self.faceted_surface_box, "", addSpace=False, orientation="horizontal", height=25)
 
                 self.le_ms_file_facet_descr = oasysgui.lineEdit(file_box, self, "ms_file_facet_descr", "File w/ facet descr.", labelWidth=125, valueType=str, orientation="horizontal")
 
@@ -1194,7 +1207,7 @@ class OpticalElement(ow_generic_element.GenericElement):
                 self.surface_roughness_box =  oasysgui.widgetBox(mod_surf_box, box="", addSpace=False, orientation="vertical")
 
 
-                file_box = oasysgui.widgetBox(self.surface_roughness_box, "", addSpace=True, orientation="horizontal", height=25)
+                file_box = oasysgui.widgetBox(self.surface_roughness_box, "", addSpace=False, orientation="horizontal", height=25)
 
                 self.le_ms_file_surf_roughness = oasysgui.lineEdit(file_box, self, "ms_file_surf_roughness", "Surf. Rough. File w/ PSD fn", valueType=str, orientation="horizontal")
 
@@ -1213,13 +1226,13 @@ class OpticalElement(ow_generic_element.GenericElement):
                 self.kumakhov_lens_box_1 =  oasysgui.widgetBox(self.kumakhov_lens_box, box="", addSpace=False, orientation="vertical")
                 self.kumakhov_lens_box_2 =  oasysgui.widgetBox(self.kumakhov_lens_box, box="", addSpace=False, orientation="vertical")
 
-                file_box = oasysgui.widgetBox(self.kumakhov_lens_box_1, "", addSpace=True, orientation="horizontal", height=25)
+                file_box = oasysgui.widgetBox(self.kumakhov_lens_box_1, "", addSpace=False, orientation="horizontal", height=25)
 
                 self.le_ms_file_with_parameters_rz = oasysgui.lineEdit(file_box, self, "ms_file_with_parameters_rz", "File with parameters (r(z))", labelWidth=185, valueType=str, orientation="horizontal")
 
                 gui.button(file_box, self, "...", callback=self.selectFileWithParametersRz)
 
-                file_box = oasysgui.widgetBox(self.kumakhov_lens_box_2, "", addSpace=True, orientation="horizontal", height=25)
+                file_box = oasysgui.widgetBox(self.kumakhov_lens_box_2, "", addSpace=False, orientation="horizontal", height=25)
 
                 self.le_ms_file_with_parameters_rz2 = oasysgui.lineEdit(file_box, self, "ms_file_with_parameters_rz2", "File with parameters (r(z)^2)", labelWidth=185, valueType=str, orientation="horizontal")
 
@@ -1238,13 +1251,13 @@ class OpticalElement(ow_generic_element.GenericElement):
                 oasysgui.lineEdit(self.segmented_mirror_box, self, "ms_length_of_segments_y", "Length of segments (Y)", labelWidth=260, valueType=float, orientation="horizontal")
 
 
-                file_box = oasysgui.widgetBox(self.segmented_mirror_box, "", addSpace=True, orientation="horizontal", height=25)
+                file_box = oasysgui.widgetBox(self.segmented_mirror_box, "", addSpace=False, orientation="horizontal", height=25)
 
                 self.le_ms_file_orientations = oasysgui.lineEdit(file_box, self, "ms_file_orientations", "File w/ orientations", labelWidth=155, valueType=str, orientation="horizontal")
 
                 gui.button(file_box, self, "...", callback=self.selectFileOrientations)
 
-                file_box = oasysgui.widgetBox(self.segmented_mirror_box, "", addSpace=True, orientation="horizontal", height=25)
+                file_box = oasysgui.widgetBox(self.segmented_mirror_box, "", addSpace=False, orientation="horizontal", height=25)
 
                 self.le_ms_file_polynomial = oasysgui.lineEdit(file_box, self, "ms_file_polynomial", "File w/ polynomial", labelWidth=155, valueType=str, orientation="horizontal")
 
@@ -1431,6 +1444,12 @@ class OpticalElement(ow_generic_element.GenericElement):
     def set_FociiCont_Parameters(self):
         self.surface_box_int_2.setVisible(self.focii_and_continuation_plane == 1)
         self.surface_box_int_2_empty.setVisible(self.focii_and_continuation_plane == 0)
+
+    def set_incidenceAngleRespectToNormal(self):
+        self.surface_box_int_3.setVisible(self.incidence_angle_respect_to_normal_type==1)
+        self.surface_box_int_3_empty.setVisible(self.incidence_angle_respect_to_normal_type==0)
+
+        self.calculate_incidence_angle_mrad()
 
     def set_isCyl_Parameters(self):
         self.surface_box_cyl.setVisible(self.is_cylinder == 1)
@@ -1889,10 +1908,11 @@ class OpticalElement(ow_generic_element.GenericElement):
             self.incidence_angle_mrad = round(math.radians(self.incidence_angle_deg)*1000, 2)
 
         if self.graphical_options.is_curved and not self.graphical_options.is_conic_coefficients:
-            if self.angles_respect_to == 0:
-                self.incidence_angle_respect_to_normal = self.incidence_angle_deg
-            else:
-                self.incidence_angle_respect_to_normal = round(90 - self.incidence_angle_deg, 3)
+            if self.incidence_angle_respect_to_normal_type == 0:
+                if self.angles_respect_to == 0:
+                    self.incidence_angle_respect_to_normal = self.incidence_angle_deg
+                else:
+                    self.incidence_angle_respect_to_normal = round(90 - self.incidence_angle_deg, 3)
 
         if self.graphical_options.is_mirror:
             self.reflection_angle_deg = self.incidence_angle_deg
@@ -1915,10 +1935,11 @@ class OpticalElement(ow_generic_element.GenericElement):
             self.reflection_angle_mrad = self.incidence_angle_mrad
 
         if self.graphical_options.is_curved and not self.graphical_options.is_conic_coefficients:
-            if self.angles_respect_to == 0:
-                self.incidence_angle_respect_to_normal = self.incidence_angle_deg
-            else:
-                self.incidence_angle_respect_to_normal = round(90 - self.incidence_angle_deg, 3)
+            if self.incidence_angle_respect_to_normal_type == 0:
+                if self.angles_respect_to == 0:
+                    self.incidence_angle_respect_to_normal = self.incidence_angle_deg
+                else:
+                    self.incidence_angle_respect_to_normal = round(90 - self.incidence_angle_deg, 3)
 
     def calculate_reflection_angle_deg(self):
         if self.angles_respect_to == 0:
