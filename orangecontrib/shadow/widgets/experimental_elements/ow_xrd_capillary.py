@@ -1122,7 +1122,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                 self.noise[angle_index] = 0
 
             self.plotResult(clear_caglioti=False)
-            self.writeOutFile()
+            self.writeOutFile(reset=True)
 
     def resetSimulation(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Simulated Data?"):
@@ -1148,7 +1148,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
             self.plotResult()
             self.plot_canvas_area.clearImages()
-            self.writeOutFile()
+            self.writeOutFile(reset=True)
 
             self.setTabsAndButtonsEnabled(True)
 
@@ -1401,7 +1401,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
             self.setStatusMessage("")
             self.progressBarFinished()
 
-            raise exception
+            #raise exception
 
     #######################################################
 
@@ -2551,50 +2551,61 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
     ############################################################
 
-    def writeOutFile(self):
-        out_file = open(self.output_file_name, "w")
-        out_file.write("tth counts error\n")
+    def writeOutFile(self, reset=False):
+        base_dir = os.path.dirname(self.output_file_name).strip()
+        base_dir = base_dir if base_dir != "" else "."
 
-        for angle_index in range(0, len(self.twotheta_angles)):
-            out_file.write(str(self.twotheta_angles[angle_index]) + " "
-                           + str(self.calculateSignal(angle_index)) + " "
-                           + str(self.calculateStatisticError(angle_index))
-                           + "\n")
-            out_file.flush()
+        base_name = base_dir + "/" + os.path.splitext(os.path.basename(self.output_file_name))[0]
 
-        out_file.close()
+        if not os.path.exists(base_dir):
+            if not reset:
+                raise Exception("Base Directory '" + base_dir + "' does not exists")
+        else:
+            if not os.access(base_dir, os.W_OK):
+                if not reset:
+                    raise Exception("No writing permissions  on directory '" + base_dir + "'")
+            else:
+                out_file = open(self.output_file_name, "w")
+                out_file.write("tth counts error\n")
 
-        base_name = os.path.dirname(self.output_file_name) + "/" + os.path.splitext(os.path.basename(self.output_file_name))[0]
+                for angle_index in range(0, len(self.twotheta_angles)):
+                    out_file.write(str(self.twotheta_angles[angle_index]) + " "
+                                   + str(self.calculateSignal(angle_index)) + " "
+                                   + str(self.calculateStatisticError(angle_index))
+                                   + "\n")
+                    out_file.flush()
 
-        caglioti_1_out_file = open(base_name + "_InstrumentalBroadening.dat","w")
-        caglioti_1_out_file.write("tth fwhm\n")
+                out_file.close()
 
-        for angle_index in range(0, len(self.caglioti_angles)):
-            caglioti_1_out_file.write(str(self.caglioti_angles[angle_index]) + " "
-                           + str(self.caglioti_fwhm[angle_index]) + "\n")
-            caglioti_1_out_file.flush()
+                caglioti_1_out_file = open(base_name + "_InstrumentalBroadening.dat","w")
+                caglioti_1_out_file.write("tth fwhm\n")
 
-        caglioti_1_out_file.close()
+                for angle_index in range(0, len(self.caglioti_angles)):
+                    caglioti_1_out_file.write(str(self.caglioti_angles[angle_index]) + " "
+                                   + str(self.caglioti_fwhm[angle_index]) + "\n")
+                    caglioti_1_out_file.flush()
 
-        caglioti_2_out_file = open(base_name + "_InstrumentalEta.dat","w")
-        caglioti_2_out_file.write("tth eta\n")
+                caglioti_1_out_file.close()
 
-        for angle_index in range(0, len(self.caglioti_angles)):
-            caglioti_2_out_file.write(str(self.caglioti_angles[angle_index]) + " "
-                           + str(self.caglioti_eta[angle_index]) + "\n")
-            caglioti_2_out_file.flush()
+                caglioti_2_out_file = open(base_name + "_InstrumentalEta.dat","w")
+                caglioti_2_out_file.write("tth eta\n")
 
-        caglioti_2_out_file.close()
+                for angle_index in range(0, len(self.caglioti_angles)):
+                    caglioti_2_out_file.write(str(self.caglioti_angles[angle_index]) + " "
+                                   + str(self.caglioti_eta[angle_index]) + "\n")
+                    caglioti_2_out_file.flush()
 
-        caglioti_3_out_file = open(base_name + "_InstrumentalPeakShift.dat","w")
-        caglioti_3_out_file.write("tth peak_shift\n")
+                caglioti_2_out_file.close()
 
-        for angle_index in range(0, len(self.caglioti_angles)):
-            caglioti_3_out_file.write(str(self.caglioti_angles[angle_index]) + " "
-                           + str(self.caglioti_shift[angle_index]) + "\n")
-            caglioti_3_out_file.flush()
+                caglioti_3_out_file = open(base_name + "_InstrumentalPeakShift.dat","w")
+                caglioti_3_out_file.write("tth peak_shift\n")
 
-        caglioti_3_out_file.close()
+                for angle_index in range(0, len(self.caglioti_angles)):
+                    caglioti_3_out_file.write(str(self.caglioti_angles[angle_index]) + " "
+                                   + str(self.caglioti_shift[angle_index]) + "\n")
+                    caglioti_3_out_file.flush()
+
+                caglioti_3_out_file.close()
 
     ############################################################
 

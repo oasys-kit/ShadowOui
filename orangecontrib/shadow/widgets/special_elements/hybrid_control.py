@@ -381,26 +381,38 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
 
             # REQUEST FILTERING OR REFUSING
 
-            if not (input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4) and input_parameters.ghy_automatic == 1:
-                if input_parameters.ghy_diff_plane == 1 and calculation_parameters.beam_not_cut_in_x :
-                    calculation_parameters.ff_beam = input_parameters.shadow_beam
-
-                    raise HybridNotNecessaryWarning("O.E. contains almost the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
-                elif input_parameters.ghy_diff_plane == 2 and calculation_parameters.beam_not_cut_in_z:
-                    calculation_parameters.ff_beam = input_parameters.shadow_beam
-
-                    raise HybridNotNecessaryWarning("O.E. contains almost the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
-                elif input_parameters.ghy_diff_plane == 3: # BOTH
-                    if calculation_parameters.beam_not_cut_in_x and calculation_parameters.beam_not_cut_in_z:
+            if (input_parameters.ghy_calcType != 3 and input_parameters.ghy_calcType != 4):
+                if input_parameters.ghy_automatic == 1:
+                    if input_parameters.ghy_diff_plane == 1 and calculation_parameters.beam_not_cut_in_x :
                         calculation_parameters.ff_beam = input_parameters.shadow_beam
 
                         raise HybridNotNecessaryWarning("O.E. contains almost the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
-                    else: # REMOVE UNUSEFUL CALCULATION
-                        if calculation_parameters.beam_not_cut_in_x:
-                            input_parameters.ghy_diff_plane == 2
-                        elif calculation_parameters.beam_not_cut_in_z:
-                            input_parameters.ghy_diff_plane == 1
 
+                    if input_parameters.ghy_diff_plane == 2 and calculation_parameters.beam_not_cut_in_z:
+                        calculation_parameters.ff_beam = input_parameters.shadow_beam
+
+                        raise HybridNotNecessaryWarning("O.E. contains almost the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
+
+                    if input_parameters.ghy_diff_plane == 3 or input_parameters.ghy_diff_plane == 4: # BOTH
+                        if calculation_parameters.beam_not_cut_in_x and calculation_parameters.beam_not_cut_in_z:
+                            calculation_parameters.ff_beam = input_parameters.shadow_beam
+
+                            raise HybridNotNecessaryWarning("O.E. contains almost the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
+
+                        if calculation_parameters.beam_not_cut_in_x:
+                            input_parameters.ghy_diff_plane = 2
+
+                            QMessageBox.warning(input_parameters.widget,
+                                                "Warning",
+                                                "O.E. does not cut the beam in the Sagittal plane:\nCalculation is done in Tangential plane only",
+                                                QMessageBox.Ok)
+                        elif calculation_parameters.beam_not_cut_in_z:
+                            input_parameters.ghy_diff_plane = 1
+
+                            QMessageBox.warning(input_parameters.widget,
+                                                "Warning",
+                                                "O.E. does not cut the beam in the Tangential plane:\nCalculation is done in Sagittal plane only",
+                                                QMessageBox.Ok)
 
 ##########################################################################
 
