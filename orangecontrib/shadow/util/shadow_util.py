@@ -830,7 +830,7 @@ class ShadowMath:
 
     @classmethod
     def vectorial_product(cls, vector1, vector2):
-        result = [0, 0, 0]
+        result = [0.0, 0.0, 0.0]
 
         result[0] = vector1[1]*vector2[2] - vector1[2]*vector2[1]
         result[1] = -(vector1[0]*vector2[2] - vector1[2]*vector2[0])
@@ -848,7 +848,7 @@ class ShadowMath:
 
     @classmethod
     def vector_multiply(cls, vector, constant):
-        result = [0, 0, 0]
+        result = [0.0, 0.0, 0.0]
 
         result[0] = vector[0] * constant
         result[1] = vector[1] * constant
@@ -858,7 +858,7 @@ class ShadowMath:
 
     @classmethod
     def vector_divide(cls, vector, constant):
-        result = [0, 0, 0]
+        result = [0.0, 0.0, 0.0]
 
         result[0] = vector[0] / constant
         result[1] = vector[1] / constant
@@ -872,7 +872,7 @@ class ShadowMath:
 
     @classmethod
     def vector_sum(cls, vector1, vector2):
-        result = [0, 0, 0]
+        result = [0.0, 0.0, 0.0]
 
         result[0] = vector1[0] + vector2[0]
         result[1] = vector1[1] + vector2[1]
@@ -882,7 +882,7 @@ class ShadowMath:
 
     @classmethod
     def vector_difference(cls, vector1, vector2):
-        result = [0, 0, 0]
+        result = [0.0, 0.0, 0.0]
 
         result[0] = vector1[0] - vector2[0]
         result[1] = vector1[1] - vector2[1]
@@ -902,11 +902,11 @@ class ShadowMath:
     ##########################################################################
     @classmethod
     def vector_rotate(cls, rotation_axis, rotation_angle, vector):
+
         result_temp_1 = ShadowMath.vector_multiply(vector, numpy.cos(rotation_angle))
         result_temp_2 = ShadowMath.vector_multiply(ShadowMath.vectorial_product(rotation_axis, vector),
                                                    numpy.sin(rotation_angle))
-        result_temp_3 = ShadowMath.vector_multiply(rotation_axis,
-                                                   ShadowMath.scalar_product(rotation_axis, vector)) * (1 - numpy.cos(rotation_angle))
+        result_temp_3 = ShadowMath.vector_multiply(ShadowMath.vector_multiply(rotation_axis, ShadowMath.scalar_product(rotation_axis, vector)), (1 - numpy.cos(rotation_angle)))
 
         result = ShadowMath.vector_sum(result_temp_1,
                                        ShadowMath.vector_sum(result_temp_2, result_temp_3))
