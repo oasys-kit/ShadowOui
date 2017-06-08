@@ -111,7 +111,7 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
 
         box = oasysgui.widgetBox(tab_step_1, "VLS-PGM Layout Parameters", orientation="vertical")
 
-        self.le_r_a = oasysgui.lineEdit(box, self, "r_a", "Distance Source-Grating", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_r_a = oasysgui.lineEdit(box, self, "r_a", "Distance Source Plane-Grating", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_r_b = oasysgui.lineEdit(box, self, "r_b", "Distance Grating-Exit Slits", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_h = oasysgui.lineEdit(box, self, "h", "Vertical Distance Mirror-Grating", labelWidth=260, valueType=float, orientation="horizontal")
 
@@ -323,8 +323,8 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
             new_alpha =  numpy.arcsin(new_sin_alpha)
             new_beta  = numpy.arcsin(new_sin_alpha-m*self.k*newwavelength)
 
-            self.raytracing_alpha = round(numpy.degrees(new_alpha), 3)
-            self.raytracing_beta  = round(numpy.degrees(new_beta), 3)
+            self.raytracing_alpha = round(numpy.degrees(new_alpha), 6)
+            self.raytracing_beta  = round(numpy.degrees(new_beta), 6)
             #_new_beta = numpy.arccos(new_c*numpy.cos(new_alpha))
 
             print("####################################################")
