@@ -403,7 +403,7 @@ class ShadowPlot:
             if not ytitle is None: self.plot_canvas.setGraphYLabel(ytitle)
             if not title is None: self.plot_canvas.setGraphTitle(title)
             self.plot_canvas.setDrawModeEnabled(True, 'rectangle')
-            self.plot_canvas.setZoomModeEnabled(True)
+            self.plot_canvas.setInteractiveMode(True)
 
             if ticket['fwhm'] == None: ticket['fwhm'] = 0.0
 
@@ -618,7 +618,7 @@ class ShadowPlot:
         if not ytitle is None: plot_window.setGraphYLabel(ytitle)
         if not title is None: plot_window.setGraphTitle(title)
         plot_window.setDrawModeEnabled(True, 'rectangle')
-        plot_window.setZoomModeEnabled(True)
+        plot_window.setInteractiveMode(True)
 
     @classmethod
     def plot_histo_preview(cls, plot_window, beam, col, nolost, ref, title, xtitle, ytitle, conv=1.0):
@@ -639,7 +639,7 @@ class ShadowPlot:
         if not ytitle is None: plot_window.setGraphYLabel(ytitle)
         if not title is None: plot_window.setGraphTitle(title)
         plot_window.setDrawModeEnabled(True, 'rectangle')
-        plot_window.setZoomModeEnabled(True)
+        plot_window.setInteractiveMode(True)
         if min(histogram) < 0:
             plot_window.setGraphYLimits(min(histogram), max(histogram))
         else:

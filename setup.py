@@ -8,7 +8,7 @@ except AttributeError:
     from setuptools import find_packages, setup
 
 NAME = 'OASYS1-ShadowOui'
-VERSION = '1.4.14'
+VERSION = '1.4.16'
 ISRELEASED = False
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
@@ -41,6 +41,7 @@ SETUP_REQUIRES = (
 
 INSTALL_REQUIRES = (
     'oasys1>=1.0.11',
+    'wofryshadow',
     'shadow3'
 )
 
@@ -57,6 +58,7 @@ PACKAGE_DATA = {
     "orangecontrib.shadow.widgets.preprocessor":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.shadow.widgets.sources":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.shadow.widgets.utility":["icons/*.png", "icons/*.jpg"],
+    "orangecontrib.shadow.widgets.wofry":["icons/*.png", "icons/*.jpg"],
 }
 
 NAMESPACE_PACAKGES = ["orangecontrib", "orangecontrib.shadow", "orangecontrib.shadow.widgets"]
@@ -73,6 +75,7 @@ ENTRY_POINTS = {
         "Shadow PreProcessor = orangecontrib.shadow.widgets.preprocessor",
         "Shadow Sources = orangecontrib.shadow.widgets.sources",
         "Shadow Utility = orangecontrib.shadow.widgets.utility",
+        "Shadow Wofry = orangecontrib.shadow.widgets.wofry",
     ),
     'oasys.menus' : ("shadowmenu = orangecontrib.shadow.menu",)
 }

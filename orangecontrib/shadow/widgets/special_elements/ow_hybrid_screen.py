@@ -302,7 +302,7 @@ class HybridScreen(AutomaticElement):
             self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
             self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='blue')
             self.plot_canvas[plot_canvas_index].setDrawModeEnabled(True, 'rectangle')
-            self.plot_canvas[plot_canvas_index].setZoomModeEnabled(True)
+            self.plot_canvas[plot_canvas_index].setInteractiveMode(True)
 
             self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
