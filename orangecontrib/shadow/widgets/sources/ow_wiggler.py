@@ -311,8 +311,7 @@ class Wiggler(ow_source.Source):
         matplotlib.rcParams['axes.formatter.useoffset']='False'
 
         self.wiggler_plot_canvas[plot_canvas_index].addCurve(x, y, title, symbol='', color='blue', replace=True) #'+', '^', ','
-        self.wiggler_plot_canvas[plot_canvas_index].setDrawModeEnabled(True, 'rectangle')
-        self.wiggler_plot_canvas[plot_canvas_index].setInteractiveMode(True)
+        self.wiggler_plot_canvas[plot_canvas_index].setInteractiveMode(mode='zoom')
 
         if not title is None: self.wiggler_plot_canvas[plot_canvas_index].setGraphTitle(title)
         if not xtitle is None: self.wiggler_plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)

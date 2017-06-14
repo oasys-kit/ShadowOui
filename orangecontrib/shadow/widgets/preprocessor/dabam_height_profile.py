@@ -346,16 +346,14 @@ class OWdabam_height_profile(OWWidget):
         self.plot_canvas[0].setActiveCurveColor(color='blue')
         self.plot_canvas[0].setGraphYLabel("Z [nm]")
         self.plot_canvas[0].setGraphTitle("Heights Profile")
-        self.plot_canvas[0].setDrawModeEnabled(True, 'rectangle')
-        self.plot_canvas[0].setInteractiveMode(True)
+        self.plot_canvas[0].setInteractiveMode(mode='zoom')
 
         self.plot_canvas[1] = oasysgui.plotWindow(roi=False, control=False, position=True)
         self.plot_canvas[1].setDefaultPlotLines(True)
         self.plot_canvas[1].setActiveCurveColor(color='blue')
         self.plot_canvas[1].setGraphYLabel("Zp [$\mu$rad]")
         self.plot_canvas[1].setGraphTitle("Slopes Profile")
-        self.plot_canvas[1].setDrawModeEnabled(True, 'rectangle')
-        self.plot_canvas[1].setInteractiveMode(True)
+        self.plot_canvas[1].setInteractiveMode(mode='zoom')
 
         self.plot_canvas[2] = oasysgui.plotWindow(roi=False, control=False, position=True)
         self.plot_canvas[2].setDefaultPlotLines(True)
@@ -363,8 +361,7 @@ class OWdabam_height_profile(OWWidget):
         self.plot_canvas[2].setGraphXLabel("f [m^-1]")
         self.plot_canvas[2].setGraphYLabel("PSD [m^3]")
         self.plot_canvas[2].setGraphTitle("Power Spectral Density of Heights Profile")
-        self.plot_canvas[2].setDrawModeEnabled(True, 'rectangle')
-        self.plot_canvas[2].setInteractiveMode(True)
+        self.plot_canvas[2].setInteractiveMode(mode='zoom')
         self.plot_canvas[2].setXAxisLogarithmic(True)
         self.plot_canvas[2].setYAxisLogarithmic(True)
 
@@ -374,8 +371,7 @@ class OWdabam_height_profile(OWWidget):
         self.plot_canvas[3].setGraphXLabel("f [m^-1]")
         self.plot_canvas[3].setGraphYLabel("CSD [m^3]")
         self.plot_canvas[3].setGraphTitle("Cumulative Spectral Density of Heights Profile")
-        self.plot_canvas[3].setDrawModeEnabled(True, 'rectangle')
-        self.plot_canvas[3].setInteractiveMode(True)
+        self.plot_canvas[3].setInteractiveMode(mode='zoom')
         self.plot_canvas[3].setXAxisLogarithmic(True)
 
         self.plot_canvas[4] = oasysgui.plotWindow(roi=False, control=False, position=True)
@@ -384,8 +380,7 @@ class OWdabam_height_profile(OWWidget):
         self.plot_canvas[4].setGraphXLabel("Length [m]")
         self.plot_canvas[4].setGraphYLabel("ACF")
         self.plot_canvas[4].setGraphTitle("Autocovariance Function of Heights Profile")
-        self.plot_canvas[4].setDrawModeEnabled(True, 'rectangle')
-        self.plot_canvas[4].setInteractiveMode(True)
+        self.plot_canvas[4].setInteractiveMode(mode='zoom')
 
         self.figure = Figure(figsize=(self.IMAGE_HEIGHT, self.IMAGE_HEIGHT)) # QUADRATA!
         self.figure.patch.set_facecolor('white')
