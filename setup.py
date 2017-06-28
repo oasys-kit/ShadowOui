@@ -8,7 +8,7 @@ except AttributeError:
     from setuptools import find_packages, setup
 
 NAME = 'OASYS1-ShadowOui'
-VERSION = '1.4.19'
+VERSION = '1.4.20'
 ISRELEASED = False
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
@@ -80,8 +80,6 @@ ENTRY_POINTS = {
     'oasys.menus' : ("shadowmenu = orangecontrib.shadow.menu",)
 }
 
-import site, shutil, sys, platform
-
 if __name__ == '__main__':
     setup(
           name = NAME,
@@ -107,51 +105,3 @@ if __name__ == '__main__':
           include_package_data = True,
           zip_safe = False,
           )
-
-    try:
-        is_install = False
-        is_develop = False
-
-        for arg in sys.argv:
-            if arg == 'install': is_install = True
-            if arg == 'develop': is_develop = True
-
-        if is_install and not is_develop:
-            site_packages_dir = None
-
-            for directory in site.getsitepackages():
-                if os.path.exists(directory + "/oasys"):
-                    site_packages_dir = directory  + "/"
-                    break
-
-            if not site_packages_dir is None:
-                if platform.system()== 'Darwin':
-                    version, _ , _ = platform.mac_ver()
-                    version_data = version.split('.')
-
-                    if int(version_data[0]) < 10 or int(version_data[1]) < 8: raise Exception("MacOSX version not supported (>= 10.8)")
-                    if int(version_data[1]) < 10: version_dir = "10.8"
-                    else: version_dir = "10.10"
-                    
-                    libraries_dir = "libraries/darwin/"
-                    libraries_version_dir = libraries_dir + version_dir + "/"
-
-                    if not os.path.exists(site_packages_dir + "xrayhelp.py"):
-                        shutil.copyfile(libraries_dir + "xrayhelp.py", site_packages_dir + "xrayhelp.py")
-                    if not os.path.exists(site_packages_dir + "xraylib.py"):
-                        shutil.copyfile(libraries_dir + "xraylib.py", site_packages_dir + "xraylib.py")
-                    if not os.path.exists(site_packages_dir + "xraymessages.py"):
-                        shutil.copyfile(libraries_dir + "xraymessages.py", site_packages_dir + "xraymessages.py")
-                    if not os.path.exists(site_packages_dir + "_xraylib.la"):
-                        shutil.copyfile(libraries_version_dir + "_xraylib.la", site_packages_dir + "_xraylib.la")
-                    if not os.path.exists(site_packages_dir + "_xraylib.so"):
-                        shutil.copyfile(libraries_version_dir + "_xraylib.so", site_packages_dir + "_xraylib.so")
-                    if not os.path.exists(site_packages_dir + "xraylib_np.la"):
-                        shutil.copyfile(libraries_version_dir + "xraylib_np.la", site_packages_dir + "xraylib_np.la")
-                    if not os.path.exists(site_packages_dir + "xraylib_np.so"):
-                        shutil.copyfile(libraries_version_dir + "xraylib_np.so", site_packages_dir + "xraylib_np.so")
-                elif platform.system() == 'Linux':
-                    pass
-    except Exception as exception:
-        print(str(exception))
-        raise exception
