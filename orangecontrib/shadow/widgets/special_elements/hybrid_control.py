@@ -1200,7 +1200,7 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
     # 2017-01 Luca Rebuffi
     imagesize = min(imagesize,
                     input_parameters.ghy_npeak*2*0.88*calculation_parameters.gwavelength*focallength_ff/abs(calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min))
-    imagenpts = round(imagesize / propagated_wavefront.delta() / 2) * 2 + 1
+    imagenpts = int(round(imagesize / propagated_wavefront.delta() / 2) * 2 + 1)
 
     dif_zp = ScaledArray.initialize_from_range(numpy.ones(propagated_wavefront.size()),
                                                -(imagenpts - 1) / 2 * propagated_wavefront.delta(),
@@ -1269,7 +1269,7 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
         if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
             imagesize = max(imagesize, 16 * rms_slope * input_parameters.ghy_focallength)
 
-        imagenpts = round(imagesize / propagated_wavefront.delta() / 2) * 2 + 1
+        imagenpts = int(round(imagesize / propagated_wavefront.delta() / 2) * 2 + 1)
 
         input_parameters.widget.set_progress_bar(75)
         input_parameters.widget.status_message("dif_z: begin calculation")
