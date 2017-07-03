@@ -8,7 +8,7 @@ except AttributeError:
     from setuptools import find_packages, setup
 
 NAME = 'OASYS1-ShadowOui'
-VERSION = '1.4.21'
+VERSION = '1.4.22'
 ISRELEASED = False
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
@@ -41,7 +41,7 @@ SETUP_REQUIRES = (
 
 INSTALL_REQUIRES = (
     'oasys1>=1.0.13',
-    'wofryshadow',
+    #'wofryshadow',
     'shadow3'
 )
 
@@ -58,7 +58,7 @@ PACKAGE_DATA = {
     "orangecontrib.shadow.widgets.preprocessor":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.shadow.widgets.sources":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.shadow.widgets.utility":["icons/*.png", "icons/*.jpg"],
-    "orangecontrib.shadow.widgets.wofry":["icons/*.png", "icons/*.jpg"],
+    #"orangecontrib.shadow.widgets.wofry":["icons/*.png", "icons/*.jpg"],
 }
 
 NAMESPACE_PACAKGES = ["orangecontrib", "orangecontrib.shadow", "orangecontrib.shadow.widgets"]
@@ -75,33 +75,38 @@ ENTRY_POINTS = {
         "Shadow PreProcessor = orangecontrib.shadow.widgets.preprocessor",
         "Shadow Sources = orangecontrib.shadow.widgets.sources",
         "Shadow Utility = orangecontrib.shadow.widgets.utility",
-        "Shadow Wofry = orangecontrib.shadow.widgets.wofry",
+        #"Shadow Wofry = orangecontrib.shadow.widgets.wofry",
     ),
     'oasys.menus' : ("shadowmenu = orangecontrib.shadow.menu",)
 }
 
 if __name__ == '__main__':
-    setup(
-          name = NAME,
-          version = VERSION,
-          description = DESCRIPTION,
-          long_description = LONG_DESCRIPTION,
-          author = AUTHOR,
-          author_email = AUTHOR_EMAIL,
-          url = URL,
-          download_url = DOWNLOAD_URL,
-          license = LICENSE,
-          keywords = KEYWORDS,
-          classifiers = CLASSIFIERS,
-          packages = PACKAGES,
-          package_data = PACKAGE_DATA,
-          #          py_modules = PY_MODULES,
-          setup_requires = SETUP_REQUIRES,
-          install_requires = INSTALL_REQUIRES,
-          #extras_require = EXTRAS_REQUIRE,
-          #dependency_links = DEPENDENCY_LINKS,
-          entry_points = ENTRY_POINTS,
-          namespace_packages=NAMESPACE_PACAKGES,
-          include_package_data = True,
-          zip_safe = False,
-          )
+    try:
+        import PyMca5, PyQt4
+
+        raise NotImplementedError("This version of ShadowOui doesn't work with Oasys1 beta.\nPlease install OASYS1 final release: http://www.elettra.eu/oasys.html")
+    except:
+        setup(
+              name = NAME,
+              version = VERSION,
+              description = DESCRIPTION,
+              long_description = LONG_DESCRIPTION,
+              author = AUTHOR,
+              author_email = AUTHOR_EMAIL,
+              url = URL,
+              download_url = DOWNLOAD_URL,
+              license = LICENSE,
+              keywords = KEYWORDS,
+              classifiers = CLASSIFIERS,
+              packages = PACKAGES,
+              package_data = PACKAGE_DATA,
+              #          py_modules = PY_MODULES,
+              setup_requires = SETUP_REQUIRES,
+              install_requires = INSTALL_REQUIRES,
+              #extras_require = EXTRAS_REQUIRE,
+              #dependency_links = DEPENDENCY_LINKS,
+              entry_points = ENTRY_POINTS,
+              namespace_packages=NAMESPACE_PACAKGES,
+              include_package_data = True,
+              zip_safe = False,
+              )
