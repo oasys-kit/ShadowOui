@@ -8,7 +8,7 @@ except AttributeError:
     from setuptools import find_packages, setup
 
 NAME = 'OASYS1-ShadowOui'
-VERSION = '1.4.22'
+VERSION = '1.4.23'
 ISRELEASED = False
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
@@ -81,10 +81,12 @@ ENTRY_POINTS = {
 }
 
 if __name__ == '__main__':
+    is_beta = False
+
     try:
         import PyMca5, PyQt4
 
-        raise NotImplementedError("This version of ShadowOui doesn't work with Oasys1 beta.\nPlease install OASYS1 final release: http://www.elettra.eu/oasys.html")
+        is_beta = True
     except:
         setup(
               name = NAME,
@@ -110,3 +112,5 @@ if __name__ == '__main__':
               include_package_data = True,
               zip_safe = False,
               )
+
+    if is_beta: raise NotImplementedError("This version of ShadowOui doesn't work with Oasys1 beta.\nPlease install OASYS1 final release: http://www.elettra.eu/oasys.html")
