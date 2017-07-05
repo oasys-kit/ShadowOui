@@ -77,14 +77,14 @@ class PlotXY(AutomaticElement):
         tab_set = oasysgui.createTabPage(self.tabs_setting, "Plot Settings")
         tab_gen = oasysgui.createTabPage(self.tabs_setting, "Histogram Settings")
 
-        screen_box = oasysgui.widgetBox(tab_set, "Screen Position Settings", addSpace=True, orientation="vertical", height=110)
+        screen_box = oasysgui.widgetBox(tab_set, "Screen Position Settings", addSpace=True, orientation="vertical", height=120)
 
         self.image_plane_combo = gui.comboBox(screen_box, self, "image_plane", label="Position of the Image",
                                             items=["On Image Plane", "Retraced"], labelWidth=260,
                                             callback=self.set_ImagePlane, sendSelectedValue=False, orientation="horizontal")
 
-        self.image_plane_box = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", height=110)
-        self.image_plane_box_empty = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", height=110)
+        self.image_plane_box = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", height=115)
+        self.image_plane_box_empty = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", height=115)
 
         oasysgui.lineEdit(self.image_plane_box, self, "image_plane_new_position", "Image Plane new Position", labelWidth=220, valueType=float, orientation="horizontal")
 
