@@ -71,7 +71,6 @@ class OWFromWofryWavefront2d(widget.OWWidget):
             self.wavefront = input_data
 
             self.convert_wavefront()
-            self.convert_wavefront(input_data)
 
     def convert_wavefront(self):
         try:
