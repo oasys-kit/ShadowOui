@@ -3,6 +3,7 @@ from oasys.widgets import gui as oasysgui
 
 from oasys.widgets import widget
 
+from PyQt5.QtGui import QPalette, QColor, QFont
 from PyQt5.QtWidgets import QApplication, QMessageBox
 from PyQt5.QtCore import QRect
 
@@ -32,6 +33,8 @@ class OWFromWofryWavefront2d(widget.OWWidget):
 
     want_main_area = 0
 
+    wavefront = None
+
     def __init__(self):
         super().__init__()
 
@@ -46,17 +49,35 @@ class OWFromWofryWavefront2d(widget.OWWidget):
 
         self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
-        main_box = oasysgui.widgetBox(self.controlArea, "Wofry to Shadow3 Beam Converter", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5, height=50)
 
-        gui.label(main_box, self, "--------------- from Wofry GenericWavefront2D to ShadowBeam ---------------")
+        label = gui.label(self.controlArea, self, "From Wofry Wavefront To Shadow Beam")
+        font = QFont(label.font())
+        font.setBold(True)
+        font.setItalic(True)
+        font.setPixelSize(14)
+        label.setFont(font)
+        palette = QPalette(label.palette()) # make a copy of the palette
+        palette.setColor(QPalette.Foreground, QColor('Dark Blue'))
+        label.setPalette(palette) # assign new palette
+
+        gui.separator(self.controlArea, 10)
+
+        gui.button(self.controlArea, self, "Convert", callback=self.convert_wavefront, height=45)
 
     def set_input(self, input_data):
         self.setStatusMessage("")
 
         if not input_data is None:
-            try:
-                self.send("ShadowBeam", ShadowBeam(beam=SHADOW3Wavefront.fromGenericWavefront(input_data)))
-            except Exception as exception:
-                QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
+            self.wavefront = input_data
 
-                #raise exception
+            self.convert_wavefront()
+            self.convert_wavefront(input_data)
+
+    def convert_wavefront(self):
+        try:
+            if not self.wavefront is None:
+                self.send("ShadowBeam", ShadowBeam(beam=SHADOW3Wavefront.fromGenericWavefront(self.wavefront)))
+        except Exception as exception:
+            QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
+
+            # raise exception
