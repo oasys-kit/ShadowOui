@@ -92,7 +92,8 @@ class OWToWofryWavefront2d(widget.OWWidget):
                 self.send("GenericWavefront2D",
                           SHADOW3Wavefront.initialize_from_shadow3_beam(self.shadow_beam._beam).toGenericWavefront(
                               pixels_h=self.pixels_h,
-                              pixels_v=self.pixels_v))
+                              pixels_v=self.pixels_v,
+                              shadow_to_meters=self.workspace_units_to_m))
         except Exception as exception:
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 

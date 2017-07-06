@@ -242,7 +242,10 @@ class Histogram(ow_automatic_element.AutomaticElement):
             if self.image_plane_rel_abs_position == 1:  # relative
                 dist = self.image_plane_new_position
             else:  # absolute
-                historyItem = self.input_beam.getOEHistory(oe_number=self.input_beam._oe_number)
+                if self.input_beam.historySize() == 0:
+                    historyItem = None
+                else:
+                    historyItem = self.input_beam.getOEHistory(oe_number=self.input_beam._oe_number)
 
                 if historyItem is None: image_plane = 0.0
                 elif self.input_beam._oe_number == 0: image_plane = 0.0

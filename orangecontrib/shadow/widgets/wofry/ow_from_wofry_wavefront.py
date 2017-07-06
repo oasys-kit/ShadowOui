@@ -75,7 +75,8 @@ class OWFromWofryWavefront2d(widget.OWWidget):
     def convert_wavefront(self):
         try:
             if not self.wavefront is None:
-                self.send("ShadowBeam", ShadowBeam(beam=SHADOW3Wavefront.fromGenericWavefront(self.wavefront)))
+                self.send("ShadowBeam", ShadowBeam(beam=SHADOW3Wavefront.fromGenericWavefront(wavefront=self.wavefront,
+                                                                                              shadow_to_meters=self.workspace_units_to_m)))
         except Exception as exception:
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 

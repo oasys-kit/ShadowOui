@@ -320,6 +320,9 @@ class ShadowBeam:
         else:
             return self.history[oe_number]
 
+    def historySize(self):
+        return len(self.history)
+
 class ShadowSource:
     def __new__(cls, src=None):
         self = super().__new__(cls)
