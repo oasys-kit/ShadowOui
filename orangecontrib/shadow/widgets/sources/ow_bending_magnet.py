@@ -11,7 +11,12 @@ from oasys.util.oasys_util import EmittingStream, TTYGrabber
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowSource
 from orangecontrib.shadow.widgets.gui import ow_source
 
-class BendingMagnet(ow_source.Source):
+from syned.widget.widget_decorator import WidgetDecorator
+
+import syned.beamline.beamline as synedb
+import syned.storage_ring.magnetic_structures.bending_magnet as synedbm
+
+class BendingMagnet(ow_source.Source, WidgetDecorator):
 
     name = "Bending Magnet"
     description = "Shadow Source: Bending Magnet"
@@ -46,6 +51,8 @@ class BendingMagnet(ow_source.Source):
     max_number_of_rejected_rays = Setting(10000000)
 
     want_main_area=1
+
+    inputs = WidgetDecorator.syned_input_data()
 
     def __init__(self):
         super().__init__()
@@ -137,7 +144,6 @@ class BendingMagnet(ow_source.Source):
         self.le_optimize_file_name.setText(oasysgui.selectFileFromDialog(self, self.optimize_file_name, "Open Optimize Source Parameters File"))
 
     def calculateMagneticField(self):
-        self.magnetic_radius=abs(self.magnetic_radius)
         if self.magnetic_radius > 0:
            self.magnetic_field=3.334728*self.energy/self.magnetic_radius
 
@@ -304,7 +310,28 @@ class BendingMagnet(ow_source.Source):
 
             self.setupUI()
 
-    
+    def receive_syned_data(self, data):
+
+        if isinstance(data, synedb.Beamline):
+            if not data._light_source is None and isinstance(data._light_source._magnetic_structure, synedbm.BendingMagnet):
+                light_source = data._light_source
+
+                self.energy = light_source._electron_beam._energy_in_GeV
+                self.emittance_x = light_source._electron_beam._moment_xpxp / self.workspace_units_to_m
+                self.emittance_z = light_source._electron_beam._moment_ypyp / self.workspace_units_to_m
+                self.sigma_x, self.sigma_z = light_source._electron_beam.get_sigmas_real_space()/self.workspace_units_to_m
+
+                if light_source._magnetic_structure._radius > 0:
+                    self.magnetic_radius=light_source._magnetic_structure._radius
+                    self.calculateMagneticField()
+                elif light_source._magnetic_structure._magnetic_field > 0:
+                    self.magnetic_field = light_source._magnetic_structure._magnetic_field
+                    self.calculateMagneticRadius()
+            else:
+                raise ValueError("Syned data not correct")
+        else:
+            raise ValueError("Syned data not correct")
+
 if __name__ == "__main__":
     a = QApplication(sys.argv)
     ow = BendingMagnet()
