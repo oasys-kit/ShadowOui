@@ -3419,16 +3419,86 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                         if isinstance(optical_element, mirror.Mirror):
                             self.source_plane_distance = coordinates.p() / self.workspace_units_to_m
                             self.image_plane_distance = coordinates.q() / self.workspace_units_to_m
-                            self.incidence_angle_deg = coordinates.angle_radial()
-                            self.reflection_angle_deg = coordinates.angle_radial()
-                            self.calculate_incidence_angle_mrad()
-                            self.calculate_reflection_angle_mrad()
+                            self.incidence_angle_mrad = (0.5*numpy.pi - coordinates.angle_radial())*1e3
+                            self.reflection_angle_mrad = (0.5*numpy.pi - coordinates.angle_radial())*1e3
+                            self.calculate_incidence_angle_deg()
+                            self.calculate_reflection_angle_deg()
 
-                            if isinstance(optical_element._surface_shape, Ellipsoid):
+                            self.is_infinite = 1
+
+                            left, right, bottom, top = optical_element._boundary_shape.get_boundaries()
+
+                            self.dim_x_plus = numpy.abs(right / self.workspace_units_to_m)
+                            self.dim_x_minus = numpy.abs(left / self.workspace_units_to_m)
+                            self.dim_y_plus = numpy.abs(top / self.workspace_units_to_m)
+                            self.dim_y_minus = numpy.abs(bottom / self.workspace_units_to_m)
+
+                            self.reflectivity_type = 1
+                            self.source_of_reflectivity = 0
+                            self.file_prerefl = "<File for " + optical_element._coating + ">"
+
+                            if isinstance(optical_element._boundary_shape, Rectangle):
+                                self.mirror_shape = 0
+                            elif isinstance(optical_element._boundary_shape, Ellipse):
+                                self.mirror_shape = 1
+
+                            if isinstance(optical_element._surface_shape, Plane):
+                                if self.graphical_options.is_curved:
+                                    raise ValueError("Syned optical element surface shape not congruent")
+                            elif isinstance(optical_element._surface_shape, Ellipsoid):
                                 if self.graphical_options.is_ellipsoidal:
-                                    raise NotImplementedError("To be completed")
+                                    self.surface_shape_parameters = 1
+                                    self.ellipse_hyperbola_semi_major_axis = optical_element._surface_shape._maj_axis/(2*self.workspace_units_to_m)
+                                    self.ellipse_hyperbola_semi_minor_axis = optical_element._surface_shape._min_axis/(2*self.workspace_units_to_m)
                                 else:
                                     raise ValueError("Syned optical element surface shape not congruent")
+                            elif isinstance(optical_element._surface_shape, Hyperboloid):
+                                if self.graphical_options.is_hyperboloid:
+                                    self.surface_shape_parameters = 1
+                                    self.ellipse_hyperbola_semi_major_axis = optical_element._surface_shape._maj_axis/(2*self.workspace_units_to_m)
+                                    self.ellipse_hyperbola_semi_minor_axis = optical_element._surface_shape._min_axis/(2*self.workspace_units_to_m)
+                                else:
+                                    raise ValueError("Syned optical element surface shape not congruent")
+                            elif isinstance(optical_element._surface_shape, Sphere):
+                                if self.graphical_options.is_spheric:
+                                    self.surface_shape_parameters = 1
+                                    self.spherical_radius = optical_element._surface_shape.get_radius()/self.workspace_units_to_m
+                                else:
+                                    raise ValueError("Syned optical element surface shape not congruent")
+                            elif isinstance(optical_element._surface_shape, Paraboloid):
+                                if self.graphical_options.is_paraboloid:
+                                    self.surface_shape_parameters = 1
+                                    self.paraboloid_parameter = optical_element._surface_shape._paraboloid_parameter/self.workspace_units_to_m
+                                else:
+                                    raise ValueError("Syned optical element surface shape not congruent")
+                            elif isinstance(optical_element._surface_shape, Torus):
+                                if self.graphical_options.is_toroidal:
+                                    self.surface_shape_parameters = 1
+                                    self.torus_major_radius = optical_element._surface_shape._maj_radius/self.workspace_units_to_m
+                                    self.torus_minor_radius = optical_element._surface_shape._min_radius/self.workspace_units_to_m
+                                else:
+                                    raise ValueError("Syned optical element surface shape not congruent")
+                            elif isinstance(optical_element._surface_shape, Conic):
+                                if self.graphical_options.is_conic_coefficients:
+                                    self.surface_shape_parameters = 1
+                                    self.conic_coefficient_0 = optical_element._surface_shape._conic_coefficients[0]/self.workspace_units_to_m
+                                    self.conic_coefficient_1 = optical_element._surface_shape._conic_coefficients[1]/self.workspace_units_to_m
+                                    self.conic_coefficient_2 = optical_element._surface_shape._conic_coefficients[2]/self.workspace_units_to_m
+                                    self.conic_coefficient_3 = optical_element._surface_shape._conic_coefficients[3]/self.workspace_units_to_m
+                                    self.conic_coefficient_4 = optical_element._surface_shape._conic_coefficients[4]/self.workspace_units_to_m
+                                    self.conic_coefficient_5 = optical_element._surface_shape._conic_coefficients[5]/self.workspace_units_to_m
+                                    self.conic_coefficient_6 = optical_element._surface_shape._conic_coefficients[6]/self.workspace_units_to_m
+                                    self.conic_coefficient_7 = optical_element._surface_shape._conic_coefficients[7]/self.workspace_units_to_m
+                                    self.conic_coefficient_8 = optical_element._surface_shape._conic_coefficients[8]/self.workspace_units_to_m
+                                    self.conic_coefficient_9 = optical_element._surface_shape._conic_coefficients[9]/self.workspace_units_to_m
+                                else:
+                                    raise ValueError("Syned optical element surface shape not congruent")
+
+
+                            self.set_Dim_Parameters()
+                            self.set_Refl_Parameters()
+                            if self.graphical_options.is_curved: self.set_IntExt_Parameters()
+
                         else:
                             raise ValueError("Syned optical element not congruent")
                     elif self.graphical_options.is_crystal:
