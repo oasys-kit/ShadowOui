@@ -311,26 +311,28 @@ class BendingMagnet(ow_source.Source, WidgetDecorator):
             self.setupUI()
 
     def receive_syned_data(self, data):
+        if not data is None:
+            if isinstance(data, synedb.Beamline):
+                if not data._light_source is None and isinstance(data._light_source._magnetic_structure, synedbm.BendingMagnet):
+                    light_source = data._light_source
 
-        if isinstance(data, synedb.Beamline):
-            if not data._light_source is None and isinstance(data._light_source._magnetic_structure, synedbm.BendingMagnet):
-                light_source = data._light_source
+                    self.energy = light_source._electron_beam._energy_in_GeV
+                    self.emittance_x = light_source._electron_beam._moment_xxp / self.workspace_units_to_m
+                    self.emittance_z = light_source._electron_beam._moment_yyp / self.workspace_units_to_m
+                    self.sigma_x, self.sigma_z = light_source._electron_beam.get_sigmas_real_space()
+                    self.sigma_x /= self.workspace_units_to_m
+                    self.sigma_z /= self.workspace_units_to_m
 
-                self.energy = light_source._electron_beam._energy_in_GeV
-                self.emittance_x = light_source._electron_beam._moment_xpxp / self.workspace_units_to_m
-                self.emittance_z = light_source._electron_beam._moment_ypyp / self.workspace_units_to_m
-                self.sigma_x, self.sigma_z = light_source._electron_beam.get_sigmas_real_space()/self.workspace_units_to_m
-
-                if light_source._magnetic_structure._radius > 0:
-                    self.magnetic_radius=light_source._magnetic_structure._radius
-                    self.calculateMagneticField()
-                elif light_source._magnetic_structure._magnetic_field > 0:
-                    self.magnetic_field = light_source._magnetic_structure._magnetic_field
-                    self.calculateMagneticRadius()
+                    if light_source._magnetic_structure._radius > 0:
+                        self.magnetic_radius=light_source._magnetic_structure._radius
+                        self.calculateMagneticField()
+                    elif light_source._magnetic_structure._magnetic_field > 0:
+                        self.magnetic_field = light_source._magnetic_structure._magnetic_field
+                        self.calculateMagneticRadius()
+                else:
+                    raise ValueError("Syned data not correct")
             else:
                 raise ValueError("Syned data not correct")
-        else:
-            raise ValueError("Syned data not correct")
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)

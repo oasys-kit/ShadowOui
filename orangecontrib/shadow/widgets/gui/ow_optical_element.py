@@ -2403,12 +2403,23 @@ class OpticalElement(ow_generic_element.GenericElement):
 
             if self.source_movement == 1:
                 self.sm_distance_from_mirror = congruence.checkNumber(self.sm_distance_from_mirror, "Source Movement: Distance from O.E.")
+
+            if self.aperturing == 1:
+                if self.aperture_shape == 2:
+                    congruence.checkFile(self.external_file_with_coordinate)
+
+            if self.absorption == 1:
+                self.thickness = congruence.checkPositiveNumber(self.thickness, "Absorption: thickness")
+
+                ShadowCongruence.checkPreReflFile(congruence.checkFile(self.opt_const_file_name))
+
         elif self.graphical_options.is_empty:
             self.source_plane_distance = congruence.checkNumber(self.source_plane_distance, "Source plane distance")
             self.image_plane_distance = congruence.checkNumber(self.image_plane_distance, "Image plane distance")
 
             if self.source_movement == 1:
                 self.sm_distance_from_mirror = congruence.checkPositiveNumber(self.sm_distance_from_mirror, "Source Movement: Distance from O.E.")
+
         else:
             self.source_plane_distance = congruence.checkNumber(self.source_plane_distance, "Source plane distance")
             self.image_plane_distance = congruence.checkNumber(self.image_plane_distance, "Image plane distance")

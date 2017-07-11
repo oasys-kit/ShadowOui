@@ -13,7 +13,12 @@ from srxraylib.sources import srfunc
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowSource
 from orangecontrib.shadow.widgets.gui import ow_source
 
-class Wiggler(ow_source.Source):
+from syned.widget.widget_decorator import WidgetDecorator
+
+import syned.beamline.beamline as synedb
+import syned.storage_ring.magnetic_structures.wiggler as synedw
+
+class Wiggler(ow_source.Source, WidgetDecorator):
     name = "Wiggler"
     description = "Shadow Source: Wiggler"
     icon = "icons/wiggler.png"
@@ -63,6 +68,8 @@ class Wiggler(ow_source.Source):
 
     file_with_b_vs_y = Setting("wiggler.b")
     file_with_harmonics = Setting("wiggler.h")
+
+    inputs = WidgetDecorator.syned_input_data()
 
     def __init__(self):
         super().__init__()
@@ -604,6 +611,34 @@ class Wiggler(ow_source.Source):
                 raise BlockingIOError("Wiggler source failed to load, bad file format: " + exception.args[0])
 
             self.setupUI()
+
+    def receive_syned_data(self, data):
+        if not data is None:
+            if isinstance(data, synedb.Beamline):
+                if not data._light_source is None and isinstance(data._light_source._magnetic_structure, synedw.Wiggler):
+                    light_source = data._light_source
+
+                    self.energy = light_source._electron_beam._energy_in_GeV
+                    self.electron_current = light_source._electron_beam._current
+
+                    self.use_emittances_combo = 1
+                    self.emittance_x = light_source._electron_beam._moment_xxp / self.workspace_units_to_m
+                    self.emittance_z = light_source._electron_beam._moment_yyp / self.workspace_units_to_m
+                    self.sigma_x, self.sigma_z = light_source._electron_beam.get_sigmas_real_space()
+                    self.sigma_x /= self.workspace_units_to_m
+                    self.sigma_z /= self.workspace_units_to_m
+
+                    self.type_combo = 0
+                    self.number_of_periods = int(data._light_source._magnetic_structure._number_of_periods)
+                    self.k_value = data._light_source._magnetic_structure._K_vertical
+                    self.id_period = data._light_source._magnetic_structure._period_length # in meters
+
+                    self.set_UseEmittances()
+                    self.set_Type()
+                else:
+                    raise ValueError("Syned data not correct")
+            else:
+                raise ValueError("Syned data not correct")
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)

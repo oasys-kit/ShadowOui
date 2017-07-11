@@ -216,26 +216,26 @@ class UndulatorGaussian(ow_source.Source, WidgetDecorator):
 
 
     def receive_syned_data(self, data):
+        if not data is None:
+            if isinstance(data, synedb.Beamline):
+                if not data._light_source is None and isinstance(data._light_source._magnetic_structure, synedu.Undulator):
+                    light_source = data._light_source
 
-        if isinstance(data, synedb.Beamline):
-            if not data._light_source is None and isinstance(data._light_source._magnetic_structure, synedu.Undulator):
-                light_source = data._light_source
+                    self.energy =  round(light_source._magnetic_structure.resonance_energy(light_source._electron_beam.gamma()), 3)
+                    self.delta_e = 0.0
 
-                self.energy =  round(light_source._magnetic_structure.resonance_energy(light_source._electron_beam.gamma()), 3)
-                self.delta_e = 0.0
+                    x, xp, y, yp = light_source._electron_beam.get_sigmas_all()
 
-                x, xp, y, yp = light_source._electron_beam.get_sigmas_all()
+                    self.sigma_x = x/self.workspace_units_to_m
+                    self.sigma_z = y/self.workspace_units_to_m
+                    self.sigma_divergence_x = xp
+                    self.sigma_divergence_z = yp
+                    self.undulator_length = light_source._magnetic_structure._period_length*light_source._magnetic_structure._number_of_periods # in meter
 
-                self.sigma_x = x/self.workspace_units_to_m
-                self.sigma_z = y/self.workspace_units_to_m
-                self.sigma_divergence_x = xp
-                self.sigma_divergence_z = yp
-                self.undulator_length = light_source._magnetic_structure._period_length*light_source._magnetic_structure._number_of_periods # in meter
-
+                else:
+                    raise ValueError("Syned data not correct")
             else:
                 raise ValueError("Syned data not correct")
-        else:
-            raise ValueError("Syned data not correct")
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)
