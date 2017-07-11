@@ -3419,12 +3419,14 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                         if isinstance(optical_element, mirror.Mirror):
                             self.source_plane_distance = coordinates.p() / self.workspace_units_to_m
                             self.image_plane_distance = coordinates.q() / self.workspace_units_to_m
-
-                            raise NotImplementedError("To be completed")
+                            self.incidence_angle_deg = coordinates.angle_radial()
+                            self.reflection_angle_deg = coordinates.angle_radial()
+                            self.calculate_incidence_angle_mrad()
+                            self.calculate_reflection_angle_mrad()
 
                             if isinstance(optical_element._surface_shape, Ellipsoid):
                                 if self.graphical_options.is_ellipsoidal:
-                                    pass
+                                    raise NotImplementedError("To be completed")
                                 else:
                                     raise ValueError("Syned optical element surface shape not congruent")
                         else:
