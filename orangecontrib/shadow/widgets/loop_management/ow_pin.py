@@ -36,7 +36,7 @@ class Pin(widget.OWWidget):
          self.setFixedHeight(100)
 
          gui.separator(self.controlArea, height=20)
-         oasysgui.label(self.controlArea, self, "         SIMPLE PASSAGE POINT", orientation="horizontal")
+         gui.label(self.controlArea, self, "         SIMPLE PASSAGE POINT", orientation="horizontal")
          gui.rubber(self.controlArea)
 
     def passTrigger(self, trigger):

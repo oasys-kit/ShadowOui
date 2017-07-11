@@ -321,7 +321,7 @@ class ShadowBeam:
             return self.history[oe_number]
 
     def historySize(self):
-        return len(self.history)
+        return len()
 
 class ShadowSource:
     def __new__(cls, src=None):
