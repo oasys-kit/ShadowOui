@@ -31,6 +31,15 @@ from orangecontrib.shadow.widgets.gui import ow_generic_element
 
 from srxraylib.metrology import profiles_simulation
 
+from syned.widget.widget_decorator import WidgetDecorator
+
+import syned.beamline.beamline as synedb
+from syned.beamline.optical_elements.absorbers import beam_stopper, slit, filter
+from syned.beamline.optical_elements.ideal_elements import screen
+from syned.beamline.optical_elements.mirrors import mirror
+from syned.beamline.shape import Rectangle, Ellipse
+from syned.beamline.shape import Ellipsoid, Plane, Paraboloid, Hyperboloid, Torus, Conic, Sphere
+
 shadow_oe_to_copy = None
 
 class GraphicalOptions:
@@ -85,12 +94,14 @@ class GraphicalOptions:
         self.is_conic_coefficients=is_conic_coefficients
         self.is_refractor=is_refractor
 
-class OpticalElement(ow_generic_element.GenericElement):
+class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
     inputs = [("Input Beam", ShadowBeam, "setBeam"),
               ("PreProcessor Data #1", ShadowPreProcessorData, "setPreProcessorData"),
               ("PreProcessor Data #2", ShadowPreProcessorData, "setPreProcessorData"),
               ("ExchangeData", DataExchangeObject, "acceptExchangeData")]
+
+    WidgetDecorator.append_syned_input_data(inputs)
 
     outputs = [{"name":"Beam",
                 "type":ShadowBeam,
@@ -3356,3 +3367,73 @@ class OpticalElement(ow_generic_element.GenericElement):
         self.set_MirrorMovement()
         self.set_SourceMovement()
         self.set_Footprint()
+
+
+    def receive_syned_data(self, data):
+        if not data is None:
+            if isinstance(data, synedb.Beamline):
+                beamline_element = data.get_beamline_element_at(-1)
+
+                optical_element = beamline_element.get_optical_element()
+                coordinates = beamline_element.get_coordinates()
+
+                if not optical_element is None:
+                    if self.graphical_options.is_screen_slit: # SCREEN-SLIT
+                        if isinstance(optical_element, beam_stopper.BeamStopper) or \
+                           isinstance(optical_element, slit.Slit):
+                            self.absorption = 0
+                            self.aperturing = 1
+                            self.open_slit_solid_stop = 0 if isinstance(optical_element, slit.Slit) else 1
+
+                            if isinstance(optical_element._boundary_shape, Rectangle):
+                                self.aperture_shape = 0
+
+                            elif isinstance(optical_element._boundary_shape, Ellipse):
+                                self.aperture_shape = 1
+
+                            left, right, bottom, top = optical_element._boundary_shape.get_boundaries()
+
+                            self.slit_width_xaxis = numpy.abs(right - left)
+                            self.slit_height_zaxis = numpy.abs(top - bottom)
+                            self.slit_center_xaxis = (right + left) / 2
+                            self.slit_center_zaxis = (top + bottom) / 2
+
+                        elif isinstance(optical_element, filter.Filter):
+                            self.absorption = 1
+                            self.aperturing = 0
+
+                            self.thickness = optical_element._thickness / self.workspace_units_to_m
+                            self.opt_const_file_name = "<File for " + optical_element._material + ">"
+                        elif isinstance(optical_element, screen.Screen):
+                            self.absorption = 0
+                            self.aperturing = 0
+                        else:
+                            raise ValueError("Syned optical element not congruent")
+
+                        self.source_plane_distance = coordinates.p() / self.workspace_units_to_m
+                        self.image_plane_distance = coordinates.q() / self.workspace_units_to_m
+
+                        self.set_Aperturing()
+                        self.set_Absorption()
+                    elif self.graphical_options.is_mirror:
+                        if isinstance(optical_element, mirror.Mirror):
+                            self.source_plane_distance = coordinates.p() / self.workspace_units_to_m
+                            self.image_plane_distance = coordinates.q() / self.workspace_units_to_m
+
+                            raise NotImplementedError("To be completed")
+
+                            if isinstance(optical_element._surface_shape, Ellipsoid):
+                                if self.graphical_options.is_ellipsoidal:
+                                    pass
+                                else:
+                                    raise ValueError("Syned optical element surface shape not congruent")
+                        else:
+                            raise ValueError("Syned optical element not congruent")
+                    elif self.graphical_options.is_crystal:
+                        raise NotImplementedError("Syned data not acceptable by crystals")
+                    elif self.graphical_options.is_grating:
+                        raise NotImplementedError("Syned data not acceptable by gratings")
+                else:
+                    raise ValueError("Syned data not correct: optical element not present")
+            else:
+                raise ValueError("Syned data not correct")

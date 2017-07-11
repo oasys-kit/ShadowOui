@@ -615,28 +615,31 @@ class Wiggler(ow_source.Source, WidgetDecorator):
     def receive_syned_data(self, data):
         if not data is None:
             if isinstance(data, synedb.Beamline):
-                if not data._light_source is None and isinstance(data._light_source._magnetic_structure, synedw.Wiggler):
-                    light_source = data._light_source
+                if not data._light_source is None:
+                    if isinstance(data._light_source._magnetic_structure, synedw.Wiggler):
+                        light_source = data._light_source
 
-                    self.energy = light_source._electron_beam._energy_in_GeV
-                    self.electron_current = light_source._electron_beam._current
+                        self.energy = light_source._electron_beam._energy_in_GeV
+                        self.electron_current = light_source._electron_beam._current
 
-                    self.use_emittances_combo = 1
-                    self.emittance_x = light_source._electron_beam._moment_xxp / self.workspace_units_to_m
-                    self.emittance_z = light_source._electron_beam._moment_yyp / self.workspace_units_to_m
-                    self.sigma_x, self.sigma_z = light_source._electron_beam.get_sigmas_real_space()
-                    self.sigma_x /= self.workspace_units_to_m
-                    self.sigma_z /= self.workspace_units_to_m
+                        self.use_emittances_combo = 1
+                        self.emittance_x = light_source._electron_beam._moment_xxp / self.workspace_units_to_m
+                        self.emittance_z = light_source._electron_beam._moment_yyp / self.workspace_units_to_m
+                        self.sigma_x, self.sigma_z = light_source._electron_beam.get_sigmas_real_space()
+                        self.sigma_x /= self.workspace_units_to_m
+                        self.sigma_z /= self.workspace_units_to_m
 
-                    self.type_combo = 0
-                    self.number_of_periods = int(data._light_source._magnetic_structure._number_of_periods)
-                    self.k_value = data._light_source._magnetic_structure._K_vertical
-                    self.id_period = data._light_source._magnetic_structure._period_length # in meters
+                        self.type_combo = 0
+                        self.number_of_periods = int(data._light_source._magnetic_structure._number_of_periods)
+                        self.k_value = data._light_source._magnetic_structure._K_vertical
+                        self.id_period = data._light_source._magnetic_structure._period_length # in meters
 
-                    self.set_UseEmittances()
-                    self.set_Type()
+                        self.set_UseEmittances()
+                        self.set_Type()
+                    else:
+                        raise ValueError("Syned light source not congruent")
                 else:
-                    raise ValueError("Syned data not correct")
+                    raise ValueError("Syned data not correct: light source not present")
             else:
                 raise ValueError("Syned data not correct")
 

@@ -1,12 +1,10 @@
-import sys
+import sys, copy
 
 from orangewidget import gui
 from PyQt5.QtWidgets import QApplication
 
-from oasys.widgets.exchange import DataExchangeObject
-
 from orangecontrib.shadow.widgets.gui import ow_plane_element, ow_optical_element
-from orangecontrib.shadow.util import ShadowOpticalElement, ShadowBeam, ShadowPreProcessorData
+from orangecontrib.shadow.util import ShadowOpticalElement
 from orangecontrib.shadow.util.shadow_objects import VlsPgmPreProcessorData
 
 class PlaneGrating(ow_plane_element.PlaneElement):
@@ -20,11 +18,8 @@ class PlaneGrating(ow_plane_element.PlaneElement):
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]
 
-    inputs = [("Input Beam", ShadowBeam, "setBeam"),
-              ("PreProcessor Data #1", ShadowPreProcessorData, "setPreProcessorData"),
-              ("PreProcessor Data #2", ShadowPreProcessorData, "setPreProcessorData"),
-              ("ExchangeData", DataExchangeObject, "acceptExchangeData"),
-              ("VLS-PGM PreProcessor Data", VlsPgmPreProcessorData, "setVlsPgmPreProcessorData")]
+    inputs = copy.deepcopy(ow_optical_element.OpticalElement.inputs)
+    inputs.append(("VLS-PGM PreProcessor Data", VlsPgmPreProcessorData, "setVlsPgmPreProcessorData"))
 
     def __init__(self):
         graphical_Options=ow_optical_element.GraphicalOptions(is_grating=True)
