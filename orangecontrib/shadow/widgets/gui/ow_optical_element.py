@@ -3423,7 +3423,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                             self.reflection_angle_mrad = (0.5*numpy.pi - coordinates.angle_radial())*1e3
                             self.calculate_incidence_angle_deg()
                             self.calculate_reflection_angle_deg()
-
+                            self.mirror_orientation_angle = int(numpy.degrees(coordinates.angle_azimuthal())/90)
                             self.is_infinite = 1
 
                             left, right, bottom, top = optical_element._boundary_shape.get_boundaries()
