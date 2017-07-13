@@ -40,8 +40,6 @@ class UndulatorGaussian(ow_source.Source, WidgetDecorator):
 
     undulator_length=Setting(4.0)
 
-    inputs = WidgetDecorator.syned_input_data()
-
     def __init__(self):
         super().__init__()
 

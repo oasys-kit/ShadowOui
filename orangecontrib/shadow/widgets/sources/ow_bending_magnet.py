@@ -52,8 +52,6 @@ class BendingMagnet(ow_source.Source, WidgetDecorator):
 
     want_main_area=1
 
-    inputs = WidgetDecorator.syned_input_data()
-
     def __init__(self):
         super().__init__()
 

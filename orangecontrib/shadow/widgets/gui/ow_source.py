@@ -13,6 +13,8 @@ from oasys.widgets import congruence
 from orangecontrib.shadow.util.shadow_objects import ShadowTriggerOut, ShadowBeam, ShadowSource, ShadowFile
 from orangecontrib.shadow.widgets.gui import ow_generic_element
 
+from syned.widget.widget_decorator import WidgetDecorator
+
 shadow_src_to_copy = None
 
 class Source(ow_generic_element.GenericElement):
@@ -23,6 +25,8 @@ class Source(ow_generic_element.GenericElement):
     keywords = ["data", "file", "load", "read"]
 
     inputs = [("Trigger", ShadowTriggerOut, "sendNewBeam")]
+
+    WidgetDecorator.append_syned_input_data(inputs)
 
     outputs = [{"name":"Beam",
                 "type":ShadowBeam,

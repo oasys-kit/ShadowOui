@@ -69,8 +69,6 @@ class Wiggler(ow_source.Source, WidgetDecorator):
     file_with_b_vs_y = Setting("wiggler.b")
     file_with_harmonics = Setting("wiggler.h")
 
-    inputs = WidgetDecorator.syned_input_data()
-
     def __init__(self):
         super().__init__()
 
