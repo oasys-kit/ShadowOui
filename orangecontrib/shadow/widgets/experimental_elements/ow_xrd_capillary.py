@@ -1734,7 +1734,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
                         r_coord = numpy.sqrt(x_coord ** 2 + z_coord ** 2)
 
-                        twotheta_angles = numpy.degrees(numpy.arctan(r_coord / self.detector_distance))
+                        twotheta_angles = numpy.degrees(numpy.arctan(r_coord / self.area_detector_distance))
 
                         intensity = self.area_detector_beam._beam.rays[:, 6] ** 2 + self.area_detector_beam._beam.rays[:, 7] ** 2 + self.area_detector_beam._beam.rays[:, 8] ** 2 + \
                                     self.area_detector_beam._beam.rays[:, 15] ** 2 + self.area_detector_beam._beam.rays[:, 16] ** 2 + self.area_detector_beam._beam.rays[:, 17] ** 2
@@ -2490,7 +2490,6 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                     no_prog = True
             else:
                 no_prog = False
-
 
         out_beam._beam.rays = copy.deepcopy(go_rays[numpy.where(go_rays[:, 9] == 1)])
 
