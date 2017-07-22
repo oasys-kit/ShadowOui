@@ -3393,10 +3393,10 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                             left, right, bottom, top = optical_element._boundary_shape.get_boundaries()
 
-                            self.slit_width_xaxis = numpy.abs(right - left)
-                            self.slit_height_zaxis = numpy.abs(top - bottom)
-                            self.slit_center_xaxis = (right + left) / 2
-                            self.slit_center_zaxis = (top + bottom) / 2
+                            self.slit_width_xaxis = (numpy.abs(right - left))/ self.workspace_units_to_m
+                            self.slit_height_zaxis = (numpy.abs(top - bottom))/ self.workspace_units_to_m
+                            self.slit_center_xaxis = ((right + left) / 2)/ self.workspace_units_to_m
+                            self.slit_center_zaxis = ((top + bottom) / 2)/ self.workspace_units_to_m
 
                         elif isinstance(optical_element, filter.Filter):
                             self.absorption = 1
@@ -3433,9 +3433,10 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                             self.dim_y_plus = numpy.abs(top / self.workspace_units_to_m)
                             self.dim_y_minus = numpy.abs(bottom / self.workspace_units_to_m)
 
-                            self.reflectivity_type = 1
-                            self.source_of_reflectivity = 0
-                            self.file_prerefl = "<File for " + optical_element._coating + ">"
+                            if self.reflectivity_type == 0:
+                                self.reflectivity_type = 1
+                                self.source_of_reflectivity = 0
+                                self.file_prerefl = "<File for " + optical_element._coating + ">"
 
                             if isinstance(optical_element._boundary_shape, Rectangle):
                                 self.mirror_shape = 0
@@ -3450,6 +3451,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                                     self.surface_shape_parameters = 1
                                     self.ellipse_hyperbola_semi_major_axis = optical_element._surface_shape._maj_axis/(2*self.workspace_units_to_m)
                                     self.ellipse_hyperbola_semi_minor_axis = optical_element._surface_shape._min_axis/(2*self.workspace_units_to_m)
+
+                                    self.set_angle_of_majax_and_pole(coordinates, optical_element)
                                 else:
                                     raise ValueError("Syned optical element surface shape not congruent")
                             elif isinstance(optical_element._surface_shape, Hyperboloid):
@@ -3509,3 +3512,29 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                     raise ValueError("Syned data not correct: optical element not present")
             else:
                 raise ValueError("Syned data not correct")
+
+    def set_angle_of_majax_and_pole(self, coordinates, optical_element):
+        grazing_angle = 0.5 * numpy.pi - coordinates.angle_radial()
+        p, q = optical_element._surface_shape.get_p_q(grazing_angle)
+        zp, xp = OpticalElement.get_shadow_pole_coordinates_from_p_q(p, q, grazing_angle)
+
+        self.angle_of_majax_and_pole = OpticalElement.get_shadow_angle_of_majax_and_pole(xp, zp)
+
+    @classmethod
+    def get_shadow_pole_coordinates_from_p_q(cls, p=2.0, q=1.0, grazing_angle=0.003):
+        min_ax, maj_ax = Ellipsoid.get_axis_from_p_q(p, q, grazing_angle)
+        c = 0.5*numpy.sqrt(p**2 + q**2 - 2*p*q*numpy.cos(numpy.pi - 2*grazing_angle))
+
+        a = maj_ax/2
+        b = min_ax/2
+        eccentricity = c/a
+
+        # see calculation of ellipse axis in shadow_kernel.f90 row 3621
+        xp = 0.5*(p-q)/eccentricity
+        yp = -numpy.sqrt(1-(xp**2)/(a**2))*b
+
+        return xp, yp
+
+    @classmethod
+    def get_shadow_angle_of_majax_and_pole(cls, xp, zp):
+        return numpy.degrees(abs(numpy.arctan(zp/xp)))
