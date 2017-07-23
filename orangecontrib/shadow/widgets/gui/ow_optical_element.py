@@ -2095,9 +2095,9 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                            #IMPLEMENTATION OF THE AUTOMATIC CALCULATION OF THE SAGITTAL FOCUSING FOR SPHERICAL CYLINDERS
                            # RADIUS = (2 F1 F2 sin (theta)) /( F1+F2)
                            if self.focii_and_continuation_plane == 0:
-                              self.spherical_radius = ((2*self.source_plane_distance*self.image_plane_distance)/(self.source_plane_distance+self.image_plane_distance))*math.sin(self.reflection_angle_mrad)
+                              self.spherical_radius = ((2*self.source_plane_distance*self.image_plane_distance)/(self.source_plane_distance+self.image_plane_distance))*numpy.sin(self.reflection_angle_mrad)
                            else:
-                              self.spherical_radius = ((2*self.object_side_focal_distance*self.image_side_focal_distance)/(self.object_side_focal_distance+self.image_side_focal_distance))*math.sin(math.radians(90-self.incidence_angle_respect_to_normal))
+                              self.spherical_radius = ((2*self.object_side_focal_distance*self.image_side_focal_distance)/(self.object_side_focal_distance+self.image_side_focal_distance))*numpy.sin(numpy.radians(90-self.incidence_angle_respect_to_normal))
 
                            shadow_oe._oe.RMIRR = self.spherical_radius
                        else:
@@ -3424,24 +3424,28 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                             self.calculate_incidence_angle_deg()
                             self.calculate_reflection_angle_deg()
                             self.mirror_orientation_angle = int(numpy.degrees(coordinates.angle_azimuthal())/90)
-                            self.is_infinite = 1
 
-                            left, right, bottom, top = optical_element._boundary_shape.get_boundaries()
+                            if optical_element._boundary_shape is None:
+                                self.is_infinite = 0
+                            else:
+                                self.is_infinite = 1
 
-                            self.dim_x_plus = numpy.abs(right / self.workspace_units_to_m)
-                            self.dim_x_minus = numpy.abs(left / self.workspace_units_to_m)
-                            self.dim_y_plus = numpy.abs(top / self.workspace_units_to_m)
-                            self.dim_y_minus = numpy.abs(bottom / self.workspace_units_to_m)
+                                left, right, bottom, top = optical_element._boundary_shape.get_boundaries()
 
-                            if self.reflectivity_type == 0:
-                                self.reflectivity_type = 1
-                                self.source_of_reflectivity = 0
-                                self.file_prerefl = "<File for " + optical_element._coating + ">"
+                                self.dim_x_plus = numpy.abs(right / self.workspace_units_to_m)
+                                self.dim_x_minus = numpy.abs(left / self.workspace_units_to_m)
+                                self.dim_y_plus = numpy.abs(top / self.workspace_units_to_m)
+                                self.dim_y_minus = numpy.abs(bottom / self.workspace_units_to_m)
 
-                            if isinstance(optical_element._boundary_shape, Rectangle):
-                                self.mirror_shape = 0
-                            elif isinstance(optical_element._boundary_shape, Ellipse):
-                                self.mirror_shape = 1
+                                if self.reflectivity_type == 0:
+                                    self.reflectivity_type = 1
+                                    self.source_of_reflectivity = 0
+                                    self.file_prerefl = "<File for " + optical_element._coating + ">"
+
+                                if isinstance(optical_element._boundary_shape, Rectangle):
+                                    self.mirror_shape = 0
+                                elif isinstance(optical_element._boundary_shape, Ellipse):
+                                    self.mirror_shape = 1
 
                             if isinstance(optical_element._surface_shape, Plane):
                                 if self.graphical_options.is_curved:
@@ -3529,7 +3533,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         b = min_ax/2
         eccentricity = c/a
 
-        # see calculation of ellipse axis in shadow_kernel.f90 row 3621
+        # see calculation of ellipse center in shadow_kernel.f90 row 3621
         xp = 0.5*(p-q)/eccentricity
         yp = -numpy.sqrt(1-(xp**2)/(a**2))*b
 
