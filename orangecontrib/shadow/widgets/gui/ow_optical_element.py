@@ -3532,7 +3532,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                                     self.is_cylinder = 0
                             else:
                                 raise ValueError("Syned optical element surface shape not congruent")
-                        elif isinstance(optical_element._surface_shape, Torus):
+                        elif isinstance(optical_element._surface_shape, Toroidal):
                             if self.graphical_options.is_toroidal:
                                 self.surface_shape_parameters = 1
 
