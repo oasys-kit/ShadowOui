@@ -1914,33 +1914,42 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         self.le_file_prerefl_for_image_medium.setText(oasysgui.selectFileFromDialog(self, self.file_prerefl_for_image_medium, "Select File Prerefl for Image Medium"))
 
     def calculate_incidence_angle_mrad(self):
+        if self.graphical_options.is_grating: digits = 7
+        else: digits = 2
+
         if self.angles_respect_to == 0:
-            self.incidence_angle_mrad = round(math.radians(90-self.incidence_angle_deg)*1000, 2)
+            self.incidence_angle_mrad = round(math.radians(90-self.incidence_angle_deg)*1000, digits)
         else:
-            self.incidence_angle_mrad = round(math.radians(self.incidence_angle_deg)*1000, 2)
+            self.incidence_angle_mrad = round(math.radians(self.incidence_angle_deg)*1000, digits)
 
         if self.graphical_options.is_curved and not self.graphical_options.is_conic_coefficients:
             if self.incidence_angle_respect_to_normal_type == 0:
                 if self.angles_respect_to == 0:
                     self.incidence_angle_respect_to_normal = self.incidence_angle_deg
                 else:
-                    self.incidence_angle_respect_to_normal = round(90 - self.incidence_angle_deg, 3)
+                    self.incidence_angle_respect_to_normal = round(90 - self.incidence_angle_deg, 10)
 
         if self.graphical_options.is_mirror:
             self.reflection_angle_deg = self.incidence_angle_deg
             self.reflection_angle_mrad = self.incidence_angle_mrad
 
     def calculate_reflection_angle_mrad(self):
+        if self.graphical_options.is_grating: digits = 7
+        else: digits = 2
+
         if self.angles_respect_to == 0:
-            self.reflection_angle_mrad = round(math.radians(90 - self.reflection_angle_deg)*1000, 2)
+            self.reflection_angle_mrad = round(math.radians(90 - self.reflection_angle_deg)*1000, digits)
         else:
-            self.reflection_angle_mrad = round(math.radians(self.reflection_angle_deg)*1000, 2)
+            self.reflection_angle_mrad = round(math.radians(self.reflection_angle_deg)*1000, digits)
 
     def calculate_incidence_angle_deg(self):
+        if self.graphical_options.is_grating: digits = 10
+        else: digits = 3
+
         if self.angles_respect_to == 0:
-            self.incidence_angle_deg = round(math.degrees(0.5 * math.pi - (self.incidence_angle_mrad / 1000)), 3)
+            self.incidence_angle_deg = round(math.degrees(0.5 * math.pi - (self.incidence_angle_mrad / 1000)), digits)
         else:
-            self.incidence_angle_deg = round(math.degrees(self.incidence_angle_mrad / 1000), 3)
+            self.incidence_angle_deg = round(math.degrees(self.incidence_angle_mrad / 1000), digits)
 
         if self.graphical_options.is_mirror:
             self.reflection_angle_deg = self.incidence_angle_deg
@@ -1951,13 +1960,16 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 if self.angles_respect_to == 0:
                     self.incidence_angle_respect_to_normal = self.incidence_angle_deg
                 else:
-                    self.incidence_angle_respect_to_normal = round(90 - self.incidence_angle_deg, 3)
+                    self.incidence_angle_respect_to_normal = round(90 - self.incidence_angle_deg, digits)
 
     def calculate_reflection_angle_deg(self):
+        if self.graphical_options.is_grating: digits = 10
+        else: digits = 3
+
         if self.angles_respect_to == 0:
-            self.reflection_angle_deg = round(math.degrees(0.5*math.pi-(self.reflection_angle_mrad/1000)), 3)
+            self.reflection_angle_deg = round(math.degrees(0.5*math.pi-(self.reflection_angle_mrad/1000)), digits)
         else:
-            self.reflection_angle_deg = round(math.degrees(self.reflection_angle_mrad/1000), 3)
+            self.reflection_angle_deg = round(math.degrees(self.reflection_angle_mrad/1000), digits)
 
     def grab_dcm_value_from_oe(self):
         self.twotheta_bragg = self.incidence_angle_deg
