@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QDialog, QWidget
 from PyQt5.QtGui import QPalette, QColor, QFont
 
 from matplotlib import cm
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 try:
     from mpl_toolkits.mplot3d import Axes3D  # necessario per caricare i plot 3D
@@ -1887,7 +1887,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception), QtWidgets.QMessageBox.Ok)
 
-            #raise exception
+            raise exception
 
     def selectFileFacetDescr(self):
         self.le_ms_file_facet_descr.setText(oasysgui.selectFileFromDialog(self, self.ms_file_facet_descr, "Select File with Facet Description"))
