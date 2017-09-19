@@ -52,6 +52,8 @@ class Info(widget.OWWidget):
         tabs_setting.setFixedWidth(self.WIDGET_WIDTH-60)
 
         tab_sys = oasysgui.createTabPage(tabs_setting, "Sys Info")
+        tab_sys_plot_side = oasysgui.createTabPage(tabs_setting, "Sys Plot (Side View)")
+        tab_sys_plot_top = oasysgui.createTabPage(tabs_setting, "Sys Plot (Top View)")
         tab_mir = oasysgui.createTabPage(tabs_setting, "OE Info")
         tab_sou = oasysgui.createTabPage(tabs_setting, "Source Info")
         tab_dis = oasysgui.createTabPage(tabs_setting, "Distances Summary")
@@ -60,6 +62,13 @@ class Info(widget.OWWidget):
 
         self.sysInfo = oasysgui.textArea()
         self.sysInfo.setMaximumHeight(self.WIDGET_HEIGHT-100)
+
+        self.sysPlotSide = oasysgui.plotWindow(tab_sys_plot_side)
+        self.sysPlotSide.setMaximumHeight(self.WIDGET_HEIGHT-100)
+
+        self.sysPlotTop = oasysgui.plotWindow(tab_sys_plot_top)
+        self.sysPlotSide.setMaximumHeight(self.WIDGET_HEIGHT-100)
+
         self.mirInfo = oasysgui.textArea()
         self.mirInfo.setMaximumHeight(self.WIDGET_HEIGHT-100)
         self.sourceInfo = oasysgui.textArea()
@@ -71,6 +80,12 @@ class Info(widget.OWWidget):
 
         sys_box = oasysgui.widgetBox(tab_sys, "", addSpace=True, orientation="horizontal", height = self.WIDGET_HEIGHT-80, width = self.WIDGET_WIDTH-80)
         sys_box.layout().addWidget(self.sysInfo)
+
+        sys_plot_side_box = oasysgui.widgetBox(tab_sys_plot_side, "", addSpace=True, orientation="horizontal", height = self.WIDGET_HEIGHT-80, width = self.WIDGET_WIDTH-80)
+        sys_plot_side_box.layout().addWidget(self.sysPlotSide)
+
+        sys_plot_top_box = oasysgui.widgetBox(tab_sys_plot_top, "", addSpace=True, orientation="horizontal", height = self.WIDGET_HEIGHT-80, width = self.WIDGET_WIDTH-80)
+        sys_plot_top_box.layout().addWidget(self.sysPlotTop)
 
         mir_box = oasysgui.widgetBox(tab_mir, "", addSpace=True, orientation="horizontal", height = self.WIDGET_HEIGHT-80, width = self.WIDGET_WIDTH-80)
         mir_box.layout().addWidget(self.mirInfo)
@@ -171,6 +186,22 @@ class Info(widget.OWWidget):
                     self.sysInfo.setText(coe_end._oe.sysinfo())
                 except:
                     self.distancesSummary.setText("Problem in calculating SysInfo:\n" + str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]))
+
+                try:
+                    dic = coe_end._oe.syspositions()
+
+                    self.sysPlotSide.addCurve(dic["optical_axis_y"],dic["optical_axis_z"],replace=True,replot=True)
+                    self.sysPlotSide.setGraphXLabel("Y [%s]"%self.workspace_units_label)
+                    self.sysPlotSide.setGraphYLabel("Z [%s]"%self.workspace_units_label)
+                    self.sysPlotSide.setGraphTitle("Side View of optical axis")
+
+                    self.sysPlotTop.addCurve(dic["optical_axis_y"],dic["optical_axis_x"],replace=True,replot=True)
+                    self.sysPlotTop.setGraphXLabel("Y [%s]"%self.workspace_units_label)
+                    self.sysPlotTop.setGraphYLabel("X [%s]"%self.workspace_units_label)
+                    self.sysPlotTop.setGraphTitle("Top View of optical axis")
+
+                except:
+                    self.distancesSummary.setText("Problem in calculating SysPlot:\n" + str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]))
 
                 try:
                     self.distancesSummary.setText(coe_end._oe.info())
