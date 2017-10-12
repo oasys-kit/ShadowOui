@@ -6,7 +6,7 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import QRect
+from PyQt5.QtCore import QRect, Qt
 
 from oasys.widgets.gui import ConfirmDialog
 
