@@ -90,7 +90,8 @@ class OWToWofryWavefront2d(widget.OWWidget):
                 if self.pixels_v <= 1: self.pixels_v = 100
 
                 self.send("GenericWavefront2D",
-                          SHADOW3Wavefront.initialize_from_shadow3_beam(self.shadow_beam._beam).toGenericWavefront(
+                          SHADOW3Wavefront.initialize_from_shadow3_beam(self.shadow_beam._beam,
+                                                                        self.workspace_units_to_m).toGenericWavefront(
                               pixels_h=self.pixels_h,
                               pixels_v=self.pixels_v,
                               shadow_to_meters=self.workspace_units_to_m))
