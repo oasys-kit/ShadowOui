@@ -1,20 +1,19 @@
-from orangewidget import gui
-from oasys.widgets import gui as oasysgui
-
-from oasys.widgets import widget
-from orangewidget.settings import Setting
-
-from PyQt5.QtGui import QPalette, QColor, QFont
 from PyQt5.QtWidgets import QApplication, QMessageBox
 from PyQt5.QtCore import QRect
 
+from orangewidget import gui
+from oasys.widgets import gui as oasysgui
+
+from oasys.widgets.widget import AutomaticWidget
+from orangewidget.settings import Setting
+
 from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
+from wofryshadow.propagator.wavefront2D.shadow3_wavefront import SHADOW3Wavefront
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 
-from wofryshadow.propagator.wavefront2D.shadow3_wavefront import SHADOW3Wavefront
 
-class OWToWofryWavefront2d(widget.OWWidget):
+class OWToWofryWavefront2d(AutomaticWidget):
     name = "To Wofry Wavefront 2D"
     id = "toWofryWavefront2D"
     description = "To Wofry Wavefront 2D"
@@ -30,7 +29,9 @@ class OWToWofryWavefront2d(widget.OWWidget):
                 "doc":"GenericWavefront2D",
                 "id":"GenericWavefront2D"}]
 
-    CONTROL_AREA_WIDTH = 605
+    MAX_WIDTH = 420
+    MAX_HEIGHT = 230
+    CONTROL_AREA_WIDTH = 410
 
     want_main_area = 0
 
@@ -45,34 +46,23 @@ class OWToWofryWavefront2d(widget.OWWidget):
         geom = QApplication.desktop().availableGeometry()
         self.setGeometry(QRect(round(geom.width()*0.05),
                                round(geom.height()*0.05),
-                               round(min(geom.width()*0.98, self.CONTROL_AREA_WIDTH+10)),
-                               round(min(geom.height()*0.95, 220))))
+                               round(min(geom.width()*0.98, self.MAX_WIDTH)),
+                               round(min(geom.height()*0.95, self.MAX_HEIGHT))))
 
-        self.setFixedHeight(self.geometry().height())
-        self.setFixedWidth(self.geometry().width())
+        self.setMinimumHeight(self.geometry().height())
+        self.setMinimumWidth(self.geometry().width())
+        self.setMaximumHeight(self.geometry().height())
+        self.setMaximumWidth(self.geometry().width())
 
-        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
+        self.controlArea.setFixedWidth(self.MAX_WIDTH-10)
+        self.controlArea.setFixedHeight(self.MAX_HEIGHT-10)
 
-        label = gui.label(self.controlArea, self, "From Shadow Beam To Wofry Wavefront")
-        font = QFont(label.font())
-        font.setBold(True)
-        font.setItalic(True)
-        font.setPixelSize(14)
-        label.setFont(font)
-        palette = QPalette(label.palette()) # make a copy of the palette
-        palette.setColor(QPalette.Foreground, QColor('Dark Blue'))
-        label.setPalette(palette) # assign new palette
-
-        gui.separator(self.controlArea, 10)
-
-        gui.button(self.controlArea, self, "Convert", callback=self.convert_beam, height=45)
-
-        gui.separator(self.controlArea, 10)
-
-        main_box = oasysgui.widgetBox(self.controlArea, "Converter Settings", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5, height=100)
+        main_box = oasysgui.widgetBox(self.controlArea, "From Shadow Beam To Wofry Wavefront", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5, height=140)
 
         oasysgui.lineEdit(main_box, self, "pixels_h", "Number of Pixels (H)", labelWidth=280, valueType=int, orientation="horizontal")
         oasysgui.lineEdit(main_box, self, "pixels_v", "Number of Pixels (V)", labelWidth=280, valueType=int, orientation="horizontal")
+
+        gui.button(main_box, self, "Compute", callback=self.convert_beam, height=45)
 
     def set_input(self, input_data):
         self.setStatusMessage("")
@@ -80,7 +70,8 @@ class OWToWofryWavefront2d(widget.OWWidget):
         if not input_data is None:
             self.shadow_beam = input_data
 
-            self.convert_beam()
+            if self.is_automatic_execution:
+                self.convert_beam()
 
 
     def convert_beam(self):
