@@ -42,7 +42,7 @@ SETUP_REQUIRES = (
 INSTALL_REQUIRES = (
     'oasys1>=1.0.19',
     'wofryshadow',
-    'shadow3>=17.3.29'
+    'shadow3==17.3.29'
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
