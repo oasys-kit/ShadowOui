@@ -386,7 +386,6 @@ class OWdabam_height_profile(OWWidget):
         self.figure.patch.set_facecolor('white')
 
         self.axis = self.figure.add_subplot(111, projection='3d')
-
         self.axis.set_zlabel("Z [nm]")
 
         self.plot_canvas[5] = FigureCanvasQTAgg(self.figure)
@@ -546,6 +545,9 @@ class OWdabam_height_profile(OWWidget):
         self.calculate_heigth_profile(not_interactive_mode=True)
 
     def calculate_heigth_profile(self, not_interactive_mode=False):
+        import matplotlib
+        print (matplotlib.__version__)
+
         try:
             if self.server.y is None: raise Exception("No Profile Selected")
 
@@ -631,6 +633,7 @@ class OWdabam_height_profile(OWWidget):
                 else:
                     rms_y = self.rms_y * 1e-6 # from urad to rad
 
+
             xx, yy, zz = profiles_simulation.simulate_profile_2D(combination = combination,
                                                                  error_type_l = self.error_type_y,
                                                                  rms_l = rms_y,
@@ -652,6 +655,7 @@ class OWdabam_height_profile(OWWidget):
             self.axis.plot_surface(x_to_plot, y_to_plot, z_to_plot,
                                    rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
 
+
             sloperms = profiles_simulation.slopes(zz.T, xx, yy, return_only_rms=1)
 
             title = ' Slope error rms in X direction: %f $\mu$rad' % (sloperms[0]*1e6) + '\n' + \
@@ -662,11 +666,14 @@ class OWdabam_height_profile(OWWidget):
             self.axis.set_zlabel("Z [nm]")
 
             self.axis.set_title(title)
+
             self.axis.mouse_init()
 
             if not not_interactive_mode:
                 try:
-                    self.plot_canvas[5].draw()
+                    import matplotlib
+                    if matplotlib.__version__ == "1.4.3":
+                        self.plot_canvas[5].draw()
                 except:
                     pass
 
