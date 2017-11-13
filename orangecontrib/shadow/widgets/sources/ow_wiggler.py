@@ -8,6 +8,8 @@ from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.util.oasys_util import EmittingStream, TTYGrabber
 
+import scipy.constants as codata
+
 from srxraylib.sources import srfunc
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowSource
@@ -250,13 +252,14 @@ class Wiggler(ow_source.Source, WidgetDecorator):
             gui.createTabPage(self.wiggler_tabs, "Electron Velocity"),
             gui.createTabPage(self.wiggler_tabs, "Electron Trajectory"),
             gui.createTabPage(self.wiggler_tabs, "Wiggler Spectrum"),
+            gui.createTabPage(self.wiggler_tabs, "Wiggler Spectral power")
         ]
 
         for tab in self.wiggler_tab:
             tab.setFixedHeight(self.IMAGE_HEIGHT)
             tab.setFixedWidth(self.IMAGE_WIDTH)
 
-        self.wiggler_plot_canvas = [None, None, None, None, None]
+        self.wiggler_plot_canvas = [None, None, None, None, None, None]
 
         self.wiggler_tabs.setCurrentIndex(current_tab)
 
@@ -293,12 +296,19 @@ class Wiggler(ow_source.Source, WidgetDecorator):
                                                              outFile="spectrum.dat",
                                                              elliptical=False)
 
-                self.plot_wiggler_histo(20,  data[:, 1], data[:, 7], plot_canvas_index=0, title="Magnetic Field (in vertical) Bz(Y)", xtitle=r'Y [m]', ytitle=r'B [T]')
-                self.plot_wiggler_histo(40,  data[:, 1], data[:, 6], plot_canvas_index=1, title="Electron Curvature", xtitle=r'Y [m]', ytitle=r'curvature [m^-1]')
-                self.plot_wiggler_histo(60,  data[:, 1], data[:, 3], plot_canvas_index=2, title="Electron Velocity BetaX(Y)", xtitle=r'Y [m]', ytitle=r'BetaX')
-                self.plot_wiggler_histo(80,  data[:, 1], data[:, 0], plot_canvas_index=3, title="Electron Trajectory X(Y)", xtitle=r'Y [m]', ytitle=r'X [m]')
-                self.plot_wiggler_histo(100, energy    , flux      , plot_canvas_index=4, title="Wiggler Spectrum (current = " + str(self.electron_current) + " mA)",
-                                        xtitle=r'E [eV]', ytitle=r'Flux [phot/s/0.1%bw]', is_log_log=True)
+                self.plot_wiggler_histo(15,  data[:, 1], data[:, 7], plot_canvas_index=0, title="Magnetic Field (in vertical) Bz(Y)", xtitle=r'Y [m]', ytitle=r'B [T]')
+                self.plot_wiggler_histo(30,  data[:, 1], data[:, 6], plot_canvas_index=1, title="Electron Curvature", xtitle=r'Y [m]', ytitle=r'curvature [m^-1]')
+                self.plot_wiggler_histo(45,  data[:, 1], data[:, 3], plot_canvas_index=2, title="Electron Velocity BetaX(Y)", xtitle=r'Y [m]', ytitle=r'BetaX')
+                self.plot_wiggler_histo(60,  data[:, 1], data[:, 0], plot_canvas_index=3, title="Electron Trajectory X(Y)", xtitle=r'Y [m]', ytitle=r'X [m]')
+                self.plot_wiggler_histo(80, energy    , flux      , plot_canvas_index=4,
+                                        title="Wiggler Spectrum (current = " + str(self.electron_current) + " mA)",
+                                        xtitle=r'E [eV]', ytitle=r'Flux [phot/s/0.1%bw]', is_log_log=False)
+                self.plot_wiggler_histo(100, energy, flux*1e3*codata.e, plot_canvas_index=5,
+                                        title="Spectral Power (current = " + str(self.electron_current) + " mA)",
+                                        xtitle=r'E [eV]', ytitle=r'Spectral Power [W/eV]', is_log_log=False)
+
+                print("\nTotal power (from integral of spectrum): %f W"%(numpy.trapz(flux*1e3*codata.e,x=energy)))
+                print("\nTotal number of photons (from integral of spectrum): %g"%(numpy.trapz(flux/(energy*1e-3),x=energy)))
 
             except Exception as exception:
                 QtWidgets.QMessageBox.critical(self, "Error",
