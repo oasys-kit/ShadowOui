@@ -200,6 +200,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     diffraction_geometry = Setting(0)
     diffraction_calculation = Setting(0)
     file_diffraction_profile = Setting("diffraction_profile.dat")
+    user_defined_bragg_angle = Setting(14.223)
     file_crystal_parameters = Setting("bragg.dat")
     crystal_auto_setting = Setting(0)
     units_in_use = Setting(0)
@@ -909,14 +910,19 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                     oasysgui.lineEdit(self.autosetting_box_units_2, self, "photon_wavelength", "Set wavelength [Å]", labelWidth=260, valueType=float, orientation="horizontal")
 
-                    self.crystal_box_2 = oasysgui.widgetBox(crystal_box, "", addSpace=False, orientation="horizontal",
+
+                    self.crystal_box_2 = oasysgui.widgetBox(crystal_box, "", addSpace=False, orientation="vertical",
                                                              height=150)
 
-                    self.le_file_diffraction_profile = oasysgui.lineEdit(self.crystal_box_2, self, "file_diffraction_profile",
+                    crystal_box_2_1 = oasysgui.widgetBox(self.crystal_box_2, "", addSpace=False, orientation="horizontal")
+
+                    self.le_file_diffraction_profile = oasysgui.lineEdit(crystal_box_2_1, self, "file_diffraction_profile",
                                        "File with Diffraction\nProfile (XOP format)", labelWidth=150, valueType=str,
                                        orientation="horizontal")
 
-                    gui.button(self.crystal_box_2, self, "...", callback=self.selectFileDiffractionProfile)
+                    gui.button(crystal_box_2_1, self, "...", callback=self.selectFileDiffractionProfile)
+
+                    oasysgui.lineEdit(self.crystal_box_2, self, "user_defined_bragg_angle", "Bragg Angle [deg]", labelWidth=260, valueType=float, orientation="horizontal")
 
                     self.set_DiffractionCalculation()
 
@@ -2480,6 +2486,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             elif self.graphical_options.is_crystal:
                 if self.diffraction_calculation == 1:
                     ShadowCongruence.check2ColumnFormatFile(congruence.checkFile(self.file_diffraction_profile), "Diffraction profile")
+                    congruence.checkStrictlyPositiveAngle(self.user_defined_bragg_angle, "Bragg Angle")
                 else:
                     ShadowCongruence.checkBraggFile(congruence.checkFile(self.file_crystal_parameters))
 
@@ -2687,15 +2694,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/angle." + str_oe_number))
 
         beam_incident_angles = values[:, 1]
-        beam_flags = values[:, 3]
-        bragg_angles = []
 
-        for index in range(0, len(input_beam._beam.rays)):
-            wavelength = ShadowPhysics.getWavelengthFromShadowK(input_beam._beam.rays[index, 10])
-            bragg_angles.append(90 - math.degrees(ShadowPhysics.calculateBraggAngle(wavelength, 1, 1, 1, 5.43123)))
-            if beam_flags[index] == -55000.0: input_beam._beam.rays[index, 9] = 1
-
-        delta_thetas = beam_incident_angles - bragg_angles
+        delta_thetas = beam_incident_angles - (90 - self.user_defined_bragg_angle)
 
         if self.file_diffraction_profile.startswith('/'):
             values = numpy.loadtxt(os.path.abspath(self.file_diffraction_profile))
@@ -2982,11 +2982,18 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 if exchangeData.get_program_name() == "XOPPY":
                     if exchangeData.get_widget_name() == "XCRYSTAL" or exchangeData.get_widget_name() == "XINPRO":
                         if exchangeData.get_widget_name() == "XCRYSTAL":
-                            self.file_diffraction_profile = "xoppy_xcrystal_" + str(id(self)) + ".dat"
-                            x_index = exchangeData.get_content("plot_x_col")
-                            y_index = exchangeData.get_content("plot_y_col")
+                            if exchangeData.get_content("scan_type") in (1, 2):
+                                self.file_diffraction_profile = "xoppy_xcrystal_" + str(id(self)) + ".dat"
+                                self.user_defined_bragg_angle = round(exchangeData.get_content("bragg_angle"), 4)
+
+                                x_index = exchangeData.get_content("plot_x_col")
+                                y_index = exchangeData.get_content("plot_y_col")
+                            else:
+                                raise Exception("Only Th-Thb Scan are accepted from CRYSTAL")
+
                         elif exchangeData.get_widget_name() == "XINPRO" :
                             self.file_diffraction_profile = "xoppy_xinpro_" + str(id(self)) + ".dat"
+                            self.user_defined_bragg_angle = 0.0
                             x_index = 0
                             y_index = 1
 
