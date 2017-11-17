@@ -4,8 +4,9 @@ import sys
 
 import numpy
 from PyQt5 import QtGui, QtWidgets
-from PyQt5.QtWidgets import QDialog, QWidget
-from PyQt5.QtGui import QPalette, QColor, QFont
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QDialog, QWidget, QLabel, QSizePolicy
+from PyQt5.QtGui import QPalette, QColor, QFont, QPixmap
 
 from matplotlib import cm
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
@@ -201,6 +202,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     diffraction_calculation = Setting(0)
     file_diffraction_profile = Setting("diffraction_profile.dat")
     user_defined_bragg_angle = Setting(14.223)
+    user_defined_asymmetry_angle = Setting(0.0)
     file_crystal_parameters = Setting("bragg.dat")
     crystal_auto_setting = Setting(0)
     units_in_use = Setting(0)
@@ -360,6 +362,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     d_2 = 0.0
 
     image_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/distances.png"
+    bragg_user_defined_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/bragg_user_defined.png"
 
     ##########################################
     # SCREEN/SLIT SETTING
@@ -860,8 +863,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                     self.tab_cryst_1 = oasysgui.createTabPage(tabs_crystal_setting, "Diffraction Settings")
                     self.tab_cryst_2 = oasysgui.createTabPage(tabs_crystal_setting, "Geometric Setting")
 
-                    crystal_box = oasysgui.widgetBox(self.tab_cryst_1, "Diffraction Parameters", addSpace=False,
-                                                      orientation="vertical", height=240)
+                    crystal_box = oasysgui.widgetBox(self.tab_cryst_1, "Diffraction Parameters", addSpace=True,
+                                                      orientation="vertical", height=435)
 
                     gui.comboBox(crystal_box, self, "diffraction_geometry", label="Diffraction Geometry", labelWidth=250,
                                  items=["Bragg", "Laue"],
@@ -872,10 +875,10 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                                  sendSelectedValue=False, orientation="horizontal",
                                  callback=self.set_DiffractionCalculation)
 
-                    gui.separator(crystal_box, height=10)
+                    gui.separator(crystal_box)
 
                     self.crystal_box_1 = oasysgui.widgetBox(crystal_box, "", addSpace=False, orientation="vertical",
-                                                             height=150)
+                                                             height=340)
 
 
                     file_box = oasysgui.widgetBox(self.crystal_box_1, "", addSpace=False, orientation="horizontal", height=30)
@@ -912,17 +915,29 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
 
                     self.crystal_box_2 = oasysgui.widgetBox(crystal_box, "", addSpace=False, orientation="vertical",
-                                                             height=150)
+                                                             height=340)
 
                     crystal_box_2_1 = oasysgui.widgetBox(self.crystal_box_2, "", addSpace=False, orientation="horizontal")
 
                     self.le_file_diffraction_profile = oasysgui.lineEdit(crystal_box_2_1, self, "file_diffraction_profile",
-                                       "File with Diffraction\nProfile (XOP format)", labelWidth=150, valueType=str,
+                                       "File with Diffraction\nProfile (XOP format)", labelWidth=120, valueType=str,
                                        orientation="horizontal")
 
                     gui.button(crystal_box_2_1, self, "...", callback=self.selectFileDiffractionProfile)
 
-                    oasysgui.lineEdit(self.crystal_box_2, self, "user_defined_bragg_angle", "Bragg Angle [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+                    oasysgui.lineEdit(self.crystal_box_2, self, "user_defined_bragg_angle", "Bragg Angle respect to the surface [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+                    oasysgui.lineEdit(self.crystal_box_2, self, "user_defined_asymmetry_angle", "Asymmetry angle [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+
+                    bragg_user_defined_box = oasysgui.widgetBox(self.crystal_box_2, "", addSpace=True, orientation="horizontal")
+
+                    label = QLabel("")
+                    label.setAlignment(Qt.AlignCenter)
+                    label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+                    label.setPixmap(QPixmap(self.bragg_user_defined_path))
+
+                    bragg_user_defined_box.layout().addWidget(label)
+
+
 
                     self.set_DiffractionCalculation()
 
@@ -2695,7 +2710,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
         beam_incident_angles = values[:, 1]
 
-        delta_thetas = beam_incident_angles - (90 - self.user_defined_bragg_angle)
+        delta_thetas = beam_incident_angles - (90 - self.user_defined_bragg_angle + self.user_defined_asymmetry_angle)
 
         if self.file_diffraction_profile.startswith('/'):
             values = numpy.loadtxt(os.path.abspath(self.file_diffraction_profile))
@@ -2985,6 +3000,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                             if exchangeData.get_content("scan_type") in (1, 2):
                                 self.file_diffraction_profile = "xoppy_xcrystal_" + str(id(self)) + ".dat"
                                 self.user_defined_bragg_angle = round(exchangeData.get_content("bragg_angle"), 4)
+                                self.user_defined_asymmetry_angle  = round(exchangeData.get_content("asymmetry_angle"), 4)
 
                                 x_index = exchangeData.get_content("plot_x_col")
                                 y_index = exchangeData.get_content("plot_y_col")
@@ -2994,6 +3010,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                         elif exchangeData.get_widget_name() == "XINPRO" :
                             self.file_diffraction_profile = "xoppy_xinpro_" + str(id(self)) + ".dat"
                             self.user_defined_bragg_angle = 0.0
+                            self.user_defined_asymmetry_angle = 0.0
                             x_index = 0
                             y_index = 1
 
