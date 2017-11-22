@@ -649,7 +649,7 @@ class GeometricalSource(ow_source.Source):
                     no_bandwidth = False
                     if exchangeData.get_widget_name() =="UNDULATOR_FLUX" :
                         self.user_defined_file = "xoppy_undulator_flux"
-                        index_flux = 2
+                        index_flux = 1
                     elif exchangeData.get_widget_name() == "BM" :
                         if exchangeData.get_content("is_log_plot") == 1:
                             raise Exception("Logarithmic X scale of Xoppy Energy distribution not supported")
@@ -659,6 +659,11 @@ class GeometricalSource(ow_source.Source):
                         else:
                             raise Exception("Xoppy result is not an Flux vs Energy distribution integrated in Psi")
                     elif exchangeData.get_widget_name() =="XWIGGLER" :
+                        if exchangeData.get_content("is_log_plot") == 1:
+                            raise Exception("Logarithmic X scale of Xoppy Energy distribution not supported")
+                        self.user_defined_file = "xoppy_xwiggler_flux"
+                        index_flux = 1
+                    elif exchangeData.get_widget_name() =="WS" :
                         if exchangeData.get_content("is_log_plot") == 1:
                             raise Exception("Logarithmic X scale of Xoppy Energy distribution not supported")
                         self.user_defined_file = "xoppy_xwiggler_flux"
