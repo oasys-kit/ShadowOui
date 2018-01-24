@@ -15,13 +15,6 @@ from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.util.oasys_util import EmittingStream
 
-try:
-    from ..tools.xoppy_calc import xoppy_doc
-except ImportError:
-    pass
-except SystemError:
-    pass
-
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
 from orangecontrib.shadow.util.shadow_util import ShadowPhysics
 
@@ -66,6 +59,7 @@ class OWxsh_pre_mlayer(OWWidget):
     AA0 = Setting(1.0)
     AA1 = Setting(0.0)
     AA2 = Setting(0.0)
+    AA3 = Setting(0.0)
 
     MAX_WIDTH = 700
     MAX_HEIGHT = 560
@@ -313,6 +307,13 @@ class OWxsh_pre_mlayer(OWWidget):
                     valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_4)
 
+        #widget index 23
+        idx += 1
+        oasysgui.lineEdit(box_4, self, "AA3",
+                     label=self.unitLabels()[idx], addSpace=True,
+                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
+        self.show_at(self.unitFlags()[idx], box_4)
+
         self.process_showers()
 
         self.shadow_output = oasysgui.textArea()
@@ -344,7 +345,8 @@ class OWxsh_pre_mlayer(OWWidget):
                  'File with bilayer gamma versus surface (PRESURFACE format)',
                  'Fit bilayer t(y)/t(y=0) vs y: zero-order coefficient (constant)',
                  'Fit bilayer t(y)/t(y=0) vs y: linear coefficient (slope)',
-                 'Fit bilayer t(y)/t(y=0) vs y: 2nd degree coefficient']
+                 'Fit bilayer t(y)/t(y=0) vs y: 2nd degree coefficient',
+                 'Fit bilayer t(y)/t(y=0) vs y: 3rd degree coefficient']
 
 
     def unitFlags(self):
@@ -368,6 +370,7 @@ class OWxsh_pre_mlayer(OWWidget):
                  'self.GRADE_SURFACE  ==  1',
                  'self.GRADE_SURFACE  ==  1',
                  'self.GRADE_SURFACE  ==  1',
+                 'self.GRADE_SURFACE  ==  2',
                  'self.GRADE_SURFACE  ==  2',
                  'self.GRADE_SURFACE  ==  2',
                  'self.GRADE_SURFACE  ==  2']
@@ -433,7 +436,9 @@ class OWxsh_pre_mlayer(OWWidget):
                              FILE_GAMMA=FILE_GAMMA,
                              AA0=self.AA0,
                              AA1=self.AA1,
-                             AA2=self.AA2)
+                             AA2=self.AA2,
+                             AA3=self.AA3,
+                             )
 
             self.send("PreProcessor_Data", ShadowPreProcessorData(m_layer_data_file_dat=self.FILE, m_layer_data_file_sha=self.FILE_SHADOW))
         except Exception as exception:
@@ -467,9 +472,10 @@ class OWxsh_pre_mlayer(OWWidget):
             congruence.checkDir(self.FILE_THICKNESS)
             congruence.checkDir(self.FILE_GAMMA)
         elif self.GRADE_SURFACE == 2:
-            self.AA0 = congruence.checkPositiveNumber(float(self.AA0), "zero-order coefficient")
-            self.AA1 = congruence.checkPositiveNumber(float(self.AA1), "linear coefficient")
-            self.AA2 = congruence.checkPositiveNumber(float(self.AA2), "2nd degree coefficient")
+            self.AA0 = congruence.checkNumber(float(self.AA0), "zero-order coefficient")
+            self.AA1 = congruence.checkNumber(float(self.AA1), "linear coefficient")
+            self.AA2 = congruence.checkNumber(float(self.AA2), "2nd degree coefficient")
+            self.AA3 = congruence.checkNumber(float(self.AA3), "3rd degree coefficient")
 
     def selectFile(self):
         self.le_FILE.setText(oasysgui.selectFileFromDialog(self, self.FILE, "Select Output File", file_extension_filter="Data Files (*.dat)"))
@@ -509,5 +515,5 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     w = OWxsh_pre_mlayer()
     w.show()
-    app.exec()
+    app.exec_()
     w.saveSettings()
