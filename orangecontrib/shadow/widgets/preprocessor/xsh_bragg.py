@@ -1,5 +1,7 @@
 import sys
 
+import numpy, scipy, xraylib, cmath
+
 from PyQt5.QtWidgets import QLabel, QApplication, QMessageBox, QSizePolicy
 from PyQt5.QtGui import QTextCursor, QIntValidator, QDoubleValidator, QPixmap
 from PyQt5.QtCore import Qt
@@ -232,22 +234,157 @@ class OWxsh_bragg(OWWidget):
 
             self.checkFields()
 
-            tmp = bragg(interactive=False,
-                        DESCRIPTOR=self.crystals[self.DESCRIPTOR],
-                        H_MILLER_INDEX=self.H_MILLER_INDEX,
-                        K_MILLER_INDEX=self.K_MILLER_INDEX,
-                        L_MILLER_INDEX=self.L_MILLER_INDEX,
-                        TEMPERATURE_FACTOR=self.TEMPERATURE_FACTOR,
-                        E_MIN=self.E_MIN,
-                        E_MAX=self.E_MAX,
-                        E_STEP=self.E_STEP,
-                        SHADOW_FILE=congruence.checkFileName(self.SHADOW_FILE))
+            if not self.DESCRIPTOR == 18: # GRAPHITE
+                tmp = bragg(interactive=False,
+                            DESCRIPTOR=self.crystals[self.DESCRIPTOR],
+                            H_MILLER_INDEX=self.H_MILLER_INDEX,
+                            K_MILLER_INDEX=self.K_MILLER_INDEX,
+                            L_MILLER_INDEX=self.L_MILLER_INDEX,
+                            TEMPERATURE_FACTOR=self.TEMPERATURE_FACTOR,
+                            E_MIN=self.E_MIN,
+                            E_MAX=self.E_MAX,
+                            E_STEP=self.E_STEP,
+                            SHADOW_FILE=congruence.checkFileName(self.SHADOW_FILE))
+            else:
+                OWxsh_bragg.new_bragg(H_MILLER_INDEX=self.H_MILLER_INDEX,
+                                      K_MILLER_INDEX=self.K_MILLER_INDEX,
+                                      L_MILLER_INDEX=self.L_MILLER_INDEX,
+                                      TEMPERATURE_FACTOR=self.TEMPERATURE_FACTOR,
+                                      E_MIN=self.E_MIN,
+                                      E_MAX=self.E_MAX,
+                                      E_STEP=self.E_STEP,
+                                      SHADOW_FILE=congruence.checkFileName(self.SHADOW_FILE))
 
             self.send("PreProcessor_Data", ShadowPreProcessorData(bragg_data_file=self.SHADOW_FILE))
         except Exception as exception:
             QMessageBox.critical(self, "Error",
                                  str(exception),
                                  QMessageBox.Ok)
+
+            #raise exception
+
+    @classmethod
+    def new_bragg(cls,
+                  DESCRIPTOR="Graphite",
+                  H_MILLER_INDEX=0,
+                  K_MILLER_INDEX=0,
+                  L_MILLER_INDEX=2,
+                  TEMPERATURE_FACTOR=1.0,
+                  E_MIN=5000.0,
+                  E_MAX=15000.0,
+                  E_STEP=100.0,
+                  SHADOW_FILE="bragg.dat"):
+
+        """
+         SHADOW preprocessor for crystals - python+xraylib version
+
+         -"""
+        # retrieve physical constants needed
+        codata = scipy.constants.codata.physical_constants
+        codata_e2_mc2, tmp1, tmp2 = codata["classical electron radius"]
+        # or, hard-code them
+        # In [179]: print("codata_e2_mc2 = %20.11e \n" % codata_e2_mc2 )
+        # codata_e2_mc2 =    2.81794032500e-15
+
+        fileout = SHADOW_FILE
+        descriptor = DESCRIPTOR
+
+        hh = int(H_MILLER_INDEX)
+        kk = int(K_MILLER_INDEX)
+        ll = int(L_MILLER_INDEX)
+
+        temper = float(TEMPERATURE_FACTOR)
+
+        emin = float(E_MIN)
+        emax = float(E_MAX)
+        estep = float(E_STEP)
+
+        #
+        # end input section, start calculations
+        #
+
+        f = open(fileout, 'wt')
+
+        cryst = xraylib.Crystal_GetCrystal(descriptor)
+        volume = cryst['volume']
+
+        #test crystal data - not needed
+        itest = 1
+        if itest:
+            if (cryst == None):
+                sys.exit(1)
+            print ("  Unit cell dimensions are %f %f %f" % (cryst['a'],cryst['b'],cryst['c']))
+            print ("  Unit cell angles are %f %f %f" % (cryst['alpha'],cryst['beta'],cryst['gamma']))
+            print ("  Unit cell volume is %f A^3" % volume )
+            print ("  Atoms at:")
+            print ("     Z  fraction    X        Y        Z")
+            for i in range(cryst['n_atom']):
+                atom =  cryst['atom'][i]
+                print ("    %3i %f %f %f %f" % (atom['Zatom'], atom['fraction'], atom['x'], atom['y'], atom['z']) )
+            print ("  ")
+
+        volume = volume*1e-8*1e-8*1e-8 # in cm^3
+        #flag ZincBlende
+        f.write( "%i " % 0)
+        #1/V*electronRadius
+        f.write( "%e " % ((1e0/volume)*(codata_e2_mc2*1e2)) )
+        #dspacing
+        dspacing = xraylib.Crystal_dSpacing(cryst, hh, kk, ll)
+        f.write( "%e " % (dspacing*1e-8) )
+        f.write( "\n")
+        #Z's
+        atom =  cryst['atom']
+        f.write( "%i " % atom[0]["Zatom"] )
+        f.write( "%i " % atom[-1]["Zatom"] )
+        f.write( "%e " % temper ) # temperature parameter
+        f.write( "\n")
+
+        ga = (1e0+0j) + cmath.exp(1j*cmath.pi*(hh+kk))  \
+                                 + cmath.exp(1j*cmath.pi*(hh+ll))  \
+                                 + cmath.exp(1j*cmath.pi*(kk+ll))
+        gb = ga * cmath.exp(1j*cmath.pi*0.5*(hh+kk+ll))
+        ga_bar = ga.conjugate()
+        gb_bar = gb.conjugate()
+
+
+        f.write( "(%20.11e,%20.11e ) \n" % (ga.real, ga.imag) )
+        f.write( "(%20.11e,%20.11e ) \n" % (ga_bar.real, ga_bar.imag) )
+        f.write( "(%20.11e,%20.11e ) \n" % (gb.real, gb.imag) )
+        f.write( "(%20.11e,%20.11e ) \n" % (gb_bar.real, gb_bar.imag) )
+
+        zetas = numpy.array([atom[0]["Zatom"],atom[-1]["Zatom"]])
+        for zeta in zetas:
+            xx01 = 1e0/2e0/dspacing
+            xx00 = xx01-0.1
+            xx02 = xx01+0.1
+            yy00= xraylib.FF_Rayl(int(zeta),xx00)
+            yy01= xraylib.FF_Rayl(int(zeta),xx01)
+            yy02= xraylib.FF_Rayl(int(zeta),xx02)
+            xx = numpy.array([xx00,xx01,xx02])
+            yy = numpy.array([yy00,yy01,yy02])
+            fit = numpy.polyfit(xx,yy,2)
+            #print "zeta: ",zeta
+            #print "z,xx,YY: ",zeta,xx,yy
+            #print "fit: ",fit[::-1] # reversed coeffs
+            #print "fit-tuple: ",(tuple(fit[::-1].tolist())) # reversed coeffs
+            #print("fit-tuple: %e %e %e  \n" % (tuple(fit[::-1].tolist())) ) # reversed coeffs
+            f.write("%e %e %e  \n" % (tuple(fit[::-1].tolist())) ) # reversed coeffs
+
+
+        npoint  = int( (emax - emin)/estep + 1 )
+        f.write( ("%i \n") % npoint)
+        for i in range(npoint):
+            energy = (emin+estep*i)
+            f1a = xraylib.Fi(int(zetas[0]),energy*1e-3)
+            f2a = xraylib.Fii(int(zetas[0]),energy*1e-3)
+            f1b = xraylib.Fi(int(zetas[1]),energy*1e-3)
+            f2b = xraylib.Fii(int(zetas[1]),energy*1e-3)
+            out = numpy.array([energy,f1a,abs(f2a),f1b,abs(f2b)])
+            f.write( ("%20.11e %20.11e %20.11e \n %20.11e %20.11e \n") % ( tuple(out.tolist()) ) )
+
+        f.close()
+        print("File written to disk: %s" % fileout)
+
 
     def checkFields(self):
         if type(self.DESCRIPTOR) == str: # back compatibility with old version
