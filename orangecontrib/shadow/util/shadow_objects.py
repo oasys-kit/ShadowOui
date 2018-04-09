@@ -337,13 +337,10 @@ class ShadowSource:
         self.source_type = type
 
     ####################################################################
-    # FOR WEIRD BUG ON LINUX - STRING NOT PROPERLY RETURNED BY BINDING
+    # FOR WEIRD BUG ON LINUX AND MAC - STRING NOT PROPERLY RETURNED BY BINDING
     ####################################################################
     def self_repair(self):
-        if platform.system() == 'Linux':
-            #distname, version, id = platform.linux_distribution()
-            #distname = distname.lower()
-            #if distname == 'ubuntu' or distname == 'centos linux' or distname=='debian':
+        if platform.system() == 'Linux' or platform.system() == 'Darwin':
             self.src.FILE_TRAJ   = adjust_shadow_string(self.src.FILE_TRAJ)
             self.src.FILE_SOURCE = adjust_shadow_string(self.src.FILE_SOURCE)
             self.src.FILE_BOUND  = adjust_shadow_string(self.src.FILE_BOUND)
@@ -552,13 +549,10 @@ class ShadowOpticalElement:
         self._oe = oe
 
     ####################################################################
-    # FOR WEIRD BUG ON LINUX - STRING NOT PROPERLY RETURNED BY BINDING
+    # FOR WEIRD BUG ON LINUX AND MAC - STRING NOT PROPERLY RETURNED BY BINDING
     ####################################################################
     def self_repair(self):
-        if platform.system() == 'Linux':
-            #distname, version, id = platform.linux_distribution()
-            #distname = distname.lower()
-            #if distname == 'ubuntu' or distname == 'centos linux' or distname=='debian':
+        if platform.system() == 'Linux' or platform.system() == 'Darwin':
             self._oe.FILE_SOURCE      = adjust_shadow_string(self._oe.FILE_SOURCE)
             self._oe.FILE_RIP         = adjust_shadow_string(self._oe.FILE_RIP)
             self._oe.FILE_REFL        = adjust_shadow_string(self._oe.FILE_REFL)
@@ -1092,13 +1086,10 @@ class ShadowCompoundOpticalElement:
         return ShadowCompoundOpticalElement(oe=Shadow.CompoundOE(user_units_to_cm=workspace_units_to_cm))
 
     ####################################################################
-    # FOR WEIRD BUG ON LINUX - STRING NOT PROPERLY RETURNED BY BINDING
+    # FOR WEIRD BUG ON LINUX AND MAC - STRING NOT PROPERLY RETURNED BY BINDING
     ####################################################################
     def self_repair(self):
-        if platform.system() == 'Linux':
-            #distname, version, id = platform.linux_distribution()
-            #distname = distname.lower()
-            #if distname == 'ubuntu' or distname == 'centos linux' or distname=='debian':
+        if platform.system() == 'Linux' or platform.system() == 'Darwin':
             for index in range(0, self._oe.number_oe()):
                 self._oe.list[index].FILE_SOURCE      = adjust_shadow_string(self._oe.list[index].FILE_SOURCE)
                 self._oe.list[index].FILE_RIP         = adjust_shadow_string(self._oe.list[index].FILE_RIP)
