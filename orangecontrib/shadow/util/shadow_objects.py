@@ -261,6 +261,39 @@ class ShadowBeam:
         return self
 
     @classmethod
+    def traceIdealLensOE(cls, input_beam, shadow_oe, history=True, widget_class_name=None):
+
+        self = cls.initializeFromPreviousBeam(input_beam)
+
+        shadow_oe.self_repair()
+
+        if history:
+            history_shadow_oe_start = shadow_oe.duplicate()
+
+        self._beam.traceIdealLensOE(shadow_oe._oe, self._oe_number)
+
+        shadow_oe.self_repair()
+
+        if history:
+            history_shadow_oe_end = shadow_oe.duplicate()
+
+            #N.B. history[0] = Source
+            if not self._oe_number == 0:
+                if len(self.history) - 1 < self._oe_number:
+                    self.history.append(ShadowOEHistoryItem(oe_number=self._oe_number,
+                                                            input_beam=input_beam.duplicate(),
+                                                            shadow_oe_start=history_shadow_oe_start,
+                                                            shadow_oe_end=history_shadow_oe_end, widget_class_name=widget_class_name))
+                else:
+                    self.history[self._oe_number]=ShadowOEHistoryItem(oe_number=self._oe_number,
+                                                                      input_beam=input_beam.duplicate(),
+                                                                      shadow_oe_start=history_shadow_oe_start,
+                                                                      shadow_oe_end=history_shadow_oe_end,
+                                                                      widget_class_name=widget_class_name)
+
+        return self
+
+    @classmethod
     def traceFromCompoundOE(cls,
                             input_beam,
                             shadow_oe,
@@ -552,241 +585,252 @@ class ShadowOpticalElement:
     # FOR WEIRD BUG ON LINUX AND MAC - STRING NOT PROPERLY RETURNED BY BINDING
     ####################################################################
     def self_repair(self):
-        if platform.system() == 'Linux' or platform.system() == 'Darwin':
-            self._oe.FILE_SOURCE      = adjust_shadow_string(self._oe.FILE_SOURCE)
-            self._oe.FILE_RIP         = adjust_shadow_string(self._oe.FILE_RIP)
-            self._oe.FILE_REFL        = adjust_shadow_string(self._oe.FILE_REFL)
-            self._oe.FILE_MIR         = adjust_shadow_string(self._oe.FILE_MIR)
-            self._oe.FILE_ROUGH       = adjust_shadow_string(self._oe.FILE_ROUGH)
-            self._oe.FILE_R_IND_OBJ   = adjust_shadow_string(self._oe.FILE_R_IND_OBJ)
-            self._oe.FILE_R_IND_IMA   = adjust_shadow_string(self._oe.FILE_R_IND_IMA)
-            self._oe.FILE_FAC         = adjust_shadow_string(self._oe.FILE_FAC)
-            self._oe.FILE_SEGMENT     = adjust_shadow_string(self._oe.FILE_SEGMENT)
-            self._oe.FILE_SEGP        = adjust_shadow_string(self._oe.FILE_SEGP)
-            self._oe.FILE_KOMA        = adjust_shadow_string(self._oe.FILE_KOMA)
-            self._oe.FILE_KOMA_CA     = adjust_shadow_string(self._oe.FILE_KOMA_CA)
+        if not isinstance(self._oe, Shadow.IdealLensOE):
+            if platform.system() == 'Linux' or platform.system() == 'Darwin':
+                self._oe.FILE_SOURCE      = adjust_shadow_string(self._oe.FILE_SOURCE)
+                self._oe.FILE_RIP         = adjust_shadow_string(self._oe.FILE_RIP)
+                self._oe.FILE_REFL        = adjust_shadow_string(self._oe.FILE_REFL)
+                self._oe.FILE_MIR         = adjust_shadow_string(self._oe.FILE_MIR)
+                self._oe.FILE_ROUGH       = adjust_shadow_string(self._oe.FILE_ROUGH)
+                self._oe.FILE_R_IND_OBJ   = adjust_shadow_string(self._oe.FILE_R_IND_OBJ)
+                self._oe.FILE_R_IND_IMA   = adjust_shadow_string(self._oe.FILE_R_IND_IMA)
+                self._oe.FILE_FAC         = adjust_shadow_string(self._oe.FILE_FAC)
+                self._oe.FILE_SEGMENT     = adjust_shadow_string(self._oe.FILE_SEGMENT)
+                self._oe.FILE_SEGP        = adjust_shadow_string(self._oe.FILE_SEGP)
+                self._oe.FILE_KOMA        = adjust_shadow_string(self._oe.FILE_KOMA)
+                self._oe.FILE_KOMA_CA     = adjust_shadow_string(self._oe.FILE_KOMA_CA)
 
-            FILE_ABS = [adjust_shadow_string(self._oe.FILE_ABS[0]),
-                        adjust_shadow_string(self._oe.FILE_ABS[1]),
-                        adjust_shadow_string(self._oe.FILE_ABS[2]),
-                        adjust_shadow_string(self._oe.FILE_ABS[3]),
-                        adjust_shadow_string(self._oe.FILE_ABS[4]),
-                        adjust_shadow_string(self._oe.FILE_ABS[5]),
-                        adjust_shadow_string(self._oe.FILE_ABS[6]),
-                        adjust_shadow_string(self._oe.FILE_ABS[7]),
-                        adjust_shadow_string(self._oe.FILE_ABS[8]),
-                        adjust_shadow_string(self._oe.FILE_ABS[9])]
+                FILE_ABS = [adjust_shadow_string(self._oe.FILE_ABS[0]),
+                            adjust_shadow_string(self._oe.FILE_ABS[1]),
+                            adjust_shadow_string(self._oe.FILE_ABS[2]),
+                            adjust_shadow_string(self._oe.FILE_ABS[3]),
+                            adjust_shadow_string(self._oe.FILE_ABS[4]),
+                            adjust_shadow_string(self._oe.FILE_ABS[5]),
+                            adjust_shadow_string(self._oe.FILE_ABS[6]),
+                            adjust_shadow_string(self._oe.FILE_ABS[7]),
+                            adjust_shadow_string(self._oe.FILE_ABS[8]),
+                            adjust_shadow_string(self._oe.FILE_ABS[9])]
 
-            self._oe.FILE_ABS = numpy.array(FILE_ABS)
+                self._oe.FILE_ABS = numpy.array(FILE_ABS)
 
-            FILE_SCR_EXT = [adjust_shadow_string(self._oe.FILE_SCR_EXT[0]),
-                            adjust_shadow_string(self._oe.FILE_SCR_EXT[1]),
-                            adjust_shadow_string(self._oe.FILE_SCR_EXT[2]),
-                            adjust_shadow_string(self._oe.FILE_SCR_EXT[3]),
-                            adjust_shadow_string(self._oe.FILE_SCR_EXT[4]),
-                            adjust_shadow_string(self._oe.FILE_SCR_EXT[5]),
-                            adjust_shadow_string(self._oe.FILE_SCR_EXT[6]),
-                            adjust_shadow_string(self._oe.FILE_SCR_EXT[7]),
-                            adjust_shadow_string(self._oe.FILE_SCR_EXT[8]),
-                            adjust_shadow_string(self._oe.FILE_SCR_EXT[9])]
+                FILE_SCR_EXT = [adjust_shadow_string(self._oe.FILE_SCR_EXT[0]),
+                                adjust_shadow_string(self._oe.FILE_SCR_EXT[1]),
+                                adjust_shadow_string(self._oe.FILE_SCR_EXT[2]),
+                                adjust_shadow_string(self._oe.FILE_SCR_EXT[3]),
+                                adjust_shadow_string(self._oe.FILE_SCR_EXT[4]),
+                                adjust_shadow_string(self._oe.FILE_SCR_EXT[5]),
+                                adjust_shadow_string(self._oe.FILE_SCR_EXT[6]),
+                                adjust_shadow_string(self._oe.FILE_SCR_EXT[7]),
+                                adjust_shadow_string(self._oe.FILE_SCR_EXT[8]),
+                                adjust_shadow_string(self._oe.FILE_SCR_EXT[9])]
 
-            self._oe.FILE_SCR_EXT = numpy.array(FILE_SCR_EXT)
+                self._oe.FILE_SCR_EXT = numpy.array(FILE_SCR_EXT)
 
 
     def duplicate(self):
-        new_oe = ShadowOpticalElement.create_empty_oe()
+        if isinstance(self._oe, Shadow.IdealLensOE):
+            new_oe = ShadowOpticalElement.create_ideal_lens()
 
-        new_oe._oe.FMIRR = self._oe.FMIRR
-        new_oe._oe.F_TORUS = self._oe.F_TORUS
-        new_oe._oe.FCYL = self._oe.FCYL
-        new_oe._oe.F_EXT = self._oe.F_EXT
-        new_oe._oe.FSTAT = self._oe.FSTAT
-        new_oe._oe.F_SCREEN = self._oe.F_SCREEN
-        new_oe._oe.F_PLATE = self._oe.F_PLATE
-        new_oe._oe.FSLIT = self._oe.FSLIT
-        new_oe._oe.FWRITE = self._oe.FWRITE
-        new_oe._oe.F_RIPPLE = self._oe.F_RIPPLE
-        new_oe._oe.F_MOVE = self._oe.F_MOVE
-        new_oe._oe.F_THICK = self._oe.F_THICK
-        new_oe._oe.F_BRAGG_A = self._oe.F_BRAGG_A
-        new_oe._oe.F_G_S = self._oe.F_G_S
-        new_oe._oe.F_R_RAN = self._oe.F_R_RAN
-        new_oe._oe.F_GRATING = self._oe.F_GRATING
-        new_oe._oe.F_MOSAIC = self._oe.F_MOSAIC
-        new_oe._oe.F_JOHANSSON = self._oe.F_JOHANSSON
-        new_oe._oe.F_SIDE = self._oe.F_SIDE
-        new_oe._oe.F_CENTRAL = self._oe.F_CENTRAL
-        new_oe._oe.F_CONVEX = self._oe.F_CONVEX
-        new_oe._oe.F_REFLEC = self._oe.F_REFLEC
-        new_oe._oe.F_RUL_ABS = self._oe.F_RUL_ABS
-        new_oe._oe.F_RULING = self._oe.F_RULING
-        new_oe._oe.F_PW = self._oe.F_PW
-        new_oe._oe.F_PW_C = self._oe.F_PW_C
-        new_oe._oe.F_VIRTUAL = self._oe.F_VIRTUAL
-        new_oe._oe.FSHAPE = self._oe.FSHAPE
-        new_oe._oe.FHIT_C = self._oe.FHIT_C
-        new_oe._oe.F_MONO = self._oe.F_MONO
-        new_oe._oe.F_REFRAC = self._oe.F_REFRAC
-        new_oe._oe.F_DEFAULT = self._oe.F_DEFAULT
-        new_oe._oe.F_REFL = self._oe.F_REFL
-        new_oe._oe.F_HUNT = self._oe.F_HUNT
-        new_oe._oe.F_CRYSTAL = self._oe.F_CRYSTAL
-        new_oe._oe.F_PHOT_CENT = self._oe.F_PHOT_CENT
-        new_oe._oe.F_ROUGHNESS = self._oe.F_ROUGHNESS
-        new_oe._oe.F_ANGLE = self._oe.F_ANGLE
-        new_oe._oe.NPOINT = self._oe.NPOINT
-        new_oe._oe.NCOL = self._oe.NCOL
-        new_oe._oe.N_SCREEN = self._oe.N_SCREEN
-        new_oe._oe.ISTAR1 = self._oe.ISTAR1
-        new_oe._oe.CIL_ANG = self._oe.CIL_ANG
-        new_oe._oe.ELL_THE = self._oe.ELL_THE
-        new_oe._oe.N_PLATES = self._oe.N_PLATES
-        new_oe._oe.IG_SEED = self._oe.IG_SEED
-        new_oe._oe.MOSAIC_SEED = self._oe.MOSAIC_SEED
-        new_oe._oe.ALPHA = self._oe.ALPHA
-        new_oe._oe.SSOUR = self._oe.SSOUR
-        new_oe._oe.THETA = self._oe.THETA
-        new_oe._oe.SIMAG = self._oe.SIMAG
-        new_oe._oe.RDSOUR = self._oe.RDSOUR
-        new_oe._oe.RTHETA = self._oe.RTHETA
-        new_oe._oe.OFF_SOUX = self._oe.OFF_SOUX
-        new_oe._oe.OFF_SOUY = self._oe.OFF_SOUY
-        new_oe._oe.OFF_SOUZ = self._oe.OFF_SOUZ
-        new_oe._oe.ALPHA_S = self._oe.ALPHA_S
-        new_oe._oe.RLEN1 = self._oe.RLEN1
-        new_oe._oe.RLEN2 = self._oe.RLEN2
-        new_oe._oe.RMIRR = self._oe.RMIRR
-        new_oe._oe.AXMAJ = self._oe.AXMAJ
-        new_oe._oe.AXMIN = self._oe.AXMIN
-        new_oe._oe.CONE_A = self._oe.CONE_A
-        new_oe._oe.R_MAJ = self._oe.R_MAJ
-        new_oe._oe.R_MIN = self._oe.R_MIN
-        new_oe._oe.RWIDX1 = self._oe.RWIDX1
-        new_oe._oe.RWIDX2 = self._oe.RWIDX2
-        new_oe._oe.PARAM = self._oe.PARAM
-        new_oe._oe.HUNT_H = self._oe.HUNT_H
-        new_oe._oe.HUNT_L = self._oe.HUNT_L
-        new_oe._oe.BLAZE = self._oe.BLAZE
-        new_oe._oe.RULING = self._oe.RULING
-        new_oe._oe.ORDER = self._oe.ORDER
-        new_oe._oe.PHOT_CENT = self._oe.PHOT_CENT
-        new_oe._oe.X_ROT = self._oe.X_ROT
-        new_oe._oe.D_SPACING = self._oe.D_SPACING
-        new_oe._oe.A_BRAGG = self._oe.A_BRAGG
-        new_oe._oe.SPREAD_MOS = self._oe.SPREAD_MOS
-        new_oe._oe.THICKNESS = self._oe.THICKNESS
-        new_oe._oe.R_JOHANSSON = self._oe.R_JOHANSSON
-        new_oe._oe.Y_ROT = self._oe.Y_ROT
-        new_oe._oe.Z_ROT = self._oe.Z_ROT
-        new_oe._oe.OFFX = self._oe.OFFX
-        new_oe._oe.OFFY = self._oe.OFFY
-        new_oe._oe.OFFZ = self._oe.OFFZ
-        new_oe._oe.SLLEN = self._oe.SLLEN
-        new_oe._oe.SLWID = self._oe.SLWID
-        new_oe._oe.SLTILT = self._oe.SLTILT
-        new_oe._oe.COD_LEN = self._oe.COD_LEN
-        new_oe._oe.COD_WID = self._oe.COD_WID
-        new_oe._oe.X_SOUR = self._oe.X_SOUR
-        new_oe._oe.Y_SOUR = self._oe.Y_SOUR
-        new_oe._oe.Z_SOUR = self._oe.Z_SOUR
-        new_oe._oe.X_SOUR_ROT = self._oe.X_SOUR_ROT
-        new_oe._oe.Y_SOUR_ROT = self._oe.Y_SOUR_ROT
-        new_oe._oe.Z_SOUR_ROT = self._oe.Z_SOUR_ROT
-        new_oe._oe.R_LAMBDA = self._oe.R_LAMBDA
-        new_oe._oe.THETA_I = self._oe.THETA_I
-        new_oe._oe.ALPHA_I = self._oe.ALPHA_I
-        new_oe._oe.T_INCIDENCE = self._oe.T_INCIDENCE
-        new_oe._oe.T_SOURCE = self._oe.T_SOURCE
-        new_oe._oe.T_IMAGE = self._oe.T_IMAGE
-        new_oe._oe.T_REFLECTION = self._oe.T_REFLECTION
-        new_oe._oe.FILE_SOURCE = self._oe.FILE_SOURCE
-        new_oe._oe.FILE_RIP = self._oe.FILE_RIP
-        new_oe._oe.FILE_REFL = self._oe.FILE_REFL
-        new_oe._oe.FILE_MIR = self._oe.FILE_MIR
-        new_oe._oe.FILE_ROUGH = self._oe.FILE_ROUGH
-        new_oe._oe.FZP = self._oe.FZP
-        new_oe._oe.HOLO_R1 = self._oe.HOLO_R1
-        new_oe._oe.HOLO_R2 = self._oe.HOLO_R2
-        new_oe._oe.HOLO_DEL = self._oe.HOLO_DEL
-        new_oe._oe.HOLO_GAM = self._oe.HOLO_GAM
-        new_oe._oe.HOLO_W = self._oe.HOLO_W
-        new_oe._oe.HOLO_RT1 = self._oe.HOLO_RT1
-        new_oe._oe.HOLO_RT2 = self._oe.HOLO_RT2
-        new_oe._oe.AZIM_FAN = self._oe.AZIM_FAN
-        new_oe._oe.DIST_FAN = self._oe.DIST_FAN
-        new_oe._oe.COMA_FAC = self._oe.COMA_FAC
-        new_oe._oe.ALFA = self._oe.ALFA
-        new_oe._oe.GAMMA = self._oe.GAMMA
-        new_oe._oe.R_IND_OBJ = self._oe.R_IND_OBJ
-        new_oe._oe.R_IND_IMA = self._oe.R_IND_IMA
-        new_oe._oe.R_ATTENUATION_OBJ = self._oe.R_ATTENUATION_OBJ
-        new_oe._oe.R_ATTENUATION_IMA = self._oe.R_ATTENUATION_IMA
-        new_oe._oe.F_R_IND = self._oe.F_R_IND
-        new_oe._oe.FILE_R_IND_OBJ = self._oe.FILE_R_IND_OBJ
-        new_oe._oe.FILE_R_IND_IMA = self._oe.FILE_R_IND_IMA
-        new_oe._oe.RUL_A1 = self._oe.RUL_A1
-        new_oe._oe.RUL_A2 = self._oe.RUL_A2
-        new_oe._oe.RUL_A3 = self._oe.RUL_A3
-        new_oe._oe.RUL_A4 = self._oe.RUL_A4
-        new_oe._oe.F_POLSEL = self._oe.F_POLSEL
-        new_oe._oe.F_FACET = self._oe.F_FACET
-        new_oe._oe.F_FAC_ORIENT = self._oe.F_FAC_ORIENT
-        new_oe._oe.F_FAC_LATT = self._oe.F_FAC_LATT
-        new_oe._oe.RFAC_LENX = self._oe.RFAC_LENX
-        new_oe._oe.RFAC_LENY = self._oe.RFAC_LENY
-        new_oe._oe.RFAC_PHAX = self._oe.RFAC_PHAX
-        new_oe._oe.RFAC_PHAY = self._oe.RFAC_PHAY
-        new_oe._oe.RFAC_DELX1 = self._oe.RFAC_DELX1
-        new_oe._oe.RFAC_DELX2 = self._oe.RFAC_DELX2
-        new_oe._oe.RFAC_DELY1 = self._oe.RFAC_DELY1
-        new_oe._oe.RFAC_DELY2 = self._oe.RFAC_DELY2
-        new_oe._oe.FILE_FAC = self._oe.FILE_FAC
-        new_oe._oe.F_SEGMENT = self._oe.F_SEGMENT
-        new_oe._oe.ISEG_XNUM = self._oe.ISEG_XNUM
-        new_oe._oe.ISEG_YNUM = self._oe.ISEG_YNUM
-        new_oe._oe.FILE_SEGMENT = self._oe.FILE_SEGMENT
-        new_oe._oe.FILE_SEGP = self._oe.FILE_SEGP
-        new_oe._oe.SEG_LENX = self._oe.SEG_LENX
-        new_oe._oe.SEG_LENY = self._oe.SEG_LENY
-        new_oe._oe.F_KOMA = self._oe.F_KOMA
-        new_oe._oe.FILE_KOMA = self._oe.FILE_KOMA
-        new_oe._oe.F_EXIT_SHAPE = self._oe.F_EXIT_SHAPE
-        new_oe._oe.F_INC_MNOR_ANG = self._oe.F_INC_MNOR_ANG
-        new_oe._oe.ZKO_LENGTH = self._oe.ZKO_LENGTH
-        new_oe._oe.RKOMA_CX = self._oe.RKOMA_CX
-        new_oe._oe.RKOMA_CY = self._oe.RKOMA_CY
-        new_oe._oe.F_KOMA_CA = self._oe.F_KOMA_CA
-        new_oe._oe.FILE_KOMA_CA = self._oe.FILE_KOMA_CA
-        new_oe._oe.F_KOMA_BOUNCE = self._oe.F_KOMA_BOUNCE
-        new_oe._oe.X_RIP_AMP = self._oe.X_RIP_AMP
-        new_oe._oe.X_RIP_WAV = self._oe.X_RIP_WAV
-        new_oe._oe.X_PHASE = self._oe.X_PHASE
-        new_oe._oe.Y_RIP_AMP = self._oe.Y_RIP_AMP
-        new_oe._oe.Y_RIP_WAV = self._oe.Y_RIP_WAV
-        new_oe._oe.Y_PHASE = self._oe.Y_PHASE
-        new_oe._oe.N_RIP = self._oe.N_RIP
-        new_oe._oe.ROUGH_X = self._oe.ROUGH_X
-        new_oe._oe.ROUGH_Y = self._oe.ROUGH_Y
-        new_oe._oe.OE_NUMBER = self._oe.OE_NUMBER
-        new_oe._oe.IDUMMY = self._oe.IDUMMY
-        new_oe._oe.DUMMY = self._oe.DUMMY
+            new_oe._oe.T_SOURCE = self._oe.T_SOURCE
+            new_oe._oe.T_IMAGE = self._oe.T_IMAGE
+            new_oe._oe.IDUMMY = self._oe.IDUMMY
+            new_oe._oe.focal_x = self._oe.focal_x
+            new_oe._oe.focal_z = self._oe.focal_z
+            new_oe._oe.user_units_to_cm = self._oe.user_units_to_cm
+        else:
+            new_oe = ShadowOpticalElement.create_empty_oe()
 
-        new_oe._oe.CX_SLIT = copy.deepcopy(self._oe.CX_SLIT)
-        new_oe._oe.CZ_SLIT = copy.deepcopy(self._oe.CZ_SLIT)
-        new_oe._oe.D_PLATE = copy.deepcopy(self._oe.D_PLATE)
-        new_oe._oe.FILE_ABS = copy.deepcopy(self._oe.FILE_ABS)
-        new_oe._oe.FILE_SCR_EXT = copy.deepcopy(self._oe.FILE_SCR_EXT)
-        new_oe._oe.I_ABS = copy.deepcopy(self._oe.I_ABS)
-        new_oe._oe.I_SCREEN = copy.deepcopy(self._oe.I_SCREEN)
-        new_oe._oe.I_SLIT = copy.deepcopy(self._oe.I_SLIT)
-        new_oe._oe.I_STOP = copy.deepcopy(self._oe.I_STOP)
-        new_oe._oe.K_SLIT = copy.deepcopy(self._oe.K_SLIT)
-        new_oe._oe.RX_SLIT = copy.deepcopy(self._oe.RX_SLIT)
-        new_oe._oe.RZ_SLIT = copy.deepcopy(self._oe.RZ_SLIT)
-        new_oe._oe.SCR_NUMBER = copy.deepcopy(self._oe.SCR_NUMBER)
-        new_oe._oe.SL_DIS = copy.deepcopy(self._oe.SL_DIS)
-        new_oe._oe.THICK = copy.deepcopy(self._oe.THICK)
-        new_oe._oe.CCC = copy.deepcopy(self._oe.CCC)
+            new_oe._oe.FMIRR = self._oe.FMIRR
+            new_oe._oe.F_TORUS = self._oe.F_TORUS
+            new_oe._oe.FCYL = self._oe.FCYL
+            new_oe._oe.F_EXT = self._oe.F_EXT
+            new_oe._oe.FSTAT = self._oe.FSTAT
+            new_oe._oe.F_SCREEN = self._oe.F_SCREEN
+            new_oe._oe.F_PLATE = self._oe.F_PLATE
+            new_oe._oe.FSLIT = self._oe.FSLIT
+            new_oe._oe.FWRITE = self._oe.FWRITE
+            new_oe._oe.F_RIPPLE = self._oe.F_RIPPLE
+            new_oe._oe.F_MOVE = self._oe.F_MOVE
+            new_oe._oe.F_THICK = self._oe.F_THICK
+            new_oe._oe.F_BRAGG_A = self._oe.F_BRAGG_A
+            new_oe._oe.F_G_S = self._oe.F_G_S
+            new_oe._oe.F_R_RAN = self._oe.F_R_RAN
+            new_oe._oe.F_GRATING = self._oe.F_GRATING
+            new_oe._oe.F_MOSAIC = self._oe.F_MOSAIC
+            new_oe._oe.F_JOHANSSON = self._oe.F_JOHANSSON
+            new_oe._oe.F_SIDE = self._oe.F_SIDE
+            new_oe._oe.F_CENTRAL = self._oe.F_CENTRAL
+            new_oe._oe.F_CONVEX = self._oe.F_CONVEX
+            new_oe._oe.F_REFLEC = self._oe.F_REFLEC
+            new_oe._oe.F_RUL_ABS = self._oe.F_RUL_ABS
+            new_oe._oe.F_RULING = self._oe.F_RULING
+            new_oe._oe.F_PW = self._oe.F_PW
+            new_oe._oe.F_PW_C = self._oe.F_PW_C
+            new_oe._oe.F_VIRTUAL = self._oe.F_VIRTUAL
+            new_oe._oe.FSHAPE = self._oe.FSHAPE
+            new_oe._oe.FHIT_C = self._oe.FHIT_C
+            new_oe._oe.F_MONO = self._oe.F_MONO
+            new_oe._oe.F_REFRAC = self._oe.F_REFRAC
+            new_oe._oe.F_DEFAULT = self._oe.F_DEFAULT
+            new_oe._oe.F_REFL = self._oe.F_REFL
+            new_oe._oe.F_HUNT = self._oe.F_HUNT
+            new_oe._oe.F_CRYSTAL = self._oe.F_CRYSTAL
+            new_oe._oe.F_PHOT_CENT = self._oe.F_PHOT_CENT
+            new_oe._oe.F_ROUGHNESS = self._oe.F_ROUGHNESS
+            new_oe._oe.F_ANGLE = self._oe.F_ANGLE
+            new_oe._oe.NPOINT = self._oe.NPOINT
+            new_oe._oe.NCOL = self._oe.NCOL
+            new_oe._oe.N_SCREEN = self._oe.N_SCREEN
+            new_oe._oe.ISTAR1 = self._oe.ISTAR1
+            new_oe._oe.CIL_ANG = self._oe.CIL_ANG
+            new_oe._oe.ELL_THE = self._oe.ELL_THE
+            new_oe._oe.N_PLATES = self._oe.N_PLATES
+            new_oe._oe.IG_SEED = self._oe.IG_SEED
+            new_oe._oe.MOSAIC_SEED = self._oe.MOSAIC_SEED
+            new_oe._oe.ALPHA = self._oe.ALPHA
+            new_oe._oe.SSOUR = self._oe.SSOUR
+            new_oe._oe.THETA = self._oe.THETA
+            new_oe._oe.SIMAG = self._oe.SIMAG
+            new_oe._oe.RDSOUR = self._oe.RDSOUR
+            new_oe._oe.RTHETA = self._oe.RTHETA
+            new_oe._oe.OFF_SOUX = self._oe.OFF_SOUX
+            new_oe._oe.OFF_SOUY = self._oe.OFF_SOUY
+            new_oe._oe.OFF_SOUZ = self._oe.OFF_SOUZ
+            new_oe._oe.ALPHA_S = self._oe.ALPHA_S
+            new_oe._oe.RLEN1 = self._oe.RLEN1
+            new_oe._oe.RLEN2 = self._oe.RLEN2
+            new_oe._oe.RMIRR = self._oe.RMIRR
+            new_oe._oe.AXMAJ = self._oe.AXMAJ
+            new_oe._oe.AXMIN = self._oe.AXMIN
+            new_oe._oe.CONE_A = self._oe.CONE_A
+            new_oe._oe.R_MAJ = self._oe.R_MAJ
+            new_oe._oe.R_MIN = self._oe.R_MIN
+            new_oe._oe.RWIDX1 = self._oe.RWIDX1
+            new_oe._oe.RWIDX2 = self._oe.RWIDX2
+            new_oe._oe.PARAM = self._oe.PARAM
+            new_oe._oe.HUNT_H = self._oe.HUNT_H
+            new_oe._oe.HUNT_L = self._oe.HUNT_L
+            new_oe._oe.BLAZE = self._oe.BLAZE
+            new_oe._oe.RULING = self._oe.RULING
+            new_oe._oe.ORDER = self._oe.ORDER
+            new_oe._oe.PHOT_CENT = self._oe.PHOT_CENT
+            new_oe._oe.X_ROT = self._oe.X_ROT
+            new_oe._oe.D_SPACING = self._oe.D_SPACING
+            new_oe._oe.A_BRAGG = self._oe.A_BRAGG
+            new_oe._oe.SPREAD_MOS = self._oe.SPREAD_MOS
+            new_oe._oe.THICKNESS = self._oe.THICKNESS
+            new_oe._oe.R_JOHANSSON = self._oe.R_JOHANSSON
+            new_oe._oe.Y_ROT = self._oe.Y_ROT
+            new_oe._oe.Z_ROT = self._oe.Z_ROT
+            new_oe._oe.OFFX = self._oe.OFFX
+            new_oe._oe.OFFY = self._oe.OFFY
+            new_oe._oe.OFFZ = self._oe.OFFZ
+            new_oe._oe.SLLEN = self._oe.SLLEN
+            new_oe._oe.SLWID = self._oe.SLWID
+            new_oe._oe.SLTILT = self._oe.SLTILT
+            new_oe._oe.COD_LEN = self._oe.COD_LEN
+            new_oe._oe.COD_WID = self._oe.COD_WID
+            new_oe._oe.X_SOUR = self._oe.X_SOUR
+            new_oe._oe.Y_SOUR = self._oe.Y_SOUR
+            new_oe._oe.Z_SOUR = self._oe.Z_SOUR
+            new_oe._oe.X_SOUR_ROT = self._oe.X_SOUR_ROT
+            new_oe._oe.Y_SOUR_ROT = self._oe.Y_SOUR_ROT
+            new_oe._oe.Z_SOUR_ROT = self._oe.Z_SOUR_ROT
+            new_oe._oe.R_LAMBDA = self._oe.R_LAMBDA
+            new_oe._oe.THETA_I = self._oe.THETA_I
+            new_oe._oe.ALPHA_I = self._oe.ALPHA_I
+            new_oe._oe.T_INCIDENCE = self._oe.T_INCIDENCE
+            new_oe._oe.T_SOURCE = self._oe.T_SOURCE
+            new_oe._oe.T_IMAGE = self._oe.T_IMAGE
+            new_oe._oe.T_REFLECTION = self._oe.T_REFLECTION
+            new_oe._oe.FILE_SOURCE = self._oe.FILE_SOURCE
+            new_oe._oe.FILE_RIP = self._oe.FILE_RIP
+            new_oe._oe.FILE_REFL = self._oe.FILE_REFL
+            new_oe._oe.FILE_MIR = self._oe.FILE_MIR
+            new_oe._oe.FILE_ROUGH = self._oe.FILE_ROUGH
+            new_oe._oe.FZP = self._oe.FZP
+            new_oe._oe.HOLO_R1 = self._oe.HOLO_R1
+            new_oe._oe.HOLO_R2 = self._oe.HOLO_R2
+            new_oe._oe.HOLO_DEL = self._oe.HOLO_DEL
+            new_oe._oe.HOLO_GAM = self._oe.HOLO_GAM
+            new_oe._oe.HOLO_W = self._oe.HOLO_W
+            new_oe._oe.HOLO_RT1 = self._oe.HOLO_RT1
+            new_oe._oe.HOLO_RT2 = self._oe.HOLO_RT2
+            new_oe._oe.AZIM_FAN = self._oe.AZIM_FAN
+            new_oe._oe.DIST_FAN = self._oe.DIST_FAN
+            new_oe._oe.COMA_FAC = self._oe.COMA_FAC
+            new_oe._oe.ALFA = self._oe.ALFA
+            new_oe._oe.GAMMA = self._oe.GAMMA
+            new_oe._oe.R_IND_OBJ = self._oe.R_IND_OBJ
+            new_oe._oe.R_IND_IMA = self._oe.R_IND_IMA
+            new_oe._oe.R_ATTENUATION_OBJ = self._oe.R_ATTENUATION_OBJ
+            new_oe._oe.R_ATTENUATION_IMA = self._oe.R_ATTENUATION_IMA
+            new_oe._oe.F_R_IND = self._oe.F_R_IND
+            new_oe._oe.FILE_R_IND_OBJ = self._oe.FILE_R_IND_OBJ
+            new_oe._oe.FILE_R_IND_IMA = self._oe.FILE_R_IND_IMA
+            new_oe._oe.RUL_A1 = self._oe.RUL_A1
+            new_oe._oe.RUL_A2 = self._oe.RUL_A2
+            new_oe._oe.RUL_A3 = self._oe.RUL_A3
+            new_oe._oe.RUL_A4 = self._oe.RUL_A4
+            new_oe._oe.F_POLSEL = self._oe.F_POLSEL
+            new_oe._oe.F_FACET = self._oe.F_FACET
+            new_oe._oe.F_FAC_ORIENT = self._oe.F_FAC_ORIENT
+            new_oe._oe.F_FAC_LATT = self._oe.F_FAC_LATT
+            new_oe._oe.RFAC_LENX = self._oe.RFAC_LENX
+            new_oe._oe.RFAC_LENY = self._oe.RFAC_LENY
+            new_oe._oe.RFAC_PHAX = self._oe.RFAC_PHAX
+            new_oe._oe.RFAC_PHAY = self._oe.RFAC_PHAY
+            new_oe._oe.RFAC_DELX1 = self._oe.RFAC_DELX1
+            new_oe._oe.RFAC_DELX2 = self._oe.RFAC_DELX2
+            new_oe._oe.RFAC_DELY1 = self._oe.RFAC_DELY1
+            new_oe._oe.RFAC_DELY2 = self._oe.RFAC_DELY2
+            new_oe._oe.FILE_FAC = self._oe.FILE_FAC
+            new_oe._oe.F_SEGMENT = self._oe.F_SEGMENT
+            new_oe._oe.ISEG_XNUM = self._oe.ISEG_XNUM
+            new_oe._oe.ISEG_YNUM = self._oe.ISEG_YNUM
+            new_oe._oe.FILE_SEGMENT = self._oe.FILE_SEGMENT
+            new_oe._oe.FILE_SEGP = self._oe.FILE_SEGP
+            new_oe._oe.SEG_LENX = self._oe.SEG_LENX
+            new_oe._oe.SEG_LENY = self._oe.SEG_LENY
+            new_oe._oe.F_KOMA = self._oe.F_KOMA
+            new_oe._oe.FILE_KOMA = self._oe.FILE_KOMA
+            new_oe._oe.F_EXIT_SHAPE = self._oe.F_EXIT_SHAPE
+            new_oe._oe.F_INC_MNOR_ANG = self._oe.F_INC_MNOR_ANG
+            new_oe._oe.ZKO_LENGTH = self._oe.ZKO_LENGTH
+            new_oe._oe.RKOMA_CX = self._oe.RKOMA_CX
+            new_oe._oe.RKOMA_CY = self._oe.RKOMA_CY
+            new_oe._oe.F_KOMA_CA = self._oe.F_KOMA_CA
+            new_oe._oe.FILE_KOMA_CA = self._oe.FILE_KOMA_CA
+            new_oe._oe.F_KOMA_BOUNCE = self._oe.F_KOMA_BOUNCE
+            new_oe._oe.X_RIP_AMP = self._oe.X_RIP_AMP
+            new_oe._oe.X_RIP_WAV = self._oe.X_RIP_WAV
+            new_oe._oe.X_PHASE = self._oe.X_PHASE
+            new_oe._oe.Y_RIP_AMP = self._oe.Y_RIP_AMP
+            new_oe._oe.Y_RIP_WAV = self._oe.Y_RIP_WAV
+            new_oe._oe.Y_PHASE = self._oe.Y_PHASE
+            new_oe._oe.N_RIP = self._oe.N_RIP
+            new_oe._oe.ROUGH_X = self._oe.ROUGH_X
+            new_oe._oe.ROUGH_Y = self._oe.ROUGH_Y
+            new_oe._oe.OE_NUMBER = self._oe.OE_NUMBER
+            new_oe._oe.IDUMMY = self._oe.IDUMMY
+            new_oe._oe.DUMMY = self._oe.DUMMY
+
+            new_oe._oe.CX_SLIT = copy.deepcopy(self._oe.CX_SLIT)
+            new_oe._oe.CZ_SLIT = copy.deepcopy(self._oe.CZ_SLIT)
+            new_oe._oe.D_PLATE = copy.deepcopy(self._oe.D_PLATE)
+            new_oe._oe.FILE_ABS = copy.deepcopy(self._oe.FILE_ABS)
+            new_oe._oe.FILE_SCR_EXT = copy.deepcopy(self._oe.FILE_SCR_EXT)
+            new_oe._oe.I_ABS = copy.deepcopy(self._oe.I_ABS)
+            new_oe._oe.I_SCREEN = copy.deepcopy(self._oe.I_SCREEN)
+            new_oe._oe.I_SLIT = copy.deepcopy(self._oe.I_SLIT)
+            new_oe._oe.I_STOP = copy.deepcopy(self._oe.I_STOP)
+            new_oe._oe.K_SLIT = copy.deepcopy(self._oe.K_SLIT)
+            new_oe._oe.RX_SLIT = copy.deepcopy(self._oe.RX_SLIT)
+            new_oe._oe.RZ_SLIT = copy.deepcopy(self._oe.RZ_SLIT)
+            new_oe._oe.SCR_NUMBER = copy.deepcopy(self._oe.SCR_NUMBER)
+            new_oe._oe.SL_DIS = copy.deepcopy(self._oe.SL_DIS)
+            new_oe._oe.THICK = copy.deepcopy(self._oe.THICK)
+            new_oe._oe.CCC = copy.deepcopy(self._oe.CCC)
 
         return new_oe
 
@@ -1070,6 +1114,13 @@ class ShadowOpticalElement:
         self._oe.F_REFRAC = 0
 
         return self
+
+    @classmethod
+    def create_ideal_lens(cls):
+        self = ShadowOpticalElement(oe=Shadow.IdealLensOE())
+
+        return self
+
 
 class ShadowCompoundOpticalElement:
     def __init__(self, oe=None):

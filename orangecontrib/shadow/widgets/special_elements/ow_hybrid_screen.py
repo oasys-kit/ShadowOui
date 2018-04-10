@@ -37,7 +37,7 @@ class HybridScreen(AutomaticElement):
     icon = "icons/hybrid_screen.png"
     maintainer = "Luca Rebuffi and Xianbo Shi"
     maintainer_email = "luca.rebuffi(@at@)elettra.eu, xshi(@at@)aps.anl.gov"
-    priority = 3
+    priority = 4
     category = "HYBRID"
     keywords = ["data", "file", "load", "read"]
 

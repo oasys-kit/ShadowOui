@@ -61,6 +61,7 @@ class GraphicalOptions:
     is_polynomial=False
     is_conic_coefficients=False
     is_refractor=False
+    is_ideal_lens = False
 
     def __init__(self,
                  is_empty = False,
@@ -78,7 +79,8 @@ class GraphicalOptions:
                  is_codling_slit=False,
                  is_polynomial=False,
                  is_conic_coefficients=False,
-                 is_refractor=False):
+                 is_refractor=False,
+                 is_ideal_lens=False):
         self.is_empty = is_empty
         self.is_curved = is_curved
         self.is_mirror=is_mirror
@@ -95,6 +97,7 @@ class GraphicalOptions:
         self.is_polynomial=is_polynomial
         self.is_conic_coefficients=is_conic_coefficients
         self.is_refractor=is_refractor
+        self.is_ideal_lens=is_ideal_lens
 
 class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
@@ -380,6 +383,14 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     thickness = Setting(0.0)
     opt_const_file_name = Setting(NONE_SPECIFIED)
 
+
+    ##########################################
+    # IDEAL LENS SETTING
+    ##########################################
+
+    focal_x = Setting(0.0)
+    focal_z = Setting(0.0)
+
     want_main_area=1
 
     def __init__(self, graphical_options = GraphicalOptions()):
@@ -436,7 +447,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         # graph tab
         if not self.graphical_options.is_empty:
             tab_bas = oasysgui.createTabPage(tabs_setting, "Basic Setting")
-        tab_adv = oasysgui.createTabPage(tabs_setting, "Advanced Setting")
+        if not self.graphical_options.is_ideal_lens:
+            tab_adv = oasysgui.createTabPage(tabs_setting, "Advanced Setting")
 
         ##########################################
         ##########################################
@@ -444,86 +456,87 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         ##########################################
         ##########################################
 
-        tabs_advanced_setting = oasysgui.tabWidget(tab_adv)
+        if not self.graphical_options.is_ideal_lens:
+            tabs_advanced_setting = oasysgui.tabWidget(tab_adv)
 
-        if not (self.graphical_options.is_empty or graphical_options.is_screen_slit):
-            tab_adv_mod_surf = oasysgui.createTabPage(tabs_advanced_setting, "Modified Surface")
-        tab_adv_mir_mov = oasysgui.createTabPage(tabs_advanced_setting, "O.E. Movement")
-        tab_adv_sou_mov = oasysgui.createTabPage(tabs_advanced_setting, "Source Movement")
-        tab_adv_misc = oasysgui.createTabPage(tabs_advanced_setting, "Output Files")
+            if not (self.graphical_options.is_empty or graphical_options.is_screen_slit):
+                tab_adv_mod_surf = oasysgui.createTabPage(tabs_advanced_setting, "Modified Surface")
+            tab_adv_mir_mov = oasysgui.createTabPage(tabs_advanced_setting, "O.E. Movement")
+            tab_adv_sou_mov = oasysgui.createTabPage(tabs_advanced_setting, "Source Movement")
+            tab_adv_misc = oasysgui.createTabPage(tabs_advanced_setting, "Output Files")
 
 
-        ##########################################
-        #
-        # TAB 2.2 - Mirror Movement
-        #
-        ##########################################
+            ##########################################
+            #
+            # TAB 2.2 - Mirror Movement
+            #
+            ##########################################
 
-        mir_mov_box = oasysgui.widgetBox(tab_adv_mir_mov, "O.E. Movement Parameters", addSpace=False, orientation="vertical", height=230)
+            mir_mov_box = oasysgui.widgetBox(tab_adv_mir_mov, "O.E. Movement Parameters", addSpace=False, orientation="vertical", height=230)
 
-        gui.comboBox(mir_mov_box, self, "mirror_movement", label="O.E. Movement", labelWidth=350,
-                     items=["No", "Yes"],
-                     callback=self.set_MirrorMovement, sendSelectedValue=False, orientation="horizontal")
+            gui.comboBox(mir_mov_box, self, "mirror_movement", label="O.E. Movement", labelWidth=350,
+                         items=["No", "Yes"],
+                         callback=self.set_MirrorMovement, sendSelectedValue=False, orientation="horizontal")
 
-        gui.separator(mir_mov_box, height=10)
+            gui.separator(mir_mov_box, height=10)
 
-        self.mir_mov_box_1 = oasysgui.widgetBox(mir_mov_box, "", addSpace=False, orientation="vertical")
+            self.mir_mov_box_1 = oasysgui.widgetBox(mir_mov_box, "", addSpace=False, orientation="vertical")
 
-        self.le_mm_mirror_offset_x = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_x", "O.E. Offset X", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_x", "O.E. Rotation X [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
-        self.le_mm_mirror_offset_y = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_y", "O.E. Offset Y", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_y", "O.E. Rotation Y [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
-        self.le_mm_mirror_offset_z = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_z", "O.E. Offset Z", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_z", "O.E. Rotation Z [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_mm_mirror_offset_x = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_x", "O.E. Offset X", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_x", "O.E. Rotation X [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_mm_mirror_offset_y = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_y", "O.E. Offset Y", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_y", "O.E. Rotation Y [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_mm_mirror_offset_z = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_z", "O.E. Offset Z", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_z", "O.E. Rotation Z [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
 
-        self.set_MirrorMovement()
+            self.set_MirrorMovement()
 
-       ##########################################
-        #
-        # TAB 2.3 - Source Movement
-        #
-        ##########################################
+           ##########################################
+            #
+            # TAB 2.3 - Source Movement
+            #
+            ##########################################
 
-        sou_mov_box = oasysgui.widgetBox(tab_adv_sou_mov, "Source Movement Parameters", addSpace=False, orientation="vertical", height=400)
+            sou_mov_box = oasysgui.widgetBox(tab_adv_sou_mov, "Source Movement Parameters", addSpace=False, orientation="vertical", height=400)
 
-        gui.comboBox(sou_mov_box, self, "source_movement", label="Source Movement", labelWidth=350,
-                     items=["No", "Yes"],
-                     callback=self.set_SourceMovement, sendSelectedValue=False, orientation="horizontal")
+            gui.comboBox(sou_mov_box, self, "source_movement", label="Source Movement", labelWidth=350,
+                         items=["No", "Yes"],
+                         callback=self.set_SourceMovement, sendSelectedValue=False, orientation="horizontal")
 
-        gui.separator(sou_mov_box, height=10)
+            gui.separator(sou_mov_box, height=10)
 
-        self.sou_mov_box_1 = oasysgui.widgetBox(sou_mov_box, "", addSpace=False, orientation="vertical")
+            self.sou_mov_box_1 = oasysgui.widgetBox(sou_mov_box, "", addSpace=False, orientation="vertical")
 
-        oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_angle_of_incidence", "Angle of Incidence [deg]", labelWidth=260, valueType=float, orientation="horizontal")
-        self.le_sm_distance_from_mirror = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_distance_from_mirror", "Distance from O.E.", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_z_rotation", "Z-rotation [deg]", labelWidth=260, valueType=float, orientation="horizontal")
-        self.le_sm_offset_x_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
-        self.le_sm_offset_y_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
-        self.le_sm_offset_z_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
-        self.le_sm_offset_x_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
-        self.le_sm_offset_y_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
-        self.le_sm_offset_z_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_x", "rotation [CCW, deg] around X", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_y", "rotation [CCW, deg] around Y", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_z", "rotation [CCW, deg] around Z", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_angle_of_incidence", "Angle of Incidence [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_distance_from_mirror = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_distance_from_mirror", "Distance from O.E.", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_z_rotation", "Z-rotation [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_x_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_y_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_z_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_x_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_y_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_sm_offset_z_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_x", "rotation [CCW, deg] around X", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_y", "rotation [CCW, deg] around Y", labelWidth=260, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_z", "rotation [CCW, deg] around Z", labelWidth=260, valueType=float, orientation="horizontal")
 
-        self.set_SourceMovement()
+            self.set_SourceMovement()
 
-        ##########################################
-        #
-        # TAB 2.4 - Other
-        #
-        ##########################################
+            ##########################################
+            #
+            # TAB 2.4 - Other
+            #
+            ##########################################
 
-        adv_other_box = oasysgui.widgetBox(tab_adv_misc, "Optional file output", addSpace=False, orientation="vertical")
+            adv_other_box = oasysgui.widgetBox(tab_adv_misc, "Optional file output", addSpace=False, orientation="vertical")
 
-        gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=150,
-                     items=["All", "Mirror", "Image", "None", "Debug (All + start.xx/end.xx)"],
-                     sendSelectedValue=False, orientation="horizontal", callback=self.set_Footprint)
+            gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=150,
+                         items=["All", "Mirror", "Image", "None", "Debug (All + start.xx/end.xx)"],
+                         sendSelectedValue=False, orientation="horizontal", callback=self.set_Footprint)
 
-        gui.comboBox(adv_other_box, self, "write_out_inc_ref_angles", label="Write out Incident/Reflected angles [angle.xx]", labelWidth=300,
-                     items=["No", "Yes"],
-                     sendSelectedValue=False, orientation="horizontal")
+            gui.comboBox(adv_other_box, self, "write_out_inc_ref_angles", label="Write out Incident/Reflected angles [angle.xx]", labelWidth=300,
+                         items=["No", "Yes"],
+                         sendSelectedValue=False, orientation="horizontal")
 
         self.set_Footprint()
 
@@ -584,6 +597,11 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             gui.button(file_box, self, "...", callback=self.selectOptConstFileName)
 
             self.set_Absorption()
+        elif self.graphical_options.is_ideal_lens:
+            box_focus = oasysgui.widgetBox(tab_bas, "Ideal Lens Setting", addSpace=False, orientation="vertical")
+
+            self.le_focal_x = oasysgui.lineEdit(box_focus, self, "focal_x", "Focal Distance X", labelWidth=260, valueType=float, orientation="horizontal")
+            self.le_focal_z = oasysgui.lineEdit(box_focus, self, "focal_z", "Focal Distance Z", labelWidth=260, valueType=float, orientation="horizontal")
         else:
             gui.comboBox(upper_box, self, "angles_respect_to", label="Angles in [deg] indicated with respect to the", labelWidth=260,
                          items=["Normal", "Surface"],
@@ -1316,8 +1334,11 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             label.setText(label.text() + " [" + self.workspace_units_label + "]")
             label = self.le_thickness.parent().layout().itemAt(0).widget()
             label.setText(label.text() + " [" + self.workspace_units_label + "]")
-
-
+        elif self.graphical_options.is_ideal_lens:
+            label = self.le_focal_x.parent().layout().itemAt(0).widget()
+            label.setText(label.text() + " [" + self.workspace_units_label + "]")
+            label = self.le_focal_z.parent().layout().itemAt(0).widget()
+            label.setText(label.text() + " [" + self.workspace_units_label + "]")
         else:
             if self.graphical_options.is_curved:
                 if not self.graphical_options.is_conic_coefficients:
@@ -1409,34 +1430,35 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 label = self.le_dim_y_minus.parent().layout().itemAt(0).widget()
                 label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
-        # ADVANCED SETTINGS
-        # MIRROR MOVEMENTS
-        label = self.le_mm_mirror_offset_x.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + " [" + self.workspace_units_label + "]")
-        label = self.le_mm_mirror_offset_y.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + " [" + self.workspace_units_label + "]")
-        label = self.le_mm_mirror_offset_z.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + " [" + self.workspace_units_label + "]")
-        # SOURCE MOVEMENTS
-        label = self.le_sm_distance_from_mirror.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + " [" + self.workspace_units_label + "]")
-        label = self.le_sm_offset_x_mirr_ref_frame.parent().layout().itemAt(0).widget()
-        label.setText("offset X [" + self.workspace_units_label + "] in O.E. reference frame")
-        label = self.le_sm_offset_y_mirr_ref_frame.parent().layout().itemAt(0).widget()
-        label.setText("offset Y [" + self.workspace_units_label + "] in O.E. reference frame")
-        label = self.le_sm_offset_z_mirr_ref_frame.parent().layout().itemAt(0).widget()
-        label.setText("offset Z [" + self.workspace_units_label + "] in O.E. reference frame")
-        label = self.le_sm_offset_x_source_ref_frame.parent().layout().itemAt(0).widget()
-        label.setText("offset X [" + self.workspace_units_label + "] in SOURCE reference frame")
-        label = self.le_sm_offset_y_source_ref_frame.parent().layout().itemAt(0).widget()
-        label.setText("offset Y [" + self.workspace_units_label + "] in SOURCE reference frame")
-        label = self.le_sm_offset_z_source_ref_frame.parent().layout().itemAt(0).widget()
-        label.setText("offset Z [" + self.workspace_units_label + "] in SOURCE reference frame")
+        if not self.graphical_options.is_ideal_lens:
+            # ADVANCED SETTINGS
+            # MIRROR MOVEMENTS
+            label = self.le_mm_mirror_offset_x.parent().layout().itemAt(0).widget()
+            label.setText(label.text() + " [" + self.workspace_units_label + "]")
+            label = self.le_mm_mirror_offset_y.parent().layout().itemAt(0).widget()
+            label.setText(label.text() + " [" + self.workspace_units_label + "]")
+            label = self.le_mm_mirror_offset_z.parent().layout().itemAt(0).widget()
+            label.setText(label.text() + " [" + self.workspace_units_label + "]")
+            # SOURCE MOVEMENTS
+            label = self.le_sm_distance_from_mirror.parent().layout().itemAt(0).widget()
+            label.setText(label.text() + " [" + self.workspace_units_label + "]")
+            label = self.le_sm_offset_x_mirr_ref_frame.parent().layout().itemAt(0).widget()
+            label.setText("offset X [" + self.workspace_units_label + "] in O.E. reference frame")
+            label = self.le_sm_offset_y_mirr_ref_frame.parent().layout().itemAt(0).widget()
+            label.setText("offset Y [" + self.workspace_units_label + "] in O.E. reference frame")
+            label = self.le_sm_offset_z_mirr_ref_frame.parent().layout().itemAt(0).widget()
+            label.setText("offset Z [" + self.workspace_units_label + "] in O.E. reference frame")
+            label = self.le_sm_offset_x_source_ref_frame.parent().layout().itemAt(0).widget()
+            label.setText("offset X [" + self.workspace_units_label + "] in SOURCE reference frame")
+            label = self.le_sm_offset_y_source_ref_frame.parent().layout().itemAt(0).widget()
+            label.setText("offset Y [" + self.workspace_units_label + "] in SOURCE reference frame")
+            label = self.le_sm_offset_z_source_ref_frame.parent().layout().itemAt(0).widget()
+            label.setText("offset Z [" + self.workspace_units_label + "] in SOURCE reference frame")
 
 
     def set_Footprint(self):
         if self.file_to_write_out == 0 or self.file_to_write_out == 1 or self.file_to_write_out == 4:
-            self.enableFootprint(not self.graphical_options.is_screen_slit)
+            self.enableFootprint(not self.graphical_options.is_screen_slit and not self.graphical_options.is_ideal_lens)
         else:
             self.enableFootprint(False)
 
@@ -2019,7 +2041,10 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             self.d_2 = numpy.nan
 
     def populateFields(self, shadow_oe = ShadowOpticalElement.create_empty_oe()):
-        shadow_oe._oe.DUMMY = self.workspace_units_to_cm # Issue #3 : Global User's Unit
+        if self.graphical_options.is_ideal_lens:
+            shadow_oe._oe.user_units_to_cm = self.workspace_units_to_cm
+        else:
+            shadow_oe._oe.DUMMY = self.workspace_units_to_cm # Issue #3 : Global User's Unit
 
         if self.graphical_options.is_screen_slit:
             shadow_oe._oe.T_SOURCE     = self.source_plane_distance
@@ -2051,6 +2076,11 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                  shadow_oe._oe.X_SOUR_ROT=self.sm_rotation_around_x
                  shadow_oe._oe.Y_SOUR_ROT=self.sm_rotation_around_y
                  shadow_oe._oe.Z_SOUR_ROT=self.sm_rotation_around_z
+        elif self.graphical_options.is_ideal_lens:
+            shadow_oe._oe.T_SOURCE = self.source_plane_distance
+            shadow_oe._oe.T_IMAGE = self.image_plane_distance
+            shadow_oe._oe.focal_x  = self.focal_x
+            shadow_oe._oe.focal_z = self.focal_z
         elif self.graphical_options.is_empty:
             shadow_oe._oe.T_SOURCE     = self.source_plane_distance
             shadow_oe._oe.T_IMAGE      = self.image_plane_distance
@@ -2457,14 +2487,15 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 self.thickness = congruence.checkPositiveNumber(self.thickness, "Absorption: thickness")
 
                 ShadowCongruence.checkPreReflFile(congruence.checkFile(self.opt_const_file_name))
-
+        elif self.graphical_options.is_ideal_lens:
+            if self.focal_x == 0.0: raise  Exception("Focal Distance X should be <> 0")
+            if self.focal_z == 0.0: raise  Exception("Focal Distance Z should be <> 0")
         elif self.graphical_options.is_empty:
             self.source_plane_distance = congruence.checkNumber(self.source_plane_distance, "Source plane distance")
             self.image_plane_distance = congruence.checkNumber(self.image_plane_distance, "Image plane distance")
 
             if self.source_movement == 1:
                 self.sm_distance_from_mirror = congruence.checkPositiveNumber(self.sm_distance_from_mirror, "Source Movement: Distance from O.E.")
-
         else:
             self.source_plane_distance = congruence.checkNumber(self.source_plane_distance, "Source plane distance")
             self.image_plane_distance = congruence.checkNumber(self.image_plane_distance, "Image plane distance")
@@ -2659,22 +2690,28 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         self.fixWeirdShadowBug()
         ###########################################
 
-        write_start_file, write_end_file = self.get_write_file_options()
+        if self.graphical_options.is_ideal_lens:
+            beam_out = ShadowBeam.traceIdealLensOE(self.input_beam,
+                                                   shadow_oe,
+                                                   widget_class_name=type(self).__name__)
+        else:
 
-        beam_out = ShadowBeam.traceFromOE(self.input_beam,
-                                          shadow_oe,
-                                          write_start_file=write_start_file,
-                                          write_end_file=write_end_file,
-                                          widget_class_name=type(self).__name__)
+            write_start_file, write_end_file = self.get_write_file_options()
 
-        if self.graphical_options.is_crystal and self.diffraction_calculation == 1:
-            beam_out = self.apply_user_diffraction_profile(beam_out)
-        elif self.graphical_options.is_mirror and self.source_of_reflectivity == 3:
-            beam_out = self.apply_user_reflectvity(beam_out)
-        elif self.graphical_options.is_grating and self.grating_use_efficiency == 1:
-            beam_out = self.apply_user_grating_efficiency(beam_out)
+            beam_out = ShadowBeam.traceFromOE(self.input_beam,
+                                              shadow_oe,
+                                              write_start_file=write_start_file,
+                                              write_end_file=write_end_file,
+                                              widget_class_name=type(self).__name__)
 
-        self.writeCalculatedFields(shadow_oe)
+            if self.graphical_options.is_crystal and self.diffraction_calculation == 1:
+                beam_out = self.apply_user_diffraction_profile(beam_out)
+            elif self.graphical_options.is_mirror and self.source_of_reflectivity == 3:
+                beam_out = self.apply_user_reflectvity(beam_out)
+            elif self.graphical_options.is_grating and self.grating_use_efficiency == 1:
+                beam_out = self.apply_user_grating_efficiency(beam_out)
+
+            self.writeCalculatedFields(shadow_oe)
 
         if self.trace_shadow:
             grabber.stop()
@@ -3100,6 +3137,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     def deserialize(self, shadow_file):
         if self.graphical_options.is_screen_slit:
             raise Exception("Operation non supported for Screen/Slit Widget")
+        elif self.graphical_options.is_ideal_lens:
+            raise Exception("Operation non supported for Ideal Lens Widget")
         else:
             try:
                 self.source_plane_distance = float(shadow_file.getProperty("T_SOURCE"))
@@ -3349,7 +3388,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     def copy_oe_parameters(self):
         global shadow_oe_to_copy
 
-        shadow_oe_to_copy = ShadowOpticalElement.create_empty_oe()
+        shadow_oe_to_copy = self.instantiateShadowOE()
 
         self.populateFields(shadow_oe_to_copy)
 
@@ -3361,14 +3400,24 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                                           "Confirm Paste Operation?",
                                           QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No) == QtWidgets.QMessageBox.Yes:
                 try:
-                    shadow_temp_file = congruence.checkFileName("tmp_oe_buffer.dat")
-                    shadow_oe_to_copy._oe.write(shadow_temp_file)
+                    if self.graphical_options.is_ideal_lens:
+                        self.source_plane_distance = shadow_oe_to_copy._oe.T_SOURCE
+                        self.image_plane_distance = shadow_oe_to_copy._oe.T_IMAGE
 
-                    shadow_file, type = ShadowFile.readShadowFile(shadow_temp_file)
+                        try:
+                            self.focal_x = shadow_oe_to_copy._oe.focal_x
+                            self.focal_z = shadow_oe_to_copy._oe.focal_z
+                        except:
+                            pass
+                    else:
+                        shadow_temp_file = congruence.checkFileName("tmp_oe_buffer.dat")
+                        shadow_oe_to_copy._oe.write(shadow_temp_file)
 
-                    self.deserialize(shadow_file)
+                        shadow_file, type = ShadowFile.readShadowFile(shadow_temp_file)
 
-                    os.remove(shadow_temp_file)
+                        self.deserialize(shadow_file)
+
+                        os.remove(shadow_temp_file)
                 except Exception as exception:
                     QtWidgets.QMessageBox.critical(self, "Error", str(exception),  QtWidgets.QMessageBox.Ok)
 
@@ -3376,6 +3425,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         if self.graphical_options.is_screen_slit:
             self.set_Aperturing()
             self.set_Absorption()
+        elif self.graphical_options.is_ideal_lens:
+            pass
         else:
             self.calculate_incidence_angle_mrad()
             self.calculate_reflection_angle_mrad()
@@ -3452,7 +3503,11 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                         self.set_Aperturing()
                         self.set_Absorption()
-
+                    elif self.graphical_options.is_ideal_lens: # IDEAL LENS
+                        self.source_plane_distance = round(coordinates.p() / self.workspace_units_to_m, 4)
+                        self.image_plane_distance = round(coordinates.q() / self.workspace_units_to_m, 4)
+                        self.focal_x = round(optical_element._focal_x / self.workspace_units_to_m, 4)
+                        self.focal_z = round(optical_element._focal_y / self.workspace_units_to_m, 4)
                     else:
                         if self.graphical_options.is_mirror:
                             if not isinstance(optical_element, mirror.Mirror):
