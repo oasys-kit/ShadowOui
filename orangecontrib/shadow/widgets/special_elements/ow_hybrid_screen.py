@@ -6,10 +6,10 @@ from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
-from oasys.util.oasys_util import EmittingStream
+from oasys.util.oasys_util import EmittingStream, TriggerIn
 
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowTriggerIn
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 
 from PyQt5.QtGui import QImage, QPixmap,  QPalette, QFont, QColor, QTextCursor
 from PyQt5.QtWidgets import QLabel, QWidget, QHBoxLayout, QMessageBox
@@ -28,7 +28,7 @@ class HybridScreen(AutomaticElement):
                 "doc":"Shadow Beam",
                 "id":"beam_ff"},
                {"name":"Trigger",
-                "type": ShadowTriggerIn,
+                "type": TriggerIn,
                 "doc":"Feedback signal to start a new beam simulation",
                 "id":"Trigger"}]
 
@@ -543,7 +543,7 @@ class HybridScreen(AutomaticElement):
                                 self.plot_emtpy(94, 0)
 
                     self.send("Output Beam (Far Field)", calculation_parameters.ff_beam)
-                    self.send("Trigger", ShadowTriggerIn(new_beam=True))
+                    self.send("Trigger", TriggerIn(new_object=True))
                 else:
                     raise Exception("Input Beam with no good rays")
             else:

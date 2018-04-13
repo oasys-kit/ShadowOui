@@ -8,10 +8,10 @@ from orangewidget import gui
 from orangewidget import widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
-from oasys.util.oasys_util import EmittingStream, TTYGrabber
+from oasys.util.oasys_util import EmittingStream, TTYGrabber, TriggerIn
 
 from orangecontrib.shadow.widgets.gui import ow_generic_element
-from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn, ShadowPreProcessorData, ShadowBeam, ShadowCompoundOpticalElement
+from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, ShadowBeam, ShadowCompoundOpticalElement
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
 class CompoundOpticalElement(ow_generic_element.GenericElement):
@@ -28,7 +28,7 @@ class CompoundOpticalElement(ow_generic_element.GenericElement):
                 "doc": "Shadow Beam",
                 "id": "beam"},
                {"name": "Trigger",
-                "type": ShadowTriggerIn,
+                "type": TriggerIn,
                 "doc": "Feedback signal to start a new beam simulation",
                 "id": "Trigger"}]
 
@@ -173,7 +173,7 @@ class CompoundOpticalElement(ow_generic_element.GenericElement):
         self.setStatusMessage("")
 
         self.send("Beam", beam_out)
-        self.send("Trigger", ShadowTriggerIn(new_beam=True))
+        self.send("Trigger", TriggerIn(new_object=True))
 
     def setBeam(self, beam):
         self.onReceivingInput()

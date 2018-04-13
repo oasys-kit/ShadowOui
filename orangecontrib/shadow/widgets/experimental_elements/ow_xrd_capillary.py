@@ -21,10 +21,9 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.gui import ConfirmDialog
-from oasys.util.oasys_util import EmittingStream, TTYGrabber
+from oasys.util.oasys_util import EmittingStream, TTYGrabber, TriggerIn
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowOpticalElement, ShadowPreProcessorData
-from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowMath, ShadowPhysics, MathTextLabel
 from orangecontrib.shadow.widgets.experimental_elements.random_generator import AbsorptionRandom, LorentzianRandom
 from orangecontrib.shadow.widgets.gui import ow_automatic_element
@@ -45,7 +44,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
               ]
 
     outputs = [{"name":"Trigger",
-                "type": ShadowTriggerIn,
+                "type": TriggerIn,
                 "doc":"Feedback signal to start a new beam simulation",
                 "id":"Trigger"},
                {"name":"Beam",
@@ -1384,10 +1383,10 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                     self.writeStdOut(row)
 
             if self.run_simulation == True:
-                self.send("Trigger", ShadowTriggerIn(new_beam=True))
+                self.send("Trigger", TriggerIn(new_object=True))
             else:
                 self.run_simulation=True
-                self.send("Trigger", ShadowTriggerIn(interrupt=True))
+                self.send("Trigger", TriggerIn(interrupt=True))
         except PermissionError as exception:
             QtWidgets.QMessageBox.critical(self, "Permission Error", str(exception), QtWidgets.QMessageBox.Ok)
 

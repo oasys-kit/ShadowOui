@@ -9,8 +9,10 @@ from orangewidget import widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
+from oasys.util.oasys_util import TriggerIn, TriggerOut
 
-from orangecontrib.shadow.util.shadow_objects import ShadowTriggerOut, ShadowBeam, ShadowSource, ShadowFile
+
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowSource, ShadowFile
 from orangecontrib.shadow.widgets.gui import ow_generic_element
 
 from syned.widget.widget_decorator import WidgetDecorator
@@ -24,7 +26,7 @@ class Source(ow_generic_element.GenericElement):
     category = "Sources"
     keywords = ["data", "file", "load", "read"]
 
-    inputs = [("Trigger", ShadowTriggerOut, "sendNewBeam")]
+    inputs = [("Trigger", TriggerOut, "sendNewBeam")]
 
     WidgetDecorator.append_syned_input_data(inputs)
 
@@ -133,6 +135,11 @@ class Source(ow_generic_element.GenericElement):
 
             except Exception as exception:
                 QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
+
+
+    def sendNewBeam(self, trigger):
+        if trigger and trigger.new_object == True:
+            self.runShadowSource()
 
     def populateFields(self, shadow_src):
         pass

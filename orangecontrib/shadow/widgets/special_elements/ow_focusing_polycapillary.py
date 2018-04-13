@@ -9,8 +9,8 @@ from PyQt5 import QtWidgets
 from PyQt5.QtGui import QPalette, QColor, QFont
 
 from orangecontrib.shadow.widgets.gui import ow_generic_element
-from oasys.util.oasys_util import EmittingStream, TTYGrabber
-from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn, ShadowPreProcessorData, ShadowBeam, ShadowOpticalElement
+from oasys.util.oasys_util import EmittingStream, TTYGrabber, TriggerOut, TriggerIn
+from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, ShadowBeam, ShadowOpticalElement
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowMath
 
 
@@ -31,7 +31,7 @@ class FocusingPolycapillary(ow_generic_element.GenericElement):
                 "doc": "Shadow Beam",
                 "id": "beam"},
                {"name": "Trigger",
-                "type": ShadowTriggerIn,
+                "type": TriggerIn,
                 "doc": "Feedback signal to start a new beam simulation",
                 "id": "Trigger"}]
 
@@ -434,7 +434,7 @@ class FocusingPolycapillary(ow_generic_element.GenericElement):
                     self.setStatusMessage("")
 
                     self.send("Beam", beam_out)
-                    self.send("Trigger", ShadowTriggerIn(new_beam=True))
+                    self.send("Trigger", TriggerIn(new_object=True))
                 else:
                     raise Exception("Input Beam with no good rays")
             else:

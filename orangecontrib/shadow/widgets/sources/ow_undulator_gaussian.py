@@ -162,9 +162,9 @@ class UndulatorGaussian(ow_source.Source, WidgetDecorator):
 
         self.progressBarFinished()
 
-    def sendNewBeam(self, trigger):
-        if trigger and trigger.new_beam == True:
-            self.runShadowSource()
+    #def sendNewBeam(self, trigger):
+    #    if trigger and trigger.new_object == True:
+    #        self.runShadowSource()
 
     def checkFields(self):
         self.number_of_rays = congruence.checkPositiveNumber(self.number_of_rays, "Number of rays")

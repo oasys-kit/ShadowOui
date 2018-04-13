@@ -21,11 +21,11 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.exchange import DataExchangeObject
-from oasys.util.oasys_util import EmittingStream, TTYGrabber
+from oasys.util.oasys_util import EmittingStream, TTYGrabber, TriggerIn
 
 import orangecanvas.resources as resources
 
-from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn, ShadowPreProcessorData, \
+from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, \
     ShadowOpticalElement, ShadowBeam, ShadowFile
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics, ShadowPreProcessor
 from orangecontrib.shadow.widgets.gui import ow_generic_element
@@ -113,7 +113,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 "doc":"Shadow Beam",
                 "id":"beam"},
                {"name":"Trigger",
-                "type": ShadowTriggerIn,
+                "type": TriggerIn,
                 "doc":"Feedback signal to start a new beam simulation",
                 "id":"Trigger"}]
 
@@ -2726,7 +2726,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         self.setStatusMessage("")
 
         self.send("Beam", beam_out)
-        self.send("Trigger", ShadowTriggerIn(new_beam=True))
+        self.send("Trigger", TriggerIn(new_object=True))
 
     def get_write_file_options(self):
         write_start_file = 0

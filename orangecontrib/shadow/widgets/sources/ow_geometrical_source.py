@@ -9,9 +9,9 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.exchange import DataExchangeObject
-from oasys.util.oasys_util import EmittingStream, TTYGrabber
+from oasys.util.oasys_util import EmittingStream, TTYGrabber, TriggerIn, TriggerOut
 
-from orangecontrib.shadow.util.shadow_objects import ShadowTriggerOut, ShadowBeam,  ShadowSource
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowSource
 from orangecontrib.shadow.util.shadow_util import ShadowPhysics
 from orangecontrib.shadow.widgets.gui import ow_source
 
@@ -21,7 +21,7 @@ class GeometricalSource(ow_source.Source):
     icon = "icons/geometrical.png"
     priority = 1
 
-    inputs = [("Trigger", ShadowTriggerOut, "sendNewBeam"),
+    inputs = [("Trigger", TriggerOut, "sendNewBeam"),
               ("ExchangeData", DataExchangeObject, "acceptExchangeData")]
 
     number_of_rays=Setting(5000)
@@ -638,9 +638,9 @@ class GeometricalSource(ow_source.Source):
                 beam_out._beam.rays[index, 16] = 0
                 beam_out._beam.rays[index, 17] = 0
 
-    def sendNewBeam(self, trigger):
-        if trigger and trigger.new_beam == True:
-            self.runShadowSource()
+    #def sendNewBeam(self, trigger):
+    #    if trigger and trigger.new_object == True:
+    #        self.runShadowSource()
 
     def acceptExchangeData(self, exchangeData):
         try:

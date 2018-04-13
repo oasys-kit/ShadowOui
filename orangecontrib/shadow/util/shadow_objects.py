@@ -50,19 +50,6 @@ class VlsPgmPreProcessorData:
         self.alpha=alpha
         self.beta=beta
 
-class ShadowTriggerOut:
-    def __init__(self, new_beam=False):
-        super().__init__()
-
-        self.new_beam = new_beam
-
-class ShadowTriggerIn:
-    def __init__(self, new_beam=False, interrupt=False):
-        super().__init__()
-
-        self.new_beam = new_beam
-        self.interrupt = interrupt
-
 def adjust_shadow_string(string_to_adjust):
     if string_to_adjust is None:
         return None

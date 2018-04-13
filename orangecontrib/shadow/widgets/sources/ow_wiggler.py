@@ -545,9 +545,9 @@ class Wiggler(ow_source.Source, WidgetDecorator):
 
         self.progressBarFinished()
 
-    def sendNewBeam(self, trigger):
-        if trigger and trigger.new_beam == True:
-            self.runShadowSource()
+    #def sendNewBeam(self, trigger):
+    #    if trigger and trigger.new_object == True:
+    #        self.runShadowSource()
 
     def setupUI(self):
         self.set_OptimizeSource()

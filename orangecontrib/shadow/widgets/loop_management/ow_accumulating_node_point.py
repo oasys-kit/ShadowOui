@@ -8,8 +8,10 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets.gui import ConfirmDialog
+from oasys.util.oasys_util import TriggerIn
 
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowTriggerIn
+
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticElement
 
@@ -30,7 +32,7 @@ class AccumulatingLoopPoint(AutomaticElement):
                 "doc": "Shadow Beam",
                 "id": "beam"},
                {"name": "Trigger",
-                "type": ShadowTriggerIn,
+                "type": TriggerIn,
                 "doc": "Feedback signal to start a new beam simulation",
                 "id": "Trigger"}]
 
@@ -139,7 +141,7 @@ class AccumulatingLoopPoint(AutomaticElement):
 
     def sendSignal(self):
         self.send("Accumulated Beam", self.input_beam)
-        self.send("Trigger", ShadowTriggerIn(interrupt=True))
+        self.send("Trigger", TriggerIn(interrupt=True))
 
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the accumulated beam"):
@@ -171,8 +173,6 @@ class AccumulatingLoopPoint(AutomaticElement):
                 self.current_number_of_lost_rays += nr_lost
                 self.current_number_of_total_rays += nr_total
 
-
-
                 if (self.kind_of_accumulation == 0 and self.current_number_of_rays <= self.number_of_accumulated_rays) or \
                    (self.kind_of_accumulation == 1 and self.current_intensity <= self.number_of_accumulated_rays):
                     if self.keep_go_rays == 1:
@@ -184,7 +184,7 @@ class AccumulatingLoopPoint(AutomaticElement):
                         beam._beam.rays[:, 11] = numpy.arange(1, len(beam._beam.rays) + 1, 1) # ray_index
                         self.input_beam = beam
 
-                    self.send("Trigger", ShadowTriggerIn(new_beam=True))
+                    self.send("Trigger", TriggerIn(new_object=True))
                 else:
                     if self.is_automatic_run:
                         self.sendSignal()

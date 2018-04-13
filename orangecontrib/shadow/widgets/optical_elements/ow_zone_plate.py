@@ -7,9 +7,9 @@ from orangewidget import gui, widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
-from oasys.util.oasys_util import EmittingStream, TTYGrabber
+from oasys.util.oasys_util import EmittingStream, TTYGrabber, TriggerIn
 
-from orangecontrib.shadow.util.shadow_objects import ShadowTriggerIn, ShadowOpticalElement, ShadowBeam
+from orangecontrib.shadow.util.shadow_objects import ShadowOpticalElement, ShadowBeam
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics, ShadowMath
 from orangecontrib.shadow.widgets.gui.ow_generic_element import GenericElement
 
@@ -42,7 +42,7 @@ class ZonePlate(GenericElement):
                 "doc":"Shadow Beam",
                 "id":"beam"},
                {"name":"Trigger",
-                "type": ShadowTriggerIn,
+                "type": TriggerIn,
                 "doc":"Feedback signal to start a new beam simulation",
                 "id":"Trigger"}]
 
@@ -442,7 +442,7 @@ class ZonePlate(GenericElement):
                     self.setStatusMessage("")
 
                     self.send("Beam", beam_out)
-                    self.send("Trigger", ShadowTriggerIn(new_beam=True))
+                    self.send("Trigger", TriggerIn(new_object=True))
 
 
                 else:

@@ -9,8 +9,8 @@ from PyQt5 import QtWidgets
 from PyQt5.QtGui import QPalette, QColor, QFont
 
 from orangecontrib.shadow.widgets.gui import ow_generic_element
-from oasys.util.oasys_util import EmittingStream, TTYGrabber
-from orangecontrib.shadow.util.shadow_objects import  ShadowTriggerIn, ShadowPreProcessorData, ShadowBeam, ShadowOpticalElement
+from oasys.util.oasys_util import EmittingStream, TTYGrabber, TriggerIn, TriggerOut
+from orangecontrib.shadow.util.shadow_objects import  ShadowPreProcessorData, ShadowBeam, ShadowOpticalElement
 from orangecontrib.shadow.util.shadow_util import ShadowMath, ShadowCongruence
 
 class CollimatingPolycapillary(ow_generic_element.GenericElement):
@@ -30,7 +30,7 @@ class CollimatingPolycapillary(ow_generic_element.GenericElement):
                 "doc": "Shadow Beam",
                 "id": "beam"},
                {"name": "Trigger",
-                "type": ShadowTriggerIn,
+                "type": TriggerIn,
                 "doc": "Feedback signal to start a new beam simulation",
                 "id": "Trigger"}]
 
@@ -284,7 +284,7 @@ class CollimatingPolycapillary(ow_generic_element.GenericElement):
         self.setStatusMessage("")
 
         self.send("Beam", beam_out)
-        self.send("Trigger", ShadowTriggerIn(new_beam=True))
+        self.send("Trigger", TriggerIn(new_object=True))
 
     def traceOpticalElement(self):
         try:
