@@ -2159,7 +2159,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                            #IMPLEMENTATION OF THE AUTOMATIC CALCULATION OF THE SAGITTAL FOCUSING FOR SPHERICAL CYLINDERS
                            # RADIUS = (2 F1 F2 sin (theta)) /( F1+F2)
                            if self.focii_and_continuation_plane == 0:
-                              self.spherical_radius = ((2*self.source_plane_distance*self.image_plane_distance)/(self.source_plane_distance+self.image_plane_distance))*numpy.sin(self.reflection_angle_mrad)
+                              self.spherical_radius = ((2*self.source_plane_distance*self.image_plane_distance)/(self.source_plane_distance+self.image_plane_distance))*numpy.sin(self.reflection_angle_mrad*1e-3)
                            else:
                               self.spherical_radius = ((2*self.object_side_focal_distance*self.image_side_focal_distance)/(self.object_side_focal_distance+self.image_side_focal_distance))*numpy.sin(numpy.radians(90-self.incidence_angle_respect_to_normal))
 
