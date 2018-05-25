@@ -236,7 +236,7 @@ class OWdabam_height_profile(OWWidget):
         self.scrollarea.setWidget(self.table)
         self.scrollarea.setWidgetResizable(1)
 
-        output_profile_box = oasysgui.widgetBox(tab_gener, "Surface Generation Parameters", addSpace=True, orientation="vertical", height=270)
+        output_profile_box = oasysgui.widgetBox(tab_gener, "Surface Generation Parameters", addSpace=True, orientation="vertical", height=320)
 
         self.le_dimension_x = oasysgui.lineEdit(output_profile_box, self, "dimension_x", "Width",
                            labelWidth=300, valueType=float, orientation="horizontal")
@@ -246,15 +246,17 @@ class OWdabam_height_profile(OWWidget):
         gui.comboBox(output_profile_box, self, "center_y", label="Center Profile in the middle of O.E.", labelWidth=300,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
-        gui.comboBox(output_profile_box, self, "modify_y", label="Modify Length?", labelWidth=240,
+        gui.separator(output_profile_box)
+
+        gui.comboBox(output_profile_box, self, "modify_y", label="Modify Length?", labelWidth=150,
                      items=["No", "Rescale to new length", "Fit to new length (fill or cut)"], callback=self.set_ModifyY, sendSelectedValue=False, orientation="horizontal")
 
-        self.modify_box_1 = oasysgui.widgetBox(output_profile_box, "", addSpace=False, orientation="vertical", height=50)
+        self.modify_box_1 = oasysgui.widgetBox(output_profile_box, "", addSpace=False, orientation="vertical", height=60)
 
-        self.modify_box_2 = oasysgui.widgetBox(output_profile_box, "", addSpace=False, orientation="vertical", height=50)
+        self.modify_box_2 = oasysgui.widgetBox(output_profile_box, "", addSpace=False, orientation="vertical", height=60)
         self.le_new_length_1 = oasysgui.lineEdit(self.modify_box_2, self, "new_length", "New Length", labelWidth=300, valueType=float, orientation="horizontal")
 
-        self.modify_box_3 = oasysgui.widgetBox(output_profile_box, "", addSpace=False, orientation="vertical", height=50)
+        self.modify_box_3 = oasysgui.widgetBox(output_profile_box, "", addSpace=False, orientation="vertical", height=60)
         self.le_new_length_2 = oasysgui.lineEdit(self.modify_box_3, self, "new_length", "New Length", labelWidth=300, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.modify_box_3, self, "filler_value", "Filler Value (if new length > profile length) [nm]", labelWidth=300, valueType=float, orientation="horizontal")
 
@@ -263,7 +265,8 @@ class OWdabam_height_profile(OWWidget):
         gui.comboBox(output_profile_box, self, "renormalize_y", label="Renormalize Length Profile to different RMS", labelWidth=300,
                      items=["No", "Yes"], callback=self.set_RenormalizeY, sendSelectedValue=False, orientation="horizontal")
 
-        self.output_profile_box_1 = oasysgui.widgetBox(output_profile_box, "", addSpace=True, orientation="vertical")
+        self.output_profile_box_1 = oasysgui.widgetBox(output_profile_box, "", addSpace=False, orientation="vertical", height=60)
+        self.output_profile_box_2 = oasysgui.widgetBox(output_profile_box, "", addSpace=False, orientation="vertical", height=60)
 
         gui.comboBox(self.output_profile_box_1, self, "error_type_y", label="Normalization to", labelWidth=270,
                      items=["Figure Error (nm)", "Slope Error (" + u"\u03BC" + "rad)"],
@@ -413,6 +416,7 @@ class OWdabam_height_profile(OWWidget):
 
     def set_RenormalizeY(self):
         self.output_profile_box_1.setVisible(self.renormalize_y==1)
+        self.output_profile_box_2.setVisible(self.renormalize_y==0)
 
     def table_item_clicked(self):
         if self.table.selectionModel().hasSelection():
@@ -659,7 +663,9 @@ class OWdabam_height_profile(OWWidget):
             sloperms = profiles_simulation.slopes(zz.T, xx, yy, return_only_rms=1)
 
             title = ' Slope error rms in X direction: %f $\mu$rad' % (sloperms[0]*1e6) + '\n' + \
-                    ' Slope error rms in Y direction: %f $\mu$rad' % (sloperms[1]*1e6)
+                    ' Slope error rms in Y direction: %f $\mu$rad' % (sloperms[1]*1e6) + '\n' + \
+                    ' Figure error rms in X direction: %f nm' % (round(zz[0, :].std()*1e7, 6)) + '\n' + \
+                    ' Figure error rms in Y direction: %f nm' % (round(zz[:, 0].std()*1e7, 6))
 
             self.axis.set_xlabel("X [" + self.workspace_units_label + "]")
             self.axis.set_ylabel("Y [" + self.workspace_units_label + "]")
