@@ -8,6 +8,7 @@ from PyQt5 import QtWidgets
 from oasys.menus.menu import OMenu
 from orangecanvas.scheme.link import SchemeLink
 
+from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticElement
 import orangecontrib.shadow.widgets.preprocessor.xsh_bragg as xsh_bragg
 import orangecontrib.shadow.widgets.preprocessor.xsh_pre_mlayer as xsh_pre_mlayer
 import orangecontrib.shadow.widgets.preprocessor.xsh_prerefl as xsh_prerefl
@@ -191,12 +192,13 @@ class ShadowToolsMenu(OMenu):
             for node in self.canvas_main_window.current_document().scheme().nodes:
                 widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
 
-                if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
-                    widget.view_type = 0
-                    widget.set_PlotQuality()
-                if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
-                    widget.plot_graph = 1
-                    widget.set_PlotGraphs()
+                if isinstance(widget, AutomaticElement):
+                    if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
+                        widget.view_type = 0
+                        widget.set_PlotQuality()
+                    if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
+                        widget.plot_graph = 1
+                        widget.set_PlotGraphs()
         except Exception as exception:
             QtWidgets.QMessageBox.critical(None, "Error",
                 exception.args[0],
@@ -207,12 +209,13 @@ class ShadowToolsMenu(OMenu):
             for node in self.canvas_main_window.current_document().scheme().nodes:
                 widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
 
-                if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
-                    widget.view_type = 1
-                    widget.set_PlotQuality()
-                if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
-                    widget.plot_graph = 1
-                    widget.set_PlotGraphs()
+                if isinstance(widget, AutomaticElement):
+                    if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
+                        widget.view_type = 1
+                        widget.set_PlotQuality()
+                    if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
+                        widget.plot_graph = 1
+                        widget.set_PlotGraphs()
         except Exception as exception:
             QtWidgets.QMessageBox.critical(None, "Error",
                 exception.args[0],
@@ -223,12 +226,13 @@ class ShadowToolsMenu(OMenu):
             for node in self.canvas_main_window.current_document().scheme().nodes:
                 widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
 
-                if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
-                    widget.view_type = 2
-                    widget.set_PlotQuality()
-                if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
-                    widget.plot_graph = 0
-                    widget.set_PlotGraphs()
+                if isinstance(widget, AutomaticElement):
+                    if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
+                        widget.view_type = 2
+                        widget.set_PlotQuality()
+                    if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
+                        widget.plot_graph = 0
+                        widget.set_PlotGraphs()
         except Exception as exception:
             QtWidgets.QMessageBox.critical(None, "Error",
                 exception.args[0],
