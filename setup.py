@@ -8,7 +8,7 @@ except AttributeError:
     from setuptools import find_packages, setup
 
 NAME = 'OASYS1-ShadowOui'
-VERSION = '1.4.48'
+VERSION = '1.4.50'
 ISRELEASED = False
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
@@ -41,7 +41,7 @@ SETUP_REQUIRES = (
 
 INSTALL_REQUIRES = (
     'oasys1>=1.1.4',
-    #'wofryshadow',
+    'wofryshadow',
     'shadow3>=18.4.11'
 )
 
@@ -58,7 +58,6 @@ PACKAGE_DATA = {
     "orangecontrib.shadow.widgets.preprocessor":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.shadow.widgets.sources":["icons/*.png", "icons/*.jpg"],
     "orangecontrib.shadow.widgets.utility":["icons/*.png", "icons/*.jpg"],
-    #"orangecontrib.shadow.widgets.wofry":["icons/*.png", "icons/*.jpg"],
 }
 
 NAMESPACE_PACAKGES = ["orangecontrib", "orangecontrib.shadow", "orangecontrib.shadow.widgets"]
@@ -73,9 +72,8 @@ ENTRY_POINTS = {
         "Shadow Special Elements = orangecontrib.shadow.widgets.special_elements",
         "Shadow PostProcessor = orangecontrib.shadow.widgets.plots",
         "Shadow PreProcessor = orangecontrib.shadow.widgets.preprocessor",
-        "Shadow Sources = orangecontrib.shadow.widgets.sources",
-        "Shadow Utility = orangecontrib.shadow.widgets.utility",
-        #"Shadow Wofry = orangecontrib.shadow.widgets.wofry",
+        "Shadow Light Sources = orangecontrib.shadow.widgets.sources",
+        "Shadow Tools = orangecontrib.shadow.widgets.utility",
     ),
     'oasys.menus' : ("shadowmenu = orangecontrib.shadow.menu",)
 }

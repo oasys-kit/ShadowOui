@@ -18,7 +18,7 @@ class OWToWofryWavefront2d(AutomaticWidget):
     id = "toWofryWavefront2D"
     description = "To Wofry Wavefront 2D"
     icon = "icons/to_wofry_wavefront_2d.png"
-    priority = 2
+    priority = 20
     category = ""
     keywords = ["shadow", "gaussian"]
 
