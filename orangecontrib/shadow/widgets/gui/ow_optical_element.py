@@ -1117,7 +1117,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                     self.le_grating_poly_coeff_2 = oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_2", "Polyn. Line Density coeff.: 2nd", labelWidth=260, valueType=float, orientation="horizontal")
                     self.le_grating_poly_coeff_3 = oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_3", "Polyn. Line Density coeff.: 3rd", labelWidth=260, valueType=float, orientation="horizontal")
                     self.le_grating_poly_coeff_4 = oasysgui.lineEdit(self.ruling_box_4, self, "grating_poly_coeff_4", "Polyn. Line Density coeff.: 4th", labelWidth=260, valueType=float, orientation="horizontal")
-                    gui.comboBox(self.ruling_box_4, self, "grating_poly_signed_absolute", label="Line density absolute/signed from the origin", labelWidth=265,
+                    gui.comboBox(self.ruling_box_4, self, "grating_poly_signed_absolute", label="Line density absolute/signed from origin", labelWidth=265,
                                  items=["Absolute", "Signed"], sendSelectedValue=False, orientation="horizontal")
 
                     self.set_GratingRulingType()
@@ -1399,13 +1399,13 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 label.setText(label.text() + " [" + self.workspace_units_label + "]")
                 self.ruling_density_label.setText(self.ruling_density_label.text() + "  [Lines/" + self.workspace_units_label + "]")
                 label = self.le_grating_poly_coeff_1.parent().layout().itemAt(0).widget()
-                label.setText(label.text() + " [Lines." + self.workspace_units_label + "-2]")
+                label.setText(label.text() + " [Lines/" + self.workspace_units_label + "\u00b2]")
                 label = self.le_grating_poly_coeff_2.parent().layout().itemAt(0).widget()
-                label.setText(label.text() + " [Lines." + self.workspace_units_label + "-3]")
+                label.setText(label.text() + " [Lines/" + self.workspace_units_label + "\u00b3]")
                 label = self.le_grating_poly_coeff_3.parent().layout().itemAt(0).widget()
-                label.setText(label.text() + " [Lines." + self.workspace_units_label + "-4]")
+                label.setText(label.text() + " [Lines/" + self.workspace_units_label + "\u2074]")
                 label = self.le_grating_poly_coeff_4.parent().layout().itemAt(0).widget()
-                label.setText(label.text() + " [Lines." + self.workspace_units_label + "-5]")
+                label.setText(label.text() + " [Lines/" + self.workspace_units_label + "\u2075]")
 
                 label = self.le_grating_holo_left_distance.parent().layout().itemAt(0).widget()
                 label.setText(label.text() + " [" + self.workspace_units_label + "]")
@@ -1942,7 +1942,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         self.le_ms_file_with_parameters_rz.setText(oasysgui.selectFileFromDialog(self, self.ms_file_with_parameters_rz, "Select File with parameters (r(z))"))
 
     def selectFileWithParametersRz2(self):
-        self.le_ms_file_with_parameters_rz2.setText(oasysgui.selectFileFromDialog(self, self.ms_file_with_parameters_rz2, "Select File with parameters (r(z)^2)"))
+        self.le_ms_file_with_parameters_rz2.setText(oasysgui.selectFileFromDialog(self, self.ms_file_with_parameters_rz2, "Select File with parameters (r(z)\u00b2)"))
 
     def selectFileOrientations(self):
         self.le_ms_file_orientations.setText(oasysgui.selectFileFromDialog(self, self.ms_file_orientations, "Select File with Orientations"))
