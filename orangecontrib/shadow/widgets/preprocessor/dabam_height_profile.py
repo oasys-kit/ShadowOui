@@ -1,4 +1,4 @@
-import sys
+import os, sys
 import time
 import numpy
 import threading
@@ -92,7 +92,7 @@ class OWdabam_height_profile(OWWidget):
 
     tab=[]
 
-    usage_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/dabam_height_profile_usage.png"
+    usage_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "dabam_height_profile_usage.png")
 
     def __init__(self):
         super().__init__()

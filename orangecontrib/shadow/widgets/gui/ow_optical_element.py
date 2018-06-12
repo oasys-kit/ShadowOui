@@ -364,8 +364,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     d_1 = 0.0
     d_2 = 0.0
 
-    image_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/distances.png"
-    bragg_user_defined_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/bragg_user_defined.png"
+    image_path              = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "distances.png")
+    bragg_user_defined_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "bragg_user_defined.png")
 
     ##########################################
     # SCREEN/SLIT SETTING
@@ -1271,7 +1271,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                 self.kumakhov_lens_box =  oasysgui.widgetBox(mod_surf_box, box="", addSpace=False, orientation="vertical")
 
-                gui.comboBox(self.kumakhov_lens_box, self, "ms_specify_rz2", label="Specify r(z)^2", labelWidth=350,
+                gui.comboBox(self.kumakhov_lens_box, self, "ms_specify_rz2", label="Specify r(z)\u00b2", labelWidth=350,
                              items=["No", "Yes"], callback=self.set_SpecifyRz2, sendSelectedValue=False, orientation="horizontal")
 
                 self.kumakhov_lens_box_1 =  oasysgui.widgetBox(self.kumakhov_lens_box, box="", addSpace=False, orientation="vertical")
@@ -1285,7 +1285,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                 file_box = oasysgui.widgetBox(self.kumakhov_lens_box_2, "", addSpace=False, orientation="horizontal", height=25)
 
-                self.le_ms_file_with_parameters_rz2 = oasysgui.lineEdit(file_box, self, "ms_file_with_parameters_rz2", "File with parameters (r(z)^2)", labelWidth=185, valueType=str, orientation="horizontal")
+                self.le_ms_file_with_parameters_rz2 = oasysgui.lineEdit(file_box, self, "ms_file_with_parameters_rz2", "File with parameters (r(z)\u00b2)", labelWidth=185, valueType=str, orientation="horizontal")
 
                 gui.button(file_box, self, "...", callback=self.selectFileWithParametersRz2)
 

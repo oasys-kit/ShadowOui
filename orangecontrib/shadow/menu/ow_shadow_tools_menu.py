@@ -111,7 +111,7 @@ class ShadowToolsMenu(OMenu):
                 for filename in rows:
                     abort_import = False
 
-                    filename_complete = self.default_dir + "/" + str(filename).strip()
+                    filename_complete = os.path.join(self.default_dir, str(filename).strip())
 
                     if os.path.exists(filename_complete):
                         print("filename_complete", filename_complete)

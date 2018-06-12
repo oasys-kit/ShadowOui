@@ -145,7 +145,7 @@ class ShadowCongruence():
             if file_name.startswith('/'):
                 values = numpy.loadtxt(os.path.abspath(file_name))
             else:
-                values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/" + file_name))
+                values = numpy.loadtxt(os.path.abspath(os.path.join(os.path.curdir, file_name)))
         except:
             raise Exception(specific_name + " file malformed (should be 2 or more columns of numbers, separated by spaces), please check input")
 
@@ -956,7 +956,7 @@ class ShadowPhysics:
         #
         # sen(th) = lambda / (2  d)
         #
-        # d = a / sqrt(h^2 + k^2 + l^2)
+        # d = a / sqrt(h\u00b2 + k^2 + l^2)
         #
         # sen(th) = (sqrt(h^2 + k^2 + l^2) * lambda)/(2 a)
 

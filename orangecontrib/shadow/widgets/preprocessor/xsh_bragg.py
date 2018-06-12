@@ -1,4 +1,4 @@
-import sys
+import os, sys
 
 import numpy, scipy, xraylib, cmath
 
@@ -94,7 +94,7 @@ class OWxsh_bragg(OWWidget):
         "Titanium"
     ]
 
-    usage_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/bragg_usage.png"
+    usage_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "bragg_usage.png")
 
     def __init__(self):
         super().__init__()

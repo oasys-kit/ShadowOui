@@ -1,4 +1,4 @@
-import sys
+import os, sys
 
 from PyQt5.QtWidgets import QLabel, QApplication, QMessageBox, QSizePolicy
 from PyQt5.QtGui import QTextCursor, QPixmap, QDoubleValidator
@@ -50,7 +50,7 @@ class OWxsh_prerefl(OWWidget):
     E_MAX = Setting(20000.0)
     E_STEP = Setting(100.0)
 
-    usage_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/prerefl_usage.png"
+    usage_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui") , "misc", "prerefl_usage.png")
 
     def __init__(self):
         super().__init__()

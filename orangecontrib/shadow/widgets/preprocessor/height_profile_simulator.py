@@ -1,4 +1,4 @@
-import sys
+import os, sys
 
 import numpy
 from PyQt5.QtCore import QRect, Qt
@@ -110,7 +110,7 @@ class OWheight_profile_simulator(OWWidget):
 
     heigth_profile_file_name = Setting('mirror.dat')
 
-    usage_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/height_error_profile_usage.png"
+    usage_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "height_error_profile_usage.png")
 
     def __init__(self):
         super().__init__()

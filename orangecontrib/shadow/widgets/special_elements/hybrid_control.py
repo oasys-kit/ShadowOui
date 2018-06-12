@@ -1333,11 +1333,9 @@ def propagate_2D(calculation_parameters, input_parameters):
     try:
         for i in range(0, len(wavefront.electric_field_array.x_coord)):
             for j in range(0, len(wavefront.electric_field_array.y_coord)):
-                wavefront.electric_field_array.set_z_value(i, j,
-                                                           numpy.sqrt(calculation_parameters.wIray_2d.interpolate_value(
-                                                               wavefront.electric_field_array.x_coord[i],
-                                                               wavefront.electric_field_array.y_coord[j]))
-                                                           )
+                interpolated = calculation_parameters.wIray_2d.interpolate_value(wavefront.electric_field_array.x_coord[i],
+                                                                                 wavefront.electric_field_array.y_coord[j])
+                wavefront.electric_field_array.set_z_value(i, j, numpy.sqrt(0.0 if interpolated < 0 else interpolated))
     except IndexError:
         raise Exception("Unexpected Error during interpolation: try reduce Number of bins for I(Tangential) histogram")
 

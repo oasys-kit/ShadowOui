@@ -1,6 +1,6 @@
 __author__ = 'labx'
 
-import sys, numpy
+import os, sys, numpy
 import orangecanvas.resources as resources
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
@@ -249,8 +249,7 @@ class HybridScreen(AutomaticElement):
             widget = QWidget()
             widget.setLayout(QHBoxLayout())
             label = QLabel(widget)
-            label.setPixmap(QPixmap(QImage(resources.package_dirname("orangecontrib.shadow.widgets.special_elements") +
-                                           "/icons/no_result.png")))
+            label.setPixmap(QPixmap(QImage(os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.special_elements"), "icons", "no_result.png"))))
 
             widget.layout().addWidget(label)
 
@@ -480,19 +479,19 @@ class HybridScreen(AutomaticElement):
                     elif self.ghy_diff_plane == 2:
                         if do_plot_x and do_plot_z:
                             self.plot_xy_hybrid(88, calculation_parameters.dif_xpzp, plot_canvas_index=0, title="X',Z'",
-                                            xtitle=r'X\' [$\mu$rad]', ytitle=r'Z\' [$\mu$rad]', var1=4, var2=6)
+                                            xtitle="X' [$\mu$rad]", ytitle="Z' [$\mu$rad]", var1=4, var2=6)
                             self.plot_xy(calculation_parameters.ff_beam, 96, 1, 3, plot_canvas_index=1, title="X,Z",
                                             xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
 
                         else:
                             if do_plot_x:
-                                self.plot_histo_hybrid(88, calculation_parameters.dif_xp, plot_canvas_index=0, title=u"\u2206" + "Xp", xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
+                                self.plot_histo_hybrid(88, calculation_parameters.dif_xp, plot_canvas_index=0, title=u"\u2206" + "X'", xtitle="$\Delta$X' [$\mu$rad]", ytitle=r'Arbitrary Units', var=4)
                                 self.plot_histo(calculation_parameters.ff_beam, 96, 1, plot_canvas_index=1, title="X",
                                                 xtitle=r'X [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
                             elif do_plot_z:
                                 print(type(calculation_parameters.dif_zp))
 
-                                self.plot_histo_hybrid(88, calculation_parameters.dif_zp, 0, title=u"\u2206" + "Zp", xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
+                                self.plot_histo_hybrid(88, calculation_parameters.dif_zp, 0, title=u"\u2206" + "Z'", xtitle="$\Delta$Z' [$\mu$rad]", ytitle=r'Arbitrary Units', var=6)
                                 self.plot_histo(calculation_parameters.ff_beam, 96, 3, plot_canvas_index=1, title="Z",
                                                 xtitle=r'Z [$\mu$m]', ytitle=r'Number of Rays', xum=("Z [" + u"\u03BC" + "m]"))
                             else:
@@ -502,10 +501,10 @@ class HybridScreen(AutomaticElement):
                     elif self.ghy_diff_plane == 3:
                         if do_plot_x:
                             if do_nf:
-                                self.plot_histo_hybrid(82, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp", xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
+                                self.plot_histo_hybrid(82, calculation_parameters.dif_xp, 0, title=u"\u2206" + "X'", xtitle="$\Delta$X' [$\mu$rad]", ytitle=r'Arbitrary Units', var=4)
                                 self.plot_histo_hybrid(84, calculation_parameters.dif_x, 1, title=u"\u2206" + "X", xtitle=r'$\Delta$X [$\mu$m]', ytitle=r'Arbitrary Units', var=1)
                             else:
-                                self.plot_histo_hybrid(84, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp", xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
+                                self.plot_histo_hybrid(84, calculation_parameters.dif_xp, 0, title=u"\u2206" + "X'", xtitle="$\Delta$X' [$\mu$rad]", ytitle=r'Arbitrary Units', var=4)
                         else:
                             if do_nf:
                                 self.plot_emtpy(82, 0)
@@ -515,10 +514,10 @@ class HybridScreen(AutomaticElement):
 
                         if do_plot_z:
                             if do_nf:
-                                self.plot_histo_hybrid(86, calculation_parameters.dif_zp, 2, title=u"\u2206" + "Zp", xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
+                                self.plot_histo_hybrid(86, calculation_parameters.dif_zp, 2, title=u"\u2206" + "Z''", xtitle="$\Delta$Z' [$\mu$rad]", ytitle=r'Arbitrary Units', var=6)
                                 self.plot_histo_hybrid(88, calculation_parameters.dif_z, 3, title=u"\u2206" + "Z", xtitle=r'$\Delta$Z [$\mu$m]', ytitle=r'Arbitrary Units', var=2)
                             else:
-                                self.plot_histo_hybrid(88, calculation_parameters.dif_zp, 1, title=u"\u2206" + "Zp", xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
+                                self.plot_histo_hybrid(88, calculation_parameters.dif_zp, 1, title=u"\u2206" + "Z'", xtitle="$\Delta$Z' [$\mu$rad]", ytitle=r'Arbitrary Units', var=6)
                         else:
                             if do_nf:
                                 self.plot_emtpy(86, 2)

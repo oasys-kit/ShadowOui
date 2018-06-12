@@ -1,4 +1,4 @@
-import sys
+import os, sys
 
 from PyQt5.QtWidgets import QLabel, QApplication, QMessageBox, QSizePolicy
 from PyQt5.QtGui import QTextCursor, QIntValidator, QDoubleValidator, QPixmap
@@ -67,7 +67,7 @@ class OWxsh_pre_mlayer(OWWidget):
     CONTROL_AREA_WIDTH = 685
     TABS_AREA_HEIGHT = 455
 
-    usage_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/premlayer_usage.png"
+    usage_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "premlayer_usage.png")
 
     def __init__(self):
         super().__init__()

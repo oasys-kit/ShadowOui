@@ -955,9 +955,9 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
             layout = QtWidgets.QVBoxLayout(self)
             label = QtWidgets.QLabel("")
 
-            directory_files = resources.package_dirname("orangecontrib.shadow.widgets.experimental_elements") + "/misc"
+            file = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.experimental_elements"), "misc", "axis.png")
 
-            label.setPixmap(QtGui.QPixmap(directory_files + "/axis.png"))
+            label.setPixmap(QtGui.QPixmap(file))
 
             bbox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok)
 
@@ -2738,11 +2738,11 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         foundMaterialFile = True
         materialIndex = 0
 
-        directory_files = resources.package_dirname("orangecontrib.shadow.widgets.experimental_elements") + "/data"
+        directory_files = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.experimental_elements"), "data")
 
         try:
             while(foundMaterialFile):
-                materialFileName =  directory_files + "/sample_holder_material_" + str(materialIndex) + ".dat"
+                materialFileName =   os.path.join(directory_files, "sample_holder_material_" + str(materialIndex) + ".dat")
 
                 if not os.path.exists(materialFileName):
                     foundMaterialFile = False
@@ -2775,7 +2775,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         foundMaterialFile = True
         materialIndex = 0
 
-        directory_files = resources.package_dirname("orangecontrib.shadow.widgets.experimental_elements") + "/data"
+        directory_files = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.experimental_elements"), "data")
 
         try:
             while(foundMaterialFile):

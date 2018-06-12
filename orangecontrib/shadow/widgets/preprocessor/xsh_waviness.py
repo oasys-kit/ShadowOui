@@ -1,4 +1,4 @@
-import copy
+import os, copy
 import sys
 
 import numpy
@@ -258,7 +258,7 @@ class OWxsh_waviness(OWWidget):
                           '0.0',
                           '0.0']})
 
-    usage_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/waviness_usage.png"
+    usage_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "waviness_usage.png")
 
     def __init__(self):
         super().__init__()

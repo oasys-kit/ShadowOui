@@ -1,4 +1,4 @@
-import sys, numpy
+import os, sys, numpy
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLabel, QApplication, QMessageBox, QSizePolicy
@@ -52,8 +52,8 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
     new_photon_wavelength = Setting(25.0)
     new_photon_energy = Setting(500.0)
 
-    image_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/vls_pgm_layout.png"
-    usage_path = resources.package_dirname("orangecontrib.shadow.widgets.gui") + "/misc/vls_pgm_usage.png"
+    image_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "vls_pgm_layout.png")
+    usage_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "vls_pgm_usage.png")
 
     design_alpha = 0.0
     design_beta = 0.0
