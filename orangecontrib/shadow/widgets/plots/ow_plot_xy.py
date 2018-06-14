@@ -129,6 +129,7 @@ class PlotXY(AutomaticElement):
                                             "31: S1-stokes = |E\u03c0|\u00b2 - |E\u03c3|\u00b2",
                                             "32: S2-stokes = 2|E\u03c3||E\u03c0|cos(Phase \u03c3-Phase \u03c0)",
                                             "33: S3-stokes = 2|E\u03c3||E\u03c0|sin(Phase \u03c3-Phase \u03c0)",
+                                            "34: Power = Intensity * Energy",
                                      ],
                                      sendSelectedValue=False, orientation="horizontal")
 
@@ -179,6 +180,7 @@ class PlotXY(AutomaticElement):
                                             "31: S1-stokes = |E\u03c0|\u00b2 - |E\u03c3|\u00b2",
                                             "32: S2-stokes = 2|E\u03c3||E\u03c0|cos(Phase \u03c3-Phase \u03c0)",
                                             "33: S3-stokes = 2|E\u03c3||E\u03c0|sin(Phase \u03c3-Phase \u03c0)",
+                                            "34: Power = Intensity * Energy",
                                      ],
 
                                      sendSelectedValue=False, orientation="horizontal")
@@ -231,6 +233,7 @@ class PlotXY(AutomaticElement):
                                                 "31: S1-stokes = |E\u03c0|\u00b2 - |E\u03c3|\u00b2",
                                                 "32: S2-stokes = 2|E\u03c3||E\u03c0|cos(Phase \u03c3-Phase \u03c0)",
                                                 "33: S3-stokes = 2|E\u03c3||E\u03c0|sin(Phase \u03c3-Phase \u03c0)",
+                                                "34: Power = Intensity * Energy",
                                          ],
                                          sendSelectedValue=False, orientation="horizontal")
 
