@@ -385,11 +385,11 @@ class ZonePlate(GenericElement):
 
                     self.avg_wavelength = ShadowPhysics.getWavelengthFromShadowK(numpy.average(zone_plate_beam._beam.rays[go, 10]))*1e-1 #ANGSTROM->nm
 
-                    self.focal_distance = (self.delta_rn*(self.diameter*1000)/self.avg_wavelength)* (1e-9/self.workspace_units_to_m)
-                    self.image_position = self.focal_distance*self.source_distance/(self.source_distance-self.focal_distance)
+                    self.focal_distance = (self.delta_rn*(self.diameter*1000)/self.avg_wavelength)* (1e-9/self.workspace_units_to_m)       # WS Units
+                    self.image_position = self.focal_distance*self.source_distance/(self.source_distance-self.focal_distance)              # WS Units
                     self.magnification = numpy.abs(self.image_position/self.source_distance)
 
-                    self.avg_wavelength = numpy.round(self.avg_wavelength, 6)
+                    self.avg_wavelength = numpy.round(self.avg_wavelength, 6)      # nm
                     self.focal_distance = numpy.round(self.focal_distance, 6)
                     self.image_position = numpy.round(self.image_position, 6)
                     self.magnification = numpy.round(self.magnification, 6)
@@ -412,15 +412,15 @@ class ZonePlate(GenericElement):
                     else:
                         self.efficiency = numpy.round(1/(numpy.pi**2), 4)
 
-                    focused_beam = ZonePlate.apply_fresnel_zone_plate(zone_plate_beam,
+                    focused_beam = ZonePlate.apply_fresnel_zone_plate(zone_plate_beam,  # WS Units
                                                                       self.type_of_zp,
-                                                                      self.diameter,
-                                                                      self.delta_rn,
+                                                                      self.diameter,  # micron
+                                                                      self.delta_rn, # nm
                                                                       self.substrate_material,
                                                                       self.substrate_thickness,
                                                                       self.zone_plate_material,
                                                                       self.zone_plate_thickness,
-                                                                      self.source_distance,
+                                                                      self.source_distance, # WS Units
                                                                       self.workspace_units_to_m)
 
                     self.progressBarSet(60)
@@ -543,12 +543,11 @@ class ZonePlate(GenericElement):
     # ZONE PLATE CALCULATION
     ######################################################################
 
-    def get_zone_plate_beam(self):
+    def get_zone_plate_beam(self):       # WS Units
 
         empty_element = ShadowOpticalElement.create_empty_oe()
 
-        empty_element._oe.DUMMY = 1.0 # self.workspace_units_to_cm
-
+        empty_element._oe.DUMMY        = self.workspace_units_to_cm
         empty_element._oe.T_SOURCE     = self.source_plane_distance
         empty_element._oe.T_IMAGE      = 0.0
         empty_element._oe.T_INCIDENCE  = 0.0
@@ -677,28 +676,29 @@ class ZonePlate(GenericElement):
                 # (see formulas in A.G. Michette, "X-ray science and technology"
                 #  Institute of Physics Publishing (1993))
 
-                x_int_i = intercepted_rays_i[:, 0]
-                z_int_i = intercepted_rays_i[:, 2]
-                x_int_f = intercepted_rays_f[:, 0]
-                z_int_f = intercepted_rays_f[:, 2]
+                x_int_i = intercepted_rays_i[:, 0] # WS Units
+                z_int_i = intercepted_rays_i[:, 2] # WS Units
+                x_int_f = intercepted_rays_f[:, 0] # WS Units
+                z_int_f = intercepted_rays_f[:, 2] # WS Units
 
                 xp_int = intercepted_rays_f[:, 3]
                 zp_int = intercepted_rays_f[:, 5]
 
-                k_mod_int = intercepted_rays_f[:, 10]
-                lambda_ray = ShadowPhysics.getWavelengthFromShadowK(k_mod_int)*1e-1 #ANGSTROM->nm
-                f_ray = (delta_rn*(diameter*1000)/lambda_ray)* (1e-9/workspace_units_to_m)
+                k_mod_int = intercepted_rays_f[:, 10]       # CM-1!
 
-                r_int = numpy.sqrt((x_int_f-x_int_i)**2 + (z_int_f-z_int_i)**2)
+                #lambda_ray = ShadowPhysics.getWavelengthFromShadowK(k_mod_int) #ANGSTROM
+                #f_ray = (delta_rn*(diameter*1000)/(lambda_ray*1e-1))* (1e-9/workspace_units_to_m)
 
-                k_x_int = k_mod_int*xp_int
-                k_z_int = k_mod_int*zp_int
+                r_int = numpy.sqrt((x_int_f-x_int_i)**2 + (z_int_f-z_int_i)**2) # WS Units
 
-                d = (zone[1] - zone[0])
+                k_x_int = k_mod_int*xp_int # CM-1
+                k_z_int = k_mod_int*zp_int # CM-1
+
+                d = (zone[1] - zone[0])*workspace_units_to_m*100  # to CM
 
                 # computing G (the "grating" wavevector in workspace units^-1)
-                gx = -numpy.pi / d * ((x_int_f-x_int_i)/r_int) # cos(theta_i)
-                gz = -numpy.pi / d * ((z_int_f-z_int_i)/r_int) # sen(theta_i)
+                gx = -(numpy.pi / d) * ((x_int_f-x_int_i)/r_int) # cos(theta_i)
+                gz = -(numpy.pi / d) * ((z_int_f-z_int_i)/r_int) # sen(theta_i)
 
                 k_x_out = k_x_int + gx
                 k_z_out = k_z_int + gz
@@ -770,10 +770,10 @@ class ZonePlate(GenericElement):
                                    focused_beam._beam.rays[lo_2, 15] ** 2 + focused_beam._beam.rays[lo_2, 16] ** 2 + focused_beam._beam.rays[lo_2, 17] ** 2)
 
         if type_of_zp == PHASE_ZP:
-            wavelength = ShadowPhysics.getWavelengthFromShadowK(focused_beam._beam.rays[go_2, 10])*1e-10 # m
+            wavelength = ShadowPhysics.getWavelengthFromShadowK(focused_beam._beam.rays[go_2, 10]) # Angstrom
             delta, beta = ZonePlate.get_delta_beta(focused_beam._beam.rays[go_2], zone_plate_material)
             
-            phi = 2*numpy.pi*(zone_plate_thickness*1e-9)*delta/wavelength
+            phi = 2*numpy.pi*(zone_plate_thickness*1e-9)*delta/(wavelength*1e-10)
             r = beta/delta
                
             efficiency_zp = ((1 + numpy.exp(-2*r*phi) - (2*numpy.exp(-r*phi)*numpy.cos(phi)))/numpy.pi)**2
