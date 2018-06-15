@@ -114,7 +114,8 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                 # self.error_id = self.error_id + 1
                 # self.error(self.error_id, "Exception occurred: " + str(exception))
 
-                #raise exception
+                if self.IS_DEVELOP: raise exception
+
         self.progressBarFinished()
 
     def plot_xy(self, beam_out, progressBarValue, var_x, var_y, plot_canvas_index, title, xtitle, ytitle, xum="", yum="", is_footprint=False):

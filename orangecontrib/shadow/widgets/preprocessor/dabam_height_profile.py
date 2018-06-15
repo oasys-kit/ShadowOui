@@ -482,7 +482,7 @@ class OWdabam_height_profile(OWWidget):
                                  exception.args[0],
                                  QMessageBox.Ok)
 
-            #raise exception
+            if self.IS_DEVELOP: raise exception
 
 
     def search_profiles(self):
@@ -691,7 +691,7 @@ class OWdabam_height_profile(OWWidget):
                                  exception.args[0],
                                  QMessageBox.Ok)
 
-            #raise exception
+            if self.IS_DEVELOP: raise exception
 
     def generate_heigth_profile_file_ni(self):
         self.generate_heigth_profile_file(not_interactive_mode=True)

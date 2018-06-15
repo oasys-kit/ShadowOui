@@ -709,7 +709,7 @@ class GeometricalSource(ow_source.Source):
                                        str(exception),
                 QtWidgets.QMessageBox.Ok)
 
-            #raise exception
+            if self.IS_DEVELOP: raise exception
 
 
     def setupUI(self):

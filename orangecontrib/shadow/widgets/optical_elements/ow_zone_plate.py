@@ -457,7 +457,7 @@ class ZonePlate(GenericElement):
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))
 
-            #raise exception
+            if self.IS_DEVELOP: raise exception
 
         self.progressBarFinished()
 

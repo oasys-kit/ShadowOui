@@ -1400,7 +1400,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
             self.setStatusMessage("")
             self.progressBarFinished()
 
-            #raise exception
+            if self.IS_DEVELOP: raise exception
 
     #######################################################
 

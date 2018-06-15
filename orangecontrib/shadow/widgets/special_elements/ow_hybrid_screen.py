@@ -553,7 +553,7 @@ class HybridScreen(AutomaticElement):
 
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
-            #raise exception
+            if self.IS_DEVELOP: raise exception
 
         self.setStatusMessage("")
         self.progressBarFinished()

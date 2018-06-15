@@ -204,7 +204,7 @@ class BendingMagnet(ow_source.Source, WidgetDecorator):
                                        str(exception),
                 QtWidgets.QMessageBox.Ok)
 
-            #raise exception
+            if self.IS_DEVELOP: raise exception
 
         self.progressBarFinished()
 

@@ -1930,7 +1930,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception), QtWidgets.QMessageBox.Ok)
 
-            raise exception
+            if self.IS_DEVELOP: raise exception
 
     def selectFileFacetDescr(self):
         self.le_ms_file_facet_descr.setText(oasysgui.selectFileFromDialog(self, self.ms_file_facet_descr, "Select File with Facet Description"))
@@ -2917,7 +2917,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             #self.error_id = self.error_id + 1
             #self.error(self.error_id, "Exception occurred: " + str(exception))
 
-            #raise exception
+            if self.IS_DEVELOP: raise exception
 
         self.progressBarFinished()
 
@@ -3132,7 +3132,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                                        str(exception),
                 QtWidgets.QMessageBox.Ok)
 
-            #raise exception
+            if self.IS_DEVELOP: raise exception
 
     def deserialize(self, shadow_file):
         if self.graphical_options.is_screen_slit:

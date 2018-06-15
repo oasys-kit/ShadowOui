@@ -261,7 +261,7 @@ class OWxsh_bragg(OWWidget):
                                  str(exception),
                                  QMessageBox.Ok)
 
-            #raise exception
+            if self.IS_DEVELOP: raise exception
 
     @classmethod
     def new_bragg(cls,

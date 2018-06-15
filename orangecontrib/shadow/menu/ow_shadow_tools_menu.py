@@ -152,7 +152,7 @@ class ShadowToolsMenu(OMenu):
                 exception.args[0],
                 QtWidgets.QMessageBox.Ok)
 
-            raise exception
+            if self.IS_DEVELOP: raise exception
 
     #ENABLE PLOTS
     def executeAction_3(self, action):
