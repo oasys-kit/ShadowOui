@@ -75,6 +75,7 @@ class HybridCalculationParameters(object):
     original_beam_history = None
 
     image_plane_beam = None
+    image_plane_beam_lost = None
     ff_beam = None
     nf_beam = None
 
@@ -574,7 +575,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
     input_parameters.shadow_beam = shadow_beam_at_image_plane
 
-    image_beam = read_shadow_beam(shadow_beam_at_image_plane) #xshi change from 0 to 1
+    image_beam, image_beam_lo = read_shadow_beam(shadow_beam_at_image_plane, lost=True) #xshi change from 0 to 1
 
     calculation_parameters.shadow_oe_end = shadow_oe
 
@@ -582,12 +583,13 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         image_beam.writeToFile("hybrid_beam_at_image_plane." + str_n_oe)
 
     calculation_parameters.image_plane_beam = image_beam
+    calculation_parameters.image_plane_beam_lost = image_beam_lo
 
     calculation_parameters.xx_star = image_beam._beam.rays[:, 0]
     calculation_parameters.zz_star = image_beam._beam.rays[:, 2]
 
     # read shadow screen file
-    screen_beam = sh_readsh(fileShadowScreen)    #xshi change from 0 to 1
+    screen_beam= sh_readsh(fileShadowScreen)    #xshi change from 0 to 1
 
     if input_parameters.file_to_write_out == 1:
         screen_beam.writeToFile("hybrid_beam_at_oe_hybrid_screen." + str_n_oe)
@@ -912,6 +914,9 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
         calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
         calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
 
+
+    calculation_parameters.ff_beam = ShadowBeam.mergeBeams(calculation_parameters.ff_beam, calculation_parameters.image_plane_beam_lost)
+    if do_nf: calculation_parameters.nf_beam = ShadowBeam.mergeBeams(calculation_parameters.nf_beam, calculation_parameters.image_plane_beam_lost)
 
     if input_parameters.file_to_write_out == 1:
 
@@ -1438,16 +1443,27 @@ def sh_read_gfile(gfilename):
 
 #########################################################
 
-def read_shadow_beam(shadow_beam):
-    cursor = numpy.where(shadow_beam._beam.rays[:, 9] == 1)
+def read_shadow_beam(shadow_beam, lost=False):
+    cursor_go = numpy.where(shadow_beam._beam.rays[:, 9] == 1)
 
-    image_beam_rays = copy.deepcopy(shadow_beam._beam.rays[cursor])
+    image_beam_rays = copy.deepcopy(shadow_beam._beam.rays[cursor_go])
     image_beam_rays[:, 11] = numpy.arange(1, len(image_beam_rays) + 1, 1)
 
-    out_beam = ShadowBeam()
-    out_beam._beam.rays = image_beam_rays
+    out_beam_go = ShadowBeam()
+    out_beam_go._beam.rays = image_beam_rays
 
-    return out_beam
+    if lost:
+        cursor_lo = numpy.where(shadow_beam._beam.rays[:, 9] != 1)
+
+        lost_rays = copy.deepcopy(shadow_beam._beam.rays[cursor_lo])
+        lost_rays[:, 11] = numpy.arange(1, len(lost_rays) + 1, 1)
+
+        out_beam_lo = ShadowBeam()
+        out_beam_lo._beam.rays = lost_rays
+
+        return out_beam_go, out_beam_lo
+    else:
+        return out_beam_go
 
 #########################################################
 
