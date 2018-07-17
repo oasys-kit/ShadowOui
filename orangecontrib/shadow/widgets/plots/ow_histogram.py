@@ -53,6 +53,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
     title=Setting("Energy")
 
     keep_result=Setting(0)
+    last_ticket=None
 
     is_conversion_active = Setting(1)
 
@@ -211,6 +212,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
     def clearResults(self):
         if ConfirmDialog.confirmed(parent=self):
             self.input_beam = ShadowBeam()
+            self.last_ticket = None
             self.plot_canvas.clear()
             return True
         else:
@@ -230,7 +232,12 @@ class Histogram(ow_automatic_element.AutomaticElement):
             self.image_box.layout().addWidget(self.plot_canvas)
 
         try:
-            self.plot_canvas.plot_histo(beam, var, self.rays, xrange, self.weight_column_index, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum, conv=self.workspace_units_to_cm)
+            if self.keep_result == 1:
+                self.last_ticket = self.plot_canvas.plot_histo(beam, var, self.rays, xrange, self.weight_column_index, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum, conv=self.workspace_units_to_cm, ticket_to_add=self.last_ticket)
+            else:
+                self.last_ticket = None
+                self.plot_canvas.plot_histo(beam, var, self.rays, xrange, self.weight_column_index, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum, conv=self.workspace_units_to_cm)
+
         except Exception:
             raise Exception("Data not plottable: No good rays or bad content")
 
@@ -296,8 +303,6 @@ class Histogram(ow_automatic_element.AutomaticElement):
         return xrange
 
     def plot_results(self):
-        #self.error(self.error_id)
-
         try:
             plotted = False
 
@@ -331,8 +336,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
                                        str(exception),
                                        QtWidgets.QMessageBox.Ok)
 
-            #self.error_id = self.error_id + 1
-            #self.error(self.error_id, "Exception occurred: " + str(exception))
+            if self.IS_DEVELOP: raise exception
 
             return False
 
@@ -387,10 +391,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
     def setBeam(self, beam):
         if ShadowCongruence.checkEmptyBeam(beam):
             if ShadowCongruence.checkGoodBeam(beam):
-                if self.keep_result == 1 and not self.input_beam is None:
-                    self.input_beam = ShadowBeam.mergeBeams(self.input_beam, beam)
-                else:
-                    self.input_beam = beam
+                self.input_beam = beam
 
                 if self.is_automatic_run:
                     self.plot_results()

@@ -61,6 +61,7 @@ class PlotXY(AutomaticElement):
     title=Setting("X,Z")
 
     keep_result=Setting(0)
+    last_ticket=None
 
     is_conversion_active = Setting(1)
 
@@ -276,6 +277,8 @@ class PlotXY(AutomaticElement):
     def clearResults(self):
         if ConfirmDialog.confirmed(parent=self):
             self.input_beam = None
+            self.last_ticket = None
+
             if not self.plot_canvas is None:
                 self.plot_canvas.clear()
 
@@ -301,7 +304,11 @@ class PlotXY(AutomaticElement):
             self.image_box.layout().addWidget(self.plot_canvas)
 
         try:
-            self.plot_canvas.plot_xy(beam, var_x, var_y, title, xtitle, ytitle, xrange=xrange, yrange=yrange, nbins=nbins, nolost=nolost, xum=xum, yum=yum, conv=self.workspace_units_to_cm, ref=self.weight_column_index)
+            if self.keep_result == 1:
+                self.last_ticket = self.plot_canvas.plot_xy(beam, var_x, var_y, title, xtitle, ytitle, xrange=xrange, yrange=yrange, nbins=nbins, nolost=nolost, xum=xum, yum=yum, conv=self.workspace_units_to_cm, ref=self.weight_column_index, ticket_to_add=self.last_ticket)
+            else:
+                self.last_ticket = None
+                self.plot_canvas.plot_xy(beam, var_x, var_y, title, xtitle, ytitle, xrange=xrange, yrange=yrange, nbins=nbins, nolost=nolost, xum=xum, yum=yum, conv=self.workspace_units_to_cm, ref=self.weight_column_index)
         except Exception:
             raise Exception("Data not plottable: No good rays or bad content")
 
@@ -387,8 +394,6 @@ class PlotXY(AutomaticElement):
         return xrange, yrange
 
     def plot_results(self):
-        #self.error(self.error_id)
-
         try:
             plotted = False
 
@@ -421,8 +426,7 @@ class PlotXY(AutomaticElement):
                                        str(exception),
                                        QtWidgets.QMessageBox.Ok)
 
-            #self.error_id = self.error_id + 1
-            #self.error(self.error_id, "Exception occurred: " + str(exception))
+            if self.IS_DEVELOP: raise exception
 
             return False
 
@@ -516,10 +520,7 @@ class PlotXY(AutomaticElement):
     def setBeam(self, beam):
         if ShadowCongruence.checkEmptyBeam(beam):
             if ShadowCongruence.checkGoodBeam(beam):
-                if self.keep_result == 1 and not self.input_beam is None:
-                    self.input_beam = ShadowBeam.mergeBeams(self.input_beam, beam)
-                else:
-                    self.input_beam = beam
+                self.input_beam = beam
 
                 if self.is_automatic_run:
                     self.plot_results()

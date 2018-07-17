@@ -387,9 +387,28 @@ class ShadowPlot:
 
             self.setLayout(layout)
 
-        def plot_histo(self, beam, col, nolost, xrange, ref, title, xtitle, ytitle, nbins = 100, xum="", conv=1.0):
+        def plot_histo(self, beam, col, nolost, xrange, ref, title, xtitle, ytitle, nbins = 100, xum="", conv=1.0, ticket_to_add=None):
 
             ticket = beam.histo1(col, nbins=nbins, xrange=xrange, nolost=nolost, ref=ref)
+
+            # TODO: check congruence between tickets
+            if not ticket_to_add is None:
+                ticket['histogram'] += ticket_to_add['histogram']
+                ticket['histogram_path'] += ticket_to_add['histogram_path']
+
+                ticket['intensity'] += ticket_to_add['intensity']
+                ticket['nrays'] += ticket_to_add['nrays']
+                ticket['good_rays'] += ticket_to_add['good_rays']
+
+                h = ticket['histogram']
+                bins = ticket['bins']
+                bin_center = ticket['bin_center']
+
+                tt = numpy.where(h>=max(h)*0.5)
+                if h[tt].size > 1:
+                    binSize = bins[1]-bins[0]
+                    ticket['fwhm'] = binSize*(tt[0][-1]-tt[0][0])
+                    ticket['fwhm_coordinates'] = (bin_center[tt[0][0]],bin_center[tt[0][-1]])
 
             factor=ShadowPlot.get_factor(col, conv)
 
@@ -433,6 +452,8 @@ class ShadowPlot:
             self.info_box.fwhm_h.setText("{:5.4f}".format(ticket['fwhm']*factor))
             self.info_box.label_h.setText("FWHM " + xum)
 
+            return ticket
+
         def clear(self):
             self.plot_canvas.clear()
             self.info_box.clear()
@@ -465,11 +486,39 @@ class ShadowPlot:
 
             self.plot_canvas.toolBar()
 
-        def plot_xy(self, beam, var_x, var_y, title, xtitle, ytitle, xrange=None, yrange=None, nolost=1, nbins=100, xum="", yum="", conv=1.0, ref=23, is_footprint=False):
+        def plot_xy(self, beam, var_x, var_y, title, xtitle, ytitle, xrange=None, yrange=None, nolost=1, nbins=100, xum="", yum="", conv=1.0, ref=23, is_footprint=False, ticket_to_add=None):
 
             matplotlib.rcParams['axes.formatter.useoffset']='False'
 
             ticket = beam.histo2(var_x, var_y, nbins=nbins, xrange=xrange, yrange=yrange, nolost=nolost, ref=ref)
+
+            # TODO: check congruence between tickets
+            if not ticket_to_add is None:
+                ticket['histogram'] += ticket_to_add['histogram']
+                ticket['histogram_h'] += ticket_to_add['histogram_h']
+                ticket['histogram_v'] += ticket_to_add['histogram_v']
+
+                ticket['intensity'] += ticket_to_add['intensity']
+                ticket['nrays'] += ticket_to_add['nrays']
+                ticket['good_rays'] += ticket_to_add['good_rays']
+
+                h = ticket['histogram_h']
+                tt = numpy.where(h>=max(h)*0.5)
+                if h[tt].size > 1:
+                    binSize = ticket['bin_h_center'][1]-ticket['bin_h_center'][0]
+                    ticket['fwhm_h'] = binSize*(tt[0][-1]-tt[0][0])
+                    ticket['fwhm_coordinates_h'] = (ticket['bin_h_center'][tt[0][0]],ticket['bin_h_center'][tt[0][-1]])
+                else:
+                    ticket["fwhm_h"] = None
+
+                h = ticket['histogram_v']
+                tt = numpy.where(h>=max(h)*0.5)
+                if h[tt].size > 1:
+                    binSize = ticket['bin_v_center'][1]-ticket['bin_v_center'][0]
+                    ticket['fwhm_v'] = binSize*(tt[0][-1]-tt[0][0])
+                    ticket['fwhm_coordinates_v'] = (ticket['bin_v_center'][tt[0][0]],ticket['bin_v_center'][tt[0][-1]])
+                else:
+                    ticket["fwhm_v"] = None
 
             if is_footprint:
                 factor1 = 1.0
@@ -564,6 +613,8 @@ class ShadowPlot:
             self.info_box.fwhm_v.setText("{:5.4f}".format(ticket['fwhm_v'] * factor2))
             self.info_box.label_h.setText("FWHM " + xum)
             self.info_box.label_v.setText("FWHM " + yum)
+
+            return ticket
 
         def clear(self):
             self.plot_canvas.clear()
