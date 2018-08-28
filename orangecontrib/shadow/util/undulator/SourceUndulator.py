@@ -124,14 +124,14 @@ class SourceUndulator(object):
                                                                 1e10*self.syned_undulator.resonance_frequency(self.syned_electron_beam.gamma(),harmonic=1),
                                                                 1e10*self.syned_undulator.resonance_frequency(self.syned_electron_beam.gamma(),harmonic=3),
                                                                 1e10*self.syned_undulator.resonance_frequency(self.syned_electron_beam.gamma(),harmonic=5))
-        txt += "        central cone 'half' width [mrad]:     %10.6f %10.6f %10.6f   \n"%(\
-                                                                1e3*self.syned_undulator.gaussian_central_cone_aperture(self.syned_electron_beam.gamma(),1),
-                                                                1e3*self.syned_undulator.gaussian_central_cone_aperture(self.syned_electron_beam.gamma(),3),
-                                                                1e3*self.syned_undulator.gaussian_central_cone_aperture(self.syned_electron_beam.gamma(),5))
-        txt += "        first ring at [mrad]:                 %10.6f %10.6f %10.6f   \n"%(\
-                                                                1e3*self.get_resonance_ring(1,1),
-                                                                1e3*self.get_resonance_ring(3,1),
-                                                                1e3*self.get_resonance_ring(5,1))
+        txt += "        central cone 'half' width [urad]:     %10.6f %10.6f %10.6f   \n"%(\
+                                                                1e6*self.syned_undulator.gaussian_central_cone_aperture(self.syned_electron_beam.gamma(),1),
+                                                                1e6*self.syned_undulator.gaussian_central_cone_aperture(self.syned_electron_beam.gamma(),3),
+                                                                1e6*self.syned_undulator.gaussian_central_cone_aperture(self.syned_electron_beam.gamma(),5))
+        txt += "        first ring at [urad]:                 %10.6f %10.6f %10.6f   \n"%(\
+                                                                1e6*self.get_resonance_ring(1,1),
+                                                                1e6*self.get_resonance_ring(3,1),
+                                                                1e6*self.get_resonance_ring(5,1))
 
         txt += "-----------------------------------------------------\n"
         txt += "Sampling: \n"
@@ -141,13 +141,22 @@ class SourceUndulator(object):
             txt += "        photon energy from %10.3f eV to %10.3f eV\n"%(self.EMIN,self.EMAX)
         txt += "        number of points for the trajectory %d\n"%(self.NG_J)
         txt += "        number of energy points %d\n"%(self.NG_E)
-        txt += "        maximum elevation angle %f mrad\n"%(self.MAXANGLE)
+        txt += "        maximum elevation angle %f urad\n"%(1e3*self.MAXANGLE)
         txt += "        number of angular elevation points %d\n"%(self.NG_T)
         txt += "        number of angular azimuthal points %d\n"%(self.NG_P)
         txt += "        number of rays %d\n"%(self.NRAYS)
         txt += "        random seed %d\n"%(self.SEED)
         txt += "-----------------------------------------------------\n"
 
+        txt += "        calculation code: %s\n"%self.code_undul_phot
+
+        if self.FLAG_SIZE == 0:
+            flag = "point"
+        elif self.FLAG_SIZE == 1:
+            flag = "Gaussian"
+        txt += "        sampling flag: %d (%s)\n"%(self.FLAG_SIZE,flag)
+
+        txt += "        calculation code: %s\n"%self.code_undul_phot
         if self.result_radiation is None:
             txt += "        radiation: NOT YET CALCULATED\n"
         else:
@@ -198,11 +207,11 @@ class SourceUndulator(object):
     def get_radiation_polar(self):
         if self.result_radiation is None:
             self.calculate_radiation()
-        return self.result_radiation["radiation"],self.result_radiation["theta"],self.result_radiation["phi"]
+        return self.result_radiation["radiation"],self.result_radiation["photon_energy"],self.result_radiation["theta"],self.result_radiation["phi"]
 
     def get_radiation_interpolated_cartesian(self,npointsx=100,npointsz=100,thetamax=None):
 
-        radiation,thetabm,phi = self.get_radiation_polar()
+        radiation,photon_energy, thetabm,phi = self.get_radiation_polar()
 
         if thetamax is None:
             thetamax = thetabm.max()
@@ -222,7 +231,7 @@ class SourceUndulator(object):
             interpolator_value = interpolate.RectBivariateSpline(thetabm, phi, radiation[i])
             radiation_interpolated[i] = interpolator_value.ev(THETA, PHI)
 
-        return radiation_interpolated,vx,vz
+        return radiation_interpolated,photon_energy,vx,vz
 
 
     def calculate_radiation(self):
