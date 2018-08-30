@@ -25,8 +25,8 @@ from syned.storage_ring.magnetic_structures.undulator import Undulator
 from silx.gui.plot.StackView import StackViewMainWindow
 from silx.gui.plot import Plot2D
 
-from orangecontrib.shadow.util.undulator.SourceUndulator import SourceUndulator
-from orangecontrib.shadow.util.undulator.SourceUndulatorInputOutput import SourceUndulatorInputOutput
+from orangecontrib.shadow.util.undulator.source_undulator import SourceUndulator
+from orangecontrib.shadow.util.undulator.source_undulator_input_output import SourceUndulatorInputOutput
 from Shadow import Beam as Shadow3Beam
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 
@@ -279,12 +279,12 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
                     #
 
 
-                    flux3,spectral_power,photon_energy = self.sourceundulator.get_flux_and_spectral_power()
+                    flux,spectral_power,photon_energy = self.sourceundulator.get_flux_and_spectral_power()
 
                     tabs_canvas_index += 1
-                    self.plot_data1D(photon_energy,flux3,
+                    self.plot_data1D(photon_energy,flux,
                                      tabs_canvas_index, plot_canvas_index,
-                                     title="Flux", xtitle="Photon Energy [eV]", ytitle="Flux [photons/s/eV]")
+                                     title="Flux", xtitle="Photon Energy [eV]", ytitle="Flux [photons/s/0.1%bw]")
 
 
                     tabs_canvas_index += 1
@@ -293,8 +293,9 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
                                      title="Spectral Power", xtitle="Photon Energy [eV]", ytitle="Spectral Power [W/eV]")
 
                     print("\n\n")
-                    print("Total power (integral [sum] of spectral power) [W]: ",spectral_power.sum()*(photon_energy[1]-photon_energy[0]))
+                    # print("Total power (integral [sum] of spectral power) [W]: ",spectral_power.sum()*(photon_energy[1]-photon_energy[0]))
                     print("Total power (integral [trapz] of spectral power) [W]: ",numpy.trapz(spectral_power,photon_energy))
+                    print("Total number of photons (integral [trapz] of flux): ",numpy.trapz(flux/(1e-3*photon_energy),photon_energy))
                     print("\n\n")
 
 
@@ -472,12 +473,9 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
         self.setStatusMessage("")
         self.progressBarInit()
 
+        # this is to be able to start the widget out of Oasys
         try:
-            print(">>>> ",self.workspace_units)
-            print(">>>> ",self.workspace_units_label)
-            print(">>>> ",self.workspace_units_to_m)
-            print(">>>> ",self.workspace_units_to_cm)
-            print(">>>> ",self.workspace_units_to_mm)
+            tmp = self.workspace_units
         except:
             self.workspace_units = 'm'
             self.workspace_units_label = 'm'
@@ -485,11 +483,6 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
             self.workspace_units_to_cm = 1e2
             self.workspace_units_to_mm = 1e3
 
-        print(">>>> workspace_units ",self.workspace_units)
-        print(">>>> workspace_units_label ",self.workspace_units_label)
-        print(">>>> workspace_units_to_m ",self.workspace_units_to_m)
-        print(">>>> workspace_units_to_cm ",self.workspace_units_to_cm)
-        print(">>>> workspace_units_to_mm ",self.workspace_units_to_mm)
 
         self.checkFields()
 
@@ -565,7 +558,7 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
                 print("File written to disk: begin.dat")
 
             if self.file_to_write_out >= 2:
-                SourceUndulatorInputOutput.write_file_undul_phot_h5(self.sourceundulator._result_radiation,
+                SourceUndulatorInputOutput.write_file_undul_phot_h5(self.sourceundulator.get_result_dictionary(),
                                             file_out="radiation.h5",mode="w",entry_name="radiation")
 
             beam_out = ShadowBeam(beam=shadow3_beam)
@@ -585,9 +578,9 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
 
         self.progressBarFinished()
 
-    # def sendNewBeam(self, trigger):
-    #    if trigger and trigger.new_object == True:
-    #        self.runShadowSource()
+    def sendNewBeam(self, trigger):
+       if trigger and trigger.new_object == True:
+           self.runShadowSource()
 
     def checkFields(self):
         self.number_of_rays = congruence.checkPositiveNumber(self.number_of_rays, "Number of rays")
@@ -616,11 +609,11 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
     def receive_syned_data(self, data):
         if not data is None:
             if isinstance(data, synedb.Beamline):
-                if not data._light_source is None:
-                    if isinstance(data._light_source._magnetic_structure, synedu.Undulator):
-                        light_source = data._light_source
+                if not data.get_light_source() is None:
+                    if isinstance(data.get_light_source().get_magnetic_structure(), synedu.Undulator):
+                        light_source = data.get_light_source()
 
-                        # self.photon_energy =  round(light_source.get_magnetic_structure().resonance_energy(light_source._electron_beam.gamma()), 3)
+                        # self.photon_energy =  round(light_source.get_magnetic_structure().resonance_energy(light_source.get_electron_beam().gamma()), 3)
                         self.set_at_resonance = 1
                         self.set_UseResonance()
                         self.delta_e = 0.0
@@ -628,7 +621,7 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
                         self.energy_in_GeV = light_source.get_electron_beam().energy()
                         self.current = light_source.get_electron_beam().current()
 
-                        x, xp, y, yp = light_source._electron_beam.get_sigmas_all()
+                        x, xp, y, yp = light_source.get_electron_beam().get_sigmas_all()
 
                         self.sigma_x = x
                         self.sigma_z = y

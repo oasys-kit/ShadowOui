@@ -12,13 +12,13 @@ import unittest
 import numpy
 
 from numpy.testing import assert_almost_equal
-from orangecontrib.shadow.util.undulator.SourceUndulator import SourceUndulator
-from orangecontrib.shadow.util.undulator.SourceUndulatorInputOutput import SourceUndulatorInputOutput
+from orangecontrib.shadow.util.undulator.source_undulator import SourceUndulator
+from orangecontrib.shadow.util.undulator.source_undulator_input_output import SourceUndulatorInputOutput
 
 import Shadow
 from srxraylib.plot.gol import plot,plot_image,plot_show
 
-from orangecontrib.shadow.util.undulator.TestSourceUndulatorFactory import _calculate_shadow3_beam_using_preprocessors, _shadow3_commands, SHADOW3_BINARY
+from orangecontrib.shadow.util.undulator.test_source_undulator_factory import _calculate_shadow3_beam_using_preprocessors, _shadow3_commands, SHADOW3_BINARY
 
 #
 # switch on/off plots

@@ -20,11 +20,11 @@ import os
 
 # CODE TO TEST
 # from SourceUndulator import SourceUndulator
-from orangecontrib.shadow.util.undulator.SourceUndulatorFactory import SourceUndulatorFactory
-from orangecontrib.shadow.util.undulator.SourceUndulatorFactoryPysru import SourceUndulatorFactoryPysru
-from orangecontrib.shadow.util.undulator.SourceUndulatorFactorySrw import SourceUndulatorFactorySrw
+from orangecontrib.shadow.util.undulator.source_undulator_factory import SourceUndulatorFactory
+from orangecontrib.shadow.util.undulator.source_undulator_factory_pysru import SourceUndulatorFactoryPysru
+from orangecontrib.shadow.util.undulator.source_undulator_factory_srw import SourceUndulatorFactorySrw
 # input/output
-from orangecontrib.shadow.util.undulator.SourceUndulatorInputOutput import SourceUndulatorInputOutput
+from orangecontrib.shadow.util.undulator.source_undulator_input_output import SourceUndulatorInputOutput
 #load_file_undul_phot,write_file_undul_phot
 #load_file_undul_cdf,write_file_undul_cdf
 #plot_undul_cdf,plot_undul_phot
