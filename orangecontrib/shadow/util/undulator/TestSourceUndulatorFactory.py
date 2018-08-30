@@ -7,9 +7,10 @@ __date__ = "12/01/2017"
 
 
 #
-# switch on/off plots
 #
-DO_PLOT = False
+#
+DO_PLOT = False  # switch on/off plots
+SHADOW3_BINARY = "/users/srio/OASYS1.1/shadow3/shadow3"
 
 
 import unittest
@@ -41,7 +42,6 @@ if DO_PLOT:
 # Auxiliary functions
 #
 
-SHADOW3_BINARY = "/users/srio/OASYS1.1/shadow3/shadow3"
 
 def _shadow3_commands(commands="exit\n",input_file="shadow3_tmp.inp"):
     # for internal use
@@ -68,7 +68,7 @@ def _calculate_shadow3_beam_using_preprocessors(jsn):
 
     commands = "undul_set\n0\n0\n%d \n%d \n%d \nxshundul.traj\n%d\n%f\n%f\n%f\n%f\n0\n1000\nexit\n"% \
         (NG_E,jsn["NG_T"],jsn["NG_P"],
-         jsn["NPERIODS"],jsn["EMIN"],jsn["EMAX"],jsn["INTENSITY"],jsn["MAXANGLE"])
+         jsn["NPERIODS"],jsn["EMIN"],jsn["EMAX"],jsn["INTENSITY"],1e3*jsn["MAXANGLE"])
     _shadow3_commands(commands=commands,input_file="shadow3_undul_set.inp")
 
     # undul_phot
@@ -123,7 +123,7 @@ class TestSourceUndulatorFactory(unittest.TestCase):
         h["EMIN"] = 10200.0
         h["EMAX"] = 10650.0
         h["NG_E"] = 11
-        h["MAXANGLE"] = 0.015
+        h["MAXANGLE"] = 15e-6
         h["NG_T"] = 51
         h["NG_P"] = 11
 
@@ -136,7 +136,7 @@ class TestSourceUndulatorFactory(unittest.TestCase):
 
 
         photon_energy = numpy.linspace(h["EMIN"],h["EMAX"],h["NG_E"],dtype=float)
-        theta = numpy.linspace(0,h["MAXANGLE"]*1e-3,h["NG_T"],dtype=float)
+        theta = numpy.linspace(0,h["MAXANGLE"],h["NG_T"],dtype=float)
         phi = numpy.linspace(0,numpy.pi/2,h["NG_P"],dtype=float)
 
         numpy.testing.assert_almost_equal(udict["photon_energy"],photon_energy)
@@ -163,8 +163,8 @@ class TestSourceUndulatorFactory(unittest.TestCase):
 
         self.assertAlmostEqual(diff1,0.00,delta=1e-4)
         self.assertAlmostEqual(diff2,0.00,delta=1e-4)
-        self.assertAlmostEqual(diff3,0.00,delta=1e-4)
-        self.assertAlmostEqual(diff4,0.00,delta=1e-4)
+        self.assertAlmostEqual(diff3,0.00,delta=5e-3)
+        self.assertAlmostEqual(diff4,0.00,delta=5e-3)
 
     def test_undul_phot_NG_E_one(self):
 
@@ -181,7 +181,7 @@ class TestSourceUndulatorFactory(unittest.TestCase):
         h["EMIN"] = 10200.0
         h["EMAX"] = 10650.0
         h["NG_E"] = 1
-        h["MAXANGLE"] = 0.015
+        h["MAXANGLE"] = 15e-6
         h["NG_T"] = 51
         h["NG_P"] = 11
 
@@ -194,7 +194,7 @@ class TestSourceUndulatorFactory(unittest.TestCase):
 
 
         photon_energy = numpy.linspace(h["EMIN"],h["EMAX"],h["NG_E"],dtype=float)
-        theta = numpy.linspace(0,h["MAXANGLE"]*1e-3,h["NG_T"],dtype=float)
+        theta = numpy.linspace(0,h["MAXANGLE"],h["NG_T"],dtype=float)
         phi = numpy.linspace(0,numpy.pi/2,h["NG_P"],dtype=float)
 
         numpy.testing.assert_almost_equal(udict["photon_energy"],photon_energy)
@@ -221,8 +221,8 @@ class TestSourceUndulatorFactory(unittest.TestCase):
 
         self.assertAlmostEqual(diff1,0.00,delta=1e-4)
         self.assertAlmostEqual(diff2,0.00,delta=1e-4)
-        self.assertAlmostEqual(diff3,0.00,delta=1e-4)
-        self.assertAlmostEqual(diff4,0.00,delta=1e-4)
+        self.assertAlmostEqual(diff3,0.00,delta=5e-3)
+        self.assertAlmostEqual(diff4,0.00,delta=5e-3)
 
 
 
@@ -247,7 +247,7 @@ class TestSourceUndulatorFactory(unittest.TestCase):
         hh["EMIN"] = 10200.0
         hh["EMAX"] = 10650.0
         hh["NG_E"] = 11
-        hh["MAXANGLE"] = 0.015
+        hh["MAXANGLE"] = 15e-6
         hh["NG_T"] = 51
         hh["NG_P"] = 11
 
@@ -260,7 +260,7 @@ class TestSourceUndulatorFactory(unittest.TestCase):
 
 
         photon_energy = numpy.linspace(hh["EMIN"],hh["EMAX"],hh["NG_E"],dtype=float)
-        theta = numpy.linspace(0,hh["MAXANGLE"]*1e-3,hh["NG_T"],dtype=float)
+        theta = numpy.linspace(0,hh["MAXANGLE"],hh["NG_T"],dtype=float)
         phi = numpy.linspace(0,numpy.pi/2,hh["NG_P"],dtype=float)
 
         numpy.testing.assert_almost_equal(udict["photon_energy"],photon_energy)
@@ -287,8 +287,8 @@ class TestSourceUndulatorFactory(unittest.TestCase):
 
         self.assertAlmostEqual(diff1,0.00,delta=1e-4)
         self.assertAlmostEqual(diff2,0.00,delta=1e-4)
-        self.assertAlmostEqual(diff3,0.00,delta=1e-4)
-        self.assertAlmostEqual(diff4,0.00,delta=1e-4)
+        self.assertAlmostEqual(diff3,0.00,delta=2e-3)
+        self.assertAlmostEqual(diff4,0.00,delta=2e-3)
 
 
     def test_comparison_undul_phot(self,do_plot_intensity=DO_PLOT,do_plot_polarization=DO_PLOT,do_plot_trajectory=DO_PLOT):
@@ -324,7 +324,7 @@ class TestSourceUndulatorFactory(unittest.TestCase):
             "EMIN":       10200.0000,
             "EMAX":       10650.0000,
             "INTENSITY":      0.2,
-            "MAXANGLE":     0.0149999997,
+            "MAXANGLE":     0.000015,
             "NG_E": 11,
             "NG_T": 51,
             "NG_P": 11,
@@ -487,7 +487,7 @@ class TestSourceUndulatorFactory(unittest.TestCase):
             "EMIN":       10200.0000,
             "EMAX":       10650.0000,
             "INTENSITY":      0.2,
-            "MAXANGLE":     0.0149999997,
+            "MAXANGLE":     0.000015,
             "NG_E": 11,
             "NG_T": 51,
             "NG_P": 11,
@@ -613,7 +613,7 @@ class TestSourceUndulatorFactory(unittest.TestCase):
                 "EMIN":       10498.0000,
                 "EMAX":       10499.0000,
                 "INTENSITY":      0.200000003,
-                "MAXANGLE":      0.100000001,
+                "MAXANGLE":      0.000100,
                 "NG_E": 1,
                 "NG_T": 51,
                 "NG_P": 11,
@@ -670,7 +670,7 @@ class TestSourceUndulatorFactory(unittest.TestCase):
             EMIN= 10498.0000
             EMAX= 10499.0000
             NG_E=101
-            MAXANGLE=0.1
+            MAXANGLE=100e-6
             NG_T=51
             NG_P=11
             N_J=20

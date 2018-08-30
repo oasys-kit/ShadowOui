@@ -12,7 +12,6 @@ import unittest
 import numpy
 
 from numpy.testing import assert_almost_equal
-# from SourceUndulator import SourceUndulator
 from orangecontrib.shadow.util.undulator.SourceUndulator import SourceUndulator
 from orangecontrib.shadow.util.undulator.SourceUndulatorInputOutput import SourceUndulatorInputOutput
 
@@ -24,7 +23,7 @@ from orangecontrib.shadow.util.undulator.TestSourceUndulatorFactory import _calc
 #
 # switch on/off plots
 #
-DO_PLOT = True
+DO_PLOT = False
 
 #
 # Tests
@@ -121,7 +120,7 @@ class TestSourceUndulator(unittest.TestCase):
             "EMIN":       10498.0000,
             "EMAX":       10499.0000,
             "INTENSITY":      0.200000003,
-            "MAXANGLE":      0.100000001,
+            "MAXANGLE":      0.000100,
             "NG_E": 101,
             "NG_T": 51,
             "NG_P": 11,
@@ -199,15 +198,19 @@ class TestSourceUndulator(unittest.TestCase):
                                      )
 
                 u = SourceUndulator(name="test",syned_electron_beam=ebeam,syned_undulator=su,
-                                FLAG_EMITTANCE=int(h["FLAG_EMITTANCE(1)"]),FLAG_SIZE=0,
-                                EMIN=h["EMIN"],EMAX=h["EMAX"],NG_E=h["NG_E"],
-                                MAXANGLE=h["MAXANGLE"],NG_T=h["NG_T"],NG_P=h["NG_P"],
-                                SEED=36255,NRAYS=h["NRAYS"],
+                                flag_emittance=int(h["FLAG_EMITTANCE(1)"]),flag_size=0,
+                                emin=h["EMIN"],emax=h["EMAX"],ng_e=h["NG_E"],
+                                maxangle=h["MAXANGLE"],ng_t=h["NG_T"],ng_p=h["NG_P"],
                                 code_undul_phot="internal")
 
                 print(u.info())
-                beam = u.calculate_shadow3_beam(user_unit_to_m=1e-2)
+                # beam = u.calculate_shadow3_beam(user_unit_to_m=1e-2,SEED=36255,NRAYS=h["NRAYS"],)
+
+                rays = u.calculate_rays(user_unit_to_m=1e-2,SEED=36255,NRAYS=h["NRAYS"])
+                beam = Shadow.Beam(N=rays.shape[0])
+                beam.rays = rays
                 beam.write("begin.dat")
+
 
             os.system("cp begin.dat begin_%s.dat"%method)
             os.system("cp uphot.dat uphot_%s.dat"%method)

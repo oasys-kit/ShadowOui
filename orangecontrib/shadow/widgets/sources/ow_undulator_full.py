@@ -1,3 +1,8 @@
+#
+# TODO: plot electron trajectory
+#
+
+
 import sys
 import numpy
 
@@ -9,21 +14,21 @@ from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.util.oasys_util import EmittingStream, TTYGrabber
 
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 from orangecontrib.shadow.widgets.gui import ow_source
 
 from syned.widget.widget_decorator import WidgetDecorator
-
 import syned.beamline.beamline as synedb
 import syned.storage_ring.magnetic_structures.undulator as synedu
-
-from orangecontrib.shadow.util.undulator.SourceUndulator import SourceUndulator
-from orangecontrib.shadow.util.undulator.SourceUndulatorInputOutput import SourceUndulatorInputOutput
 from syned.storage_ring.electron_beam import ElectronBeam
 from syned.storage_ring.magnetic_structures.undulator import Undulator
 
 from silx.gui.plot.StackView import StackViewMainWindow
 from silx.gui.plot import Plot2D
+
+from orangecontrib.shadow.util.undulator.SourceUndulator import SourceUndulator
+from orangecontrib.shadow.util.undulator.SourceUndulatorInputOutput import SourceUndulatorInputOutput
+from Shadow import Beam as Shadow3Beam
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 
 class UndulatorFull(ow_source.Source, WidgetDecorator):
 
@@ -45,22 +50,22 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
     sigma_divergence_x = Setting(10e-06)
     sigma_divergence_z = Setting(4e-06)
 
-    number_of_rays=Setting(5000)
-    seed=Setting(6775431)
-    photon_energy=Setting(10500.0)
+    number_of_rays = Setting(5000)
+    seed = Setting(6775431)
+    photon_energy = Setting(10500.0)
     harmonic = Setting(1.0)
     set_at_resonance = Setting(0)
-    delta_e=Setting(20.0)
-    maxangle_urad = 15
+    delta_e = Setting(1000.0)
+    maxangle_urad = Setting(15)
 
     # advanced setting
     ng_t = Setting(51)
     ng_p = Setting(11)
     ng_j = Setting(20)
     ng_e = Setting(11)
-    code_undul_phot = Setting(0)
-    flag_size = Setting(0)
-    coherent = Setting(0)
+    code_undul_phot = Setting(0) # 0=internal 1=pySRU 2=SRW
+    flag_size = Setting(0) # 0=Point 1=Gaussian 2=to be done
+    coherent = Setting(0)  # 0=No 1=Yes
 
     # aux
     file_to_write_out = 0
@@ -115,7 +120,7 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
         #
         gui.comboBox(left_box_4, self, "set_at_resonance",
                      label="Set photon energy", addSpace=False,
-                    items=['User defined', 'Set to resonance/central cone'],
+                    items=['User defined', 'Set to resonance'],
                     valueType=int, orientation="horizontal", labelWidth=250,callback=self.set_UseResonance)
 
         self.box_photon_energy = gui.widgetBox(left_box_4)
@@ -152,10 +157,10 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
     # ng_e = 11
     # code_undul_phot = 0
     # flag_size = 0
-        oasysgui.lineEdit(left_box_5, self, "ng_e", "Points in Photon energy",       tooltip="Points in Photon energy",       labelWidth=250, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_5, self, "ng_t", "Points in theta [elevation]",   tooltip="Points in theta [elevation]",   labelWidth=250, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_5, self, "ng_e", "Points in phi [azimuthal]",     tooltip="Points in phi [azimuthal]",     labelWidth=250, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_5, self, "ng_e", "Points in electron trajectory", tooltip="Points in electron trajectory", labelWidth=250, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(left_box_5, self, "ng_e", "Points in Photon energy (if polychromatic)",       tooltip="Points in Photon energy",       labelWidth=250, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_5, self, "ng_t", "Points in theta [elevation]",   tooltip="Points in theta [elevation]",   labelWidth=250, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_5, self, "ng_p", "Points in phi [azimuthal]",     tooltip="Points in phi [azimuthal]",     labelWidth=250, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_5, self, "ng_j", "Points in electron trajectory", tooltip="Points in electron trajectory", labelWidth=250, valueType=int, orientation="horizontal")
 
         gui.comboBox(left_box_5, self, "code_undul_phot", label="Calculation method", labelWidth=120,
                      items=["internal", "pySRU","SRW"],sendSelectedValue=False, orientation="horizontal")
@@ -200,6 +205,8 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
     def set_PlotAuxGraphs(self):
         # self.progressBarInit()
 
+        self.initializeUndulatorTabs() # update number of tabs if monochromatic/polychromatic
+
         if self.sourceundulator is not None:
             try:
                 self.initializeUndulatorTabs()
@@ -216,20 +223,20 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
         if self.plot_aux_graph == 1:
             try:
 
-                radiation,photon_energy, theta,phi = self.sourceundulator.get_radiation_polar()
+                radiation,photon_energy,theta,phi = self.sourceundulator.get_radiation_polar()
 
                 tabs_canvas_index = 0
                 plot_canvas_index = 0
-                polarization = self.sourceundulator.result_radiation["polarization"]
+                polarization = self.sourceundulator.get_result_polarization()
 
 
                 if self.delta_e == 0.0:
                     self.plot_data2D(radiation[0], 1e6*theta, phi,
-                                     tabs_canvas_index, plot_canvas_index, title="radiation (photons/s/0.1%bw/mm2)", xtitle="theta [urad]", ytitle="phi [rad]")
+                                     tabs_canvas_index, plot_canvas_index, title="radiation (photons/s/eV/rad2)", xtitle="theta [urad]", ytitle="phi [rad]")
 
                     tabs_canvas_index += 1
                     self.plot_data2D(polarization[0], 1e6*theta, phi,
-                                     tabs_canvas_index, plot_canvas_index, title="polarization (intens s/(s+p))", xtitle="theta [urad]", ytitle="phi [rad]")
+                                     tabs_canvas_index, plot_canvas_index, title="polarization |Es|/(|Es|+|Ep|)", xtitle="theta [urad]", ytitle="phi [rad]")
 
                     tabs_canvas_index += 1
                     radiation_interpolated,photon_energy,vx,vz = self.sourceundulator.get_radiation_interpolated_cartesian()
@@ -238,58 +245,81 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
 
                 else:
                     self.plot_data3D(radiation, photon_energy, 1e6*theta, phi,
-                                     tabs_canvas_index, plot_canvas_index, title="radiation (photons/s/0.1%bw/mm2)", xtitle="theta [urad]", ytitle="phi [rad]")
+                                     tabs_canvas_index, plot_canvas_index,
+                                     title="radiation (photons/s/eV/rad2)", xtitle="theta [urad]", ytitle="phi [rad]",
+                                     callback_for_title=self.get_title_for_stack_view_flux)
 
                     tabs_canvas_index += 1
                     self.plot_data3D(polarization, photon_energy, 1e6*theta, phi,
-                                     tabs_canvas_index, plot_canvas_index, title="polarization (intens s/(s+p))", xtitle="theta [urad]", ytitle="phi [rad]")
+                                     tabs_canvas_index, plot_canvas_index,
+                                     title="polarization |Es|/(|Es|+|Ep|)", xtitle="theta [urad]", ytitle="phi [rad]",
+                                     callback_for_title=self.get_title_for_stack_view_polarization)
 
                     tabs_canvas_index += 1
                     radiation_interpolated,photon_energy,vx,vz = self.sourceundulator.get_radiation_interpolated_cartesian()
                     self.plot_data3D(radiation_interpolated, photon_energy, 1e6*vx, 1e6*vz,
-                                     tabs_canvas_index, plot_canvas_index, title="radiation", xtitle="vx [urad]", ytitle="vz [rad]")
+                                     tabs_canvas_index, plot_canvas_index,
+                                     title="radiation", xtitle="vx [urad]", ytitle="vz [rad]",
+                                     callback_for_title=self.get_title_for_stack_view_flux)
+
+                    #
+                    # if polychromatic, plot power density
+                    #
+
+                    intens_xy,vx,vz = self.sourceundulator.get_power_density_interpolated_cartesian()
+
+                    tabs_canvas_index += 1
+                    self.plot_data2D(1e-6*intens_xy,1e6*vx,1e6*vz,
+                                     tabs_canvas_index, plot_canvas_index,
+                                     title="power density W/mrad2", xtitle="vx [urad]", ytitle="vz [rad]")
 
 
-                # plot_image(radiation[0],1e6*theta,phi,aspect='auto',title="intensity",xtitle="theta [urad]",ytitle="phi [rad]")
-                #
-                # radiation_interpolated,photon_energy,vx,vz = self.sourceundulator.get_radiation_interpolated_cartesian()
-                # plot_image(radiation_interpolated[0],vx,vz,aspect='auto',title="intensity interpolated in cartesian grid",xtitle="vx",ytitle="vy")
-                #
-                # polarization = self.sourceundulator.result_radiation["polarization"]
-                # plot_image(polarization[0],1e6*theta,phi,aspect='auto',title="polarization",xtitle="theta [urad]",ytitle="phi [rad]")
+                    #
+                    # if polychromatic, plot flux(energy)
+                    #
+
+
+                    flux3,spectral_power,photon_energy = self.sourceundulator.get_flux_and_spectral_power()
+
+                    tabs_canvas_index += 1
+                    self.plot_data1D(photon_energy,flux3,
+                                     tabs_canvas_index, plot_canvas_index,
+                                     title="Flux", xtitle="Photon Energy [eV]", ytitle="Flux [photons/s/eV]")
+
+
+                    tabs_canvas_index += 1
+                    self.plot_data1D(photon_energy,spectral_power,
+                                     tabs_canvas_index, plot_canvas_index,
+                                     title="Spectral Power", xtitle="Photon Energy [eV]", ytitle="Spectral Power [W/eV]")
+
+                    print("\n\n")
+                    print("Total power (integral [sum] of spectral power) [W]: ",spectral_power.sum()*(photon_energy[1]-photon_energy[0]))
+                    print("Total power (integral [trapz] of spectral power) [W]: ",numpy.trapz(spectral_power,photon_energy))
+                    print("\n\n")
 
 
 
-                # data = numpy.loadtxt("tmp.traj",skiprows=15)
-                #
-                # energy, flux, temp = srfunc.wiggler_spectrum(data.T,
-                #                                              enerMin=self.e_min,
-                #                                              enerMax=self.e_max,
-                #                                              nPoints=500,
-                #                                              electronCurrent=self.electron_current/1000,
-                #                                              outFile="spectrum.dat",
-                #                                              elliptical=False)
-                #
-                # self.plot_wiggler_histo(15,  data[:, 1], data[:, 7], plot_canvas_index=0, title="Magnetic Field (in vertical) Bz(Y)", xtitle=r'Y [m]', ytitle=r'B [T]')
-                # self.plot_wiggler_histo(30,  data[:, 1], data[:, 6], plot_canvas_index=1, title="Electron Curvature", xtitle=r'Y [m]', ytitle=r'curvature [m^-1]')
-                # self.plot_wiggler_histo(45,  data[:, 1], data[:, 3], plot_canvas_index=2, title="Electron Velocity BetaX(Y)", xtitle=r'Y [m]', ytitle=r'BetaX')
-                # self.plot_wiggler_histo(60,  data[:, 1], data[:, 0], plot_canvas_index=3, title="Electron Trajectory X(Y)", xtitle=r'Y [m]', ytitle=r'X [m]')
-                # self.plot_wiggler_histo(80, energy    , flux      , plot_canvas_index=4,
-                #                         title="Wiggler Spectrum (current = " + str(self.electron_current) + " mA)",
-                #                         xtitle=r'E [eV]', ytitle=r'Flux [phot/s/0.1%bw]', is_log_log=False)
-                # self.plot_wiggler_histo(100, energy, flux*1e3*codata.e, plot_canvas_index=5,
-                #                         title="Spectral Power (current = " + str(self.electron_current) + " mA)",
-                #                         xtitle=r'E [eV]', ytitle=r'Spectral Power [W/eV]', is_log_log=False)
-                #
-                # print("\nTotal power (from integral of spectrum): %f W"%(numpy.trapz(flux*1e3*codata.e,x=energy)))
-                # print("\nTotal number of photons (from integral of spectrum): %g"%(numpy.trapz(flux/(energy*1e-3),x=energy)))
+
 
             except Exception as exception:
                 QtWidgets.QMessageBox.critical(self, "Error",
                                            str(exception),
                     QtWidgets.QMessageBox.Ok)
 
-    def plot_data3D(self, data3D, dataE, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle=""):
+    def get_title_for_stack_view_flux(self,idx):
+        photon_energy = self.sourceundulator.get_result_photon_energy()
+        return "Units: Photons/s/eV/rad2; Photon energy: %8.3f eV"%(photon_energy[idx])
+
+
+    #
+    # these are plottting routines hacked from xoppy code TODO: promote to higher level/superclass ?
+    #
+    def get_title_for_stack_view_polarization(self,idx):
+        photon_energy = self.sourceundulator.get_result_photon_energy()
+        return "|Es| / (|Es|+|Ep|); Photon energy: %8.3f eV"%(photon_energy[idx])
+
+    def plot_data3D(self, data3D, dataE, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
+                    callback_for_title=(lambda idx: "")):
 
         for i in range(1+self.undulator_tab[tabs_canvas_index].layout().count()):
             self.undulator_tab[tabs_canvas_index].layout().removeItem(self.undulator_tab[tabs_canvas_index].layout().itemAt(i))
@@ -327,6 +357,8 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
         self.und_plot_canvas[plot_canvas_index].setColormap(colormap=colormap)
         self.und_plot_canvas[plot_canvas_index].setStack(numpy.array(data_to_plot),
                                                      calibrations=[dim0_calib, dim1_calib, dim2_calib] )
+
+        self.und_plot_canvas[plot_canvas_index].setTitleCallback( callback_for_title )
         self.undulator_tab[tabs_canvas_index].layout().addWidget(self.und_plot_canvas[plot_canvas_index])
 
 
@@ -373,6 +405,31 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
 
         self.undulator_tab[tabs_canvas_index].layout().addWidget(self.und_plot_canvas[plot_canvas_index])
 
+    def plot_data1D(self, dataX, dataY, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle=""):
+
+        self.undulator_tab[tabs_canvas_index].layout().removeItem(self.undulator_tab[tabs_canvas_index].layout().itemAt(0))
+
+        self.und_plot_canvas[plot_canvas_index] = oasysgui.plotWindow()
+
+        self.und_plot_canvas[plot_canvas_index].addCurve(dataX, dataY,)
+
+        self.und_plot_canvas[plot_canvas_index].resetZoom()
+        self.und_plot_canvas[plot_canvas_index].setXAxisAutoScale(True)
+        self.und_plot_canvas[plot_canvas_index].setYAxisAutoScale(True)
+        self.und_plot_canvas[plot_canvas_index].setGraphGrid(False)
+
+        self.und_plot_canvas[plot_canvas_index].setXAxisLogarithmic(False)
+        self.und_plot_canvas[plot_canvas_index].setYAxisLogarithmic(False)
+        self.und_plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
+        self.und_plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
+        self.und_plot_canvas[plot_canvas_index].setGraphTitle(title)
+
+        self.undulator_tab[tabs_canvas_index].layout().addWidget(self.und_plot_canvas[plot_canvas_index])
+
+    #
+    # end plotting routines
+    #
+
     def initializeUndulatorTabs(self):
         current_tab = self.undulator_tabs.currentIndex()
 
@@ -381,13 +438,25 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
         for index in indexes:
             self.undulator_tabs.removeTab(size-1-index)
 
-        self.undulator_tab = [
-            gui.createTabPage(self.undulator_tabs, "Radiation intensity (polar)"),
-            gui.createTabPage(self.undulator_tabs, "Polarization (sigma/(sigma+pi) (polar)"),
-            gui.createTabPage(self.undulator_tabs, "Radiation intensity (cartesian - interpolated)"),
-        ]
+        if self.delta_e == 0.0:
+            self.undulator_tab = [
+                gui.createTabPage(self.undulator_tabs, "Radiation intensity (polar)"),
+                gui.createTabPage(self.undulator_tabs, "Polarization (polar)"),
+                gui.createTabPage(self.undulator_tabs, "Radiation intensity (cartesian - interpolated)"),
+            ]
 
-        self.und_plot_canvas = [None,None,None]
+            self.und_plot_canvas = [None,None,None]
+        else:
+            self.undulator_tab = [
+                gui.createTabPage(self.undulator_tabs, "Radiation (polar)"),
+                gui.createTabPage(self.undulator_tabs, "Polarization (polar)"),
+                gui.createTabPage(self.undulator_tabs, "Radiation (interpolated)"),
+                gui.createTabPage(self.undulator_tabs, "Power Density (interpolated)"),
+                gui.createTabPage(self.undulator_tabs, "Flux"),
+                gui.createTabPage(self.undulator_tabs, "Spectral Power"),
+            ]
+
+            self.und_plot_canvas = [None,None,None,None,None,None,]
 
         for tab in self.undulator_tab:
             tab.setFixedHeight(self.IMAGE_HEIGHT)
@@ -461,36 +530,42 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
             self.sourceundulator = SourceUndulator(name="shadowOui-Full-Undulator",
                             syned_electron_beam=ebeam,
                             syned_undulator=su,
-                            FLAG_EMITTANCE=self.use_emittances_combo,FLAG_SIZE=self.flag_size,
-                            EMIN=self.photon_energy-0.5*self.delta_e,EMAX=self.photon_energy+0.5*self.delta_e,
-                            NG_E=self.ng_e,
-                            MAXANGLE=self.maxangle_urad*1e-3,NG_T=self.ng_t,NG_P=self.ng_p,NG_J=self.ng_j,
-                            SEED=self.seed,NRAYS=self.number_of_rays,
+                            flag_emittance=self.use_emittances_combo,flag_size=self.flag_size,
+                            emin=1000,emax=1001,ng_e=2, # to be set later
+                            maxangle=self.maxangle_urad*1e-6,ng_t=self.ng_t,ng_p=self.ng_p,ng_j=self.ng_j,
                             code_undul_phot=codes[self.code_undul_phot])
 
 
-            if self.set_at_resonance > 0:
+            if self.set_at_resonance == 0:
+                if self.delta_e == 0:
+                    self.sourceundulator.set_energy_box(self.photon_energy,self.photon_energy,1)
+                else:
+                    self.sourceundulator.set_energy_box(self.photon_energy-0.5*self.delta_e,
+                                                        self.photon_energy+0.5*self.delta_e,self.ng_e)
+            else:
                 self.sourceundulator.set_energy_monochromatic_at_resonance(self.harmonic)
                 if self.delta_e > 0.0:
-                    e0 = self.sourceundulator.EMIN
+                    e0,e1,ne = self.sourceundulator.get_energy_box()
                     self.sourceundulator.set_energy_box(e0-0.5*self.delta_e,e0+0.5*self.delta_e,self.ng_e)
 
 
 
-            shadow3_beam = self.sourceundulator.calculate_shadow3_beam(user_unit_to_m=self.workspace_units_to_m,
-                                                                       F_COHER=self.coherent)
+            rays = self.sourceundulator.calculate_rays(user_unit_to_m=self.workspace_units_to_m,
+                                            F_COHER=self.coherent,SEED=self.seed,NRAYS=self.number_of_rays)
 
             if self.plot_aux_graph:
                 self.set_PlotAuxGraphs()
 
             print(self.sourceundulator.info())
 
+            shadow3_beam = Shadow3Beam(N=rays.shape[0])
+            shadow3_beam.rays = rays
             if self.file_to_write_out >= 1:
                 shadow3_beam.write("begin.dat")
                 print("File written to disk: begin.dat")
 
             if self.file_to_write_out >= 2:
-                SourceUndulatorInputOutput.write_file_undul_phot_h5(self.sourceundulator.result_radiation,
+                SourceUndulatorInputOutput.write_file_undul_phot_h5(self.sourceundulator._result_radiation,
                                             file_out="radiation.h5",mode="w",entry_name="radiation")
 
             beam_out = ShadowBeam(beam=shadow3_beam)
@@ -530,12 +605,12 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
 
         self.K = congruence.checkPositiveNumber(self.K,"K")
         self.period_length = congruence.checkPositiveNumber(self.period_length,"period length [m]")
-        self.periods_number = congruence.checkPositiveNumber(self.periods_number,"Numper of periods")
+        self.periods_number = congruence.checkStrictlyPositiveNumber(self.periods_number,"Number of periods")
 
-        self.ng_t = congruence.checkPositiveNumber(self.ng_t,"Numper of points in theta")
-        self.ng_p = congruence.checkPositiveNumber(self.ng_p,"Numper of points in phi")
-        self.ng_j = congruence.checkPositiveNumber(self.ng_j,"Numper of points in trajectory")
-        self.ng_e = congruence.checkPositiveNumber(self.ng_e,"Numper of points in energy")
+        self.ng_t = int( congruence.checkStrictlyPositiveNumber(self.ng_t,"Number of points in theta") )
+        self.ng_p = int( congruence.checkStrictlyPositiveNumber(self.ng_p,"Number of points in phi") )
+        self.ng_j = int( congruence.checkStrictlyPositiveNumber(self.ng_j,"Number of points in trajectory") )
+        self.ng_e = int( congruence.checkStrictlyPositiveNumber(self.ng_e,"Number of points in energy") )
 
 
     def receive_syned_data(self, data):

@@ -158,7 +158,7 @@ class SourceUndulatorFactory(object):
         # polar grid
         #
         D = 100.0 # placed far away (100 m)
-        theta = np.linspace(0,MAXANGLE*1e-3,NG_T,dtype=float)
+        theta = np.linspace(0,MAXANGLE,NG_T,dtype=float)
         phi = np.linspace(0,np.pi/2,NG_P,dtype=float)
 
         Z2 = np.zeros((omega_array.size,theta.size,phi.size))
@@ -173,7 +173,8 @@ class SourceUndulatorFactory(object):
                     Y = r * np.sin(phi[p])
                     ElecField = SourceUndulatorFactory._pysru_energy_radiated_approximation_and_farfield(omega=omega_array[o],electron_current=INTENSITY,trajectory=T , x=X , y=Y, D=D )
 
-                    pol_deg = np.abs(ElecField[0])**2 / (np.abs(ElecField[0])**2 + np.abs(ElecField[1])**2)
+                    # pol_deg = np.abs(ElecField[0])**2 / (np.abs(ElecField[0])**2 + np.abs(ElecField[1])**2)
+                    pol_deg = np.abs(ElecField[0]) / (np.abs(ElecField[0]) + np.abs(ElecField[1])) # SHADOW definition
                     intensity =  (np.abs(ElecField[0]) ** 2 + np.abs(ElecField[1])** 2 + np.abs(ElecField[2])** 2)
 
 
