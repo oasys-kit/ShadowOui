@@ -203,7 +203,7 @@ class SourceUndulatorFactory(object):
         P       = undul_phot_dict['phi']
 
         NG_E,NG_T,NG_P = RN0.shape
-        print("undul_cdf: NG_E,NG_T,NG_P, %d  %d %d \n"%(NG_E,NG_T,NG_P))
+        print("undul_cdf: _NG_E,_NG_T,_NG_P, %d  %d %d \n"%(NG_E,NG_T,NG_P))
 
         # coordinates are polar: multiply by sin(theta) to allow dS= r^2 sin(Theta) dTheta dPhi
         YRN0 = numpy.zeros_like(RN0)

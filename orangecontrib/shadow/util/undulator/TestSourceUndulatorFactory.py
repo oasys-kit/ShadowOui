@@ -61,14 +61,14 @@ def _calculate_shadow3_beam_using_preprocessors(jsn):
     _shadow3_commands(commands=commands,input_file="shadow3_epath.inp")
 
     # undul_set
-    NG_E = jsn["NG_E"]
-    # TODO: is seems a bug in shadow3: undul_set must be NG_E>1 (otherwise nosense)
-    # but if emin=emaxthe  resulting uphot.nml has NG_E=1
+    NG_E = jsn["_NG_E"]
+    # TODO: is seems a bug in shadow3: undul_set must be _NG_E>1 (otherwise nosense)
+    # but if emin=emaxthe  resulting uphot.nml has _NG_E=1
     if NG_E == 1: NG_E = 2
 
     commands = "undul_set\n0\n0\n%d \n%d \n%d \nxshundul.traj\n%d\n%f\n%f\n%f\n%f\n0\n1000\nexit\n"% \
-        (NG_E,jsn["NG_T"],jsn["NG_P"],
-         jsn["NPERIODS"],jsn["EMIN"],jsn["EMAX"],jsn["INTENSITY"],1e3*jsn["MAXANGLE"])
+        (NG_E,jsn["_NG_T"],jsn["_NG_P"],
+         jsn["NPERIODS"],jsn["_EMIN"],jsn["_EMAX"],jsn["INTENSITY"],1e3*jsn["_MAXANGLE"])
     _shadow3_commands(commands=commands,input_file="shadow3_undul_set.inp")
 
     # undul_phot
@@ -81,7 +81,7 @@ def _calculate_shadow3_beam_using_preprocessors(jsn):
 
 
     # input source
-    if int(jsn["FLAG_EMITTANCE(1)"]):
+    if int(jsn["_FLAG_EMITTANCE(1)"]):
         commands = "input_source\n1\n0\n%d \n%d \n0 \n2 \nxshundul.sha\n%g\n%g\n%g\n%d\n%g\n%d\n%d\n%d\n%d\nexit\n"% \
         (jsn["NRAYS"],jsn["SEED"],jsn["SX"],jsn["SZ"],jsn["EX"],0,jsn["EZ"],0,3,1,1)
     else:
@@ -120,24 +120,24 @@ class TestSourceUndulatorFactory(unittest.TestCase):
         h["LAMBDAU"] = 0.032
         h["NPERIODS"] = 50
         h["K"] = 0.25
-        h["EMIN"] = 10200.0
-        h["EMAX"] = 10650.0
-        h["NG_E"] = 11
-        h["MAXANGLE"] = 15e-6
-        h["NG_T"] = 51
-        h["NG_P"] = 11
+        h["_EMIN"] = 10200.0
+        h["_EMAX"] = 10650.0
+        h["_NG_E"] = 11
+        h["_MAXANGLE"] = 15e-6
+        h["_NG_T"] = 51
+        h["_NG_P"] = 11
 
         # internal code
         udict = SourceUndulatorFactory.undul_phot(E_ENERGY = h["E_ENERGY"],INTENSITY = h["INTENSITY"],
                                         LAMBDAU = h["LAMBDAU"],NPERIODS = h["NPERIODS"],K = h["K"],
-                                        EMIN = h["EMIN"],EMAX = h["EMAX"],NG_E = h["NG_E"],
-                                        MAXANGLE = h["MAXANGLE"],NG_T = h["NG_T"],
-                                        NG_P = h["NG_P"])
+                                        EMIN = h["_EMIN"],EMAX = h["_EMAX"],NG_E = h["_NG_E"],
+                                        MAXANGLE = h["_MAXANGLE"],NG_T = h["_NG_T"],
+                                        NG_P = h["_NG_P"])
 
 
-        photon_energy = numpy.linspace(h["EMIN"],h["EMAX"],h["NG_E"],dtype=float)
-        theta = numpy.linspace(0,h["MAXANGLE"],h["NG_T"],dtype=float)
-        phi = numpy.linspace(0,numpy.pi/2,h["NG_P"],dtype=float)
+        photon_energy = numpy.linspace(h["_EMIN"],h["_EMAX"],h["_NG_E"],dtype=float)
+        theta = numpy.linspace(0,h["_MAXANGLE"],h["_NG_T"],dtype=float)
+        phi = numpy.linspace(0,numpy.pi/2,h["_NG_P"],dtype=float)
 
         numpy.testing.assert_almost_equal(udict["photon_energy"],photon_energy)
         numpy.testing.assert_almost_equal(udict["theta"],theta)
@@ -178,24 +178,24 @@ class TestSourceUndulatorFactory(unittest.TestCase):
         h["LAMBDAU"] = 0.032
         h["NPERIODS"] = 50
         h["K"] = 0.25
-        h["EMIN"] = 10200.0
-        h["EMAX"] = 10650.0
-        h["NG_E"] = 1
-        h["MAXANGLE"] = 15e-6
-        h["NG_T"] = 51
-        h["NG_P"] = 11
+        h["_EMIN"] = 10200.0
+        h["_EMAX"] = 10650.0
+        h["_NG_E"] = 1
+        h["_MAXANGLE"] = 15e-6
+        h["_NG_T"] = 51
+        h["_NG_P"] = 11
 
         # internal code
         udict = SourceUndulatorFactory.undul_phot(E_ENERGY = h["E_ENERGY"],INTENSITY = h["INTENSITY"],
                                         LAMBDAU = h["LAMBDAU"],NPERIODS = h["NPERIODS"],K = h["K"],
-                                        EMIN = h["EMIN"],EMAX = h["EMAX"],NG_E = h["NG_E"],
-                                        MAXANGLE = h["MAXANGLE"],NG_T = h["NG_T"],
-                                        NG_P = h["NG_P"])
+                                        EMIN = h["_EMIN"],EMAX = h["_EMAX"],NG_E = h["_NG_E"],
+                                        MAXANGLE = h["_MAXANGLE"],NG_T = h["_NG_T"],
+                                        NG_P = h["_NG_P"])
 
 
-        photon_energy = numpy.linspace(h["EMIN"],h["EMAX"],h["NG_E"],dtype=float)
-        theta = numpy.linspace(0,h["MAXANGLE"],h["NG_T"],dtype=float)
-        phi = numpy.linspace(0,numpy.pi/2,h["NG_P"],dtype=float)
+        photon_energy = numpy.linspace(h["_EMIN"],h["_EMAX"],h["_NG_E"],dtype=float)
+        theta = numpy.linspace(0,h["_MAXANGLE"],h["_NG_T"],dtype=float)
+        phi = numpy.linspace(0,numpy.pi/2,h["_NG_P"],dtype=float)
 
         numpy.testing.assert_almost_equal(udict["photon_energy"],photon_energy)
         numpy.testing.assert_almost_equal(udict["theta"],theta)
@@ -244,24 +244,24 @@ class TestSourceUndulatorFactory(unittest.TestCase):
         hh["LAMBDAU"] = 0.032
         hh["NPERIODS"] = 50
         hh["K"] = 0.25
-        hh["EMIN"] = 10200.0
-        hh["EMAX"] = 10650.0
-        hh["NG_E"] = 11
-        hh["MAXANGLE"] = 15e-6
-        hh["NG_T"] = 51
-        hh["NG_P"] = 11
+        hh["_EMIN"] = 10200.0
+        hh["_EMAX"] = 10650.0
+        hh["_NG_E"] = 11
+        hh["_MAXANGLE"] = 15e-6
+        hh["_NG_T"] = 51
+        hh["_NG_P"] = 11
 
         # internal code
         udict = SourceUndulatorFactoryPysru.undul_phot(E_ENERGY = hh["E_ENERGY"],INTENSITY = hh["INTENSITY"],
                                         LAMBDAU = hh["LAMBDAU"],NPERIODS = hh["NPERIODS"],K = hh["K"],
-                                        EMIN = hh["EMIN"],EMAX = hh["EMAX"],NG_E = hh["NG_E"],
-                                        MAXANGLE = hh["MAXANGLE"],NG_T = hh["NG_T"],
-                                        NG_P = hh["NG_P"])
+                                        EMIN = hh["_EMIN"],EMAX = hh["_EMAX"],NG_E = hh["_NG_E"],
+                                        MAXANGLE = hh["_MAXANGLE"],NG_T = hh["_NG_T"],
+                                        NG_P = hh["_NG_P"])
 
 
-        photon_energy = numpy.linspace(hh["EMIN"],hh["EMAX"],hh["NG_E"],dtype=float)
-        theta = numpy.linspace(0,hh["MAXANGLE"],hh["NG_T"],dtype=float)
-        phi = numpy.linspace(0,numpy.pi/2,hh["NG_P"],dtype=float)
+        photon_energy = numpy.linspace(hh["_EMIN"],hh["_EMAX"],hh["_NG_E"],dtype=float)
+        theta = numpy.linspace(0,hh["_MAXANGLE"],hh["_NG_T"],dtype=float)
+        phi = numpy.linspace(0,numpy.pi/2,hh["_NG_P"],dtype=float)
 
         numpy.testing.assert_almost_equal(udict["photon_energy"],photon_energy)
         numpy.testing.assert_almost_equal(udict["theta"],theta)
@@ -321,13 +321,13 @@ class TestSourceUndulatorFactory(unittest.TestCase):
             "E_ENERGY":       6.03999996,
             "E_ENERGY_SPREAD":    0.00100000005,
             "NPERIODS": 50,
-            "EMIN":       10200.0000,
-            "EMAX":       10650.0000,
+            "_EMIN":       10200.0000,
+            "_EMAX":       10650.0000,
             "INTENSITY":      0.2,
-            "MAXANGLE":     0.000015,
-            "NG_E": 11,
-            "NG_T": 51,
-            "NG_P": 11,
+            "_MAXANGLE":     0.000015,
+            "_NG_E": 11,
+            "_NG_T": 51,
+            "_NG_P": 11,
             "NG_PLOT(1)":"1",
             "NG_PLOT(2)":"No",
             "NG_PLOT(3)":"Yes",
@@ -342,9 +342,9 @@ class TestSourceUndulatorFactory(unittest.TestCase):
             "SZ":    0.00100000005,
             "EX":   4.00000005E-07,
             "EZ":   3.99999989E-09,
-            "FLAG_EMITTANCE(1)":"1",
-            "FLAG_EMITTANCE(2)":"No",
-            "FLAG_EMITTANCE(3)":"Yes",
+            "_FLAG_EMITTANCE(1)":"1",
+            "_FLAG_EMITTANCE(2)":"No",
+            "_FLAG_EMITTANCE(3)":"Yes",
             "NRAYS": 15000,
             "F_BOUND_SOUR": 0,
             "FILE_BOUND":"NONESPECIFIED",
@@ -384,9 +384,9 @@ class TestSourceUndulatorFactory(unittest.TestCase):
         # internal code
         undul_phot_dict = SourceUndulatorFactory.undul_phot(E_ENERGY = h["E_ENERGY"],INTENSITY = h["INTENSITY"],
                                         LAMBDAU = h["LAMBDAU"],NPERIODS = h["NPERIODS"],K = h["K"],
-                                        EMIN = h["EMIN"],EMAX = h["EMAX"],NG_E = h["NG_E"],
-                                        MAXANGLE = h["MAXANGLE"],NG_T = h["NG_T"],
-                                        NG_P = h["NG_P"])
+                                        EMIN = h["_EMIN"],EMAX = h["_EMAX"],NG_E = h["_NG_E"],
+                                        MAXANGLE = h["_MAXANGLE"],NG_T = h["_NG_T"],
+                                        NG_P = h["_NG_P"])
 
         # if do_plot_intensity: plot_image(undul_phot_dict['radiation'][0,:,:],undul_phot_dict['theta']*1e6,undul_phot_dict['phi']*180/numpy.pi,
         #            title="INTENS UNDUL_PHOT: RN0[0]",xtitle="Theta [urad]",ytitle="Phi [deg]",aspect='auto',show=False)
@@ -400,9 +400,9 @@ class TestSourceUndulatorFactory(unittest.TestCase):
         if is_available_pysru:
             undul_phot_pysru_dict = SourceUndulatorFactoryPysru.undul_phot(E_ENERGY = h["E_ENERGY"],INTENSITY = h["INTENSITY"],
                                             LAMBDAU = h["LAMBDAU"],NPERIODS = h["NPERIODS"],K = h["K"],
-                                            EMIN = h["EMIN"],EMAX = h["EMAX"],NG_E = h["NG_E"],
-                                            MAXANGLE = h["MAXANGLE"],NG_T = h["NG_T"],
-                                            NG_P = h["NG_P"])
+                                            EMIN = h["_EMIN"],EMAX = h["_EMAX"],NG_E = h["_NG_E"],
+                                            MAXANGLE = h["_MAXANGLE"],NG_T = h["_NG_T"],
+                                            NG_P = h["_NG_P"])
             # if do_plot_intensity: plot_image(undul_phot_pysru_dict['radiation'][0,:,:],undul_phot_pysru_dict['theta']*1e6,undul_phot_pysru_dict['phi']*180/numpy.pi,
             #            title="INTENS UNDUL_PHOT_PYSRU: RN0[0]",xtitle="Theta [urad]",ytitle="Phi [deg]",aspect='auto',show=False)
             # if do_plot_polarization: plot_image(undul_phot_pysru_dict['polarization'][0,:,:],undul_phot_pysru_dict['theta']*1e6,undul_phot_pysru_dict['phi']*180/numpy.pi,
@@ -415,9 +415,9 @@ class TestSourceUndulatorFactory(unittest.TestCase):
         if is_available_srw:
             undul_phot_srw_dict = SourceUndulatorFactorySrw.undul_phot(E_ENERGY = h["E_ENERGY"],INTENSITY = h["INTENSITY"],
                                             LAMBDAU = h["LAMBDAU"],NPERIODS = h["NPERIODS"],K = h["K"],
-                                            EMIN = h["EMIN"],EMAX = h["EMAX"],NG_E = h["NG_E"],
-                                            MAXANGLE = h["MAXANGLE"],NG_T = h["NG_T"],
-                                            NG_P = h["NG_P"])
+                                            EMIN = h["_EMIN"],EMAX = h["_EMAX"],NG_E = h["_NG_E"],
+                                            MAXANGLE = h["_MAXANGLE"],NG_T = h["_NG_T"],
+                                            NG_P = h["_NG_P"])
             # if do_plot_intensity: plot_image(undul_phot_srw_dict['radiation'][0,:,:],undul_phot_srw_dict['theta']*1e6,undul_phot_srw_dict['phi']*180/numpy.pi,
             #            title="INTENS UNDUL_PHOT_SRW: RN0[0]",xtitle="Theta [urad]",ytitle="Phi [deg]",aspect='auto',show=False)
             # if do_plot_polarization: plot_image(undul_phot_srw_dict['polarization'][0,:,:],undul_phot_srw_dict['theta']*1e6,undul_phot_srw_dict['phi']*180/numpy.pi,
@@ -484,13 +484,13 @@ class TestSourceUndulatorFactory(unittest.TestCase):
             "E_ENERGY":       6.03999996,
             "E_ENERGY_SPREAD":    0.00100000005,
             "NPERIODS": 50,
-            "EMIN":       10200.0000,
-            "EMAX":       10650.0000,
+            "_EMIN":       10200.0000,
+            "_EMAX":       10650.0000,
             "INTENSITY":      0.2,
-            "MAXANGLE":     0.000015,
-            "NG_E": 11,
-            "NG_T": 51,
-            "NG_P": 11,
+            "_MAXANGLE":     0.000015,
+            "_NG_E": 11,
+            "_NG_T": 51,
+            "_NG_P": 11,
             "NG_PLOT(1)":"1",
             "NG_PLOT(2)":"No",
             "NG_PLOT(3)":"Yes",
@@ -505,9 +505,9 @@ class TestSourceUndulatorFactory(unittest.TestCase):
             "SZ":    0.00100000005,
             "EX":   4.00000005E-07,
             "EZ":   3.99999989E-09,
-            "FLAG_EMITTANCE(1)":"1",
-            "FLAG_EMITTANCE(2)":"No",
-            "FLAG_EMITTANCE(3)":"Yes",
+            "_FLAG_EMITTANCE(1)":"1",
+            "_FLAG_EMITTANCE(2)":"No",
+            "_FLAG_EMITTANCE(3)":"Yes",
             "NRAYS": 15000,
             "F_BOUND_SOUR": 0,
             "FILE_BOUND":"NONESPECIFIED",
@@ -610,13 +610,13 @@ class TestSourceUndulatorFactory(unittest.TestCase):
                 "E_ENERGY":       6.03999996,
                 "E_ENERGY_SPREAD":    0.00100000005,
                 "NPERIODS": 50,
-                "EMIN":       10498.0000,
-                "EMAX":       10499.0000,
+                "_EMIN":       10498.0000,
+                "_EMAX":       10499.0000,
                 "INTENSITY":      0.200000003,
-                "MAXANGLE":      0.000100,
-                "NG_E": 1,
-                "NG_T": 51,
-                "NG_P": 11,
+                "_MAXANGLE":      0.000100,
+                "_NG_E": 1,
+                "_NG_T": 51,
+                "_NG_P": 11,
                 "NG_PLOT(1)":"0",
                 "NG_PLOT(2)":"No",
                 "NG_PLOT(3)":"Yes",
@@ -631,9 +631,9 @@ class TestSourceUndulatorFactory(unittest.TestCase):
                 "SZ":    0.00100000005,
                 "EX":   4.00000005E-07,
                 "EZ":   3.99999989E-09,
-                "FLAG_EMITTANCE(1)":"0",
-                "FLAG_EMITTANCE(2)":"No",
-                "FLAG_EMITTANCE(3)":"Yes",
+                "_FLAG_EMITTANCE(1)":"0",
+                "_FLAG_EMITTANCE(2)":"No",
+                "_FLAG_EMITTANCE(3)":"Yes",
                 "NRAYS": 15000,
                 "F_BOUND_SOUR": 0,
                 "FILE_BOUND":"NONESPECIFIED",
