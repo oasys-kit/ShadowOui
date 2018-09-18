@@ -358,7 +358,6 @@ class HybridScreen(AutomaticElement):
         self.set_FocalLengthCalc()
 
     def set_FocalLengthCalc(self):
-         print(self.focal_length_calc)
          self.le_focal_length.setEnabled(self.focal_length_calc == 1)
 
     def set_DistanceToImageCalc(self):
