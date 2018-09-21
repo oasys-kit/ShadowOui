@@ -8,14 +8,14 @@ except AttributeError:
     from setuptools import find_packages, setup
 
 NAME = 'OASYS1-ShadowOui'
-VERSION = '1.4.60'
+VERSION = '1.4.61'
 ISRELEASED = False
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
 README_FILE = os.path.join(os.path.dirname(__file__), 'README.txt')
 LONG_DESCRIPTION = open(README_FILE).read()
 AUTHOR = 'Luca Rebuffi, Manuel Sanchez del Rio and Bioinformatics Laboratory, FRI UL'
-AUTHOR_EMAIL = 'luca.rebuffi@elettra.eu'
+AUTHOR_EMAIL = 'lrebuffi@anl.gov'
 URL = 'http://github.com/lucarebuffi/ShadowOui'
 DOWNLOAD_URL = 'http://github.com/lucarebuffi/ShadowOui'
 LICENSE = 'GPLv3'

@@ -1,7 +1,7 @@
 # ShadowOui
 
 
-ShadowOui is the OASYS (http://www.eletra.eu/oasys.html) add-on for ray tracing simulations. 
+ShadowOui is the OASYS (http://www.elettra.eu/oasys.html) add-on for ray tracing simulations.
 
 It uses shadow3 [1] as a ray tracing code, complemented with new tools, among them the HYBRID model for combining ray tracing with wave optics calculations [2] and the DABAM database of experimental metrology measurements or real mirrors [3]
 
