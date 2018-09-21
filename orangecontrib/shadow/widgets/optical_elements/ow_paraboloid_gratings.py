@@ -14,7 +14,7 @@ class ParaboloidGrating(ow_paraboloid_element.ParaboloidElement):
     description = "Shadow OE: Paraboloid Grating"
     icon = "icons/paraboloid_grating.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 19
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

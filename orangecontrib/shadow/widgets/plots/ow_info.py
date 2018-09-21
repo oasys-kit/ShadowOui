@@ -20,7 +20,7 @@ class Info(widget.OWWidget):
     description = "Display Data: Info"
     icon = "icons/info.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 3
     category = "Data Display Tools"
     keywords = ["data", "file", "load", "read"]

@@ -13,7 +13,7 @@ class PlaneGrating(ow_plane_element.PlaneElement):
     description = "Shadow OE: Plane Grating"
     icon = "icons/plane_grating.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 16
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

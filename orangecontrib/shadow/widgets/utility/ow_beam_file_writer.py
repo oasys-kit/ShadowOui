@@ -14,7 +14,7 @@ class BeamFileWriter(OWWidget):
     description = "Utility: Shadow File Writer"
     icon = "icons/beam_file_writer.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 3
     category = "Utility"
     keywords = ["data", "file", "load", "read"]

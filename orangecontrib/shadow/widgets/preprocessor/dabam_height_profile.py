@@ -38,7 +38,7 @@ class OWdabam_height_profile(OWWidget):
     description = "Calculation of mirror surface error profile"
     icon = "icons/dabam.png"
     author = "Luca Rebuffi"
-    maintainer_email = "srio@esrf.eu; luca.rebuffi@elettra.eu"
+    maintainer_email = "srio@esrf.eu; lrebuffi@anl.gov"
     priority = 6
     category = ""
     keywords = ["dabam_height_profile"]

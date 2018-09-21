@@ -14,7 +14,7 @@ class SphericCrystal(ow_spheric_element.SphericElement):
     icon = "icons/spherical_crystal.png"
     # icon = "icons/cristal_courbe_2.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 10
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

@@ -23,7 +23,7 @@ class PlotXY(AutomaticElement):
     description = "Display Data Tools: Plot XY"
     icon = "icons/plot_xy.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 1
     category = "Display Data Tools"
     keywords = ["data", "file", "load", "read"]

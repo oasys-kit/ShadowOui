@@ -12,7 +12,7 @@ class ConicCoefficientsMirror(ow_conic_coefficients_element.ConicCoefficientsEle
     description = "Shadow OE: Conic Coefficients Mirror"
     icon = "icons/conic_coefficients_mirror.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 8
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

@@ -16,7 +16,7 @@ from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
 class CompoundOpticalElement(ow_generic_element.GenericElement):
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     category = "Compound Optical Elements"
     keywords = ["data", "file", "load", "read"]
 

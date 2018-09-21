@@ -12,7 +12,7 @@ class ConicCoefficientsCrystal(ow_conic_coefficients_element.ConicCoefficientsEl
     description = "Shadow OE: Conic Coefficients Crystal"
     icon = "icons/conic_coefficients_crystal.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 15
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

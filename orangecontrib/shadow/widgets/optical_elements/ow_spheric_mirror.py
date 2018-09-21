@@ -15,7 +15,7 @@ class SphericMirror(ow_spheric_element.SphericElement):
     icon = "icons/spherical_mirror.png"
     # icon = "icons/courbe_2.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 3
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

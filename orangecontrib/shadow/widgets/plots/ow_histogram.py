@@ -21,7 +21,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
     description = "Display Data Tools: Histogram"
     icon = "icons/histogram.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 2
     category = "Display Data Tools"
     keywords = ["data", "file", "load", "read"]

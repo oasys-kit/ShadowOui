@@ -19,7 +19,7 @@ class FocusingPolycapillary(ow_generic_element.GenericElement):
     description = "User Defined: Focusing Polycapillary Lens"
     icon = "icons/focusing_polycapillary.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 7
     category = "User Defined"
     keywords = ["data", "file", "load", "read"]

@@ -22,7 +22,7 @@ shadow_src_to_copy = None
 class Source(ow_generic_element.GenericElement):
 
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     category = "Sources"
     keywords = ["data", "file", "load", "read"]
 

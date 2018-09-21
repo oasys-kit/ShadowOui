@@ -30,7 +30,7 @@ class ZonePlate(GenericElement):
     description = "Shadow OE: Zone Plate"
     icon = "icons/zone_plate.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 23
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

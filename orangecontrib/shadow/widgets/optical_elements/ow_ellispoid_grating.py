@@ -12,7 +12,7 @@ class EllipsoidGrating(ow_ellipsoid_element.EllipsoidElement):
     description = "Shadow OE: Ellipsoid Grating"
     icon = "icons/ellipsoid_grating.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 20
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

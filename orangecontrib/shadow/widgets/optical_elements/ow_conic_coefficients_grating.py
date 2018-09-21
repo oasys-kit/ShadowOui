@@ -12,7 +12,7 @@ class ConicCoefficientsGrating(ow_conic_coefficients_element.ConicCoefficientsEl
     description = "Shadow OE: Conic Coefficients Grating"
     icon = "icons/conic_coefficients_grating.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 22
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

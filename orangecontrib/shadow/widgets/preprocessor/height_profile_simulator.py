@@ -34,7 +34,7 @@ class OWheight_profile_simulator(OWWidget):
     description = "Calculation of mirror surface height profile"
     icon = "icons/simulator.png"
     author = "Luca Rebuffi"
-    maintainer_email = "srio@esrf.eu; luca.rebuffi@elettra.eu"
+    maintainer_email = "srio@esrf.eu; lrebuffi@anl.gov"
     priority = 5
     category = ""
     keywords = ["height_profile_simulator"]
