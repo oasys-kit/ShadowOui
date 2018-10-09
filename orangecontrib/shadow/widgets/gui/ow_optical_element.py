@@ -21,7 +21,7 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.exchange import DataExchangeObject
-from oasys.util.oasys_util import EmittingStream, TTYGrabber, TriggerIn
+from oasys.util.oasys_util import EmittingStream, TTYGrabber, TriggerIn, TriggerOut
 
 import orangecanvas.resources as resources
 
@@ -102,9 +102,11 @@ class GraphicalOptions:
 class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
     inputs = [("Input Beam", ShadowBeam, "setBeam"),
+              ("Trigger", TriggerOut, "sendNewBeam"),
               ("PreProcessor Data #1", ShadowPreProcessorData, "setPreProcessorData"),
               ("PreProcessor Data #2", ShadowPreProcessorData, "setPreProcessorData"),
-              ("ExchangeData", DataExchangeObject, "acceptExchangeData")]
+              ("ExchangeData", DataExchangeObject, "acceptExchangeData")
+             ]
 
     WidgetDecorator.append_syned_input_data(inputs)
 
@@ -2921,6 +2923,25 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
         self.progressBarFinished()
 
+    def sendNewBeam(self, trigger):
+        if trigger and trigger.new_object == True:
+            if trigger.has_additional_parameter("variable_name"):
+                variable_name = trigger.get_additional_parameter("variable_name").strip()
+
+                if "," in variable_name:
+                    variable_names = variable_name.split(",")
+
+                    for variable_name in variable_names:
+                        setattr(self,
+                                variable_name.strip(),
+                                trigger.get_additional_parameter("variable_value"))
+                else:
+                    setattr(self,
+                            variable_name,
+                            trigger.get_additional_parameter("variable_value"))
+
+                self.traceOpticalElement()
+
     def setBeam(self, beam):
         self.onReceivingInput()
 
@@ -3714,3 +3735,13 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     @classmethod
     def get_shadow_angle_of_majax_and_pole(cls, xp, zp):
         return numpy.degrees(abs(numpy.arctan(zp/xp)))
+
+if __name__=="__main__":
+
+    widget = OpticalElement()
+
+    print(widget.alpha)
+
+    print(getattr(widget, "alpha"))
+
+    setattr(widget, "alpha", 90)

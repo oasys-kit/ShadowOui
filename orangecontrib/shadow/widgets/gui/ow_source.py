@@ -42,6 +42,9 @@ class Source(ow_generic_element.GenericElement):
     TABS_AREA_HEIGHT = 618
     CONTROL_AREA_WIDTH = 405
 
+    number_of_rays=Setting(5000)
+    seed=Setting(5676561)
+
     def __init__(self, show_automatic_box=False):
         super().__init__(show_automatic_box=show_automatic_box)
 
@@ -139,6 +142,9 @@ class Source(ow_generic_element.GenericElement):
 
     def sendNewBeam(self, trigger):
         if trigger and trigger.new_object == True:
+            if trigger.has_additional_parameter("seed_increment"):
+                self.seed += trigger.get_additional_parameter("seed_increment")
+
             self.runShadowSource()
 
     def populateFields(self, shadow_src):

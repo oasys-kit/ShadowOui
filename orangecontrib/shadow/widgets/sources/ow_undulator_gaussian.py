@@ -27,9 +27,6 @@ class UndulatorGaussian(ow_source.Source, WidgetDecorator):
     icon = "icons/undulator_gaussian.png"
     priority = 4
 
-    number_of_rays=Setting(5000)
-    seed=Setting(6775431)
-
     energy=Setting(15000.0)
     delta_e=Setting(1500.0)
 

@@ -23,8 +23,6 @@ class BendingMagnet(ow_source.Source, WidgetDecorator):
     icon = "icons/bending_magnet.png"
     priority = 2
 
-    number_of_rays=Setting(5000)
-    seed=Setting(6775431)
     e_min=Setting(5000)
     e_max=Setting(100000)
     sample_distribution_combo=Setting(0) # REMOVED FROM GUI: 0 AS DEFAULT
