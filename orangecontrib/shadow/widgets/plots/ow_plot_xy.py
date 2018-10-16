@@ -84,8 +84,8 @@ class PlotXY(AutomaticElement):
                                             items=["On Image Plane", "Retraced"], labelWidth=260,
                                             callback=self.set_ImagePlane, sendSelectedValue=False, orientation="horizontal")
 
-        self.image_plane_box = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", height=115)
-        self.image_plane_box_empty = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", height=115)
+        self.image_plane_box = oasysgui.widgetBox(screen_box, "", addSpace=False, orientation="vertical", height=50)
+        self.image_plane_box_empty = oasysgui.widgetBox(screen_box, "", addSpace=False, orientation="vertical", height=50)
 
         oasysgui.lineEdit(self.image_plane_box, self, "image_plane_new_position", "Image Plane new Position", labelWidth=220, valueType=float, orientation="horizontal")
 
