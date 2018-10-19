@@ -2916,31 +2916,42 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception), QtWidgets.QMessageBox.Ok)
 
-            #self.error_id = self.error_id + 1
-            #self.error(self.error_id, "Exception occurred: " + str(exception))
-
             if self.IS_DEVELOP: raise exception
 
         self.progressBarFinished()
 
     def sendNewBeam(self, trigger):
-        if trigger and trigger.new_object == True:
-            if trigger.has_additional_parameter("variable_name"):
-                variable_name = trigger.get_additional_parameter("variable_name").strip()
+        try:
+            if ShadowCongruence.checkEmptyBeam(self.input_beam):
+                if ShadowCongruence.checkGoodBeam(self.input_beam):
+                    if trigger and trigger.new_object == True:
+                        if trigger.has_additional_parameter("variable_name"):
+                            variable_name = trigger.get_additional_parameter("variable_name").strip()
+                            variable_display_name = trigger.get_additional_parameter("variable_display_name").strip()
+                            variable_value = trigger.get_additional_parameter("variable_value")
+                            variable_um = trigger.get_additional_parameter("variable_um")
 
-                if "," in variable_name:
-                    variable_names = variable_name.split(",")
+                            if "," in variable_name:
+                                variable_names = variable_name.split(",")
 
-                    for variable_name in variable_names:
-                        setattr(self,
-                                variable_name.strip(),
-                                trigger.get_additional_parameter("variable_value"))
+                                for variable_name in variable_names:
+                                    setattr(self, variable_name.strip(), variable_value)
+                            else:
+                                setattr(self, variable_name, variable_value)
+
+                            self.input_beam.setScanningData(ShadowBeam.ScanningData(variable_name, variable_value, variable_display_name, variable_um))
+
+                            self.traceOpticalElement()
                 else:
-                    setattr(self,
-                            variable_name,
-                            trigger.get_additional_parameter("variable_value"))
+                    raise Exception("Input Beam with no good rays")
+            else:
+                raise Exception("Empty Input Beam")
 
-                self.traceOpticalElement()
+        except Exception as exception:
+            QtWidgets.QMessageBox.critical(self, "Error",
+                                       str(exception), QtWidgets.QMessageBox.Ok)
+
+            if self.IS_DEVELOP: raise exception
 
     def setBeam(self, beam):
         self.onReceivingInput()
