@@ -540,6 +540,8 @@ class HybridScreen(AutomaticElement):
                             else:
                                 self.plot_emtpy(94, 0)
 
+                    calculation_parameters.ff_beam.setScanningData(self.input_beam.scanned_variable_data)
+
                     self.send("Output Beam (Far Field)", calculation_parameters.ff_beam)
                     self.send("Trigger", TriggerIn(new_object=True))
                 else:
