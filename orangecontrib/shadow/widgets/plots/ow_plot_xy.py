@@ -30,8 +30,8 @@ class PlotXY(AutomaticElement):
 
     inputs = [("Input Beam", ShadowBeam, "setBeam")]
 
-    IMAGE_WIDTH = 860
-    IMAGE_HEIGHT = 640
+    IMAGE_WIDTH = 878
+    IMAGE_HEIGHT = 635
 
     want_main_area=1
     plot_canvas=None
@@ -269,7 +269,7 @@ class PlotXY(AutomaticElement):
         self.image_box.setFixedHeight(self.IMAGE_HEIGHT)
         self.image_box.setFixedWidth(self.IMAGE_WIDTH)
 
-        self.shadow_output = oasysgui.textArea(height=600, width=600)
+        self.shadow_output = oasysgui.textArea(height=580, width=800)
 
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)

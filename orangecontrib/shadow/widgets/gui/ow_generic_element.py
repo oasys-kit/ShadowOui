@@ -41,7 +41,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
         self.enableFootprint(False)
 
-        self.shadow_output = oasysgui.textArea(height=600, width=600)
+        self.shadow_output = oasysgui.textArea(height=580, width=800)
 
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)
