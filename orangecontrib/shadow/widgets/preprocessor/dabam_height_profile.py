@@ -664,8 +664,8 @@ class OWdabam_height_profile(OWWidget):
 
             title = ' Slope error rms in X direction: %f $\mu$rad' % (sloperms[0]*1e6) + '\n' + \
                     ' Slope error rms in Y direction: %f $\mu$rad' % (sloperms[1]*1e6) + '\n' + \
-                    ' Figure error rms in X direction: %f nm' % (round(zz[0, :].std()*1e7, 6)) + '\n' + \
-                    ' Figure error rms in Y direction: %f nm' % (round(zz[:, 0].std()*1e7, 6))
+                    ' Figure error rms in X direction: %f nm' % (round(zz[0, :].std()*1e9/self.si_to_user_units, 6)) + '\n' + \
+                    ' Figure error rms in Y direction: %f nm' % (round(zz[:, 0].std()*1e9/self.si_to_user_units, 6))
 
             self.axis.set_xlabel("X [" + self.workspace_units_label + "]")
             self.axis.set_ylabel("Y [" + self.workspace_units_label + "]")

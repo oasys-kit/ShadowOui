@@ -100,7 +100,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
     def set_PlotQuality(self):
         self.progressBarInit()
 
-        if not self.plotted_beam==None:
+        if not self.plotted_beam is None:
             try:
                 self.initializeTabs()
 
