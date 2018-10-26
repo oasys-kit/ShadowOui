@@ -64,14 +64,13 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
     ng_j = Setting(20)
     ng_e = Setting(11)
     code_undul_phot = Setting(0) # 0=internal 1=pySRU 2=SRW
-    flag_size = Setting(0) # 0=Point 1=Gaussian 2=to be done
+    flag_size = Setting(1) # 0=Point 1=Gaussian 2=backpropagate divergences
     coherent = Setting(0)  # 0=No 1=Yes
 
     # aux
     file_to_write_out = 0
     plot_aux_graph = 1
     sourceundulator = None
-
 
     def __init__(self):
         super().__init__()
@@ -166,7 +165,7 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
                      items=["internal", "pySRU","SRW"],sendSelectedValue=False, orientation="horizontal")
 
         gui.comboBox(left_box_5, self, "flag_size", label="Radiation Size", labelWidth=120,
-                     items=["point", "Gaussian"],sendSelectedValue=False, orientation="horizontal")
+                     items=["point", "Gaussian", "Far field backpropagated"],sendSelectedValue=False, orientation="horizontal")
 
         gui.comboBox(left_box_5, self, "coherent", label="Coherent beam", labelWidth=120,
                      items=["No", "Yes"],sendSelectedValue=False, orientation="horizontal")
@@ -243,6 +242,12 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
                     self.plot_data2D(radiation_interpolated[0], 1e6*vx, 1e6*vz,
                                      tabs_canvas_index, plot_canvas_index, title="radiation", xtitle="vx [urad]", ytitle="vz [rad]")
 
+                    tabs_canvas_index += 1
+                    x,y = self.sourceundulator.get_photon_size_distribution()
+                    self.plot_data1D(x*1e6,y,
+                                     tabs_canvas_index, plot_canvas_index,
+                                     title="Photon emission size distribution", xtitle="Distance [um]", ytitle="Intensity [arbitrary units]")
+
                 else:
                     self.plot_data3D(radiation, photon_energy, 1e6*theta, phi,
                                      tabs_canvas_index, plot_canvas_index,
@@ -262,6 +267,11 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
                                      title="radiation", xtitle="vx [urad]", ytitle="vz [rad]",
                                      callback_for_title=self.get_title_for_stack_view_flux)
 
+                    tabs_canvas_index += 1
+                    x,y = self.sourceundulator.get_photon_size_distribution()
+                    self.plot_data1D(x*1e6,y,
+                                     tabs_canvas_index, plot_canvas_index,
+                                     title="Photon emission size distribution", xtitle="Distance [um]", ytitle="Intensity [arbitrary units]")
                     #
                     # if polychromatic, plot power density
                     #
@@ -297,7 +307,6 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
                     print("Total power (integral [trapz] of spectral power) [W]: ",numpy.trapz(spectral_power,photon_energy))
                     print("Total number of photons (integral [trapz] of flux): ",numpy.trapz(flux/(1e-3*photon_energy),photon_energy))
                     print("\n\n")
-
 
 
 
@@ -444,20 +453,22 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
                 gui.createTabPage(self.undulator_tabs, "Radiation intensity (polar)"),
                 gui.createTabPage(self.undulator_tabs, "Polarization (polar)"),
                 gui.createTabPage(self.undulator_tabs, "Radiation intensity (cartesian - interpolated)"),
+                gui.createTabPage(self.undulator_tabs, "Photon source size"),
             ]
 
-            self.und_plot_canvas = [None,None,None]
+            self.und_plot_canvas = [None,None,None,None,]
         else:
             self.undulator_tab = [
                 gui.createTabPage(self.undulator_tabs, "Radiation (polar)"),
                 gui.createTabPage(self.undulator_tabs, "Polarization (polar)"),
                 gui.createTabPage(self.undulator_tabs, "Radiation (interpolated)"),
+                gui.createTabPage(self.undulator_tabs, "Photon source size"),
                 gui.createTabPage(self.undulator_tabs, "Power Density (interpolated)"),
                 gui.createTabPage(self.undulator_tabs, "Flux"),
                 gui.createTabPage(self.undulator_tabs, "Spectral Power"),
             ]
 
-            self.und_plot_canvas = [None,None,None,None,None,None,]
+            self.und_plot_canvas = [None,None,None,None,None,None,None,]
 
         for tab in self.undulator_tab:
             tab.setFixedHeight(self.IMAGE_HEIGHT)

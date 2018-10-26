@@ -24,7 +24,7 @@ rays = su.calculate_rays()    # sample rays. Result is a numpy.array of shape (N
 
 import numpy
 
-from srxraylib.util.inverse_method_sampler import Sampler2D, Sampler3D
+from srxraylib.util.inverse_method_sampler import Sampler1D, Sampler2D, Sampler3D
 import scipy.constants as codata
 from scipy import interpolate
 
@@ -82,11 +82,13 @@ class SourceUndulator(object):
         self.code_undul_phot = code_undul_phot
 
         self._FLAG_EMITTANCE  =  flag_emittance # Yes  # Use emittance (0=No, 1=Yes)
-        self._FLAG_SIZE  =  flag_size # 0=point,1=Gaussian,2=FT(Divergences)
+        self._FLAG_SIZE  =  flag_size # 0=point,1=Gaussian,2=backpropagate Divergences
 
         # results of calculations
 
         self._result_radiation = None
+        self._result_photon_size_distribution = None
+        self._result_photon_size_sigma = None
 
 
     def info(self,debug=False):
@@ -172,7 +174,13 @@ class SourceUndulator(object):
             flag = "point"
         elif self._FLAG_SIZE == 1:
             flag = "Gaussian"
-        txt += "        sampling flag: %d (%s)\n"%(self._FLAG_SIZE,flag)
+        elif self._FLAG_SIZE == 2:
+            flag = "Far field backpropagated"
+
+        txt += "        Photon source size sampling flag: %d (%s)\n"%(self._FLAG_SIZE,flag)
+        if self._FLAG_SIZE == 1:
+            if self._result_photon_size_sigma is not None:
+                txt += "        Photon source size sigma (Gaussian): %6.3f um \n"%(1e6*self._result_photon_size_sigma)
 
         txt += "-----------------------------------------------------\n"
         return txt
@@ -180,15 +188,12 @@ class SourceUndulator(object):
     def get_resonance_ring(self,harmonic_number=1, ring_order=1):
         return 1.0/self.syned_electron_beam.gamma()*numpy.sqrt( ring_order / harmonic_number * (1+0.5*self.syned_undulator.K_vertical()**2) )
 
-    # def set_harmonic(self,harmonic):
 
     def set_energy_monochromatic_at_resonance(self,harmonic_number):
 
         self.set_energy_monochromatic(self.syned_undulator.resonance_energy(
             self.syned_electron_beam.gamma(),harmonic=harmonic_number))
         # take 3*sigma - _MAXANGLE is in RAD
-
-        # self._MAXANGLE = 3 * 0.69 * 1e3 * self.get_resonance_central_cone(harmonic_number)
         self._MAXANGLE = 3 * 0.69 * self.syned_undulator.gaussian_central_cone_aperture(self.syned_electron_beam.gamma(),harmonic_number)
 
     def set_energy_monochromatic(self,emin):
@@ -227,7 +232,7 @@ class SourceUndulator(object):
     def calculate_radiation(self):
 
         """
-        Calculates the radiation (emission) as a function pf theta (elevation angle) and phi (azimuthal angle)
+        Calculates the radiation (emission) as a function of theta (elevation angle) and phi (azimuthal angle)
         This radiation will be sampled to create the source
 
         It calls undul_phot* in SourceUndulatorFactory
@@ -294,7 +299,6 @@ class SourceUndulator(object):
         undul_phot_dict["info"] = self.info()
 
         self._result_radiation = undul_phot_dict
-        # return undul_phot_dict
 
     #
     # get from results
@@ -424,20 +428,8 @@ class SourceUndulator(object):
         flux,spectral_power,photon_energy = self.get_flux_and_spectral_power()
         return spectral_power,photon_energy
 
-
-    # def calculate_shadow3_beam(self,user_unit_to_m=1.0,F_COHER=0,NRAYS=5000,SEED=36255655452):
-    #
-    #
-    #     import Shadow
-    #
-    #     rays = self.calculate_rays(user_unit_to_m=user_unit_to_m,F_COHER=F_COHER,NRAYS=NRAYS,SEED=SEED)
-    #
-    #     beam = Shadow.Beam(N=NRAYS)
-    #
-    #     beam.rays = rays
-    #
-    #     return beam
-
+    def get_photon_size_distribution(self):
+        return self._result_photon_size_distribution["x"],self._result_photon_size_distribution["y"]
 
     def calculate_rays(self,user_unit_to_m=1.0,F_COHER=0,NRAYS=5000,SEED=36255655452):
         """
@@ -463,6 +455,8 @@ class SourceUndulator(object):
         #
         # sample sizes (cols 1-3)
         #
+
+
         if self._FLAG_EMITTANCE:
             x_electron = numpy.random.normal(loc=0.0,scale=sigmas[0],size=NRAYS)
             y_electron = 0.0
@@ -472,28 +466,88 @@ class SourceUndulator(object):
             y_electron = 0.0
             z_electron = 0.0
 
+
+
+
+        # calculate (and stores) sizes of the photon undulator beam
+        # see formulas 25 & 30 in Elleaume (Onaki & Elleaume)
+        # sp_phot = 0.69*numpy.sqrt(lambda1/undulator_length)
+        undulator_length = self.syned_undulator.length()
+        lambda1 = codata.h*codata.c/codata.e / numpy.array(sampled_photon_energy).mean()
+        s_phot = 2.740/(4e0*numpy.pi)*numpy.sqrt(undulator_length*lambda1)
+        self._result_photon_size_sigma = s_phot
+
         if self._FLAG_SIZE == 0:
             x_photon = 0.0
             y_photon = 0.0
             z_photon = 0.0
+            # for plot, a delta
+            x = numpy.linspace(-1e-6,1e-6,101)
+            y = numpy.zeros_like(x)
+            y[y.size//2] = 1.0
+            self._result_photon_size_distribution = {"x":x,"y":y}
         elif self._FLAG_SIZE == 1:
-            undulator_length = self.syned_undulator.length()
-            lambda1 = codata.h*codata.c/codata.e / sampled_photon_energy.mean()
+            # TODO: I added this correction to obtain the sigma in the RADIAL coordinate, not in x and z.
+            # RODO: TO be verified!
+            s_phot_corrected = s_phot / numpy.sqrt(2)
 
-            # calculate sizes of the photon undulator beam
-            # see formulas 25 & 30 in Elleaume (Onaki & Elleaume)
-            # sp_phot = 0.69*numpy.sqrt(lambda1/undulator_length)
-            s_phot = 2.740/(4e0*numpy.pi)*numpy.sqrt(undulator_length*lambda1)
-
-            cov = [[s_phot**2, 0], [0, s_phot**2]]
+            cov = [[s_phot_corrected**2, 0], [0, s_phot_corrected**2]]
             mean = [0.0,0.0]
 
             tmp = numpy.random.multivariate_normal(mean, cov, NRAYS)
             x_photon = tmp[:,0]
             y_photon = 0.0
             z_photon = tmp[:,1]
+
+            # for plot, a Gaussian
+            x = numpy.linspace(-5*s_phot,5*s_phot,101)
+            y = numpy.exp(-x**2/2/s_phot**2)
+            self._result_photon_size_distribution = {"x":x,"y":y}
+
+
         elif self._FLAG_SIZE == 2:
-            raise Exception("To be implemented")
+            # we need to retrieve the emission as a function of the angle
+            radiation,photon_energy, theta,phi = self.get_radiation_polar()
+
+            mean_photon_energy = numpy.array(sampled_photon_energy).mean() # todo: use the weighted mean?
+            shape_radiation = radiation.shape
+            radial_flux = radiation.sum(axis=2) / shape_radiation[2]
+            radial_flux = radial_flux.sum(axis=0) / shape_radiation[0]
+            # doble the arrays for 1D propagation
+            THETA = numpy.concatenate((-theta[::-1],theta[1::]),axis=None)
+            RADIAL_FLUX = numpy.concatenate( (radial_flux[::-1],radial_flux[1::]),axis=None)
+
+            #
+            # we propagate the emission at a long distance back to the source plane
+            #
+            distance = 100.
+
+            magnification = s_phot*10 / (theta[-1]*distance)
+
+            # do the propagation; result is stored in self._photon_size_distribution
+            self._back_propagation_for_size_calculation(THETA,RADIAL_FLUX,
+                                mean_photon_energy,distance=distance,magnification=magnification)
+
+
+            # we sample rays following the resulting radial distribution
+            xx = self._result_photon_size_distribution["x"]
+            yy = self._result_photon_size_distribution["y"]
+
+
+            # #########################################################
+            # # for plot, a Gaussian
+            # xx = numpy.linspace(-5*s_phot,5*s_phot,101)
+            # yy = numpy.exp(-xx**2/2/s_phot**2)
+            # self._result_photon_size_distribution = {"x":xx,"y":yy}
+            # #########################################################
+
+            sampler_radial = Sampler1D(yy*numpy.abs(xx),xx)
+            r,hy,hx = sampler_radial.get_n_sampled_points_and_histogram(NRAYS,bins=101)
+            angle = numpy.random.random(NRAYS) * 2 * numpy.pi
+
+            x_photon = r / numpy.sqrt(2.0) * numpy.sin(angle)
+            y_photon = 0.0
+            z_photon = r / numpy.sqrt(2.0) * numpy.cos(angle)
 
 
         rays[:,0] = x_photon + x_electron
@@ -672,6 +726,59 @@ class SourceUndulator(object):
         rays[:,11] = 0.0
 
         return rays
+
+    def _back_propagation_for_size_calculation(self,theta,radiation_flux,photon_energy,
+                                                distance=100.0,magnification=0.010000):
+        """
+        Calculate the radiation_flux vs theta at a "distance"
+        Back propagate to -distance
+        The result is the size distrubution
+
+        :param theta:
+        :param radiation_flux:
+        :param photon_energy:
+        :param distance:
+        :param magnification:
+        :return: None; stores results in self._photon_size_distribution
+        """
+
+        from wofry.propagator.wavefront1D.generic_wavefront import GenericWavefront1D
+        from wofry.propagator.propagator import PropagationManager, PropagationElements, PropagationParameters
+        from syned.beamline.beamline_element import BeamlineElement
+        from syned.beamline.element_coordinates import ElementCoordinates
+        from wofry.propagator.propagators1D.fresnel_zoom import FresnelZoom1D
+        from wofry.beamline.optical_elements.ideal_elements.screen import WOScreen1D
+
+
+        input_wavefront = GenericWavefront1D().initialize_wavefront_from_arrays(theta*distance,numpy.sqrt(radiation_flux)+0j)
+        input_wavefront.set_photon_energy(photon_energy)
+        input_wavefront.set_spherical_wave(radius=distance,complex_amplitude=numpy.sqrt(radiation_flux)+0j)
+        # input_wavefront.save_h5_file("tmp2.h5","wfr")
+
+        optical_element = WOScreen1D()
+        #
+        # propagating
+        #
+        #
+        propagation_elements = PropagationElements()
+        beamline_element = BeamlineElement(optical_element=optical_element,
+                        coordinates=ElementCoordinates(p=0.0,q=-distance,
+                        angle_radial=numpy.radians(0.000000),
+                        angle_azimuthal=numpy.radians(0.000000)))
+        propagation_elements.add_beamline_element(beamline_element)
+        propagation_parameters = PropagationParameters(wavefront=input_wavefront.duplicate(),propagation_elements = propagation_elements)
+        propagation_parameters.set_additional_parameters('magnification_x', magnification)
+
+        #
+        propagator = PropagationManager.Instance()
+        try:
+            propagator.add_propagator(FresnelZoom1D())
+        except:
+            pass
+        output_wavefront = propagator.do_propagation(propagation_parameters=propagation_parameters,handler_name='FRESNEL_ZOOM_1D')
+
+        self._result_photon_size_distribution = {"x":output_wavefront.get_abscissas(),"y":output_wavefront.get_intensity()}
+
 
     def _cross(self,u,v):
         # w = u X v
