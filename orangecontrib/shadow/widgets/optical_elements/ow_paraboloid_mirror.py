@@ -14,7 +14,7 @@ class ParaboloidMirror(ow_paraboloid_element.ParaboloidElement):
     description = "Shadow OE: Paraboloid Mirror"
     icon = "icons/paraboloid_mirror.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 5
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

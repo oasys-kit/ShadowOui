@@ -24,9 +24,6 @@ class GeometricalSource(ow_source.Source):
     inputs = [("Trigger", TriggerOut, "sendNewBeam"),
               ("ExchangeData", DataExchangeObject, "acceptExchangeData")]
 
-    number_of_rays=Setting(5000)
-    seed=Setting(6775431)
-
     spatial_type = Setting(0)
 
     rect_width = Setting(0.1)

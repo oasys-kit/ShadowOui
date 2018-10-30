@@ -14,7 +14,7 @@ class ToroidalGrating(ow_toroidal_element.ToroidalElement):
     description = "Shadow OE: Toroidal Grating"
     icon = "icons/toroidal_grating.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 18
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

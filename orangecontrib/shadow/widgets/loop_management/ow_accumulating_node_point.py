@@ -20,7 +20,7 @@ class AccumulatingLoopPoint(AutomaticElement):
     description = "User Defined: Beam Accumulating Point"
     icon = "icons/beam_accumulating.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 3
     category = "User Defined"
     keywords = ["data", "file", "load", "read"]

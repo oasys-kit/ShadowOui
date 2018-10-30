@@ -15,7 +15,7 @@ class IdealLens(OpticalElement):
     description = "Shadow OE: Ideal Lens"
     icon = "icons/ideal_lens.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 3
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

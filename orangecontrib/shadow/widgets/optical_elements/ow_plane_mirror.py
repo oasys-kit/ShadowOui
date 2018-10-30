@@ -16,7 +16,7 @@ class PlaneMirror(ow_plane_element.PlaneElement):
     description = "Shadow OE: Plane Mirror"
     icon = "icons/plane_mirror.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 2
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

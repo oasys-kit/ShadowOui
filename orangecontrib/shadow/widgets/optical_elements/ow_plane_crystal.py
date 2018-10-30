@@ -14,7 +14,7 @@ class PlaneCrystal(ow_plane_element.PlaneElement):
     description = "Shadow OE: Plane Crystal"
     icon = "icons/plane_crystal.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 9
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

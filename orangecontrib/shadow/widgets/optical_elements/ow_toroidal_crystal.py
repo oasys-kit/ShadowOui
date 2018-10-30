@@ -14,7 +14,7 @@ class ToroidalCrystal(ow_toroidal_element.ToroidalElement):
     description = "Shadow OE: Toroidal Crystal"
     icon = "icons/toroidal_crystal.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 11
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

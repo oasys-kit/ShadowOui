@@ -17,7 +17,7 @@ class MergeBeams(OWWidget):
     description = "Display Data: Merge Shadow Beam"
     icon = "icons/merge.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 4
     category = "Data Display Tools"
     keywords = ["data", "file", "load", "read"]

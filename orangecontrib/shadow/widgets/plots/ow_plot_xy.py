@@ -23,15 +23,15 @@ class PlotXY(AutomaticElement):
     description = "Display Data Tools: Plot XY"
     icon = "icons/plot_xy.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 1
     category = "Display Data Tools"
     keywords = ["data", "file", "load", "read"]
 
     inputs = [("Input Beam", ShadowBeam, "setBeam")]
 
-    IMAGE_WIDTH = 860
-    IMAGE_HEIGHT = 640
+    IMAGE_WIDTH = 878
+    IMAGE_HEIGHT = 635
 
     want_main_area=1
     plot_canvas=None
@@ -84,8 +84,8 @@ class PlotXY(AutomaticElement):
                                             items=["On Image Plane", "Retraced"], labelWidth=260,
                                             callback=self.set_ImagePlane, sendSelectedValue=False, orientation="horizontal")
 
-        self.image_plane_box = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", height=115)
-        self.image_plane_box_empty = oasysgui.widgetBox(screen_box, "", addSpace=True, orientation="vertical", height=115)
+        self.image_plane_box = oasysgui.widgetBox(screen_box, "", addSpace=False, orientation="vertical", height=50)
+        self.image_plane_box_empty = oasysgui.widgetBox(screen_box, "", addSpace=False, orientation="vertical", height=50)
 
         oasysgui.lineEdit(self.image_plane_box, self, "image_plane_new_position", "Image Plane new Position", labelWidth=220, valueType=float, orientation="horizontal")
 
@@ -269,7 +269,7 @@ class PlotXY(AutomaticElement):
         self.image_box.setFixedHeight(self.IMAGE_HEIGHT)
         self.image_box.setFixedWidth(self.IMAGE_WIDTH)
 
-        self.shadow_output = oasysgui.textArea(height=600, width=600)
+        self.shadow_output = oasysgui.textArea(height=580, width=800)
 
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)

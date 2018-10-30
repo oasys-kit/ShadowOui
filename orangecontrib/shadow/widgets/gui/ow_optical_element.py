@@ -21,7 +21,7 @@ from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.exchange import DataExchangeObject
-from oasys.util.oasys_util import EmittingStream, TTYGrabber, TriggerIn
+from oasys.util.oasys_util import EmittingStream, TTYGrabber, TriggerIn, TriggerOut
 
 import orangecanvas.resources as resources
 
@@ -102,9 +102,11 @@ class GraphicalOptions:
 class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
     inputs = [("Input Beam", ShadowBeam, "setBeam"),
+              ("Trigger", TriggerOut, "sendNewBeam"),
               ("PreProcessor Data #1", ShadowPreProcessorData, "setPreProcessorData"),
               ("PreProcessor Data #2", ShadowPreProcessorData, "setPreProcessorData"),
-              ("ExchangeData", DataExchangeObject, "acceptExchangeData")]
+              ("ExchangeData", DataExchangeObject, "acceptExchangeData")
+             ]
 
     WidgetDecorator.append_syned_input_data(inputs)
 
@@ -2914,12 +2916,42 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception), QtWidgets.QMessageBox.Ok)
 
-            #self.error_id = self.error_id + 1
-            #self.error(self.error_id, "Exception occurred: " + str(exception))
-
             if self.IS_DEVELOP: raise exception
 
         self.progressBarFinished()
+
+    def sendNewBeam(self, trigger):
+        try:
+            if ShadowCongruence.checkEmptyBeam(self.input_beam):
+                if ShadowCongruence.checkGoodBeam(self.input_beam):
+                    if trigger and trigger.new_object == True:
+                        if trigger.has_additional_parameter("variable_name"):
+                            variable_name = trigger.get_additional_parameter("variable_name").strip()
+                            variable_display_name = trigger.get_additional_parameter("variable_display_name").strip()
+                            variable_value = trigger.get_additional_parameter("variable_value")
+                            variable_um = trigger.get_additional_parameter("variable_um")
+
+                            if "," in variable_name:
+                                variable_names = variable_name.split(",")
+
+                                for variable_name in variable_names:
+                                    setattr(self, variable_name.strip(), variable_value)
+                            else:
+                                setattr(self, variable_name, variable_value)
+
+                            self.input_beam.setScanningData(ShadowBeam.ScanningData(variable_name, variable_value, variable_display_name, variable_um))
+
+                            self.traceOpticalElement()
+                else:
+                    raise Exception("Input Beam with no good rays")
+            else:
+                raise Exception("Empty Input Beam")
+
+        except Exception as exception:
+            QtWidgets.QMessageBox.critical(self, "Error",
+                                       str(exception), QtWidgets.QMessageBox.Ok)
+
+            if self.IS_DEVELOP: raise exception
 
     def setBeam(self, beam):
         self.onReceivingInput()
@@ -3714,3 +3746,13 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     @classmethod
     def get_shadow_angle_of_majax_and_pole(cls, xp, zp):
         return numpy.degrees(abs(numpy.arctan(zp/xp)))
+
+if __name__=="__main__":
+
+    widget = OpticalElement()
+
+    print(widget.alpha)
+
+    print(getattr(widget, "alpha"))
+
+    setattr(widget, "alpha", 90)

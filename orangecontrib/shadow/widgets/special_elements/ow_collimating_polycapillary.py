@@ -18,7 +18,7 @@ class CollimatingPolycapillary(ow_generic_element.GenericElement):
     description = "User Defined: Collimating Polycapillary Lens"
     icon = "icons/collimating_polycapillary.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 6
     category = "User Defined"
     keywords = ["data", "file", "load", "read"]

@@ -14,7 +14,7 @@ class ToroidalMirror(ow_toroidal_element.ToroidalElement):
     description = "Shadow OE: Toroidal Mirror"
     icon = "icons/toroidal_mirror.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 4
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

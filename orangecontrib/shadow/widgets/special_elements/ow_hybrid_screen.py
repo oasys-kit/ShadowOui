@@ -36,7 +36,7 @@ class HybridScreen(AutomaticElement):
     description = "Shadow HYBRID: Hybrid Screen"
     icon = "icons/hybrid_screen.png"
     maintainer = "Luca Rebuffi and Xianbo Shi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu, xshi(@at@)aps.anl.gov"
+    maintainer_email = "lrebuffi(@at@)anl.gov, xshi(@at@)aps.anl.gov"
     priority = 4
     category = "HYBRID"
     keywords = ["data", "file", "load", "read"]
@@ -176,7 +176,7 @@ class HybridScreen(AutomaticElement):
                      sendSelectedValue=False,
                      orientation="horizontal")
 
-        self.shadow_output = oasysgui.textArea(height=600, width=600)
+        self.shadow_output = oasysgui.textArea(height=580, width=800)
 
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)
@@ -358,7 +358,6 @@ class HybridScreen(AutomaticElement):
         self.set_FocalLengthCalc()
 
     def set_FocalLengthCalc(self):
-         print(self.focal_length_calc)
          self.le_focal_length.setEnabled(self.focal_length_calc == 1)
 
     def set_DistanceToImageCalc(self):
@@ -540,6 +539,8 @@ class HybridScreen(AutomaticElement):
                                 self.plot_emtpy(98, 5)
                             else:
                                 self.plot_emtpy(94, 0)
+
+                    calculation_parameters.ff_beam.setScanningData(self.input_beam.scanned_variable_data)
 
                     self.send("Output Beam (Far Field)", calculation_parameters.ff_beam)
                     self.send("Trigger", TriggerIn(new_object=True))

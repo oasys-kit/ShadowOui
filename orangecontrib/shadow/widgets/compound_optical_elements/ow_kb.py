@@ -16,7 +16,7 @@ class KB(ow_compound_optical_element.CompoundOpticalElement):
     description = "Shadow Compound OE: Kirkpatrick-Baez Mirror"
     icon = "icons/kb.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 4
     category = "Compound Optical Elements"
     keywords = ["data", "file", "load", "read"]

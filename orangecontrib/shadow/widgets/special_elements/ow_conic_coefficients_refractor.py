@@ -11,7 +11,7 @@ class ConicCoefficientsRefractor(ow_conic_coefficients_element.ConicCoefficients
     description = "Shadow OE: Refractor Interface"
     icon = "icons/refractor_interface.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 2
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

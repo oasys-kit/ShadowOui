@@ -35,7 +35,7 @@ class OWxsh_waviness(OWWidget):
     description = "Calculation of mirror surface error profile"
     icon = "icons/waviness.png"
     author = "Luca Rebuffi"
-    maintainer_email = "srio@esrf.eu; luca.rebuffi@elettra.eu"
+    maintainer_email = "srio@esrf.eu; lrebuffi@anl.gov"
     priority = 4
     category = ""
     keywords = ["xoppy", "xsh_waviness"]

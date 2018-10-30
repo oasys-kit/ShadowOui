@@ -14,7 +14,7 @@ class BeamFileReader(oasyswidget.OWWidget):
     description = "Utility: Shadow File Reader"
     icon = "icons/beam_file_reader.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 2
     category = "Utility"
     keywords = ["data", "file", "load", "read"]

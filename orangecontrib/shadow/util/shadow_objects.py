@@ -111,6 +111,31 @@ class ShadowFile:
         return file, type
 
 class ShadowBeam:
+
+    class ScanningData(object):
+
+        def __init__(self,
+                     scanned_variable_name,
+                     scanned_variable_value,
+                     scanned_variable_display_name,
+                     scanned_variable_um):
+            self.__scanned_variable_name = scanned_variable_name
+            self.__scanned_variable_value = scanned_variable_value
+            self.__scanned_variable_display_name = scanned_variable_display_name
+            self.__scanned_variable_um = scanned_variable_um
+
+        def get_scanned_variable_name(self):
+            return self.__scanned_variable_name
+
+        def get_scanned_variable_value(self):
+            return self.__scanned_variable_value
+
+        def get_scanned_variable_display_name(self):
+            return self.__scanned_variable_display_name
+
+        def get_scanned_variable_um(self):
+            return self.__scanned_variable_um
+
     def __new__(cls, oe_number=0, beam=None, number_of_rays=0):
         self = super().__new__(cls)
         self._oe_number = oe_number
@@ -123,10 +148,15 @@ class ShadowBeam:
             self._beam = beam
 
         self.history = []
+        self.scanned_variable_data = None
+
         return self
 
     def setBeam(self, beam):
         self._beam = beam
+
+    def setScanningData(self, scanned_variable_data=ScanningData(None, None, None, None)):
+        self.scanned_variable_data=scanned_variable_data
 
     def loadFromFile(self, file_name):
         if not self._beam is None:
@@ -144,6 +174,7 @@ class ShadowBeam:
         if copy_rays: beam.rays = copy.deepcopy(self._beam.rays)
 
         new_shadow_beam = ShadowBeam(self._oe_number, beam)
+        new_shadow_beam.setScanningData(self.scanned_variable_data)
 
         if history:
             for historyItem in self.history:

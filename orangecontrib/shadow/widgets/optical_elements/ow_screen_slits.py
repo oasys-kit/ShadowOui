@@ -15,7 +15,7 @@ class ScreenSlits(OpticalElement):
     description = "Shadow OE: Screen/Slits"
     icon = "icons/screen_slits.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 1
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

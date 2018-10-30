@@ -13,7 +13,7 @@ class HyperboloidGrating(ow_hyperboloid_element.HyperboloidElement):
     description = "Shadow OE: Hyperboloid Grating"
     icon = "icons/hyperboloid_grating.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 21
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

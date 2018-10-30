@@ -23,7 +23,7 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
     description = "Calculation of coefficients for VLS PGM"
     icon = "icons/vls_pgm.png"
     author = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi@elettra.eu"
+    maintainer_email = "lrebuffi@anl.gov"
     priority = 10
     category = ""
     keywords = ["oasys", "vls", "pgm"]

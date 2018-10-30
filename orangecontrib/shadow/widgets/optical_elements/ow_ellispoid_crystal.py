@@ -12,7 +12,7 @@ class EllipsoidCrystal(ow_ellipsoid_element.EllipsoidElement):
     description = "Shadow OE: Ellipsoid Crystal"
     icon = "icons/ellipsoid_crystal.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 13
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

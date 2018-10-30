@@ -34,7 +34,7 @@ class OWheight_profile_simulator(OWWidget):
     description = "Calculation of mirror surface height profile"
     icon = "icons/simulator.png"
     author = "Luca Rebuffi"
-    maintainer_email = "srio@esrf.eu; luca.rebuffi@elettra.eu"
+    maintainer_email = "srio@esrf.eu; lrebuffi@anl.gov"
     priority = 5
     category = ""
     keywords = ["height_profile_simulator"]
@@ -184,7 +184,7 @@ class OWheight_profile_simulator(OWWidget):
 
         #/ ---------------------------------------
 
-        input_box_l = oasysgui.widgetBox(tab_length, "Calculation Parameters", addSpace=True, orientation="vertical")
+        input_box_l = oasysgui.widgetBox(tab_length, "Calculation Parameters", addSpace=False, orientation="vertical")
 
         gui.comboBox(input_box_l, self, "kind_of_profile_y", label="Kind of Profile", labelWidth=260,
                      items=["Fractal", "Gaussian", "User File"],
@@ -192,7 +192,7 @@ class OWheight_profile_simulator(OWWidget):
 
         gui.separator(input_box_l)
 
-        self.kind_of_profile_y_box_1 = oasysgui.widgetBox(input_box_l, "", addSpace=True, orientation="vertical", height=350)
+        self.kind_of_profile_y_box_1 = oasysgui.widgetBox(input_box_l, "", addSpace=False, orientation="vertical", height=350)
 
         self.le_dimension_y = oasysgui.lineEdit(self.kind_of_profile_y_box_1, self, "dimension_y", "Dimensions",
                            labelWidth=260, valueType=float, orientation="horizontal")
@@ -201,12 +201,12 @@ class OWheight_profile_simulator(OWWidget):
         oasysgui.lineEdit(self.kind_of_profile_y_box_1, self, "montecarlo_seed_y", "Monte Carlo initial seed", labelWidth=260,
                            valueType=int, orientation="horizontal")
 
-        self.kind_of_profile_y_box_1_1 = oasysgui.widgetBox(self.kind_of_profile_y_box_1, "", addSpace=True, orientation="vertical")
+        self.kind_of_profile_y_box_1_1 = oasysgui.widgetBox(self.kind_of_profile_y_box_1, "", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(self.kind_of_profile_y_box_1_1, self, "power_law_exponent_beta_y", "Beta Value",
                            labelWidth=260, valueType=float, orientation="horizontal")
 
-        self.kind_of_profile_y_box_1_2 = oasysgui.widgetBox(self.kind_of_profile_y_box_1, "", addSpace=True, orientation="vertical")
+        self.kind_of_profile_y_box_1_2 = oasysgui.widgetBox(self.kind_of_profile_y_box_1, "", addSpace=False, orientation="vertical")
 
         self.le_correlation_length_y = oasysgui.lineEdit(self.kind_of_profile_y_box_1_2, self, "correlation_length_y", "Correlation Length",
                            labelWidth=260, valueType=float, orientation="horizontal")
@@ -220,9 +220,9 @@ class OWheight_profile_simulator(OWWidget):
         oasysgui.lineEdit(self.kind_of_profile_y_box_1, self, "rms_y", "Rms Value",
                            labelWidth=260, valueType=float, orientation="horizontal")
 
-        self.kind_of_profile_y_box_2 = oasysgui.widgetBox(input_box_l, "", addSpace=True, orientation="vertical", height=350)
+        self.kind_of_profile_y_box_2 = oasysgui.widgetBox(input_box_l, "", addSpace=False, orientation="vertical", height=390)
 
-        select_file_box_2 = oasysgui.widgetBox(self.kind_of_profile_y_box_2, "", addSpace=True, orientation="horizontal")
+        select_file_box_2 = oasysgui.widgetBox(self.kind_of_profile_y_box_2, "", addSpace=False, orientation="horizontal")
 
         self.le_heigth_profile_1D_file_name_y = oasysgui.lineEdit(select_file_box_2, self, "heigth_profile_1D_file_name_y", "1D Profile File Name",
                                                         labelWidth=120, valueType=str, orientation="horizontal")
@@ -245,7 +245,7 @@ class OWheight_profile_simulator(OWWidget):
         gui.comboBox(self.kind_of_profile_y_box_2, self, "center_y", label="Center Profile in the middle of O.E.", labelWidth=300,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
-        gui.comboBox(self.kind_of_profile_y_box_2, self, "modify_y", label="Modify Length?", labelWidth=240,
+        gui.comboBox(self.kind_of_profile_y_box_2, self, "modify_y", label="Modify Length?", labelWidth=150,
                      items=["No", "Rescale to new length", "Fit to new length (fill or cut)"], callback=self.set_ModifyY, sendSelectedValue=False, orientation="horizontal")
 
         self.modify_box_2_1 = oasysgui.widgetBox(self.kind_of_profile_y_box_2, "", addSpace=False, orientation="vertical", height=70)
@@ -263,7 +263,7 @@ class OWheight_profile_simulator(OWWidget):
         gui.comboBox(self.kind_of_profile_y_box_2, self, "renormalize_y", label="Renormalize to different RMS", labelWidth=260,
                      items=["No", "Yes"], callback=self.set_KindOfProfileY, sendSelectedValue=False, orientation="horizontal")
 
-        self.kind_of_profile_y_box_2_1 = oasysgui.widgetBox(self.kind_of_profile_y_box_2, "", addSpace=True, orientation="vertical")
+        self.kind_of_profile_y_box_2_1 = oasysgui.widgetBox(self.kind_of_profile_y_box_2, "", addSpace=False, orientation="vertical")
 
         gui.comboBox(self.kind_of_profile_y_box_2_1, self, "error_type_y", label="Normalization to", labelWidth=270,
                      items=["Figure Error (nm)", "Slope Error (" + "\u03BC" + "rad)"],
@@ -276,7 +276,7 @@ class OWheight_profile_simulator(OWWidget):
 
         #/ ---------------------------------------
 
-        input_box_w = oasysgui.widgetBox(tab_width, "Calculation Parameters", addSpace=True, orientation="vertical")
+        input_box_w = oasysgui.widgetBox(tab_width, "Calculation Parameters", addSpace=False, orientation="vertical")
 
 
         gui.comboBox(input_box_w, self, "kind_of_profile_x", label="Kind of Profile", labelWidth=260,
@@ -285,7 +285,7 @@ class OWheight_profile_simulator(OWWidget):
 
         gui.separator(input_box_w)
 
-        self.kind_of_profile_x_box_1 = oasysgui.widgetBox(input_box_w, "", addSpace=True, orientation="vertical", height=300)
+        self.kind_of_profile_x_box_1 = oasysgui.widgetBox(input_box_w, "", addSpace=False, orientation="vertical", height=350)
 
         self.le_dimension_x = oasysgui.lineEdit(self.kind_of_profile_x_box_1, self, "dimension_x", "Dimensions",
                           labelWidth=260, valueType=float, orientation="horizontal")
@@ -294,12 +294,12 @@ class OWheight_profile_simulator(OWWidget):
         oasysgui.lineEdit(self.kind_of_profile_x_box_1, self, "montecarlo_seed_x", "Monte Carlo initial seed",
                           labelWidth=260, valueType=int, orientation="horizontal")
 
-        self.kind_of_profile_x_box_1_1 = oasysgui.widgetBox(self.kind_of_profile_x_box_1, "", addSpace=True, orientation="vertical")
+        self.kind_of_profile_x_box_1_1 = oasysgui.widgetBox(self.kind_of_profile_x_box_1, "", addSpace=False, orientation="vertical")
 
         oasysgui.lineEdit(self.kind_of_profile_x_box_1_1, self, "power_law_exponent_beta_x", "Beta Value",
                            labelWidth=260, valueType=float, orientation="horizontal")
 
-        self.kind_of_profile_x_box_1_2 = oasysgui.widgetBox(self.kind_of_profile_x_box_1, "", addSpace=True, orientation="vertical")
+        self.kind_of_profile_x_box_1_2 = oasysgui.widgetBox(self.kind_of_profile_x_box_1, "", addSpace=False, orientation="vertical")
 
         self.le_correlation_length_x = oasysgui.lineEdit(self.kind_of_profile_x_box_1_2, self, "correlation_length_x", "Correlation Length",
                            labelWidth=260, valueType=float, orientation="horizontal")
@@ -315,9 +315,9 @@ class OWheight_profile_simulator(OWWidget):
 
         ##----------------------------------
 
-        self.kind_of_profile_x_box_2 = oasysgui.widgetBox(input_box_w, "", addSpace=True, orientation="vertical", height=300)
+        self.kind_of_profile_x_box_2 = oasysgui.widgetBox(input_box_w, "", addSpace=False, orientation="vertical", height=390)
 
-        select_file_box_1 = oasysgui.widgetBox(self.kind_of_profile_x_box_2, "", addSpace=True, orientation="horizontal")
+        select_file_box_1 = oasysgui.widgetBox(self.kind_of_profile_x_box_2, "", addSpace=False, orientation="horizontal")
 
         self.le_heigth_profile_1D_file_name_x = oasysgui.lineEdit(select_file_box_1, self, "heigth_profile_1D_file_name_x", "1D Profile File Name",
                                                         labelWidth=120, valueType=str, orientation="horizontal")
@@ -340,7 +340,7 @@ class OWheight_profile_simulator(OWWidget):
         gui.comboBox(self.kind_of_profile_x_box_2, self, "center_x", label="Center Profile in the middle of O.E.", labelWidth=300,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
-        gui.comboBox(self.kind_of_profile_x_box_2, self, "modify_x", label="Modify Length?", labelWidth=240,
+        gui.comboBox(self.kind_of_profile_x_box_2, self, "modify_x", label="Modify Length?", labelWidth=150,
                      items=["No", "Rescale to new length", "Fit to new length (fill or cut)"], callback=self.set_ModifyX, sendSelectedValue=False, orientation="horizontal")
 
         self.modify_box_1_1 = oasysgui.widgetBox(self.kind_of_profile_x_box_2, "", addSpace=False, orientation="vertical", height=70)
@@ -357,7 +357,7 @@ class OWheight_profile_simulator(OWWidget):
         gui.comboBox(self.kind_of_profile_x_box_2, self, "renormalize_x", label="Renormalize to different RMS", labelWidth=260,
                      items=["No", "Yes"], callback=self.set_KindOfProfileX, sendSelectedValue=False, orientation="horizontal")
 
-        self.kind_of_profile_x_box_2_1 = oasysgui.widgetBox(self.kind_of_profile_x_box_2, "", addSpace=True, orientation="vertical")
+        self.kind_of_profile_x_box_2_1 = oasysgui.widgetBox(self.kind_of_profile_x_box_2, "", addSpace=False, orientation="vertical")
 
         gui.comboBox(self.kind_of_profile_x_box_2_1, self, "error_type_x", label="Normalization to", labelWidth=270,
                      items=["Figure Error (nm)", "Slope Error (" + "\u03BC" + "rad)"],

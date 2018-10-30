@@ -34,7 +34,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     description = "Shadow OE: XRD Capillary"
     icon = "icons/xrd_capillary.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 1
     category = "Experimental Elements"
     keywords = ["data", "file", "load", "read"]

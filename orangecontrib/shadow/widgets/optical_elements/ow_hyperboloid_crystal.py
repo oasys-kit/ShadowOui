@@ -13,7 +13,7 @@ class HyperboloidCrystal(ow_hyperboloid_element.HyperboloidElement):
     description = "Shadow OE: Hyperboloid Crystal"
     icon = "icons/hyperboloid_crystal.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 14
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

@@ -12,7 +12,7 @@ class EllipsoidMirror(ow_ellipsoid_element.EllipsoidElement):
     description = "Shadow OE: Ellipsoid Mirror"
     icon = "icons/ellipsoid_mirror.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 6
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]

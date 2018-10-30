@@ -30,8 +30,6 @@ class Wiggler(ow_source.Source, WidgetDecorator):
 
     plot_graph = Setting(0)
 
-    number_of_rays=Setting(5000)
-    seed=Setting(5676561)
     e_min=Setting(5000)
     e_max=Setting(100000)
     optimize_source_combo=Setting(0)

@@ -14,7 +14,7 @@ class ParaboloidCrystal(ow_paraboloid_element.ParaboloidElement):
     description = "Shadow OE: Paraboloid Crystal"
     icon = "icons/paraboloid_crystal.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 12
     category = "Optical Elements"
     keywords = ["data", "file", "load", "read"]
