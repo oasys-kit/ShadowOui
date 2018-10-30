@@ -156,10 +156,10 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
     # ng_e = 11
     # code_undul_phot = 0
     # flag_size = 0
-        oasysgui.lineEdit(left_box_5, self, "ng_e", "Points in Photon energy (if polychromatic)",       tooltip="Points in Photon energy",       labelWidth=250, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(left_box_5, self, "ng_t", "Points in theta [elevation]",   tooltip="Points in theta [elevation]",   labelWidth=250, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(left_box_5, self, "ng_p", "Points in phi [azimuthal]",     tooltip="Points in phi [azimuthal]",     labelWidth=250, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(left_box_5, self, "ng_j", "Points in electron trajectory", tooltip="Points in electron trajectory", labelWidth=250, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_5, self, "ng_e", "Points in Photon energy (if polychromatic)",       tooltip="Points in Photon energy",       labelWidth=260, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_5, self, "ng_t", "Points in theta [elevation]",   tooltip="Points in theta [elevation]",   labelWidth=260, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_5, self, "ng_p", "Points in phi [azimuthal]",     tooltip="Points in phi [azimuthal]",     labelWidth=260, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(left_box_5, self, "ng_j", "Points in electron trajectory", tooltip="Points in electron trajectory", labelWidth=260, valueType=int, orientation="horizontal")
 
         gui.comboBox(left_box_5, self, "code_undul_phot", label="Calculation method", labelWidth=120,
                      items=["internal", "pySRU","SRW"],sendSelectedValue=False, orientation="horizontal")
