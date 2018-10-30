@@ -24,8 +24,8 @@ class UndulatorGaussian(ow_source.Source, WidgetDecorator):
 
     name = "Undulator Gaussian"
     description = "Shadow Source: Undulator Gaussian"
-    icon = "icons/undulator_gaussian.png"
-    priority = 4
+    icon = "icons/ugaussian.png"
+    priority = 5
 
     energy=Setting(15000.0)
     delta_e=Setting(1500.0)

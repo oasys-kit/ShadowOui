@@ -28,14 +28,14 @@ from silx.gui.plot import Plot2D
 from orangecontrib.shadow.util.undulator.source_undulator import SourceUndulator
 from orangecontrib.shadow.util.undulator.source_undulator_input_output import SourceUndulatorInputOutput
 from Shadow import Beam as Shadow3Beam
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowOEHistoryItem
 
 class UndulatorFull(ow_source.Source, WidgetDecorator):
 
     name = "Full Undulator"
     description = "Shadow Source: Full Undulator"
-    icon = "icons/undulator_gaussian.png"
-    priority = 5
+    icon = "icons/undulator.png"
+    priority = 4
 
 
     K = Setting(0.25)
@@ -573,6 +573,7 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
                                             file_out="radiation.h5",mode="w",entry_name="radiation")
 
             beam_out = ShadowBeam(beam=shadow3_beam)
+            beam_out.getOEHistory().append(ShadowOEHistoryItem())
 
             self.progressBarSet(80)
             self.plot_results(beam_out)
