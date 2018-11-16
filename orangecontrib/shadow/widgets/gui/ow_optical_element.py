@@ -1712,23 +1712,25 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             axis.set_xlabel("X [" + parent.workspace_units_label + "]")
             axis.set_ylabel("Y [" + parent.workspace_units_label + "]")
-            axis.set_zlabel("Z [" + parent.workspace_units_label + "]")
+            axis.set_zlabel("Z [nm]")
 
             figure_canvas = FigureCanvasQTAgg(figure)
             figure_canvas.setFixedWidth(500)
-            figure_canvas.setFixedHeight(450)
+            figure_canvas.setFixedHeight(500)
 
             x_coords, y_coords, z_values = ShadowPreProcessor.read_surface_error_file(filename)
 
             x_to_plot, y_to_plot = numpy.meshgrid(x_coords, y_coords)
 
-            axis.plot_surface(x_to_plot, y_to_plot, z_values.T,
+            axis.plot_surface(x_to_plot, y_to_plot, (z_values*parent.workspace_units_to_m*1e9).T,
                               rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
 
             sloperms = profiles_simulation.slopes(z_values, x_coords, y_coords, return_only_rms=1)
 
             title = ' Slope error rms in X direction: %f $\mu$rad' % (sloperms[0]*1e6) + '\n' + \
-                    ' Slope error rms in Y direction: %f $\mu$rad' % (sloperms[1]*1e6)
+                    ' Slope error rms in Y direction: %f $\mu$rad' % (sloperms[1]*1e6) + '\n' + \
+                    ' Figure error rms in X direction: %f nm' % (round(z_values[0, :].std()*parent.workspace_units_to_m*1e9, 6)) + '\n' + \
+                    ' Figure error rms in Y direction: %f nm' % (round(z_values[:, 0].std()*parent.workspace_units_to_m*1e9, 6))
 
             axis.set_title(title)
 
@@ -1764,7 +1766,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         c9  = 0.0
         c10 = 0.0
 
-        def __init__(self, parent=None, input_beam=None):
+        def __init__(self, parent=None):
             QDialog.__init__(self, parent)
             self.setWindowTitle('O.E. Surface Shape')
 

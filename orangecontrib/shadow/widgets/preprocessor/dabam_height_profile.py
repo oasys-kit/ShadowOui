@@ -1,4 +1,75 @@
 import os, sys
+from PyQt5.QtWidgets import QApplication
+
+import orangecanvas.resources as resources
+
+from oasys.widgets.error_profile.ow_abstract_dabam_height_profile import OWAbstractDabamHeightProfile
+
+from Shadow import ShadowTools as ST
+from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
+
+class OWdabam_height_profile(OWAbstractDabamHeightProfile):
+    name = "DABAM Height Profile"
+    id = "dabam_height_profile"
+    description = "Calculation of mirror surface error profile"
+    icon = "icons/dabam.png"
+    author = "Luca Rebuffi"
+    maintainer_email = "srio@esrf.eu; lrebuffi@anl.gov"
+    priority = 6
+    category = ""
+    keywords = ["dabam_height_profile"]
+
+    outputs = [{"name": "PreProcessor_Data",
+                "type": ShadowPreProcessorData,
+                "doc": "PreProcessor Data",
+                "id": "PreProcessor_Data"}]
+
+
+    usage_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "dabam_height_profile_usage.png")
+
+    def __init__(self):
+        super().__init__()
+
+    def after_change_workspace_units(self):
+        self.si_to_user_units = 1 / self.workspace_units_to_m
+
+        self.horHeaders = ["Entry", "Shape", "Length\n[" + self.get_axis_um() + "]", "Heights St.Dev.\n[nm]",  "Slopes St.Dev.\n[" + u"\u03BC" + "rad]"]
+        self.table.setHorizontalHeaderLabels(self.horHeaders)
+        self.plot_canvas[0].setGraphXLabel("Y [" + self.get_axis_um() + "]")
+        self.plot_canvas[1].setGraphXLabel("Y [" + self.get_axis_um() + "]")
+        self.axis.set_xlabel("X [" + self.get_axis_um() + "]")
+        self.axis.set_ylabel("Y [" + self.get_axis_um() + "]")
+
+        label = self.le_dimension_y_from.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_dimension_y_to.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_dimension_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_step_x.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_new_length_1.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+        label = self.le_new_length_2.parent().layout().itemAt(0).widget()
+        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+
+    def get_usage_path(self):
+        return self.usage_path
+
+    def get_axis_um(self):
+        return self.workspace_units_label
+
+    def write_error_profile_file(self):
+        ST.write_shadow_surface(self.zz, self.xx, self.yy, self.heigth_profile_file_name)
+
+    def send_data(self, dimension_x, dimension_y):
+        self.send("PreProcessor_Data", ShadowPreProcessorData(error_profile_data_file=self.heigth_profile_file_name,
+                                                              error_profile_x_dim=dimension_x,
+                                                              error_profile_y_dim=dimension_y))
+
+'''
+
+import os, sys
 import time
 import numpy
 import threading
@@ -800,7 +871,7 @@ class Overlay(QWidget):
         self.position_index += 1
         if self.position_index == 7: self.position_index = 1
         self.update()
-
+'''
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     w = OWdabam_height_profile()
