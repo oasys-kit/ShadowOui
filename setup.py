@@ -41,7 +41,7 @@ SETUP_REQUIRES = (
 
 INSTALL_REQUIRES = (
     'srxraylib>=1.0.21',
-    'oasys1>=1.1.16',
+    'oasys1>=1.1.18',
     'wofryshadow',
     'shadow3>=18.4.11'
 )
