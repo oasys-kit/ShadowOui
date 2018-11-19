@@ -7,7 +7,7 @@ from PyQt5.QtGui import QPalette, QColor, QFont
 from PyQt5.QtWidgets import QApplication, QMessageBox
 from PyQt5.QtCore import QRect
 
-from oasys.util.oasys_objects import OasysPreProcessorData
+from oasys.util.oasys_objects import OasysPreProcessorData, OasysSurfaceData
 
 from Shadow import ShadowTools as ST
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
@@ -22,7 +22,8 @@ class OWOasysDataConverter(widget.OWWidget):
     category = ""
     keywords = ["wise", "gaussian"]
 
-    inputs = [("Oasys PreProcessorData", OasysPreProcessorData, "set_input")]
+    inputs = [("Oasys PreProcessorData", OasysPreProcessorData, "set_input"),
+              ("Oasys Surface Data", OasysSurfaceData, "set_input")]
 
     outputs = [{"name": "PreProcessor_Data",
                 "type": ShadowPreProcessorData,
@@ -76,21 +77,42 @@ class OWOasysDataConverter(widget.OWWidget):
     def convert_surface(self):
         if not self.oasys_data is None:
             try:
-                error_profile_data = self.oasys_data.error_profile_data
+                if isinstance(self.oasys_data, OasysPreProcessorData):
+                    error_profile_data = self.oasys_data.error_profile_data
+                    surface_data = error_profile_data.surface_data
 
-                error_profile_data_file = error_profile_data.error_profile_data_file
+                    error_profile_data_file = surface_data.surface_data_file
 
-                if (error_profile_data_file.endswith("hd5") or error_profile_data_file.endswith("hdf5") or error_profile_data_file.endswith("hdf")):
-                    error_profile_data_file += "_converted.dat"
+                    if (error_profile_data_file.endswith("hd5") or error_profile_data_file.endswith("hdf5") or error_profile_data_file.endswith("hdf")):
+                        error_profile_data_file += "_converted.dat"
 
-                ST.write_shadow_surface(error_profile_data.zz/self.workspace_units_to_m,
-                                        error_profile_data.xx/self.workspace_units_to_m,
-                                        error_profile_data.yy/self.workspace_units_to_m,
-                                        error_profile_data_file)
+                    ST.write_shadow_surface(surface_data.zz/self.workspace_units_to_m,
+                                            surface_data.xx/self.workspace_units_to_m,
+                                            surface_data.yy/self.workspace_units_to_m,
+                                            error_profile_data_file)
 
-                self.send("PreProcessor_Data", ShadowPreProcessorData(error_profile_data_file=error_profile_data_file,
-                                                                      error_profile_x_dim=error_profile_data.error_profile_x_dim/self.workspace_units_to_m,
-                                                                      error_profile_y_dim=error_profile_data.error_profile_y_dim/self.workspace_units_to_m))
+                    self.send("PreProcessor_Data", ShadowPreProcessorData(error_profile_data_file=error_profile_data_file,
+                                                                          error_profile_x_dim=error_profile_data.error_profile_x_dim/self.workspace_units_to_m,
+                                                                          error_profile_y_dim=error_profile_data.error_profile_y_dim/self.workspace_units_to_m))
+                elif isinstance(self.oasys_data, OasysSurfaceData):
+                    error_profile_data_file = self.oasys_data.surface_data_file
+
+                    if (error_profile_data_file.endswith("hd5") or error_profile_data_file.endswith("hdf5") or error_profile_data_file.endswith("hdf")):
+                        error_profile_data_file += "_converted.dat"
+
+                    ST.write_shadow_surface(self.oasys_data.zz/self.workspace_units_to_m,
+                                            self.oasys_data.xx/self.workspace_units_to_m,
+                                            self.oasys_data.yy/self.workspace_units_to_m,
+                                            error_profile_data_file)
+
+                    error_profile_x_dim = abs(self.oasys_data.xx[-1] - self.oasys_data.xx[0])/self.workspace_units_to_m
+                    error_profile_y_dim = abs(self.oasys_data.yy[-1] - self.oasys_data.yy[0])/self.workspace_units_to_m
+
+                    self.send("PreProcessor_Data", ShadowPreProcessorData(error_profile_data_file=error_profile_data_file,
+                                                                          error_profile_x_dim=error_profile_x_dim,
+                                                                          error_profile_y_dim=error_profile_y_dim))
+
+
 
             except Exception as exception:
                 QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)

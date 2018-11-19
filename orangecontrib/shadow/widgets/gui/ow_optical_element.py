@@ -5,7 +5,7 @@ import sys
 import numpy
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QWidget, QLabel, QSizePolicy
+from PyQt5.QtWidgets import QDialog, QWidget, QLabel, QSizePolicy, QFileDialog
 from PyQt5.QtGui import QPalette, QColor, QFont, QPixmap
 
 from matplotlib import cm
@@ -22,7 +22,7 @@ from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.widgets.exchange import DataExchangeObject
 from oasys.util.oasys_util import EmittingStream, TTYGrabber, TriggerIn, TriggerOut
-
+import oasys.util.oasys_util as OU
 import orangecanvas.resources as resources
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, \
@@ -41,6 +41,8 @@ from syned.beamline.optical_elements.mirrors import mirror
 from syned.beamline.optical_elements.crystals import crystal
 from syned.beamline.optical_elements.gratings import grating
 from syned.beamline.shape import *
+
+from Shadow import ShadowTools as ST
 
 shadow_oe_to_copy = None
 
@@ -1766,6 +1768,13 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         c9  = 0.0
         c10 = 0.0
 
+        xx = None
+        yy = None
+        zz = None
+
+        bin_x = 100
+        bin_y = 1000
+
         def __init__(self, parent=None):
             QDialog.__init__(self, parent)
             self.setWindowTitle('O.E. Surface Shape')
@@ -1785,41 +1794,9 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             figure_canvas = FigureCanvasQTAgg(figure)
             figure_canvas.setFixedWidth(500)
-            figure_canvas.setFixedHeight(450)
+            figure_canvas.setFixedHeight(500)
 
-            if parent.is_infinite == 0:
-                x_min = -10
-                x_max = 10
-                y_min = -10
-                y_max = 10
-            else:
-                x_min = -parent.dim_x_minus
-                x_max = parent.dim_x_plus
-                y_min = -parent.dim_y_minus
-                y_max = parent.dim_y_plus
-
-            x = numpy.linspace(x_min, x_max, 100)
-            y = numpy.linspace(y_min, y_max, 100)
-
-            X, Y = numpy.meshgrid(x, y)
-
-            self.c1 = round(parent.conic_coefficient_0, 10)
-            self.c2 = round(parent.conic_coefficient_1, 10)
-            self.c3 = round(parent.conic_coefficient_2, 10)
-            self.c4 = round(parent.conic_coefficient_3, 10)
-            self.c5 = round(parent.conic_coefficient_4, 10)
-            self.c6 = round(parent.conic_coefficient_5, 10)
-            self.c7 = round(parent.conic_coefficient_6, 10)
-            self.c8 = round(parent.conic_coefficient_7, 10)
-            self.c9 = round(parent.conic_coefficient_8, 10)
-            self.c10= round(parent.conic_coefficient_9, 10)
-
-            c = self.c1*(X**2) + self.c2*(Y**2) + self.c4*X*Y + self.c7*X + self.c8*Y + self.c10
-            b = self.c5*Y + self.c6*X + self.c9
-            a = self.c3
-
-            z_values = (-b - numpy.sqrt(b**2 - 4*a*c))/(2*a)
-            z_values[b**2 - 4*a*c < 0] = numpy.nan
+            X, Y, z_values = self.calculate_surface(parent, 100, 100)
 
             axis.plot_surface(X, Y, z_values,
                               rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
@@ -1885,7 +1862,9 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             widget = QWidget(parent=self)
 
-            surface_box = oasysgui.widgetBox(widget, "Conic Coefficients", addSpace=False, orientation="vertical", width=220, height=450)
+            container = oasysgui.widgetBox(widget, "", addSpace=False, orientation="vertical", width=220)
+
+            surface_box = oasysgui.widgetBox(container, "Conic Coefficients", addSpace=False, orientation="vertical", width=220, height=375)
 
             label  = "c[1]" + u"\u00B7" + "X" + u"\u00B2" + " + c[2]" + u"\u00B7" + "Y" + u"\u00B2" + " + c[3]" + u"\u00B7" + "Z" + u"\u00B2" + " +\n"
             label += "c[4]" + u"\u00B7" + "XY" + " + c[5]" + u"\u00B7" + "YZ" + " + c[6]" + u"\u00B7" + "XZ" + " +\n"
@@ -1917,6 +1896,16 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             le_8.setReadOnly(True)
             le_9.setReadOnly(True)
 
+            export_box = oasysgui.widgetBox(container, "Export", addSpace=False, orientation="vertical", width=220)
+
+            bin_box = oasysgui.widgetBox(export_box, "", addSpace=False, orientation="horizontal")
+
+            oasysgui.lineEdit(bin_box, self, "bin_x" , "Bins X" , labelWidth=40, valueType=float, orientation="horizontal")
+            oasysgui.lineEdit(bin_box, self, "bin_y" , " x Y" , labelWidth=30, valueType=float, orientation="horizontal")
+
+            gui.button(export_box, self, "Export Surface (.dat)", callback=self.save_shadow_surface)
+            gui.button(export_box, self, "Export Surface (.hdf5)", callback=self.save_oasys_surface)
+
             bbox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok)
 
             bbox.accepted.connect(self.accept)
@@ -1925,6 +1914,80 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             layout.addWidget(bbox, 1, 0, 1, 2)
 
             self.setLayout(layout)
+
+        def calculate_surface(self, parent, bin_x=100, bin_y=100):
+            if parent.is_infinite == 0:
+                x_min = -10
+                x_max = 10
+                y_min = -10
+                y_max = 10
+            else:
+                x_min = -parent.dim_x_minus
+                x_max = parent.dim_x_plus
+                y_min = -parent.dim_y_minus
+                y_max = parent.dim_y_plus
+
+            self.xx = numpy.linspace(x_min, x_max, bin_x + 1)
+            self.yy = numpy.linspace(y_min, y_max, bin_y + 1)
+
+            X, Y = numpy.meshgrid(self.xx, self.yy)
+
+            self.c1 = round(parent.conic_coefficient_0, 10)
+            self.c2 = round(parent.conic_coefficient_1, 10)
+            self.c3 = round(parent.conic_coefficient_2, 10)
+            self.c4 = round(parent.conic_coefficient_3, 10)
+            self.c5 = round(parent.conic_coefficient_4, 10)
+            self.c6 = round(parent.conic_coefficient_5, 10)
+            self.c7 = round(parent.conic_coefficient_6, 10)
+            self.c8 = round(parent.conic_coefficient_7, 10)
+            self.c9 = round(parent.conic_coefficient_8, 10)
+            self.c10= round(parent.conic_coefficient_9, 10)
+
+            c = self.c1*(X**2) + self.c2*(Y**2) + self.c4*X*Y + self.c7*X + self.c8*Y + self.c10
+            b = self.c5*Y + self.c6*X + self.c9
+            a = self.c3
+
+            z_values = (-b - numpy.sqrt(b**2 - 4*a*c))/(2*a)
+            z_values[b**2 - 4*a*c < 0] = numpy.nan
+
+            self.zz = z_values
+
+            return X, Y, z_values
+
+        def check_values(self):
+            congruence.checkStrictlyPositiveNumber(self.bin_x, "Bins X")
+            congruence.checkStrictlyPositiveNumber(self.bin_y, "Bins Y")
+
+        def save_shadow_surface(self):
+            try:
+                file_path = QFileDialog.getSaveFileName(self, "Save Surface in Shadow (dat) Format", ".", "Shadow format (*.dat)")[0]
+
+                if not file_path is None and not file_path.strip() == "":
+                    self.check_values()
+
+                    self.calculate_surface(self.parent(), self.bin_x, self.bin_y)
+
+                    ST.write_shadow_surface(self.zz, self.xx, self.yy, file_path)
+            except Exception as exception:
+                QtWidgets.QMessageBox.critical(self, "Error", str(exception), QtWidgets.QMessageBox.Ok)
+
+
+        def save_oasys_surface(self):
+            try:
+                file_path = QFileDialog.getSaveFileName(self, "Save Surface in Oasys (hdf5) Format", ".", "HDF5 format (*.hdf5)")[0]
+
+                if not file_path is None and not file_path.strip() == "":
+                    self.check_values()
+
+                    self.calculate_surface(self.parent(), self.bin_x, self.bin_y)
+
+                    conv = self.parent().workspace_units_to_m
+
+                    OU.write_surface_file(self.zz*conv, self.xx*conv, self.yy*conv, file_path)
+            except Exception as exception:
+                QtWidgets.QMessageBox.critical(self, "Error", str(exception), QtWidgets.QMessageBox.Ok)
+
+
 
     def viewSurfaceShape(self):
         try:
