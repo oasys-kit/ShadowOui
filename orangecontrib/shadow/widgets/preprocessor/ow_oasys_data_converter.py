@@ -1,4 +1,4 @@
-import os
+import os, numpy
 
 from orangewidget import gui
 from oasys.widgets import gui as oasysgui
@@ -90,8 +90,8 @@ class OWOasysDataConverter(widget.OWWidget):
                         error_profile_data_file = filename + "_shadow.dat"
 
                     ST.write_shadow_surface(surface_data.zz/self.workspace_units_to_m,
-                                            surface_data.xx/self.workspace_units_to_m,
-                                            surface_data.yy/self.workspace_units_to_m,
+                                            numpy.round(surface_data.xx/self.workspace_units_to_m, 6),
+                                            numpy.round(surface_data.yy/self.workspace_units_to_m, 6),
                                             error_profile_data_file)
 
                     self.send("PreProcessor_Data", ShadowPreProcessorData(error_profile_data_file=error_profile_data_file,
@@ -106,8 +106,8 @@ class OWOasysDataConverter(widget.OWWidget):
                         surface_data_file = filename + "_shadow.dat"
 
                     ST.write_shadow_surface(self.oasys_data.zz/self.workspace_units_to_m,
-                                            self.oasys_data.xx/self.workspace_units_to_m,
-                                            self.oasys_data.yy/self.workspace_units_to_m,
+                                            numpy.round(self.oasys_data.xx/self.workspace_units_to_m, 6),
+                                            numpy.round(self.oasys_data.yy/self.workspace_units_to_m, 6),
                                             surface_data_file)
 
                     error_profile_x_dim = abs(self.oasys_data.xx[-1] - self.oasys_data.xx[0])/self.workspace_units_to_m

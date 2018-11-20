@@ -1796,13 +1796,9 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             figure_canvas.setFixedWidth(500)
             figure_canvas.setFixedHeight(500)
 
-            X, Y, z_values = self.calculate_surface(parent, 100, 100, sign=-1)
-            X1, Y1, z_values1 = self.calculate_surface(parent, 100, 100, sign=1)
+            X, Y, z_values = self.calculate_surface(parent, 100, 100)
 
             axis.plot_surface(X, Y, z_values,
-                              rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
-
-            axis.plot_surface(X1, Y1, z_values1,
                               rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
 
             title_head = "Surface from generated conic coefficients:\n"
@@ -1929,8 +1925,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 y_min = -parent.dim_y_minus
                 y_max = parent.dim_y_plus
 
-            self.xx = numpy.linspace(x_min, x_max, bin_x + 1)*20
-            self.yy = numpy.linspace(y_min, y_max, bin_y + 1)*20
+            self.xx = numpy.linspace(x_min, x_max, bin_x + 1)
+            self.yy = numpy.linspace(y_min, y_max, bin_y + 1)
 
             X, Y = numpy.meshgrid(self.xx, self.yy)
 
@@ -1969,7 +1965,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                     self.calculate_surface(self.parent(), self.bin_x, self.bin_y)
 
-                    ST.write_shadow_surface(self.zz, self.xx, self.yy, file_path)
+                    ST.write_shadow_surface(self.zz, numpy.round(self.xx, 6), numpy.round(self.yy, 6), file_path)
             except Exception as exception:
                 QtWidgets.QMessageBox.critical(self, "Error", str(exception), QtWidgets.QMessageBox.Ok)
 
@@ -1985,7 +1981,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                     conv = self.parent().workspace_units_to_m
 
-                    OU.write_surface_file(self.zz*conv, self.xx*conv, self.yy*conv, file_path)
+                    OU.write_surface_file(self.zz*conv, numpy.round(self.xx*conv, 8), numpy.round(self.yy*conv, 8), file_path)
             except Exception as exception:
                 QtWidgets.QMessageBox.critical(self, "Error", str(exception), QtWidgets.QMessageBox.Ok)
 
