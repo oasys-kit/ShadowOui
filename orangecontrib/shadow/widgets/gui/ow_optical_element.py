@@ -1796,9 +1796,13 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             figure_canvas.setFixedWidth(500)
             figure_canvas.setFixedHeight(500)
 
-            X, Y, z_values = self.calculate_surface(parent, 100, 100)
+            X, Y, z_values = self.calculate_surface(parent, 100, 100, sign=-1)
+            X1, Y1, z_values1 = self.calculate_surface(parent, 100, 100, sign=1)
 
             axis.plot_surface(X, Y, z_values,
+                              rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
+
+            axis.plot_surface(X1, Y1, z_values1,
                               rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
 
             title_head = "Surface from generated conic coefficients:\n"
@@ -1853,8 +1857,6 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             elif self.c10> 0                                 : title += "+" + str(self.c10)
 
             axis.set_title(title_head + title + " = 0")
-
-            print(title_head + title + " = 0")
 
             figure_canvas.draw()
 
@@ -1915,7 +1917,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             self.setLayout(layout)
 
-        def calculate_surface(self, parent, bin_x=100, bin_y=100):
+        def calculate_surface(self, parent, bin_x=100, bin_y=100, sign=-1):
             if parent.is_infinite == 0:
                 x_min = -10
                 x_max = 10
@@ -1927,8 +1929,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 y_min = -parent.dim_y_minus
                 y_max = parent.dim_y_plus
 
-            self.xx = numpy.linspace(x_min, x_max, bin_x + 1)
-            self.yy = numpy.linspace(y_min, y_max, bin_y + 1)
+            self.xx = numpy.linspace(x_min, x_max, bin_x + 1)*20
+            self.yy = numpy.linspace(y_min, y_max, bin_y + 1)*20
 
             X, Y = numpy.meshgrid(self.xx, self.yy)
 
@@ -1947,7 +1949,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             b = self.c5*Y + self.c6*X + self.c9
             a = self.c3
 
-            z_values = (-b - numpy.sqrt(b**2 - 4*a*c))/(2*a)
+            z_values = (-b + sign*numpy.sqrt(b**2 - 4*a*c))/(2*a)
             z_values[b**2 - 4*a*c < 0] = numpy.nan
 
             self.zz = z_values

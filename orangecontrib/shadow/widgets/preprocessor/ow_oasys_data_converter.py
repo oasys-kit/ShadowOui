@@ -1,3 +1,5 @@
+import os
+
 from orangewidget import gui
 from oasys.widgets import gui as oasysgui
 
@@ -80,11 +82,12 @@ class OWOasysDataConverter(widget.OWWidget):
                 if isinstance(self.oasys_data, OasysPreProcessorData):
                     error_profile_data = self.oasys_data.error_profile_data
                     surface_data = error_profile_data.surface_data
-
                     error_profile_data_file = surface_data.surface_data_file
 
-                    if (error_profile_data_file.endswith("hd5") or error_profile_data_file.endswith("hdf5") or error_profile_data_file.endswith("hdf")):
-                        error_profile_data_file += "_converted.dat"
+                    filename, file_extension = os.path.splitext(error_profile_data_file)
+
+                    if (file_extension==".hd5" or file_extension==".hdf5" or file_extension==".hdf"):
+                        error_profile_data_file = filename + "_shadow.dat"
 
                     ST.write_shadow_surface(surface_data.zz/self.workspace_units_to_m,
                                             surface_data.xx/self.workspace_units_to_m,
@@ -95,20 +98,22 @@ class OWOasysDataConverter(widget.OWWidget):
                                                                           error_profile_x_dim=error_profile_data.error_profile_x_dim/self.workspace_units_to_m,
                                                                           error_profile_y_dim=error_profile_data.error_profile_y_dim/self.workspace_units_to_m))
                 elif isinstance(self.oasys_data, OasysSurfaceData):
-                    error_profile_data_file = self.oasys_data.surface_data_file
+                    surface_data_file = self.oasys_data.surface_data_file
 
-                    if (error_profile_data_file.endswith("hd5") or error_profile_data_file.endswith("hdf5") or error_profile_data_file.endswith("hdf")):
-                        error_profile_data_file += "_converted.dat"
+                    filename, file_extension = os.path.splitext(surface_data_file)
+
+                    if (file_extension==".hd5" or file_extension==".hdf5" or file_extension==".hdf"):
+                        surface_data_file = filename + "_shadow.dat"
 
                     ST.write_shadow_surface(self.oasys_data.zz/self.workspace_units_to_m,
                                             self.oasys_data.xx/self.workspace_units_to_m,
                                             self.oasys_data.yy/self.workspace_units_to_m,
-                                            error_profile_data_file)
+                                            surface_data_file)
 
                     error_profile_x_dim = abs(self.oasys_data.xx[-1] - self.oasys_data.xx[0])/self.workspace_units_to_m
                     error_profile_y_dim = abs(self.oasys_data.yy[-1] - self.oasys_data.yy[0])/self.workspace_units_to_m
 
-                    self.send("PreProcessor_Data", ShadowPreProcessorData(error_profile_data_file=error_profile_data_file,
+                    self.send("PreProcessor_Data", ShadowPreProcessorData(error_profile_data_file=surface_data_file,
                                                                           error_profile_x_dim=error_profile_x_dim,
                                                                           error_profile_y_dim=error_profile_y_dim))
 
