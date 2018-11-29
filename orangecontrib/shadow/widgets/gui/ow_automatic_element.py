@@ -18,7 +18,6 @@ class AutomaticElement(widget.OWWidget):
     want_main_area=1
 
     is_automatic_run = Setting(True)
-    #trace_shadow = Setting(False)
     trace_shadow = False
 
     error_id = 0
