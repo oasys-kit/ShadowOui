@@ -258,7 +258,7 @@ class BendingMagnet(ow_source.Source, WidgetDecorator):
         shadow_src.src.EPSI_DX = self.distance_from_waist_x
         shadow_src.src.EPSI_DZ = self.distance_from_waist_z
         shadow_src.src.R_MAGNET = self.magnetic_radius
-        shadow_src.src.R_ALADDIN = self.magnetic_radius * 100
+        shadow_src.src.R_ALADDIN = self.magnetic_radius / self.workspace_units_to_m
         shadow_src.src.HDIV1 = self.horizontal_half_divergence_from
         shadow_src.src.HDIV2 = self.horizontal_half_divergence_to
         shadow_src.src.VDIV1 = self.max_vertical_half_divergence_from
