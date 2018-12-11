@@ -118,11 +118,14 @@ class ShadowBeam:
                      scanned_variable_name,
                      scanned_variable_value,
                      scanned_variable_display_name,
-                     scanned_variable_um):
+                     scanned_variable_um,
+                     additional_parameters={}):
             self.__scanned_variable_name = scanned_variable_name
             self.__scanned_variable_value = scanned_variable_value
             self.__scanned_variable_display_name = scanned_variable_display_name
             self.__scanned_variable_um = scanned_variable_um
+
+            self.__additional_parameters=additional_parameters
 
         def get_scanned_variable_name(self):
             return self.__scanned_variable_name
@@ -135,6 +138,13 @@ class ShadowBeam:
 
         def get_scanned_variable_um(self):
             return self.__scanned_variable_um
+
+        def has_additional_parameter(self, name):
+            return name in self.__additional_parameters.keys()
+
+        def get_additional_parameter(self, name):
+            return self.__additional_parameters[name]
+
 
     def __new__(cls, oe_number=0, beam=None, number_of_rays=0):
         self = super().__new__(cls)
@@ -151,6 +161,9 @@ class ShadowBeam:
         self.scanned_variable_data = None
 
         return self
+
+    def get_number_of_rays(self):
+        return self._beam.rays.shape[0]
 
     def setBeam(self, beam):
         self._beam = beam
