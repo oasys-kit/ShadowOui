@@ -274,17 +274,16 @@ class PlotXY(AutomaticElement):
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)
 
-    def clearResults(self):
-        if ConfirmDialog.confirmed(parent=self):
+    def clearResults(self, interactive=True):
+        if not interactive: proceed = True
+        else: proceed = ConfirmDialog.confirmed(parent=self)
+
+        if proceed:
             self.input_beam = None
             self.last_ticket = None
 
             if not self.plot_canvas is None:
                 self.plot_canvas.clear()
-
-            return True
-        else:
-            return False
 
     def set_ImagePlane(self):
         self.image_plane_box.setVisible(self.image_plane==1)

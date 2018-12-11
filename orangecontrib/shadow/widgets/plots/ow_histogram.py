@@ -209,14 +209,14 @@ class Histogram(ow_automatic_element.AutomaticElement):
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)
 
-    def clearResults(self):
-        if ConfirmDialog.confirmed(parent=self):
+    def clearResults(self, interactive=True):
+        if not interactive: proceed = True
+        else: proceed = ConfirmDialog.confirmed(parent=self)
+
+        if proceed:
             self.input_beam = ShadowBeam()
             self.last_ticket = None
             self.plot_canvas.clear()
-            return True
-        else:
-            return False
 
     def set_XRange(self):
         self.xrange_box.setVisible(self.x_range == 1)

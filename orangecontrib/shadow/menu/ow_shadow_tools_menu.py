@@ -47,6 +47,8 @@ class ShadowToolsMenu(OMenu):
         self.addSubMenu("Select Detailed Plots on all Source and O.E. widgets")
         self.addSubMenu("Select Preview Plots on all Source and O.E. widgets")
         self.addSubMenu("Select No Plots on all Source and O.E. widgets")
+        self.addSeparator()
+        self.addSubMenu("Clear all the cumulated plots")
         self.closeContainer()
         self.addSeparator()
         self.addSubMenu("Execute all the Preprocessor widgets")
@@ -239,6 +241,19 @@ class ShadowToolsMenu(OMenu):
                 QtWidgets.QMessageBox.Ok)
 
     def executeAction_8(self, action):
+        try:
+            for node in self.canvas_main_window.current_document().scheme().nodes:
+                widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
+
+                if isinstance(widget, AutomaticElement):
+                    if hasattr(widget, "clearResults"):
+                        widget.clearResults(interactive=False)
+        except Exception as exception:
+            QtWidgets.QMessageBox.critical(None, "Error",
+                exception.args[0],
+                QtWidgets.QMessageBox.Ok)
+
+    def executeAction_9(self, action):
         try:
             self.fixWeirdShadowBug()
 
