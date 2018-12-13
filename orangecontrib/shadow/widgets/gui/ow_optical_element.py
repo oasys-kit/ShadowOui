@@ -388,6 +388,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     opt_const_file_name = Setting(NONE_SPECIFIED)
 
 
+    not_interactive = False
+
     ##########################################
     # IDEAL LENS SETTING
     ##########################################
@@ -2954,7 +2956,6 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
     def traceOpticalElement(self):
         try:
-            #self.error(self.error_id)
             self.setStatusMessage("")
             self.progressBarInit()
 
@@ -2971,10 +2972,11 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                     self.completeOperations(shadow_oe)
                 else:
-                    raise Exception("Input Beam with no good rays")
+                    if self.not_interactive: self.sendEmptyBeam()
+                    else: raise Exception("Input Beam with no good rays")
             else:
-                raise Exception("Empty Input Beam")
-
+                if self.not_interactive: self.sendEmptyBeam()
+                else: raise Exception("Empty Input Beam")
         except Exception as exception:
             QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception), QtWidgets.QMessageBox.Ok)
@@ -2982,6 +2984,15 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             if self.IS_DEVELOP: raise exception
 
         self.progressBarFinished()
+
+
+    def sendEmptyBeam(self):
+        empty_beam = self.input_beam.duplicate()
+        empty_beam._beam.rays = numpy.array([])
+        empty_beam._oe_number += 1
+
+        self.send("Beam", empty_beam)
+        self.send("Trigger", TriggerIn(new_object=True))
 
     def sendNewBeam(self, trigger):
         try:
@@ -3016,14 +3027,25 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             if self.IS_DEVELOP: raise exception
 
-    def setBeam(self, beam):
+    def setBeam(self, input_beam):
+        self.not_interactive = self.check_not_interactive_conditions(input_beam)
+
         self.onReceivingInput()
 
-        if ShadowCongruence.checkEmptyBeam(beam):
-            self.input_beam = beam
+        if ShadowCongruence.checkEmptyBeam(input_beam):
+            self.input_beam = input_beam
 
             if self.is_automatic_run:
                 self.traceOpticalElement()
+
+    def check_not_interactive_conditions(self, input_beam):
+        not_interactive = False
+
+        if not input_beam is None:
+            if not input_beam.scanned_variable_data is None:
+                not_interactive = input_beam.scanned_variable_data.has_additional_parameter("total_power")
+
+        return not_interactive
 
     def setPreProcessorData(self, data):
         if data is not None:
