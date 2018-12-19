@@ -626,7 +626,7 @@ class Wiggler(ow_source.Source, WidgetDecorator):
                         light_source = data._light_source
 
                         self.energy = light_source._electron_beam._energy_in_GeV
-                        self.electron_current = light_source._electron_beam._current
+                        self.electron_current = 1e3*light_source._electron_beam._current
 
                         self.use_emittances_combo = 1
                         self.emittance_x = light_source._electron_beam._moment_xxp / self.workspace_units_to_m
