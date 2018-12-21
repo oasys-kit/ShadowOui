@@ -445,10 +445,10 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
         tab_pos = oasysgui.createTabPage(tabs_setting, "Position")
 
-        upper_box = oasysgui.widgetBox(tab_pos, "Optical Element Orientation", addSpace=False, orientation="vertical")
+        self.orientation_box = oasysgui.widgetBox(tab_pos, "Optical Element Orientation", addSpace=False, orientation="vertical")
 
-        self.le_source_plane_distance = oasysgui.lineEdit(upper_box, self, "source_plane_distance", "Source Plane Distance", labelWidth=260, valueType=float, orientation="horizontal")
-        self.le_image_plane_distance  = oasysgui.lineEdit(upper_box, self, "image_plane_distance", "Image Plane Distance", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_source_plane_distance = oasysgui.lineEdit(self.orientation_box, self, "source_plane_distance", "Source Plane Distance", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_image_plane_distance  = oasysgui.lineEdit(self.orientation_box, self, "image_plane_distance", "Image Plane Distance", labelWidth=260, valueType=float, orientation="horizontal")
 
         # graph tab
         if not self.graphical_options.is_empty:
@@ -609,15 +609,15 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             self.le_focal_x = oasysgui.lineEdit(box_focus, self, "focal_x", "Focal Distance X", labelWidth=260, valueType=float, orientation="horizontal")
             self.le_focal_z = oasysgui.lineEdit(box_focus, self, "focal_z", "Focal Distance Z", labelWidth=260, valueType=float, orientation="horizontal")
         else:
-            gui.comboBox(upper_box, self, "angles_respect_to", label="Angles in [deg] indicated with respect to the", labelWidth=260,
+            gui.comboBox(self.orientation_box, self, "angles_respect_to", label="Angles in [deg] indicated with respect to the", labelWidth=260,
                          items=["Normal", "Surface"],
                          callback=self.set_AnglesRespectTo,
                          sendSelectedValue=False, orientation="horizontal")
 
-            self.incidence_angle_deg_le = oasysgui.lineEdit(upper_box, self, "incidence_angle_deg", "--", labelWidth=300, callback=self.calculate_incidence_angle_mrad, valueType=float, orientation="horizontal")
-            self.incidence_angle_rad_le = oasysgui.lineEdit(upper_box, self, "incidence_angle_mrad", "Incident Angle with respect to the surface [mrad]", labelWidth=300, callback=self.calculate_incidence_angle_deg, valueType=float, orientation="horizontal")
-            self.reflection_angle_deg_le = oasysgui.lineEdit(upper_box, self, "reflection_angle_deg", "--", labelWidth=300, callback=self.calculate_reflection_angle_mrad, valueType=float, orientation="horizontal")
-            self.reflection_angle_rad_le = oasysgui.lineEdit(upper_box, self, "reflection_angle_mrad", "Reflection Angle with respect to the surface [mrad]", labelWidth=300, callback=self.calculate_reflection_angle_deg, valueType=float, orientation="horizontal")
+            self.incidence_angle_deg_le = oasysgui.lineEdit(self.orientation_box, self, "incidence_angle_deg", "--", labelWidth=300, callback=self.calculate_incidence_angle_mrad, valueType=float, orientation="horizontal")
+            self.incidence_angle_rad_le = oasysgui.lineEdit(self.orientation_box, self, "incidence_angle_mrad", "Incident Angle with respect to the surface [mrad]", labelWidth=300, callback=self.calculate_incidence_angle_deg, valueType=float, orientation="horizontal")
+            self.reflection_angle_deg_le = oasysgui.lineEdit(self.orientation_box, self, "reflection_angle_deg", "--", labelWidth=300, callback=self.calculate_reflection_angle_mrad, valueType=float, orientation="horizontal")
+            self.reflection_angle_rad_le = oasysgui.lineEdit(self.orientation_box, self, "reflection_angle_mrad", "Reflection Angle with respect to the surface [mrad]", labelWidth=300, callback=self.calculate_reflection_angle_deg, valueType=float, orientation="horizontal")
 
             self.set_AnglesRespectTo()
 
@@ -628,7 +628,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 self.reflection_angle_deg_le.setEnabled(False)
                 self.reflection_angle_rad_le.setEnabled(False)
 
-            gui.comboBox(upper_box, self, "mirror_orientation_angle", label="O.E. Orientation Angle [deg]", labelWidth=390,
+            gui.comboBox(self.orientation_box, self, "mirror_orientation_angle", label="O.E. Orientation Angle [deg]", labelWidth=390,
                          items=[0, 90, 180, 270],
                          valueType=float,
                          sendSelectedValue=False, orientation="horizontal")
