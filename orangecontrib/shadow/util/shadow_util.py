@@ -475,16 +475,13 @@ class ShadowPlot:
 
             layout = QGridLayout()
 
-            layout.addWidget(             self.info_box, 0, 1, 2, 1)
-            layout.addWidget(self.plot_canvas.toolBar(), 0, 0, 1, 1)
-            layout.addWidget(          self.plot_canvas, 1, 0, 1, 1)
+            layout.addWidget(   self.info_box, 0, 1, 1, 1)
+            layout.addWidget(self.plot_canvas, 0, 0, 1, 1)
 
             layout.setColumnMinimumWidth(0, 600*x_scale_factor)
             layout.setColumnMinimumWidth(1, 230*x_scale_factor)
 
             self.setLayout(layout)
-
-            self.plot_canvas.toolBar()
 
         def plot_xy(self, beam, var_x, var_y, title, xtitle, ytitle, xrange=None, yrange=None, nolost=1, nbins=100, xum="", yum="", conv=1.0, ref=23, is_footprint=False, ticket_to_add=None):
 

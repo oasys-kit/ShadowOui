@@ -12,7 +12,7 @@ from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
-from oasys.util.oasys_util import EmittingStream, TTYGrabber
+from oasys.util.oasys_util import TriggerOut, EmittingStream, TTYGrabber
 
 from orangecontrib.shadow.widgets.gui import ow_source
 
@@ -71,6 +71,12 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
     file_to_write_out = 0
     plot_aux_graph = 1
     sourceundulator = None
+
+    add_power = False
+    power_step = None
+
+    inputs = [("Trigger", TriggerOut, "sendNewBeam2")]
+    WidgetDecorator.append_syned_input_data(inputs)
 
     def __init__(self):
         super().__init__()
@@ -192,6 +198,28 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
 
         gui.rubber(self.mainArea)
 
+    def sendNewBeam2(self, trigger):
+        self.power_step = None
+        self.add_power = False
+
+        try:
+            if trigger and trigger.new_object == True:
+                if trigger.has_additional_parameter("seed_increment"):
+                    self.seed += trigger.get_additional_parameter("seed_increment")
+
+                if trigger.has_additional_parameter("energy_value_central") and trigger.has_additional_parameter("energy_step"):
+                    self.set_at_resonance = 0
+                    self.photon_energy = trigger.get_additional_parameter("energy_value_central")
+                    self.delta_e = trigger.get_additional_parameter("energy_step")
+                    self.power_step = trigger.get_additional_parameter("power_step")
+
+                    self.set_UseResonance()
+
+                    self.add_power = True
+
+                self.runShadowSource()
+        except:
+            pass
 
     def set_UseEmittances(self):
         self.box_use_emittances.setVisible(self.use_emittances_combo == 1)
@@ -574,6 +602,18 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
 
             beam_out = ShadowBeam(beam=shadow3_beam)
             beam_out.getOEHistory().append(ShadowOEHistoryItem())
+
+            if self.add_power:
+                additional_parameters = {}
+
+                additional_parameters["total_power"]        = self.power_step
+                additional_parameters["photon_energy_step"] = self.delta_e
+
+                beam_out.setScanningData(ShadowBeam.ScanningData("photon_energy",
+                                                                 self.photon_energy,
+                                                                 "Energy for Power Calculation",
+                                                                 "eV",
+                                                                 additional_parameters))
 
             self.progressBarSet(80)
             self.plot_results(beam_out)
