@@ -477,13 +477,10 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         input_parameters.shadow_beam = ShadowBeam.traceFromOE(input_parameters.shadow_beam, screen_slit)
         input_parameters.ghy_calcType = 1
 
-
     str_n_oe = str(input_parameters.shadow_beam._oe_number)
 
     if input_parameters.shadow_beam._oe_number < 10:
         str_n_oe = "0" + str_n_oe
-
-    fileShadowScreen = "screen." + str_n_oe + "01"
 
     # Before ray-tracing save the original history:
 
@@ -493,21 +490,57 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
     shadow_oe = history_entry._shadow_oe_start.duplicate() # no changes to the original object!
     shadow_oe_input_beam = history_entry._input_beam.duplicate(history=False)
+    
+    if shadow_oe._oe.F_SCREEN == 1:
+        if shadow_oe._oe.N_SCREEN == 10: raise Exception("Hybrid Screen has not been created: O.E. has already 10 screens")
 
-    n_screen = 1
-    i_screen = numpy.zeros(10)  # after
-    i_abs = numpy.zeros(10)
-    i_slit = numpy.zeros(10)
-    i_stop = numpy.zeros(10)
-    k_slit = numpy.zeros(10)
-    thick = numpy.zeros(10)
-    file_abs = numpy.array(['', '', '', '', '', '', '', '', '', ''])
-    rx_slit = numpy.zeros(10)
-    rz_slit = numpy.zeros(10)
-    sl_dis = numpy.zeros(10)
-    file_scr_ext = numpy.array(['', '', '', '', '', '', '', '', '', ''])
-    cx_slit = numpy.zeros(10)
-    cz_slit = numpy.zeros(10)
+        n_screen     = shadow_oe._oe.N_SCREEN + 1
+        i_screen     = shadow_oe._oe.I_SCREEN    
+        sl_dis       = shadow_oe._oe.I_ABS       
+        i_abs        = shadow_oe._oe.SL_DIS      
+        i_slit       = shadow_oe._oe.I_SLIT      
+        i_stop       = shadow_oe._oe.I_STOP      
+        k_slit       = shadow_oe._oe.K_SLIT      
+        thick        = shadow_oe._oe.THICK       
+        file_abs     = shadow_oe._oe.FILE_ABS    
+        rx_slit      = shadow_oe._oe.RX_SLIT     
+        rz_slit      = shadow_oe._oe.RZ_SLIT     
+        cx_slit      = shadow_oe._oe.CX_SLIT     
+        cz_slit      = shadow_oe._oe.CZ_SLIT     
+        file_scr_ext = shadow_oe._oe.FILE_SCR_EXT
+        
+        index = n_screen-1
+        
+        i_screen[index] = 0 
+        sl_dis[index] = 0       
+        i_abs[index] = 0        
+        i_slit[index] = 0       
+        i_stop[index] = 0       
+        k_slit[index] = 0       
+        thick[index] = 0        
+        rx_slit[index] = 0
+        rz_slit[index] = 0      
+        cx_slit[index] = 0      
+        cz_slit[index] = 0      
+    else:
+        n_screen = 1
+        i_screen = numpy.zeros(10)  # after
+        i_abs = numpy.zeros(10)
+        i_slit = numpy.zeros(10)
+        i_stop = numpy.zeros(10)
+        k_slit = numpy.zeros(10)
+        thick = numpy.zeros(10)
+        file_abs = numpy.array(['', '', '', '', '', '', '', '', '', ''])
+        rx_slit = numpy.zeros(10)
+        rz_slit = numpy.zeros(10)
+        sl_dis = numpy.zeros(10)
+        file_scr_ext = numpy.array(['', '', '', '', '', '', '', '', '', ''])
+        cx_slit = numpy.zeros(10)
+        cz_slit = numpy.zeros(10)
+        
+        index = 0
+
+    fileShadowScreen = "screen." + str_n_oe + ("0" + str(n_screen)) if n_screen < 10 else "10"
 
     if input_parameters.ghy_calcType == 1: # simple aperture
         if (shadow_oe._oe.FMIRR == 5 and \
@@ -516,24 +549,24 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
             shadow_oe._oe.F_SCREEN==1 and \
             shadow_oe._oe.N_SCREEN==1):
 
-            i_abs[0] = shadow_oe._oe.I_ABS[0]
-            i_slit[0] = shadow_oe._oe.I_SLIT[0]
+            i_abs[index] = shadow_oe._oe.I_ABS[index]
+            i_slit[index] = shadow_oe._oe.I_SLIT[index]
 
-            if shadow_oe._oe.I_SLIT[0] == 1:
-                i_stop[0] = shadow_oe._oe.I_STOP[0]
-                k_slit[0] = shadow_oe._oe.K_SLIT[0]
+            if shadow_oe._oe.I_SLIT[index] == 1:
+                i_stop[index] = shadow_oe._oe.I_STOP[index]
+                k_slit[index] = shadow_oe._oe.K_SLIT[index]
 
-                if shadow_oe._oe.K_SLIT[0] == 2:
-                    file_scr_ext[0] = shadow_oe._oe.FILE_SCR_EXT[0]
+                if shadow_oe._oe.K_SLIT[index] == 2:
+                    file_scr_ext[index] = shadow_oe._oe.FILE_SCR_EXT[index]
                 else:
-                    rx_slit[0] = shadow_oe._oe.RX_SLIT[0]
-                    rz_slit[0] = shadow_oe._oe.RZ_SLIT[0]
-                    cx_slit[0] = shadow_oe._oe.CX_SLIT[0]
-                    cz_slit[0] = shadow_oe._oe.CZ_SLIT[0]
+                    rx_slit[index] = shadow_oe._oe.RX_SLIT[index]
+                    rz_slit[index] = shadow_oe._oe.RZ_SLIT[index]
+                    cx_slit[index] = shadow_oe._oe.CX_SLIT[index]
+                    cz_slit[index] = shadow_oe._oe.CZ_SLIT[index]
 
-            if shadow_oe._oe.I_ABS[0] == 1:
-                thick[0] = shadow_oe._oe.THICK[0]
-                file_abs[0] = shadow_oe._oe.FILE_ABS[0]
+            if shadow_oe._oe.I_ABS[index] == 1:
+                thick[index] = shadow_oe._oe.THICK[index]
+                file_abs[index] = shadow_oe._oe.FILE_ABS[index]
         else:
             raise Exception("Connected O.E. is not a Screen-Slit widget!")
     elif input_parameters.ghy_calcType == 2: # ADDED BY XIANBO SHI
@@ -548,19 +581,19 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
             raise Exception("O.E. has not Surface Error file (setup Advanced Option->Modified Surface:\n\nModification Type = Surface Error\nType of Defect: external spline)")
 
     shadow_oe._oe.set_screens(n_screen,
-                            i_screen,
-                            i_abs,
-                            sl_dis,
-                            i_slit,
-                            i_stop,
-                            k_slit,
-                            thick,
-                            file_abs,
-                            rx_slit,
-                            rz_slit,
-                            cx_slit,
-                            cz_slit,
-                            file_scr_ext)
+                              i_screen,
+                              i_abs,
+                              sl_dis,
+                              i_slit,
+                              i_stop,
+                              k_slit,
+                              thick,
+                              file_abs,
+                              rx_slit,
+                              rz_slit,
+                              cx_slit,
+                              cz_slit,
+                              file_scr_ext)
 
     if input_parameters.ghy_calcType > 0: # THIS WAS RESPONSIBLE OF THE SERIOUS BUG AT SOS WORKSHOP!!!!!
         if shadow_oe._oe.FWRITE > 1 or shadow_oe._oe.F_ANGLE == 0:

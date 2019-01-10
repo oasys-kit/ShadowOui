@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import QApplication
 
 from orangewidget.settings import Setting
 from orangewidget import gui
-from orangecontrib.shadow.util.shadow_objects import ShadowOpticalElement, ShadowBeam
 
 from . import ow_optical_element, ow_curved_element
 
@@ -23,16 +22,9 @@ class EllipsoidElement(ow_curved_element.CurvedElement):
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
     # add cleaning slit to fix Shadow Bug
+
     def completeOperations(self, shadow_oe):
         if self.add_acceptance_slits==1:
-            empty_oe = ShadowOpticalElement.create_empty_oe()
-            empty_oe._oe.DUMMY = self.workspace_units_to_cm # Issue #3 : Global User's Unit
-            empty_oe._oe.T_SOURCE     = self.source_plane_distance
-            empty_oe._oe.T_IMAGE      = 0.0
-            empty_oe._oe.T_INCIDENCE  = 0.0
-            empty_oe._oe.T_REFLECTION = 180.0
-            empty_oe._oe.ALPHA        = 0.0
-
             n_screen = 1
             i_screen = numpy.zeros(10)  # after
             i_abs = numpy.zeros(10)
@@ -51,18 +43,12 @@ class EllipsoidElement(ow_curved_element.CurvedElement):
             i_screen[0] = 1
             i_slit[0] = 1
 
-            if self.mirror_orientation_angle == 0 or self.mirror_orientation_angle == 2: # 0, 180
-                rx_slit[0] = 1.1*(self.dim_x_plus + self.dim_x_minus)
-                rz_slit[0] = 2.5*numpy.abs((self.dim_y_plus + self.dim_y_minus)*numpy.sin(self.incidence_angle_mrad*1e-3))
-                cx_slit[0] = (self.dim_x_plus-self.dim_x_minus)/2
-                cz_slit[0] = (self.dim_y_plus-self.dim_y_minus)/2
-            else:
-                rx_slit[0] = 2.5*numpy.abs((self.dim_y_plus + self.dim_y_minus)*numpy.sin(self.incidence_angle_mrad*1e-3))
-                rz_slit[0] = 1.1*(self.dim_x_plus + self.dim_x_minus)
-                cx_slit[0] = (self.dim_y_plus-self.dim_y_minus)/2
-                cz_slit[0] = (self.dim_x_plus-self.dim_x_minus)/2
+            rx_slit[0] = 1.1*(self.dim_x_plus + self.dim_x_minus)
+            rz_slit[0] = 2.0*numpy.abs((self.dim_y_plus + self.dim_y_minus)*numpy.sin(self.incidence_angle_mrad*1e-3))
+            cx_slit[0] = (self.dim_x_plus-self.dim_x_minus)/2
+            cz_slit[0] = (self.dim_y_plus-self.dim_y_minus)/2
 
-            empty_oe._oe.set_screens(n_screen,
+            shadow_oe._oe.set_screens(n_screen,
                                      i_screen,
                                      i_abs,
                                      sl_dis,
@@ -76,10 +62,6 @@ class EllipsoidElement(ow_curved_element.CurvedElement):
                                      cx_slit,
                                      cz_slit,
                                      numpy.array(file_scr_ext))
-
-            self.input_beam = ShadowBeam.traceFromOE(self.input_beam, empty_oe, widget_class_name=type(self).__name__)
-
-            shadow_oe._oe.T_SOURCE = 0.0
 
         super(EllipsoidElement, self).completeOperations(shadow_oe)
 
