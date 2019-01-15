@@ -688,7 +688,6 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         if numpy.amax(calculation_parameters.zz_screen) == numpy.amin(calculation_parameters.zz_screen):
             if input_parameters.ghy_diff_plane == 2 or input_parameters.ghy_diff_plane == 3: raise Exception("Unconsistend calculation: Diffraction plane is set on Z, but the beam has no extention in that direction")
         else:
-
             calculation_parameters.wangle_z     = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.angle_inc, hy_npoly_angle))
             calculation_parameters.wl_z         = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.yy_mirr, hy_npoly_l))
             if input_parameters.ghy_calcType == 4: calculation_parameters.wangle_ref_z = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.angle_ref, hy_npoly_angle))
@@ -732,12 +731,17 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
             input_parameters.widget.status_message("Propagation distance = " + str(input_parameters.ghy_distance))
 
     if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4: # mirror/grating with figure error
+        shadow_oe = calculation_parameters.shadow_oe_end
+
         if input_parameters.ghy_diff_plane == 1 or input_parameters.ghy_diff_plane == 3: #X
             np_array = calculation_parameters.w_mirr_2D_values.z_values[:, round(len(calculation_parameters.w_mirr_2D_values.y_coord)/2)]
 
             calculation_parameters.w_mirror_lx = ScaledArray.initialize_from_steps(np_array,
                                                                                    calculation_parameters.w_mirr_2D_values.x_coord[0],
                                                                                    calculation_parameters.w_mirr_2D_values.x_coord[1] - calculation_parameters.w_mirr_2D_values.x_coord[0])
+            if shadow_oe._oe.F_MOVE == 1:
+                calculation_parameters.w_mirror_lx.scale    += shadow_oe._oe.OFFX
+                calculation_parameters.w_mirror_lx.np_array += calculation_parameters.w_mirror_lx.scale*numpy.radians(shadow_oe._oe.Y_ROT)
 
         if input_parameters.ghy_diff_plane == 2 or input_parameters.ghy_diff_plane == 3: #Z
             np_array = calculation_parameters.w_mirr_2D_values.z_values[round(len(calculation_parameters.w_mirr_2D_values.x_coord)/2), :]
@@ -745,6 +749,12 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
             calculation_parameters.w_mirror_lz = ScaledArray.initialize_from_steps(np_array,
                                                                                    calculation_parameters.w_mirr_2D_values.y_coord[0],
                                                                                    calculation_parameters.w_mirr_2D_values.y_coord[1] - calculation_parameters.w_mirr_2D_values.y_coord[0])
+
+            if shadow_oe._oe.F_MOVE == 1:
+                mirror_angle = calculation_parameters.wangle_z(0)*1e-3
+
+                calculation_parameters.w_mirror_lz.scale    += shadow_oe._oe.OFFZ/mirror_angle + shadow_oe._oe.OFFY
+                calculation_parameters.w_mirror_lz.np_array += calculation_parameters.w_mirror_lz.scale*numpy.radians(shadow_oe._oe.X_ROT)
 
     # generate intensity profile (histogram): I_ray(z) curve
 
@@ -1379,6 +1389,8 @@ def propagate_2D(calculation_parameters, input_parameters):
 
     wavefront.apply_ideal_lens(focallength_ff, focallength_ff)
 
+    shadow_oe = calculation_parameters.shadow_oe_end
+
     if input_parameters.ghy_calcType == 3:
         input_parameters.widget.status_message("FF: calculating phase shift due to Height Error Profile")
 
@@ -1393,6 +1405,12 @@ def propagate_2D(calculation_parameters, input_parameters):
             w_mirror_lz = ScaledArray.initialize_from_steps(np_array,
                                                             calculation_parameters.w_mirr_2D_values.y_coord[0],
                                                             calculation_parameters.w_mirr_2D_values.y_coord[1] - calculation_parameters.w_mirr_2D_values.y_coord[0])
+
+            if shadow_oe._oe.F_MOVE == 1:
+                mirror_angle = calculation_parameters.wangle_z(0)*1e-3
+
+                calculation_parameters.w_mirror_lz.scale    += shadow_oe._oe.OFFZ/mirror_angle + shadow_oe._oe.OFFY
+                calculation_parameters.w_mirror_lz.np_array += calculation_parameters.w_mirror_lz.scale*numpy.radians(shadow_oe._oe.X_ROT)
 
             phase_shifts[index, :] = get_mirror_figure_error_phase_shift(wavefront.get_coordinate_y(),
                                                                          calculation_parameters.gwavelength,
@@ -1411,6 +1429,12 @@ def propagate_2D(calculation_parameters, input_parameters):
             w_mirror_lz = ScaledArray.initialize_from_steps(calculation_parameters.w_mirr_2D_values.z_values[index, :],
                                                             calculation_parameters.w_mirr_2D_values.y_coord[0],
                                                             calculation_parameters.w_mirr_2D_values.y_coord[1] - calculation_parameters.w_mirr_2D_values.y_coord[0])
+
+            if shadow_oe._oe.F_MOVE == 1:
+                mirror_angle = calculation_parameters.wangle_z(0)*1e-3
+
+                calculation_parameters.w_mirror_lz.scale    += shadow_oe._oe.OFFZ/mirror_angle + shadow_oe._oe.OFFY
+                calculation_parameters.w_mirror_lz.np_array += calculation_parameters.w_mirror_lz.scale*numpy.radians(shadow_oe._oe.X_ROT)
 
             phase_shifts[index, :] = get_grating_figure_error_phase_shift(wavefront.get_coordinate_y(),
                                                                           calculation_parameters.gwavelength,
