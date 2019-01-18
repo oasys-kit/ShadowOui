@@ -52,10 +52,18 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
     title=Setting("Energy")
 
+    autosave = Setting(0)
+    autosave_file_name = Setting("autosave_histogram_plot.hdf5")
+
     keep_result=Setting(0)
-    last_ticket=None
+    autosave_partial_results = Setting(0)
+
+    cumulated_ticket=None
 
     is_conversion_active = Setting(1)
+
+    autosave_file = None
+    autosave_prog_id = 0
 
     def __init__(self):
         super().__init__()
@@ -183,9 +191,28 @@ class Histogram(ow_automatic_element.AutomaticElement):
                                             "Good Only",
                                             "Lost Only"],
                                      sendSelectedValue=False, orientation="horizontal")
-        incremental_box = oasysgui.widgetBox(tab_gen, "Incremental Result", addSpace=True, orientation="horizontal", height=80)
 
-        gui.checkBox(incremental_box, self, "keep_result", "Keep Result")
+        autosave_box = oasysgui.widgetBox(tab_gen, "Autosave", addSpace=True, orientation="vertical", height=85)
+
+        gui.comboBox(autosave_box, self, "autosave", label="Save automatically plot into file", labelWidth=250,
+                                         items=["No", "Yes"],
+                                         sendSelectedValue=False, orientation="horizontal", callback=self.set_autosave)
+
+        self.autosave_box_1 = oasysgui.widgetBox(autosave_box, "", addSpace=False, orientation="horizontal", height=25)
+        self.autosave_box_2 = oasysgui.widgetBox(autosave_box, "", addSpace=False, orientation="horizontal", height=25)
+
+        self.le_autsave_file_name = oasysgui.lineEdit(self.autosave_box_1, self, "autosave_file_name", "File Name", labelWidth=100,  valueType=str, orientation="horizontal")
+
+        gui.button(self.autosave_box_1, self, "...", callback=self.selectAutosaveFile)
+
+        incremental_box = oasysgui.widgetBox(tab_gen, "Incremental Result", addSpace=True, orientation="vertical", height=120)
+
+        gui.comboBox(incremental_box, self, "keep_result", label="Keep Result", labelWidth=250,
+                     items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.set_autosave)
+
+        self.cb_autosave_partial_results = gui.comboBox(incremental_box, self, "autosave_partial_results", label="Save partial plots into file", labelWidth=250,
+                                                        items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
+
         gui.button(incremental_box, self, "Clear", callback=self.clearResults)
 
         histograms_box = oasysgui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=90)
@@ -195,6 +222,8 @@ class Histogram(ow_automatic_element.AutomaticElement):
         gui.comboBox(histograms_box, self, "is_conversion_active", label="Is U.M. conversion active", labelWidth=250,
                                          items=["No", "Yes"],
                                          sendSelectedValue=False, orientation="horizontal")
+
+        self.set_autosave()
 
         self.main_tabs = oasysgui.tabWidget(self.mainArea)
         plot_tab = oasysgui.createTabPage(self.main_tabs, "Plots")
@@ -215,7 +244,12 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
         if proceed:
             self.input_beam = ShadowBeam()
-            self.last_ticket = None
+            self.cumulated_ticket = None
+            self.autosave_prog_id = 0
+            if not self.autosave_file is None:
+                self.autosave_file.close()
+                self.autosave_file = None
+
             self.plot_canvas.clear()
 
     def set_XRange(self):
@@ -226,20 +260,60 @@ class Histogram(ow_automatic_element.AutomaticElement):
         self.image_plane_box.setVisible(self.image_plane==1)
         self.image_plane_box_empty.setVisible(self.image_plane==0)
 
+    def set_autosave(self):
+        self.autosave_box_1.setVisible(self.autosave==1)
+        self.autosave_box_2.setVisible(self.autosave==0)
+
+        self.cb_autosave_partial_results.setEnabled(self.autosave==1 and self.keep_result==1)
+
+    def selectAutosaveFile(self):
+        self.le_autsave_file_name.setText(oasysgui.selectFileFromDialog(self, self.autsave_file_name, "Select File", file_extension_filter="HDF5 Files (*.hdf5 *.h5 *.hdf)"))
+
     def replace_fig(self, beam, var, xrange, title, xtitle, ytitle, xum):
         if self.plot_canvas is None:
             self.plot_canvas = ShadowPlot.DetailedHistoWidget(y_scale_factor=1.14)
             self.image_box.layout().addWidget(self.plot_canvas)
 
         try:
-            if self.keep_result == 1:
-                self.last_ticket = self.plot_canvas.plot_histo(beam, var, self.rays, xrange, self.weight_column_index, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum, conv=self.workspace_units_to_cm, ticket_to_add=self.last_ticket)
-            else:
-                self.last_ticket = None
-                self.plot_canvas.plot_histo(beam, var, self.rays, xrange, self.weight_column_index, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum, conv=self.workspace_units_to_cm)
+            if self.autosave == 1:
+                if self.autosave_file is None:
+                    self.autosave_file = ShadowPlot.HistogramHdf5File(congruence.checkDir(self.autosave_file_name))
+                elif self.autosave_file.filename != congruence.checkFileName(self.autosave_file_name):
+                    self.autosave_file.close()
+                    self.autosave_file = ShadowPlot.HistogramHdf5File(congruence.checkDir(self.autosave_file_name))
 
-        except Exception:
-            raise Exception("Data not plottable: No good rays or bad content")
+            if self.keep_result == 1:
+                self.cumulated_ticket, last_ticket = self.plot_canvas.plot_histo(beam, var, self.rays, xrange, self.weight_column_index, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum, conv=self.workspace_units_to_cm, ticket_to_add=self.cumulated_ticket)
+
+                if self.autosave == 1:
+                    self.autosave_prog_id += 1
+                    self.autosave_file.write_coordinates(self.cumulated_ticket)
+                    dataset_name = self.weight_column.itemText(self.weight_column_index)
+
+                    self.autosave_file.add_histogram(self.cumulated_ticket, dataset_name=dataset_name)
+
+                    if self.autosave_partial_results == 1:
+                        if last_ticket is None:
+                            self.autosave_file.add_histogram(self.cumulated_ticket, plot_name="Histogram #" + str(self.autosave_prog_id), dataset_name=dataset_name)
+                        else:
+                            self.autosave_file.add_histogram(last_ticket, plot_name="Histogram #" + str(self.autosave_prog_id), dataset_name=dataset_name)
+
+                    self.autosave_file.flush()
+            else:
+                self.cumulated_ticket = None
+                ticket, _ = self.plot_canvas.plot_histo(beam, var, self.rays, xrange, self.weight_column_index, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum, conv=self.workspace_units_to_cm)
+
+                if self.autosave == 1:
+                    self.autosave_prog_id += 1
+                    self.autosave_file.write_coordinates(ticket)
+                    self.autosave_file.add_histogram(ticket, dataset_name=self.weight_column.itemText(self.weight_column_index))
+                    self.autosave_file.flush()
+
+        except Exception as e:
+            if not self.IS_DEVELOP:
+                raise Exception("Data not plottable: No good rays or bad content")
+            else:
+                raise e
 
     def plot_histo(self, var_x, title, xtitle, ytitle, xum):
         beam_to_plot = self.input_beam._beam
@@ -337,8 +411,6 @@ class Histogram(ow_automatic_element.AutomaticElement):
                                        QtWidgets.QMessageBox.Ok)
 
             if self.IS_DEVELOP: raise exception
-
-            return False
 
     def get_titles(self):
         auto_title = self.x_column.currentText().split(":", 2)[1]

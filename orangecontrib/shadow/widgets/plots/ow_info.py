@@ -21,7 +21,7 @@ class Info(widget.OWWidget):
     icon = "icons/info.png"
     maintainer = "Luca Rebuffi"
     maintainer_email = "lrebuffi(@at@)anl.gov"
-    priority = 3
+    priority = 4
     category = "Data Display Tools"
     keywords = ["data", "file", "load", "read"]
 

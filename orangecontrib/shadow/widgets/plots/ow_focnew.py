@@ -18,7 +18,7 @@ class FocNew(ow_automatic_element.AutomaticElement):
     icon = "icons/focnew.png"
     maintainer = "Luca Rebuffi"
     maintainer_email = "lrebuffi(@at@)anl.gov"
-    priority = 4
+    priority = 5
     category = "Data Display Tools"
     keywords = ["data", "file", "load", "read"]
 

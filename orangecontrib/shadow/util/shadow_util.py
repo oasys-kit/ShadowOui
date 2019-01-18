@@ -3,9 +3,12 @@ __author__ = 'labx'
 import os
 import random
 import sys
+import copy
 
 import numpy
 import xraylib
+import h5py
+
 from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel
 from PyQt5.QtGui import QFont, QPalette, QColor
 from matplotlib.patches import FancyArrowPatch, ArrowStyle
@@ -393,6 +396,8 @@ class ShadowPlot:
 
             # TODO: check congruence between tickets
             if not ticket_to_add is None:
+                last_ticket = copy.deepcopy(ticket)
+
                 ticket['histogram'] += ticket_to_add['histogram']
                 ticket['histogram_path'] += ticket_to_add['histogram_path']
 
@@ -424,6 +429,8 @@ class ShadowPlot:
             self.plot_canvas.setInteractiveMode(mode='zoom')
 
             if ticket['fwhm'] == None: ticket['fwhm'] = 0.0
+            if not ticket_to_add is None:
+                if last_ticket['fwhm'] == None: last_ticket['fwhm'] = 0.0
 
             n_patches = len(self.plot_canvas._backend.ax.patches)
             if (n_patches > 0): self.plot_canvas._backend.ax.patches.remove(self.plot_canvas._backend.ax.patches[n_patches-1])
@@ -452,7 +459,10 @@ class ShadowPlot:
             self.info_box.fwhm_h.setText("{:5.4f}".format(ticket['fwhm']*factor))
             self.info_box.label_h.setText("FWHM " + xum)
 
-            return ticket
+            if not ticket_to_add is None:
+                return ticket, last_ticket
+            else:
+                return ticket, None
 
         def clear(self):
             self.plot_canvas.clear()
@@ -491,6 +501,8 @@ class ShadowPlot:
 
             # TODO: check congruence between tickets
             if not ticket_to_add is None:
+                last_ticket = copy.deepcopy(ticket)
+
                 ticket['histogram'] += ticket_to_add['histogram']
                 ticket['histogram_h'] += ticket_to_add['histogram_h']
                 ticket['histogram_v'] += ticket_to_add['histogram_v']
@@ -569,6 +581,9 @@ class ShadowPlot:
 
             if ticket['fwhm_h'] == None: ticket['fwhm_h'] = 0.0
             if ticket['fwhm_v'] == None: ticket['fwhm_v'] = 0.0
+            if not ticket_to_add is None:
+                if last_ticket['fwhm_h'] == None: last_ticket['fwhm_h'] = 0.0
+                if last_ticket['fwhm_v'] == None: last_ticket['fwhm_v'] = 0.0
 
             n_patches = len(self.plot_canvas._histoHPlot._backend.ax.patches)
             if (n_patches > 0): self.plot_canvas._histoHPlot._backend.ax.patches.remove(self.plot_canvas._histoHPlot._backend.ax.patches[n_patches-1])
@@ -611,7 +626,10 @@ class ShadowPlot:
             self.info_box.label_h.setText("FWHM " + xum)
             self.info_box.label_v.setText("FWHM " + yum)
 
-            return ticket
+            if not ticket_to_add is None:
+                return ticket, last_ticket
+            else:
+                return ticket, None
 
         def clear(self):
             self.plot_canvas.clear()
@@ -706,6 +724,132 @@ class ShadowPlot:
     @classmethod
     def get_shadow_label(cls, var):
         return (stp.getLabel(var-1))[0]
+
+
+    #########################################################################################
+    #
+    # SAVE/LOAD FILES in HDF5 Format
+    #
+    #########################################################################################
+
+    
+    class PlotXYHdf5File(h5py.File):
+        def __init__(self, file_name, mode="w"):
+            try:
+                super(ShadowPlot.PlotXYHdf5File, self).__init__(name=file_name, mode=mode)
+            except OSError as e:
+                if "already open" in str(e):
+                    super(ShadowPlot.PlotXYHdf5File, self).__init__(name=file_name, mode="a")
+                    self.close()
+                    super(ShadowPlot.PlotXYHdf5File, self).__init__(name=file_name, mode="w")
+
+            self.coordinates = self.create_group("coordinates")
+            self.plots = self.create_group("xy_plots")
+            self.last_plot = self.plots.create_group("last_plot")
+            self.has_last_plot = False
+            self.has_coordinate = False
+
+            self.attrs["default"]          = "coordinates/X"
+            self.attrs["file_name"]        = file_name
+            self.attrs["file_time"]        = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+            self.attrs["creator"]          = "PlotXYHdf5File.__init__"
+            self.attrs["code"]             = "ShadowOui"
+            self.attrs["HDF5_Version"]     = h5py.version.hdf5_version
+            self.attrs["h5py_version"]     = h5py.version.version
+
+        def write_coordinates(self, ticket):
+            if not self.has_coordinate:
+                self.x = self.coordinates.create_dataset("X", data=ticket["bin_h_center"])
+                self.y = self.coordinates.create_dataset("Y", data=ticket["bin_v_center"])
+                self.has_coordinate = True
+            else:
+                self.x[...] = ticket["bin_h_center"]
+                self.y[...] = ticket["bin_v_center"]
+
+            self.coordinates.attrs["x_label"] = ShadowPlot.get_shadow_label(ticket["col_h"])
+            self.coordinates.attrs["y_label"] = ShadowPlot.get_shadow_label(ticket["col_v"])
+
+        def add_plot_xy(self, ticket, plot_name="last_plot", dataset_name="intensity"):
+                if plot_name is None or plot_name.strip() == "" or plot_name.strip() == "last_plot":
+                    if not self.has_last_plot:
+                        self.lp_histogram   = self.last_plot.create_dataset(dataset_name, data=ticket['histogram'])
+                        self.lp_histogram_h = self.last_plot.create_dataset("histogram_h", data=ticket['histogram_h'])
+                        self.lp_histogram_v = self.last_plot.create_dataset("histogram_v", data=ticket['histogram_v'])
+                        self.has_last_plot = True
+                    else:
+                        if self.lp_histogram.name != "/xy_plots/last_plot/" + dataset_name:
+                            self.last_plot.move(self.lp_histogram.name, "/xy_plots/last_plot/" + dataset_name)
+
+                        self.lp_histogram[...]   = ticket['histogram']
+                        self.lp_histogram_h[...] = ticket['histogram_h']
+                        self.lp_histogram_v[...] = ticket['histogram_v']
+
+                    self.last_plot.attrs["intensity"] = ticket["intensity"]
+                    self.last_plot.attrs["total_rays"] = ticket["nrays"]
+                    self.last_plot.attrs["good_rays"] = ticket["good_rays"]
+                    self.last_plot.attrs["lost_rays"] = ticket["nrays"]-ticket["good_rays"]
+                else:
+                    plot = self.plots.create_group(plot_name)
+
+                    plot.create_dataset(dataset_name, data=ticket['histogram'])
+                    plot.create_dataset("histogram_h", data=ticket['histogram_h'])
+                    plot.create_dataset("histogram_v", data=ticket['histogram_v'])
+                    plot.attrs["intensity"] = ticket["intensity"]
+                    plot.attrs["total_rays"] = ticket["nrays"]
+                    plot.attrs["good_rays"] = ticket["good_rays"]
+                    plot.attrs["lost_rays"] = ticket["nrays"]-ticket["good_rays"]
+
+    class HistogramHdf5File(h5py.File):
+        def __init__(self, file_name, mode="w"):
+            super(ShadowPlot.HistogramHdf5File, self).__init__(name=file_name, mode=mode)
+
+            self.coordinates = self.create_group("coordinates")
+            self.plots = self.create_group("histogram_plots")
+            self.last_plot = self.plots.create_group("last_plot")
+            self.has_last_plot = False
+            self.has_coordinate = False
+
+            self.attrs["default"]          = "coordinates/X"
+            self.attrs["file_name"]        = file_name
+            self.attrs["file_time"]        = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+            self.attrs["creator"]          = "PlotXYHdf5File.__init__"
+            self.attrs["code"]             = "ShadowOui"
+            self.attrs["HDF5_Version"]     = h5py.version.hdf5_version
+            self.attrs["h5py_version"]     = h5py.version.version
+
+        def write_coordinates(self, ticket):
+            if not self.has_coordinate:
+                self.x = self.coordinates.create_dataset("X", data=ticket["bin_center"])
+                self.has_coordinate = True
+            else:
+                self.x[...] = ticket["bin_center"]
+
+            self.coordinates.attrs["x_label"] = ShadowPlot.get_shadow_label(ticket["col"])
+
+        def add_histogram(self, ticket, plot_name="last_plot", dataset_name="intensity"):
+                if plot_name is None or plot_name.strip() == "" or plot_name.strip() == "last_plot":
+                    if not self.has_last_plot:
+                        self.lp_histogram  = self.last_plot.create_dataset(dataset_name, data=ticket['histogram'])
+                        self.has_last_plot = True
+                    else:
+                        if self.lp_histogram.name != "/histogram_plots/last_plot/" + dataset_name:
+                            self.last_plot.move(self.lp_histogram.name, "/histogram_plots/last_plot/" + dataset_name)
+
+                        self.lp_histogram[...] = ticket['histogram']
+
+                    self.last_plot.attrs["intensity"] = ticket["intensity"]
+                    self.last_plot.attrs["total_rays"] = ticket["nrays"]
+                    self.last_plot.attrs["good_rays"] = ticket["good_rays"]
+                    self.last_plot.attrs["lost_rays"] = ticket["nrays"]-ticket["good_rays"]
+                else:
+                    plot = self.plots.create_group(plot_name)
+
+                    plot.create_dataset(dataset_name, data=ticket['histogram'])
+                    plot.attrs["intensity"]  = ticket["intensity"]
+                    plot.attrs["total_rays"] = ticket["nrays"]
+                    plot.attrs["good_rays"]  = ticket["good_rays"]
+                    plot.attrs["lost_rays"]  = ticket["nrays"]-ticket["good_rays"]
+
 
 class ShadowPreProcessor:
 
