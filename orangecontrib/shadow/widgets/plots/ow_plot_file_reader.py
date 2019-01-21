@@ -67,14 +67,20 @@ class Hdf5TreeViewWidget(qt.QWidget):
             data = selected[0]
             self.__dataViewer.setData(data)
 
+            self.is_histogram_v = "histogram_v" in data.h5py_object.name
+            self.object_name = data.basename
+
             file = data.h5py_object.file
 
             try:
                 self.x_scale = file["coordinates/X"].value
+                self.x_label = file["coordinates"].attrs["x_label"]
                 try:
                     self.y_scale = file["coordinates/Y"].value
+                    self.y_label = file["coordinates"].attrs["y_label"]
                 except:
                     self.y_scale = None
+                    self.y_label = None
 
                 self.box_scale.setVisible(True)
             except:
@@ -82,16 +88,26 @@ class Hdf5TreeViewWidget(qt.QWidget):
 
     def rescale(self):
         current_view = self.__dataViewer.displayedView()
-        if isinstance(current_view, DataViews._Plot1dView) and self.y_scale is None:
-            min_x = numpy.min(self.x_scale)
-            max_x = numpy.max(self.x_scale)
+        if isinstance(current_view, DataViews._Plot1dView):
+            if self.is_histogram_v:
+                min_x = numpy.min(self.y_scale)
+                max_x = numpy.max(self.y_scale)
+                scale = self.y_scale
+                label = self.y_label
+            else:
+                min_x = numpy.min(self.x_scale)
+                max_x = numpy.max(self.x_scale)
+                scale = self.x_scale
+                label = self.x_label
 
             widget = current_view.getWidget()
 
             if isinstance(widget, Plot1D):
                 curve = widget.getAllCurves()[0]
-                curve.setData(self.x_scale, curve.getYData())
+                curve.setData(scale, curve.getYData())
                 widget.setGraphXLimits(min_x, max_x)
+                widget.setGraphXLabel(label)
+                widget.setGraphYLabel(self.object_name)
 
         elif isinstance(current_view, DataViews._ImageView):
             min_x = numpy.min(self.x_scale)
@@ -112,6 +128,10 @@ class Hdf5TreeViewWidget(qt.QWidget):
                     widget.getActiveImage().setScale(scale)
                     widget.setGraphXLimits(min_x, max_x)
                     widget.setGraphYLimits(min_y, max_y)
+                    widget.setGraphXLabel(self.x_label)
+                    widget.setGraphYLabel(self.y_label)
+                    widget.setKeepDataAspectRatio(False)
+                    widget.resetZoom()
 
     def load_file(self, filename):
         self.__treeview.findHdf5TreeModel().insertFile(filename)
