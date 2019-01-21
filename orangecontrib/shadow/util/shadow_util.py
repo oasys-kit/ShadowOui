@@ -769,7 +769,7 @@ class ShadowPlot:
             self.coordinates.attrs["x_label"] = ShadowPlot.get_shadow_label(ticket["col_h"])
             self.coordinates.attrs["y_label"] = ShadowPlot.get_shadow_label(ticket["col_v"])
 
-        def add_plot_xy(self, ticket, plot_name="last_plot", dataset_name="intensity"):
+        def add_plot_xy(self, ticket, plot_name="last_plot", dataset_name="intensity", attributes={}):
                 if plot_name is None or plot_name.strip() == "" or plot_name.strip() == "last_plot":
                     if not self.has_last_plot:
                         self.lp_histogram   = self.last_plot.create_dataset(dataset_name, data=ticket['histogram'])
@@ -788,6 +788,11 @@ class ShadowPlot:
                     self.last_plot.attrs["total_rays"] = ticket["nrays"]
                     self.last_plot.attrs["good_rays"] = ticket["good_rays"]
                     self.last_plot.attrs["lost_rays"] = ticket["nrays"]-ticket["good_rays"]
+
+                    if not attributes is None:
+                        for key in attributes.keys():
+                            self.last_plot.attrs[key] = attributes[key]
+
                 else:
                     plot = self.plots.create_group(plot_name)
 
@@ -798,6 +803,11 @@ class ShadowPlot:
                     plot.attrs["total_rays"] = ticket["nrays"]
                     plot.attrs["good_rays"] = ticket["good_rays"]
                     plot.attrs["lost_rays"] = ticket["nrays"]-ticket["good_rays"]
+
+                    if not attributes is None:
+                        for key in attributes.keys():
+                            plot.attrs[key] = attributes[key]
+
 
     class HistogramHdf5File(h5py.File):
         def __init__(self, file_name, mode="w"):
@@ -826,7 +836,7 @@ class ShadowPlot:
 
             self.coordinates.attrs["x_label"] = ShadowPlot.get_shadow_label(ticket["col"])
 
-        def add_histogram(self, ticket, plot_name="last_plot", dataset_name="intensity"):
+        def add_histogram(self, ticket, plot_name="last_plot", dataset_name="intensity", attributes={}):
                 if plot_name is None or plot_name.strip() == "" or plot_name.strip() == "last_plot":
                     if not self.has_last_plot:
                         self.lp_histogram  = self.last_plot.create_dataset(dataset_name, data=ticket['histogram'])
@@ -841,6 +851,10 @@ class ShadowPlot:
                     self.last_plot.attrs["total_rays"] = ticket["nrays"]
                     self.last_plot.attrs["good_rays"] = ticket["good_rays"]
                     self.last_plot.attrs["lost_rays"] = ticket["nrays"]-ticket["good_rays"]
+
+                    if not attributes is None:
+                        for key in attributes.keys():
+                            self.last_plot.attrs[key] = attributes[key]
                 else:
                     plot = self.plots.create_group(plot_name)
 
@@ -850,6 +864,9 @@ class ShadowPlot:
                     plot.attrs["good_rays"]  = ticket["good_rays"]
                     plot.attrs["lost_rays"]  = ticket["nrays"]-ticket["good_rays"]
 
+                    if not attributes is None:
+                        for key in attributes.keys():
+                            plot.attrs[key] = attributes[key]
 
 class ShadowPreProcessor:
 
