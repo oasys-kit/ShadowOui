@@ -58,17 +58,21 @@ class Histogram(ow_automatic_element.AutomaticElement):
     keep_result=Setting(0)
     autosave_partial_results = Setting(0)
 
-    cumulated_ticket=None
-
     is_conversion_active = Setting(1)
 
+    cumulated_ticket = None
+    plotted_ticket   = None
     autosave_file = None
     autosave_prog_id = 0
 
     def __init__(self):
         super().__init__()
 
-        gui.button(self.controlArea, self, "Refresh", callback=self.plot_results, height=45)
+        button_box = oasysgui.widgetBox(self.controlArea, "", addSpace=False, orientation="horizontal")
+
+        gui.button(button_box, self, "Refresh", callback=self.plot_results, height=45)
+        gui.button(button_box, self, "Save Current Plot", callback=self.save_results, height=45)
+
         gui.separator(self.controlArea, 10)
 
         self.tabs_setting = oasysgui.tabWidget(self.controlArea)
@@ -201,7 +205,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
         self.autosave_box_1 = oasysgui.widgetBox(autosave_box, "", addSpace=False, orientation="horizontal", height=25)
         self.autosave_box_2 = oasysgui.widgetBox(autosave_box, "", addSpace=False, orientation="horizontal", height=25)
 
-        self.le_autsave_file_name = oasysgui.lineEdit(self.autosave_box_1, self, "autosave_file_name", "File Name", labelWidth=100,  valueType=str, orientation="horizontal")
+        self.le_autosave_file_name = oasysgui.lineEdit(self.autosave_box_1, self, "autosave_file_name", "File Name", labelWidth=100,  valueType=str, orientation="horizontal")
 
         gui.button(self.autosave_box_1, self, "...", callback=self.selectAutosaveFile)
 
@@ -267,7 +271,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
         self.cb_autosave_partial_results.setEnabled(self.autosave==1 and self.keep_result==1)
 
     def selectAutosaveFile(self):
-        self.le_autsave_file_name.setText(oasysgui.selectFileFromDialog(self, self.autsave_file_name, "Select File", file_extension_filter="HDF5 Files (*.hdf5 *.h5 *.hdf)"))
+        self.le_autosave_file_name.setText(oasysgui.selectFileFromDialog(self, self.autosave_file_name, "Select File", file_extension_filter="HDF5 Files (*.hdf5 *.h5 *.hdf)"))
 
     def replace_fig(self, beam, var, xrange, title, xtitle, ytitle, xum):
         if self.plot_canvas is None:
@@ -285,6 +289,8 @@ class Histogram(ow_automatic_element.AutomaticElement):
             if self.keep_result == 1:
                 self.cumulated_ticket, last_ticket = self.plot_canvas.plot_histo(beam, var, self.rays, xrange, self.weight_column_index, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum, conv=self.workspace_units_to_cm, ticket_to_add=self.cumulated_ticket)
 
+                self.plotted_ticket = self.cumulated_ticket
+
                 if self.autosave == 1:
                     self.autosave_prog_id += 1
                     self.autosave_file.write_coordinates(self.cumulated_ticket)
@@ -300,8 +306,10 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
                     self.autosave_file.flush()
             else:
-                self.cumulated_ticket = None
                 ticket, _ = self.plot_canvas.plot_histo(beam, var, self.rays, xrange, self.weight_column_index, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum, conv=self.workspace_units_to_cm)
+
+                self.cumulated_ticket = None
+                self.plotted_ticket = ticket
 
                 if self.autosave == 1:
                     self.autosave_prog_id += 1
@@ -376,6 +384,28 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
         return xrange
 
+    def save_results(self):
+        if not self.plotted_ticket is None:
+            try:
+                file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Current Plot", filter="HDF5 Files (*.hdf5 *.h5 *.hdf)")
+
+                if not file_name is None and not file_name.strip() == "":
+                    if not (file_name.endswith("hd5") or file_name.endswith("hdf5") or file_name.endswith("hdf")):
+                        file_name += ".hdf5"
+
+                    save_file = ShadowPlot.HistogramHdf5File(congruence.checkDir(file_name))
+
+                    save_file.write_coordinates(self.plotted_ticket)
+                    dataset_name = self.weight_column.itemText(self.weight_column_index)
+
+                    save_file.add_histogram(self.plotted_ticket, dataset_name=dataset_name)
+
+                    save_file.close()
+            except Exception as exception:
+                QtWidgets.QMessageBox.critical(self, "Error", str(exception), QtWidgets.QMessageBox.Ok)
+
+                if self.IS_DEVELOP: raise exception
+
     def plot_results(self):
         try:
             plotted = False
@@ -406,9 +436,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
             return plotted
         except Exception as exception:
-            QtWidgets.QMessageBox.critical(self, "Error",
-                                       str(exception),
-                                       QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, "Error", str(exception), QtWidgets.QMessageBox.Ok)
 
             if self.IS_DEVELOP: raise exception
 
