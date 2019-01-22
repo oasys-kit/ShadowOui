@@ -249,6 +249,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
         if proceed:
             self.input_beam = ShadowBeam()
             self.cumulated_ticket = None
+            self.plotted_ticket = None
             self.autosave_prog_id = 0
             if not self.autosave_file is None:
                 self.autosave_file.close()
