@@ -2,7 +2,6 @@ import math
 import os
 import sys
 
-import numpy
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog, QWidget, QLabel, QSizePolicy, QFileDialog

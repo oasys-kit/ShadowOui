@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QApplication
 from orangewidget.settings import Setting
 from orangewidget import gui
 from oasys.widgets import gui as oasysgui
+from oasys.widgets import congruence
 
 from . import ow_optical_element, ow_curved_element
 
@@ -30,7 +31,7 @@ class EllipsoidElement(ow_curved_element.CurvedElement):
 
         self.orientation_box_1 = oasysgui.widgetBox(self.orientation_box, "", addSpace=False, orientation="vertical", height=140)
 
-        gui.comboBox(self.orientation_box_1, self, "acceptance_slits_mode", label="Mode", labelWidth=260,
+        self.cb_acceptance_slits_mode = gui.comboBox(self.orientation_box_1, self, "acceptance_slits_mode", label="Mode", labelWidth=260,
                      items=["Automatic", "Manual"], sendSelectedValue=False, orientation="horizontal", callback=self.set_AcceptanceSlitsMode)
 
         self.le_auto_slit_width_xaxis  = oasysgui.lineEdit(self.orientation_box_1, self, "auto_slit_width_xaxis", "Slit width/x-axis", labelWidth=260, valueType=float, orientation="horizontal")
@@ -42,9 +43,20 @@ class EllipsoidElement(ow_curved_element.CurvedElement):
 
         self.set_AddAcceptanceSlits()
 
+        self.le_dim_x_plus.textChanged.connect(self.compute_auto_slits)
+        self.le_dim_x_minus.textChanged.connect(self.compute_auto_slits)
+        self.le_dim_y_plus.textChanged.connect(self.compute_auto_slits)
+        self.le_dim_y_minus.textChanged.connect(self.compute_auto_slits)
+
+        self.set_Dim_Parameters()
+
     def set_AddAcceptanceSlits(self):
         self.orientation_box_1.setVisible(self.add_acceptance_slits==1)
         self.orientation_box_2.setVisible(self.add_acceptance_slits==0)
+
+        if self.is_infinite == 0:
+            self.acceptance_slits_mode=1
+            self.cb_acceptance_slits_mode.setEnabled(False)
 
         self.set_AcceptanceSlitsMode()
 
@@ -53,6 +65,8 @@ class EllipsoidElement(ow_curved_element.CurvedElement):
         self.le_auto_slit_height_zaxis.setEnabled(self.acceptance_slits_mode==1)
         self.le_auto_slit_center_xaxis.setEnabled(self.acceptance_slits_mode==1)
         self.le_auto_slit_center_zaxis.setEnabled(self.acceptance_slits_mode==1)
+
+        self.compute_auto_slits()
 
     def after_change_workspace_units(self):
         super(EllipsoidElement, self).after_change_workspace_units()
@@ -68,8 +82,33 @@ class EllipsoidElement(ow_curved_element.CurvedElement):
 
     # add cleaning slit to fix Shadow Bug
 
+    def set_Dim_Parameters(self):
+        super(EllipsoidElement, self).set_Dim_Parameters()
+
+        if hasattr(self, "add_acceptance_slits") and \
+                hasattr(self, "acceptance_slits_mode") and \
+                hasattr(self, "cb_acceptance_slits_mode"):
+            if self.add_acceptance_slits==1:
+                if self.is_infinite==0: #infinite
+                    self.acceptance_slits_mode = 1
+                    self.cb_acceptance_slits_mode.setEnabled(False)
+                else:
+                    self.cb_acceptance_slits_mode.setEnabled(True)
+
+                self.set_AcceptanceSlitsMode()
+
+    def compute_auto_slits(self):
+        if self.acceptance_slits_mode==0: #auto slits
+            self.auto_slit_width_xaxis  = round(1.1*(self.dim_x_plus + self.dim_x_minus), 3)
+            self.auto_slit_height_zaxis = round(2.0*numpy.abs((self.dim_y_plus + self.dim_y_minus)*numpy.sin(self.incidence_angle_mrad*1e-3)), 3)
+            self.auto_slit_center_xaxis = round((self.dim_x_plus-self.dim_x_minus)/2, 3)
+            self.auto_slit_center_zaxis = round((self.dim_y_plus-self.dim_y_minus)/2, 3)
+
     def completeOperations(self, shadow_oe):
         if self.add_acceptance_slits==1:
+            congruence.checkStrictlyPositiveNumber(self.auto_slit_width_xaxis, "Slit width/x-axis")
+            congruence.checkStrictlyPositiveNumber(self.auto_slit_height_zaxis, "Slit height/z-axis")
+
             n_screen = 1
             i_screen = numpy.zeros(10)  # after
             i_abs = numpy.zeros(10)
@@ -88,10 +127,10 @@ class EllipsoidElement(ow_curved_element.CurvedElement):
             i_screen[0] = 1
             i_slit[0] = 1
 
-            rx_slit[0] = 1.1*(self.dim_x_plus + self.dim_x_minus)
-            rz_slit[0] = 2.0*numpy.abs((self.dim_y_plus + self.dim_y_minus)*numpy.sin(self.incidence_angle_mrad*1e-3))
-            cx_slit[0] = (self.dim_x_plus-self.dim_x_minus)/2
-            cz_slit[0] = (self.dim_y_plus-self.dim_y_minus)/2
+            rx_slit[0] = self.auto_slit_width_xaxis
+            rz_slit[0] = self.auto_slit_height_zaxis
+            cx_slit[0] = self.auto_slit_center_xaxis
+            cz_slit[0] = self.auto_slit_center_zaxis
 
             shadow_oe._oe.set_screens(n_screen,
                                      i_screen,
