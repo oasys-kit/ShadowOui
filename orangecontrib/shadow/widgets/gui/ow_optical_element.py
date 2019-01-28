@@ -1725,16 +1725,17 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             x_coords, y_coords, z_values = ShadowPreProcessor.read_surface_error_file(filename)
 
             x_to_plot, y_to_plot = numpy.meshgrid(x_coords, y_coords)
+            z_to_plot = z_values.T
 
-            axis.plot_surface(x_to_plot, y_to_plot, (z_values*parent.workspace_units_to_m*1e9).T,
+            axis.plot_surface(x_to_plot, y_to_plot, (z_to_plot*parent.workspace_units_to_m*1e9),
                               rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
 
             sloperms = profiles_simulation.slopes(z_values, x_coords, y_coords, return_only_rms=1)
 
             title = ' Slope error rms in X direction: %f $\mu$rad' % (sloperms[0]*1e6) + '\n' + \
                     ' Slope error rms in Y direction: %f $\mu$rad' % (sloperms[1]*1e6) + '\n' + \
-                    ' Figure error rms in X direction: %f nm' % (round(z_values[0, :].std()*parent.workspace_units_to_m*1e9, 6)) + '\n' + \
-                    ' Figure error rms in Y direction: %f nm' % (round(z_values[:, 0].std()*parent.workspace_units_to_m*1e9, 6))
+                    ' Figure error rms in X direction: %f nm' % (round(z_values[:, 0].std()*parent.workspace_units_to_m*1e9, 6)) + '\n' + \
+                    ' Figure error rms in Y direction: %f nm' % (round(z_values[0, :].std()*parent.workspace_units_to_m*1e9, 6))
 
             axis.set_title(title)
 

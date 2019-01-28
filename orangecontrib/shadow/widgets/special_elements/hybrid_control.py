@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QMessageBox
 
 from oasys.widgets import congruence
 
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowSource, ShadowOpticalElement, ShadowCompoundOpticalElement
+from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowOpticalElement
 from orangecontrib.shadow.util.shadow_util import ShadowPhysics, ShadowPreProcessor
 
 from srxraylib.util.data_structures import ScaledArray, ScaledMatrix
@@ -17,17 +17,6 @@ from srxraylib.waveoptics.wavefront2D import Wavefront2D
 from srxraylib.waveoptics import propagator
 from srxraylib.waveoptics import propagator2D
 
-from scipy import interpolate
-
-'''
-Diffraction Plane
-ghy_diff_plane = 1 : X
-ghy_diff_plane = 2 : Z
-ghy_diff_plane = 3 : X+Z
-
-ghy_nf = 1 generate near-field profile
-
-'''
 class HybridNotNecessaryWarning(Exception):
     def __init__(self, *args, **kwargs):
         pass
@@ -926,6 +915,7 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
     if do_nf:
         calculation_parameters.nf_beam = calculation_parameters.screen_plane_beam.duplicate(history=False)
         calculation_parameters.nf_beam._oe_number = input_parameters.shadow_beam._oe_number
+        calculation_parameters.nf_beam._beam.retrace(input_parameters.ghy_distance)
 
     if input_parameters.ghy_diff_plane == 1: #1d calculation in x direction
         angle_perpen = numpy.arctan(calculation_parameters.zp_screen/calculation_parameters.yp_screen)
