@@ -27,6 +27,10 @@ class HybridScreen(AutomaticElement):
                 "type":ShadowBeam,
                 "doc":"Shadow Beam",
                 "id":"beam_ff"},
+               {"name":"Output Beam (Near Field)",
+                "type":ShadowBeam,
+                "doc":"Shadow Beam",
+                "id":"beam_nf"},
                {"name":"Trigger",
                 "type": TriggerIn,
                 "doc":"Feedback signal to start a new beam simulation",
@@ -543,6 +547,12 @@ class HybridScreen(AutomaticElement):
                     calculation_parameters.ff_beam.setScanningData(self.input_beam.scanned_variable_data)
 
                     self.send("Output Beam (Far Field)", calculation_parameters.ff_beam)
+
+                    if do_nf:
+                        calculation_parameters.nf_beam.setScanningData(self.input_beam.scanned_variable_data)
+
+                        self.send("Output Beam (Near Field)", calculation_parameters.nf_beam)
+
                     self.send("Trigger", TriggerIn(new_object=True))
                 else:
                     raise Exception("Input Beam with no good rays")
