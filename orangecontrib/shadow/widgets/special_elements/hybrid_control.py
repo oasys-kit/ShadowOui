@@ -72,8 +72,8 @@ class HybridCalculationParameters(object):
     screen_plane_beam = None
 
     # Star
-    xx_star = None
-    zz_star = None
+    #xx_star = None
+    #zz_star = None
 
     # Screen
     wenergy     = None
@@ -617,6 +617,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
     input_parameters.shadow_beam = shadow_beam_at_image_plane
 
+    #TODO: TEMP!!!!!!!!!
     image_beam, image_beam_lo = read_shadow_beam(shadow_beam_at_image_plane, lost=True) #xshi change from 0 to 1
 
     calculation_parameters.shadow_oe_end = shadow_oe
@@ -626,9 +627,6 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
     calculation_parameters.image_plane_beam = image_beam
     calculation_parameters.image_plane_beam_lost = image_beam_lo
-
-    calculation_parameters.xx_star = image_beam._beam.rays[:, 0]
-    calculation_parameters.zz_star = image_beam._beam.rays[:, 2]
 
     # read shadow screen file
     screen_beam= sh_readsh(fileShadowScreen)    #xshi change from 0 to 1
@@ -760,7 +758,7 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
             calculation_parameters.w_mirror_lz = ScaledArray.initialize_from_steps(np_array,
                                                                                    calculation_parameters.w_mirr_2D_values.y_coord[0],
                                                                                    calculation_parameters.w_mirr_2D_values.y_coord[1] - calculation_parameters.w_mirr_2D_values.y_coord[0])
-
+            #TODO: QUA DIO CAN!
             if shadow_oe._oe.F_MOVE == 1:
                 mirror_angle = calculation_parameters.wangle_z(0)*1e-3
 
@@ -769,7 +767,9 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
                 calculation_parameters.w_mirror_lz.set_scale_from_steps(calculation_parameters.w_mirror_lz.get_scale_value(0) + shadow_oe._oe.OFFY,
                                                                         calculation_parameters.w_mirror_lz.delta())
 
-                calculation_parameters.w_mirror_lz.np_array += calculation_parameters.w_mirror_lz.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT))
+                calculation_parameters.w_mirror_lz.set_values(calculation_parameters.w_mirror_lz.get_values() + calculation_parameters.w_mirror_lz.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT)))
+
+
 
     # generate intensity profile (histogram): I_ray(z) curve
 
@@ -938,6 +938,16 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
     calculation_parameters.ff_beam = calculation_parameters.image_plane_beam.duplicate(history=False)
     calculation_parameters.ff_beam._oe_number = input_parameters.shadow_beam._oe_number
 
+    shadow_oe = calculation_parameters.shadow_oe_end
+    if shadow_oe._oe.F_MOVE==1:
+        mirror_angle = calculation_parameters.wangle_z(0)*1e-3
+
+        offset_x = shadow_oe._oe.OFFX
+        offset_z = shadow_oe._oe.OFFZ*numpy.cos(mirror_angle) + shadow_oe._oe.OFFY*numpy.sin(mirror_angle)
+    else:
+        offset_x = 0
+        offset_z = 0
+
     if do_nf:
         calculation_parameters.nf_beam = calculation_parameters.image_plane_beam.duplicate(history=False)
         calculation_parameters.nf_beam._oe_number = input_parameters.shadow_beam._oe_number
@@ -946,32 +956,37 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
         angle_perpen = numpy.arctan(calculation_parameters.zp_screen/calculation_parameters.yp_screen)
         angle_num = numpy.sqrt(1+(numpy.tan(angle_perpen))**2+(numpy.tan(calculation_parameters.dx_conv))**2)
 
-        calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
+        calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff) + offset_x
+        calculation_parameters.ff_beam._beam.rays[:, 2] += offset_z
         calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
         calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
         calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(angle_perpen)/angle_num
 
-        if do_nf: calculation_parameters.nf_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)
+        if do_nf:
+            calculation_parameters.nf_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf) + offset_x
+            calculation_parameters.nf_beam._beam.rays[:, 2] += offset_z
 
     elif input_parameters.ghy_diff_plane == 2: #1d calculation in z direction
         angle_perpen = numpy.arctan(calculation_parameters.xp_screen/calculation_parameters.yp_screen)
         angle_num = numpy.sqrt(1+(numpy.tan(angle_perpen))**2+(numpy.tan(calculation_parameters.dz_conv))**2)
 
-        calculation_parameters.ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
+        calculation_parameters.ff_beam._beam.rays[:, 0] += offset_x
+        calculation_parameters.ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff) + offset_z
         calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(angle_perpen)/angle_num
         calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
         calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
 
-        if do_nf: calculation_parameters.nf_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)
+        if do_nf:
+             calculation_parameters.nf_beam._beam.rays[:, 0] += offset_x
+             calculation_parameters.nf_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf) + offset_z
     elif input_parameters.ghy_diff_plane == 3: # 2d calculation
         angle_num = numpy.sqrt(1+(numpy.tan(calculation_parameters.dz_conv))**2+(numpy.tan(calculation_parameters.dx_conv))**2)
 
-        calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
-        calculation_parameters.ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
+        calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff) + offset_x
+        calculation_parameters.ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff) + offset_z
         calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
         calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
         calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
-
 
     calculation_parameters.ff_beam = ShadowBeam.mergeBeams(calculation_parameters.ff_beam, calculation_parameters.image_plane_beam_lost)
     if do_nf: calculation_parameters.nf_beam = ShadowBeam.mergeBeams(calculation_parameters.nf_beam, calculation_parameters.image_plane_beam_lost)
