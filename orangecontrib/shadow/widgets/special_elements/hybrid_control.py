@@ -939,7 +939,7 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
 
     shadow_oe = calculation_parameters.shadow_oe_end
     if shadow_oe._oe.F_MOVE==1:
-        mirror_angle = calculation_parameters.wangle_z(0)*1e-3
+        mirror_angle = numpy.radians(90-shadow_oe._oe.T_INCIDENCE)
 
         offset_x = shadow_oe._oe.OFFX
         offset_z = shadow_oe._oe.OFFZ*numpy.cos(mirror_angle) + shadow_oe._oe.OFFY*numpy.sin(mirror_angle)
