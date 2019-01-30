@@ -758,7 +758,6 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
             calculation_parameters.w_mirror_lz = ScaledArray.initialize_from_steps(np_array,
                                                                                    calculation_parameters.w_mirr_2D_values.y_coord[0],
                                                                                    calculation_parameters.w_mirr_2D_values.y_coord[1] - calculation_parameters.w_mirr_2D_values.y_coord[0])
-            #TODO: QUA DIO CAN!
             if shadow_oe._oe.F_MOVE == 1:
                 mirror_angle = calculation_parameters.wangle_z(0)*1e-3
 
