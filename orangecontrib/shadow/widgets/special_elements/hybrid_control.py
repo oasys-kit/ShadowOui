@@ -749,8 +749,10 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
                                                                                    calculation_parameters.w_mirr_2D_values.x_coord[0],
                                                                                    calculation_parameters.w_mirr_2D_values.x_coord[1] - calculation_parameters.w_mirr_2D_values.x_coord[0])
             if shadow_oe._oe.F_MOVE == 1:
-                calculation_parameters.w_mirror_lx.scale    += shadow_oe._oe.OFFX
-                calculation_parameters.w_mirror_lx.np_array += calculation_parameters.w_mirror_lx.scale*numpy.sin(numpy.radians(-shadow_oe._oe.Y_ROT))
+                calculation_parameters.w_mirror_lx.set_scale_from_steps(calculation_parameters.w_mirror_lx.get_scale_value(0) + shadow_oe._oe.OFFX,
+                                                                        calculation_parameters.w_mirror_lx.delta())
+
+                calculation_parameters.w_mirror_lx.np_array += calculation_parameters.w_mirror_lx.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.Y_ROT))
 
         if input_parameters.ghy_diff_plane == 2 or input_parameters.ghy_diff_plane == 3: #Z
             np_array = calculation_parameters.w_mirr_2D_values.z_values[round(len(calculation_parameters.w_mirr_2D_values.x_coord)/2), :]
@@ -762,8 +764,12 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
             if shadow_oe._oe.F_MOVE == 1:
                 mirror_angle = calculation_parameters.wangle_z(0)*1e-3
 
-                calculation_parameters.w_mirror_lz.scale    += shadow_oe._oe.OFFZ/mirror_angle + shadow_oe._oe.OFFY
-                calculation_parameters.w_mirror_lz.np_array += calculation_parameters.w_mirror_lz.scale*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT))
+                calculation_parameters.w_mirror_lz.set_scale_from_steps(calculation_parameters.w_mirror_lz.get_scale_value(0) + shadow_oe._oe.OFFZ/mirror_angle,
+                                                                        calculation_parameters.w_mirror_lz.delta())
+                calculation_parameters.w_mirror_lz.set_scale_from_steps(calculation_parameters.w_mirror_lz.get_scale_value(0) + shadow_oe._oe.OFFY,
+                                                                        calculation_parameters.w_mirror_lz.delta())
+
+                calculation_parameters.w_mirror_lz.np_array += calculation_parameters.w_mirror_lz.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT))
 
     # generate intensity profile (histogram): I_ray(z) curve
 
@@ -1468,8 +1474,10 @@ def propagate_2D(calculation_parameters, input_parameters):
             if shadow_oe._oe.F_MOVE == 1:
                 mirror_angle = calculation_parameters.wangle_z(0)*1e-3
 
-                w_mirror_lz.scale    += shadow_oe._oe.OFFZ/mirror_angle + shadow_oe._oe.OFFY
-                w_mirror_lz.np_array += w_mirror_lz.scale*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT))
+                w_mirror_lz.set_scale_from_steps(w_mirror_lz.get_scale_value(0) + shadow_oe._oe.OFFZ/mirror_angle, w_mirror_lz.delta())
+                w_mirror_lz.set_scale_from_steps(w_mirror_lz.get_scale_value(0) + shadow_oe._oe.OFFY, w_mirror_lz.delta())
+
+                calculation_parameters.w_mirror_lz.np_array += calculation_parameters.w_mirror_lz.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT))
 
             phase_shifts[index, :] = get_mirror_figure_error_phase_shift(wavefront.get_coordinate_y(),
                                                                          calculation_parameters.gwavelength,
@@ -1492,8 +1500,10 @@ def propagate_2D(calculation_parameters, input_parameters):
             if shadow_oe._oe.F_MOVE == 1:
                 mirror_angle = calculation_parameters.wangle_z(0)*1e-3
 
-                w_mirror_lz.scale    += shadow_oe._oe.OFFZ/mirror_angle + shadow_oe._oe.OFFY
-                w_mirror_lz.np_array += w_mirror_lz.scale*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT))
+                w_mirror_lz.set_scale_from_steps(w_mirror_lz.get_scale_value(0) + shadow_oe._oe.OFFZ/mirror_angle, w_mirror_lz.delta())
+                w_mirror_lz.set_scale_from_steps(w_mirror_lz.get_scale_value(0) + shadow_oe._oe.OFFY, w_mirror_lz.delta())
+
+                calculation_parameters.w_mirror_lz.np_array += calculation_parameters.w_mirror_lz.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT))
 
             phase_shifts[index, :] = get_grating_figure_error_phase_shift(wavefront.get_coordinate_y(),
                                                                           calculation_parameters.gwavelength,
