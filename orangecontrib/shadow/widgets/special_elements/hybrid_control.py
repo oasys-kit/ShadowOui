@@ -570,16 +570,17 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         else:
             raise Exception("O.E. has not Surface Error file (setup Advanced Option->Modified Surface:\n\nModification Type = Surface Error\nType of Defect: external spline)")
 
+    #TODO: check compatibility between hybrid calcualtion and angle of rotations (es. tangential -> rot X, sagittal -> rot Y)
+
     # tracing must be done without o.e. movements: hybrid is going to take care of that
-    f_move = shadow_oe._oe.F_MOVE
     x_rot  = shadow_oe._oe.X_ROT
     y_rot  = shadow_oe._oe.Y_ROT
     z_rot  = shadow_oe._oe.Z_ROT
-    offx   = shadow_oe._oe.OFFX
-    offy   = shadow_oe._oe.OFFY
-    offz   = shadow_oe._oe.OFFZ
 
-    shadow_oe._oe.F_MOVE = 0
+    shadow_oe._oe.X_ROT  = 0.0
+    shadow_oe._oe.Y_ROT  = 0.0
+    shadow_oe._oe.Z_ROT  = 0.0
+
     shadow_oe._oe.set_screens(n_screen,
                               i_screen,
                               i_abs,
@@ -607,17 +608,12 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
     shadow_beam_at_image_plane = ShadowBeam.traceFromOE(shadow_oe_input_beam, shadow_oe, history=False)
 
     # restore o.e. setting for further calculations
-    shadow_oe._oe.F_MOVE = f_move
     shadow_oe._oe.X_ROT  = x_rot
     shadow_oe._oe.Y_ROT  = y_rot
     shadow_oe._oe.Z_ROT  = z_rot
-    shadow_oe._oe.OFFX   = offx
-    shadow_oe._oe.OFFY   = offy
-    shadow_oe._oe.OFFZ   = offz
 
     input_parameters.shadow_beam = shadow_beam_at_image_plane
 
-    #TODO: TEMP!!!!!!!!!
     image_beam, image_beam_lo = read_shadow_beam(shadow_beam_at_image_plane, lost=True) #xshi change from 0 to 1
 
     calculation_parameters.shadow_oe_end = shadow_oe
@@ -741,34 +737,22 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
         shadow_oe = calculation_parameters.shadow_oe_end
 
         if input_parameters.ghy_diff_plane == 1 or input_parameters.ghy_diff_plane == 3: #X
-            np_array = calculation_parameters.w_mirr_2D_values.z_values[:, round(len(calculation_parameters.w_mirr_2D_values.y_coord)/2)]
+            offset_y_index =  0.0 if shadow_oe._oe.F_MOVE == 0 else shadow_oe._oe.OFFY/calculation_parameters.w_mirr_2D_values.delta_y()
+
+            np_array = calculation_parameters.w_mirr_2D_values.z_values[:, int(len(calculation_parameters.w_mirr_2D_values.y_coord)/2 - offset_y_index)]
 
             calculation_parameters.w_mirror_lx = ScaledArray.initialize_from_steps(np_array,
                                                                                    calculation_parameters.w_mirr_2D_values.x_coord[0],
                                                                                    calculation_parameters.w_mirr_2D_values.x_coord[1] - calculation_parameters.w_mirr_2D_values.x_coord[0])
-            if shadow_oe._oe.F_MOVE == 1:
-                calculation_parameters.w_mirror_lx.set_scale_from_steps(calculation_parameters.w_mirror_lx.get_scale_value(0) + shadow_oe._oe.OFFX,
-                                                                        calculation_parameters.w_mirror_lx.delta())
-
-                calculation_parameters.w_mirror_lx.np_array += calculation_parameters.w_mirror_lx.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.Y_ROT))
 
         if input_parameters.ghy_diff_plane == 2 or input_parameters.ghy_diff_plane == 3: #Z
-            np_array = calculation_parameters.w_mirr_2D_values.z_values[round(len(calculation_parameters.w_mirr_2D_values.x_coord)/2), :]
+            offset_x_index =  0.0 if shadow_oe._oe.F_MOVE == 0 else shadow_oe._oe.OFFX/calculation_parameters.w_mirr_2D_values.delta_x()
+
+            np_array = calculation_parameters.w_mirr_2D_values.z_values[int(len(calculation_parameters.w_mirr_2D_values.x_coord)/2 - offset_x_index), :]
 
             calculation_parameters.w_mirror_lz = ScaledArray.initialize_from_steps(np_array,
                                                                                    calculation_parameters.w_mirr_2D_values.y_coord[0],
                                                                                    calculation_parameters.w_mirr_2D_values.y_coord[1] - calculation_parameters.w_mirr_2D_values.y_coord[0])
-            if shadow_oe._oe.F_MOVE == 1:
-                mirror_angle = calculation_parameters.wangle_z(0)*1e-3
-
-                calculation_parameters.w_mirror_lz.set_scale_from_steps(calculation_parameters.w_mirror_lz.get_scale_value(0) + shadow_oe._oe.OFFZ/mirror_angle,
-                                                                        calculation_parameters.w_mirror_lz.delta())
-                calculation_parameters.w_mirror_lz.set_scale_from_steps(calculation_parameters.w_mirror_lz.get_scale_value(0) + shadow_oe._oe.OFFY,
-                                                                        calculation_parameters.w_mirror_lz.delta())
-
-                calculation_parameters.w_mirror_lz.set_values(calculation_parameters.w_mirror_lz.get_values() + calculation_parameters.w_mirror_lz.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT)))
-
-
 
     # generate intensity profile (histogram): I_ray(z) curve
 
@@ -937,16 +921,6 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
     calculation_parameters.ff_beam = calculation_parameters.image_plane_beam.duplicate(history=False)
     calculation_parameters.ff_beam._oe_number = input_parameters.shadow_beam._oe_number
 
-    shadow_oe = calculation_parameters.shadow_oe_end
-    if shadow_oe._oe.F_MOVE==1:
-        mirror_angle = numpy.radians(90-shadow_oe._oe.T_INCIDENCE)
-
-        offset_x = shadow_oe._oe.OFFX
-        offset_z = shadow_oe._oe.OFFZ*numpy.cos(mirror_angle) + shadow_oe._oe.OFFY*numpy.sin(mirror_angle)
-    else:
-        offset_x = 0
-        offset_z = 0
-
     if do_nf:
         calculation_parameters.nf_beam = calculation_parameters.image_plane_beam.duplicate(history=False)
         calculation_parameters.nf_beam._oe_number = input_parameters.shadow_beam._oe_number
@@ -955,34 +929,30 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
         angle_perpen = numpy.arctan(calculation_parameters.zp_screen/calculation_parameters.yp_screen)
         angle_num = numpy.sqrt(1+(numpy.tan(angle_perpen))**2+(numpy.tan(calculation_parameters.dx_conv))**2)
 
-        calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff) + offset_x
-        calculation_parameters.ff_beam._beam.rays[:, 2] += offset_z
+        calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
         calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
         calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
         calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(angle_perpen)/angle_num
 
         if do_nf:
-            calculation_parameters.nf_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf) + offset_x
-            calculation_parameters.nf_beam._beam.rays[:, 2] += offset_z
+            calculation_parameters.nf_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)
 
     elif input_parameters.ghy_diff_plane == 2: #1d calculation in z direction
         angle_perpen = numpy.arctan(calculation_parameters.xp_screen/calculation_parameters.yp_screen)
         angle_num = numpy.sqrt(1+(numpy.tan(angle_perpen))**2+(numpy.tan(calculation_parameters.dz_conv))**2)
 
-        calculation_parameters.ff_beam._beam.rays[:, 0] += offset_x
-        calculation_parameters.ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff) + offset_z
+        calculation_parameters.ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
         calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(angle_perpen)/angle_num
         calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
         calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
 
         if do_nf:
-             calculation_parameters.nf_beam._beam.rays[:, 0] += offset_x
-             calculation_parameters.nf_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf) + offset_z
+             calculation_parameters.nf_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)
     elif input_parameters.ghy_diff_plane == 3: # 2d calculation
         angle_num = numpy.sqrt(1+(numpy.tan(calculation_parameters.dz_conv))**2+(numpy.tan(calculation_parameters.dx_conv))**2)
 
-        calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff) + offset_x
-        calculation_parameters.ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff) + offset_z
+        calculation_parameters.ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
+        calculation_parameters.ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
         calculation_parameters.ff_beam._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_conv)/angle_num
         calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
         calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
@@ -1017,6 +987,12 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
     do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
 
     scale_factor = 1.0
+
+    shadow_oe = calculation_parameters.shadow_oe_end
+
+    if shadow_oe._oe.Y_ROT != 0.0:
+        calculation_parameters.w_mirror_lx.set_values(calculation_parameters.w_mirror_lx.get_values() +
+                                                      calculation_parameters.w_mirror_lx.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.Y_ROT)))
 
     if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
         rms_slope = hy_findrmsslopefromheight(calculation_parameters.w_mirror_lx)
@@ -1213,6 +1189,12 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters, debug=Fal
 
     scale_factor = 1.0
 
+    shadow_oe = calculation_parameters.shadow_oe_end
+
+    if shadow_oe._oe.X_ROT != 0.0:
+        calculation_parameters.w_mirror_lz.set_values(calculation_parameters.w_mirror_lz.get_values() +
+                                                      calculation_parameters.w_mirror_lz.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT)))
+
     if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
         rms_slope = hy_findrmsslopefromheight(calculation_parameters.w_mirror_lz)
 
@@ -1274,6 +1256,7 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters, debug=Fal
                                                                        calculation_parameters.wl_z,
                                                                        calculation_parameters.w_mirror_lz))
 
+
     if do_nf: input_parameters.widget.set_progress_bar(35)
     else: input_parameters.widget.set_progress_bar(50)
     input_parameters.widget.status_message("calculated plane wave: begin FF propagation (distance = " +  str(focallength_ff) + ")")
@@ -1288,8 +1271,6 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters, debug=Fal
     if do_nf: input_parameters.widget.set_progress_bar(50)
     else: input_parameters.widget.set_progress_bar(70)
     input_parameters.widget.status_message("dif_zp: begin calculation")
-
-    shadow_oe = calculation_parameters.shadow_oe_end
 
     imagesize = min(abs(calculation_parameters.ghy_z_max), abs(calculation_parameters.ghy_z_min)) * 2
     # 2017-01 Luca Rebuffi
@@ -1486,11 +1467,6 @@ def propagate_2D(calculation_parameters, input_parameters):
                                                             calculation_parameters.w_mirr_2D_values.y_coord[1] - calculation_parameters.w_mirr_2D_values.y_coord[0])
 
             if shadow_oe._oe.F_MOVE == 1:
-                mirror_angle = calculation_parameters.wangle_z(0)*1e-3
-
-                w_mirror_lz.set_scale_from_steps(w_mirror_lz.get_scale_value(0) + shadow_oe._oe.OFFZ/mirror_angle, w_mirror_lz.delta())
-                w_mirror_lz.set_scale_from_steps(w_mirror_lz.get_scale_value(0) + shadow_oe._oe.OFFY, w_mirror_lz.delta())
-
                 calculation_parameters.w_mirror_lz.np_array += calculation_parameters.w_mirror_lz.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT))
 
             phase_shifts[index, :] = get_mirror_figure_error_phase_shift(wavefront.get_coordinate_y(),
@@ -1512,11 +1488,6 @@ def propagate_2D(calculation_parameters, input_parameters):
                                                             calculation_parameters.w_mirr_2D_values.y_coord[1] - calculation_parameters.w_mirr_2D_values.y_coord[0])
 
             if shadow_oe._oe.F_MOVE == 1:
-                mirror_angle = calculation_parameters.wangle_z(0)*1e-3
-
-                w_mirror_lz.set_scale_from_steps(w_mirror_lz.get_scale_value(0) + shadow_oe._oe.OFFZ/mirror_angle, w_mirror_lz.delta())
-                w_mirror_lz.set_scale_from_steps(w_mirror_lz.get_scale_value(0) + shadow_oe._oe.OFFY, w_mirror_lz.delta())
-
                 calculation_parameters.w_mirror_lz.np_array += calculation_parameters.w_mirror_lz.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT))
 
             phase_shifts[index, :] = get_grating_figure_error_phase_shift(wavefront.get_coordinate_y(),
