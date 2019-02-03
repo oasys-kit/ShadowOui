@@ -265,6 +265,21 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
 
                 raise HybridNotNecessaryWarning("O.E. contains the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
         else:
+            # displacements analysis
+            if oe_before._oe.F_MOVE==1:
+                if input_parameters.ghy_calcType == 2 or input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
+                    if input_parameters.ghy_diff_plane == 1: #X
+                        if oe_before._oe.X_ROT != 0.0 or oe_before._oe.Z_ROT != 0.0:
+                            raise Exception("Only rotations around the Y axis are supported for sagittal diffraction plane")
+                    elif input_parameters.ghy_diff_plane == 2 or input_parameters.ghy_diff_plane == 3: #Z
+                        if oe_before._oe.Y_ROT != 0.0 or oe_before._oe.Z_ROT != 0.0:
+                            raise Exception("Only rotations around the X axis are supported for tangential or Both (2D) diffraction planes")
+                    elif input_parameters.ghy_diff_plane == 4: #Z
+                        if oe_before._oe.Z_ROT != 0.0:
+                            raise Exception("Only rotations around the X and Y axis are supported for Both (1D+1D) diffraction planes")
+                else:
+                    raise Exception("O.E. Movements are not supported for this kind of calculation")
+
             ticket_tangential = None
             ticket_sagittal = None
             max_tangential = numpy.Inf
@@ -657,7 +672,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 	# reads file with mirror height mesh
  	# calculates the function of the "incident angle" and the "mirror height" versus the Z coordinate in the screen.
 
-    if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
+    if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4 or input_parameters.ghy_calcType == 2:
         mirror_beam = sh_readsh("mirr." + str_n_oe)  #xshi change from 0 to 1
 
         if input_parameters.file_to_write_out == 1:
@@ -674,7 +689,8 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         calculation_parameters.angle_inc = (90.0 - angle_inc)/180.0*1e3*numpy.pi
         calculation_parameters.angle_ref = (90.0 - angle_ref)/180.0*1e3*numpy.pi
 
-        calculation_parameters.w_mirr_2D_values = sh_readsurface(input_parameters.ghy_mirrorfile, dimension=2)
+        if not input_parameters.ghy_calcType == 2:
+            calculation_parameters.w_mirr_2D_values = sh_readsurface(input_parameters.ghy_mirrorfile, dimension=2)
 
         # generate theta(z) and l(z) curve over a continuous grid
 
@@ -990,12 +1006,19 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
 
     shadow_oe = calculation_parameters.shadow_oe_end
 
-    if shadow_oe._oe.Y_ROT != 0.0:
-        calculation_parameters.w_mirror_lx.set_values(calculation_parameters.w_mirror_lx.get_values() +
-                                                      calculation_parameters.w_mirror_lx.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.Y_ROT)))
+    global_phase_shift_profile = None
+
+    if shadow_oe._oe.F_MOVE == 1 and shadow_oe._oe.Y_ROT != 0.0:
+        if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
+            global_phase_shift_profile = calculation_parameters.w_mirror_lx
+        else:
+            global_phase_shift_profile = ScaledArray.initialize_from_range(numpy.zeros(3), shadow_oe._oe.RWIDX2, shadow_oe._oe.RWIDX1)
+
+        global_phase_shift_profile.set_values(global_phase_shift_profile.get_values() +
+                                              global_phase_shift_profile.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.Y_ROT)))
 
     if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
-        rms_slope = hy_findrmsslopefromheight(calculation_parameters.w_mirror_lx)
+        rms_slope = hy_findrmsslopefromheight(global_phase_shift_profile)
 
         input_parameters.widget.status_message("Using RMS slope = " + str(rms_slope))
 
@@ -1020,10 +1043,11 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
     if input_parameters.ghy_calcType == 3:
         if not (rms_slope == 0.0 or average_incident_angle == 0.0):
             focallength_ff = min(focallength_ff,(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min) / 16 / rms_slope / numpy.sin(average_incident_angle / 1e3))#xshi changed
-
-    if input_parameters.ghy_calcType == 4:
+    elif input_parameters.ghy_calcType == 4:
         if not (rms_slope == 0.0 or average_incident_angle == 0.0):
             focallength_ff = min(focallength_ff,(calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min) / 8 / rms_slope / (numpy.sin(average_incident_angle / 1e3) + numpy.sin(average_reflection_angle / 1e3)))#xshi changed
+    elif input_parameters.ghy_calcType == 2 and not global_phase_shift_profile is None:
+        focallength_ff = min(focallength_ff, input_parameters.ghy_distance*4) #TODO: PATCH to be found with a formula
 
     fftsize = int(scale_factor * calculate_fft_size(calculation_parameters.ghy_x_min,
                                                     calculation_parameters.ghy_x_max,
@@ -1048,20 +1072,20 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
 
     wavefront.apply_ideal_lens(focallength_ff)
 
-    if input_parameters.ghy_calcType == 3:
-       wavefront.add_phase_shifts(get_mirror_figure_error_phase_shift(wavefront.get_abscissas(),
-                                                                      calculation_parameters.gwavelength,
-                                                                      calculation_parameters.wangle_x,
-                                                                      calculation_parameters.wl_x,
-                                                                      calculation_parameters.w_mirror_lx))
-
-    if input_parameters.ghy_calcType == 4:
-       wavefront.add_phase_shifts(get_grating_figure_error_phase_shift(wavefront.get_abscissas(),
-                                                                       calculation_parameters.gwavelength,
-                                                                       calculation_parameters.wangle_x,
-                                                                       calculation_parameters.wangle_ref_x,
-                                                                       calculation_parameters.wl_x,
-                                                                       calculation_parameters.w_mirror_lx))
+    if input_parameters.ghy_calcType == 3 or \
+            (input_parameters.ghy_calcType == 2 and not global_phase_shift_profile is None):
+       wavefront.add_phase_shifts(get_mirror_phase_shift(wavefront.get_abscissas(),
+                                                         calculation_parameters.gwavelength,
+                                                         calculation_parameters.wangle_x,
+                                                         calculation_parameters.wl_x,
+                                                         global_phase_shift_profile))
+    elif input_parameters.ghy_calcType == 4:
+       wavefront.add_phase_shifts(get_grating_phase_shift(wavefront.get_abscissas(),
+                                                          calculation_parameters.gwavelength,
+                                                          calculation_parameters.wangle_x,
+                                                          calculation_parameters.wangle_ref_x,
+                                                          calculation_parameters.wl_x,
+                                                          global_phase_shift_profile))
 
 
     if do_nf: input_parameters.widget.set_progress_bar(35)
@@ -1086,7 +1110,6 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
         imagesize = max(imagesize, 8*(focallength_ff*numpy.tan(numpy.radians(numpy.abs(shadow_oe._oe.Y_ROT))) + numpy.abs(shadow_oe._oe.OFFX)))
 
     imagenpts = int(round(imagesize / propagated_wavefront.delta() / 2) * 2 + 1)
-
 
     dif_xp = ScaledArray.initialize_from_range(numpy.ones(propagated_wavefront.size()),
                                                -(imagenpts - 1) / 2 * propagated_wavefront.delta(),
@@ -1128,20 +1151,20 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
 
         wavefront.apply_ideal_lens(input_parameters.ghy_focallength)
 
-        if input_parameters.ghy_calcType == 3:
-           wavefront.add_phase_shifts(get_mirror_figure_error_phase_shift(wavefront.get_abscissas(),
-                                                                          calculation_parameters.gwavelength,
-                                                                          calculation_parameters.wangle_x,
-                                                                          calculation_parameters.wl_x,
-                                                                          calculation_parameters.w_mirror_lx))
-
-        if input_parameters.ghy_calcType == 4:
-           wavefront.add_phase_shifts(get_grating_figure_error_phase_shift(wavefront.get_abscissas(),
-                                                                           calculation_parameters.gwavelength,
-                                                                           calculation_parameters.wangle_x,
-                                                                           calculation_parameters.wangle_ref_x,
-                                                                           calculation_parameters.wl_x,
-                                                                           calculation_parameters.w_mirror_lx))
+        if input_parameters.ghy_calcType == 3 or \
+                (input_parameters.ghy_calcType == 2 and not global_phase_shift_profile is None):
+           wavefront.add_phase_shifts(get_mirror_phase_shift(wavefront.get_abscissas(),
+                                                             calculation_parameters.gwavelength,
+                                                             calculation_parameters.wangle_x,
+                                                             calculation_parameters.wl_x,
+                                                             global_phase_shift_profile))
+        elif input_parameters.ghy_calcType == 4:
+           wavefront.add_phase_shifts(get_grating_phase_shift(wavefront.get_abscissas(),
+                                                              calculation_parameters.gwavelength,
+                                                              calculation_parameters.wangle_x,
+                                                              calculation_parameters.wangle_ref_x,
+                                                              calculation_parameters.wl_x,
+                                                              global_phase_shift_profile))
 
         input_parameters.widget.status_message("calculated plane wave: begin NF propagation (distance = " + str(input_parameters.ghy_distance) + ")")
         input_parameters.widget.set_progress_bar(60)
@@ -1156,8 +1179,7 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
         if input_parameters.ghy_calcType == 3:
             imagesize = max(imagesize,
                             16 * rms_slope * input_parameters.ghy_focallength * numpy.sin(average_incident_angle / 1e3))
-
-        if input_parameters.ghy_calcType == 4:
+        elif input_parameters.ghy_calcType == 4:
             imagesize = max(imagesize,
                             8 * rms_slope * input_parameters.ghy_focallength * (numpy.sin(average_incident_angle / 1e3) + numpy.sin(average_reflection_angle / 1e3)))
 
@@ -1191,12 +1213,21 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters, debug=Fal
 
     shadow_oe = calculation_parameters.shadow_oe_end
 
-    if shadow_oe._oe.X_ROT != 0.0:
-        calculation_parameters.w_mirror_lz.set_values(calculation_parameters.w_mirror_lz.get_values() +
-                                                      calculation_parameters.w_mirror_lz.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT)))
+    global_phase_shift_profile = None
+
+    if shadow_oe._oe.F_MOVE == 1 and shadow_oe._oe.X_ROT != 0.0:
+        if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
+            global_phase_shift_profile = calculation_parameters.w_mirror_lz
+        else:
+            global_phase_shift_profile = ScaledArray.initialize_from_range(numpy.zeros(3), shadow_oe._oe.RLEN2, shadow_oe._oe.RLEN1)
+
+        global_phase_shift_profile.set_values(global_phase_shift_profile.get_values() +
+                                              global_phase_shift_profile.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT)))
+    elif input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
+        global_phase_shift_profile = calculation_parameters.w_mirror_lz
 
     if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
-        rms_slope = hy_findrmsslopefromheight(calculation_parameters.w_mirror_lz)
+        rms_slope = hy_findrmsslopefromheight(global_phase_shift_profile)
 
         input_parameters.widget.status_message("Using RMS slope = " + str(rms_slope))
 
@@ -1216,7 +1247,9 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters, debug=Fal
                                                calculation_parameters.gwavelength)
 
     if (input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4) and rms_slope != 0:
-        focallength_ff = min(focallength_ff,(calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min) / 16 / rms_slope ) #xshi changed
+        focallength_ff = min(focallength_ff, (calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min) / 16 / rms_slope ) #xshi changed
+    elif input_parameters.ghy_calcType == 2 and not global_phase_shift_profile is None:
+        focallength_ff = min(focallength_ff, input_parameters.ghy_distance*4) #TODO: PATCH to be found with a formula
 
     fftsize = int(scale_factor * calculate_fft_size(calculation_parameters.ghy_z_min,
                                                     calculation_parameters.ghy_z_max,
@@ -1241,20 +1274,20 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters, debug=Fal
 
     wavefront.apply_ideal_lens(focallength_ff)
 
-    if input_parameters.ghy_calcType == 3:
-       wavefront.add_phase_shifts(get_mirror_figure_error_phase_shift(wavefront.get_abscissas(),
-                                                                      calculation_parameters.gwavelength,
-                                                                      calculation_parameters.wangle_z,
-                                                                      calculation_parameters.wl_z,
-                                                                      calculation_parameters.w_mirror_lz))
-
-    if input_parameters.ghy_calcType == 4:
-       wavefront.add_phase_shifts(get_grating_figure_error_phase_shift(wavefront.get_abscissas(),
-                                                                       calculation_parameters.gwavelength,
-                                                                       calculation_parameters.wangle_z,
-                                                                       calculation_parameters.wangle_ref_z,
-                                                                       calculation_parameters.wl_z,
-                                                                       calculation_parameters.w_mirror_lz))
+    if input_parameters.ghy_calcType == 3 or \
+            (input_parameters.ghy_calcType == 2 and not global_phase_shift_profile is None):
+       wavefront.add_phase_shifts(get_mirror_phase_shift(wavefront.get_abscissas(),
+                                                         calculation_parameters.gwavelength,
+                                                         calculation_parameters.wangle_z,
+                                                         calculation_parameters.wl_z,
+                                                         global_phase_shift_profile))
+    elif input_parameters.ghy_calcType == 4:
+       wavefront.add_phase_shifts(get_grating_phase_shift(wavefront.get_abscissas(),
+                                                          calculation_parameters.gwavelength,
+                                                          calculation_parameters.wangle_z,
+                                                          calculation_parameters.wangle_ref_z,
+                                                          calculation_parameters.wl_z,
+                                                          global_phase_shift_profile))
 
 
     if do_nf: input_parameters.widget.set_progress_bar(35)
@@ -1332,20 +1365,20 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters, debug=Fal
 
         wavefront.apply_ideal_lens(input_parameters.ghy_focallength)
 
-        if input_parameters.ghy_calcType == 3:
-           wavefront.add_phase_shifts(get_mirror_figure_error_phase_shift(wavefront.get_abscissas(),
-                                                                          calculation_parameters.gwavelength,
-                                                                          calculation_parameters.wangle_z,
-                                                                          calculation_parameters.wl_z,
-                                                                          calculation_parameters.w_mirror_lz))
-
-        if input_parameters.ghy_calcType == 4:
-           wavefront.add_phase_shifts(get_grating_figure_error_phase_shift(wavefront.get_abscissas(),
-                                                                           calculation_parameters.gwavelength,
-                                                                           calculation_parameters.wangle_z,
-                                                                           calculation_parameters.wangle_ref_z,
-                                                                           calculation_parameters.wl_z,
-                                                                           calculation_parameters.w_mirror_lz))
+        if input_parameters.ghy_calcType == 3 or \
+                (input_parameters.ghy_calcType == 2 and not global_phase_shift_profile is None):
+           wavefront.add_phase_shifts(get_mirror_phase_shift(wavefront.get_abscissas(),
+                                                             calculation_parameters.gwavelength,
+                                                             calculation_parameters.wangle_z,
+                                                             calculation_parameters.wl_z,
+                                                             global_phase_shift_profile))
+        elif input_parameters.ghy_calcType == 4:
+           wavefront.add_phase_shifts(get_grating_phase_shift(wavefront.get_abscissas(),
+                                                              calculation_parameters.gwavelength,
+                                                              calculation_parameters.wangle_z,
+                                                              calculation_parameters.wangle_ref_z,
+                                                              calculation_parameters.wl_z,
+                                                              global_phase_shift_profile))
 
         input_parameters.widget.status_message("calculated plane wave: begin NF propagation (distance = " + str(input_parameters.ghy_distance) + ")")
         input_parameters.widget.set_progress_bar(60)
@@ -1393,9 +1426,24 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters, debug=Fal
 
 
 def propagate_2D(calculation_parameters, input_parameters):
+    shadow_oe = calculation_parameters.shadow_oe_end
+
+    global_phase_shift_profile = None
+
+    if shadow_oe._oe.F_MOVE == 1 and shadow_oe._oe.X_ROT != 0.0:
+        if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
+            global_phase_shift_profile = calculation_parameters.w_mirr_2D_values
+        else:
+            global_phase_shift_profile = ScaledMatrix.initialize_from_range(numpy.zeros((3, 3)),
+                                                                            shadow_oe._oe.RWIDX2, shadow_oe._oe.RWIDX1,
+                                                                            shadow_oe._oe.RLEN2,  shadow_oe._oe.RLEN1)
+
+        for x_index in range(global_phase_shift_profile.size_x()):
+            global_phase_shift_profile.z_values[x_index, :] += global_phase_shift_profile.get_y_values()*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT))
+
     # only tangential slopes
     if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
-        rms_slope = hy_findrmsslopefromheight(calculation_parameters.w_mirror_lz)
+        rms_slope = hy_findrmsslopefromheight(global_phase_shift_profile.z_values[int(global_phase_shift_profile.size_x()/2), :])
 
         input_parameters.widget.status_message("Using RMS slope = " + str(rms_slope))
 
@@ -1411,6 +1459,8 @@ def propagate_2D(calculation_parameters, input_parameters):
 
     if (input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4) and rms_slope != 0:
         focallength_ff = min(focallength_ff,(calculation_parameters.ghy_z_max-calculation_parameters.ghy_z_min) / 16 / rms_slope ) #xshi changed
+    elif input_parameters.ghy_calcType == 2 and not global_phase_shift_profile is None:
+        focallength_ff = min(focallength_ff, input_parameters.ghy_distance*4) #TODO: PATCH to be found with a formula
 
     input_parameters.widget.status_message("FF: calculated focal length: " + str(focallength_ff))
 
@@ -1451,51 +1501,44 @@ def propagate_2D(calculation_parameters, input_parameters):
 
     shadow_oe = calculation_parameters.shadow_oe_end
 
-    if input_parameters.ghy_calcType == 3:
+    if input_parameters.ghy_calcType == 3 or \
+            (input_parameters.ghy_calcType == 2 and not global_phase_shift_profile is None):
         input_parameters.widget.status_message("FF: calculating phase shift due to Height Error Profile")
 
         phase_shifts = numpy.zeros(wavefront.size())
 
         for index in range(0, phase_shifts.shape[0]):
-
-            np_array = numpy.zeros(calculation_parameters.w_mirr_2D_values.shape()[1])
+            np_array = numpy.zeros(global_phase_shift_profile.shape()[1])
             for j in range(0, len(np_array)):
-                np_array[j] = calculation_parameters.w_mirr_2D_values.interpolate_value(wavefront.get_coordinate_x()[index], calculation_parameters.w_mirr_2D_values.get_y_value(j))
+                np_array[j] = global_phase_shift_profile.interpolate_value(wavefront.get_coordinate_x()[index], calculation_parameters.w_mirr_2D_values.get_y_value(j))
 
-            w_mirror_lz = ScaledArray.initialize_from_steps(np_array,
-                                                            calculation_parameters.w_mirr_2D_values.y_coord[0],
-                                                            calculation_parameters.w_mirr_2D_values.y_coord[1] - calculation_parameters.w_mirr_2D_values.y_coord[0])
+            global_phase_shift_profile_z = ScaledArray.initialize_from_steps(np_array,
+                                                                             global_phase_shift_profile.y_coord[0],
+                                                                             global_phase_shift_profile.y_coord[1] - global_phase_shift_profile.y_coord[0])
 
-            if shadow_oe._oe.F_MOVE == 1:
-                calculation_parameters.w_mirror_lz.np_array += calculation_parameters.w_mirror_lz.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT))
-
-            phase_shifts[index, :] = get_mirror_figure_error_phase_shift(wavefront.get_coordinate_y(),
-                                                                         calculation_parameters.gwavelength,
-                                                                         calculation_parameters.wangle_z,
-                                                                         calculation_parameters.wl_z,
-                                                                         w_mirror_lz)
+            phase_shifts[index, :] = get_mirror_phase_shift(wavefront.get_coordinate_y(),
+                                                            calculation_parameters.gwavelength,
+                                                            calculation_parameters.wangle_z,
+                                                            calculation_parameters.wl_z,
+                                                            global_phase_shift_profile_z)
         wavefront.add_phase_shifts(phase_shifts)
-
-    if input_parameters.ghy_calcType == 4:
+    elif input_parameters.ghy_calcType == 4:
         input_parameters.widget.status_message("FF: calculating phase shift due to Height Error Profile")
 
         phase_shifts = numpy.zeros(wavefront.size())
 
         for index in range(0, phase_shifts.shape[0]):
 
-            w_mirror_lz = ScaledArray.initialize_from_steps(calculation_parameters.w_mirr_2D_values.z_values[index, :],
-                                                            calculation_parameters.w_mirr_2D_values.y_coord[0],
-                                                            calculation_parameters.w_mirr_2D_values.y_coord[1] - calculation_parameters.w_mirr_2D_values.y_coord[0])
+            global_phase_shift_profile_z = ScaledArray.initialize_from_steps(global_phase_shift_profile.z_values[index, :],
+                                                                             global_phase_shift_profile.y_coord[0],
+                                                                             global_phase_shift_profile.y_coord[1] - global_phase_shift_profile.y_coord[0])
 
-            if shadow_oe._oe.F_MOVE == 1:
-                calculation_parameters.w_mirror_lz.np_array += calculation_parameters.w_mirror_lz.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT))
-
-            phase_shifts[index, :] = get_grating_figure_error_phase_shift(wavefront.get_coordinate_y(),
-                                                                          calculation_parameters.gwavelength,
-                                                                          calculation_parameters.wangle_z,
-                                                                          calculation_parameters.wangle_ref_z,
-                                                                          calculation_parameters.wl_z,
-                                                                          w_mirror_lz)
+            phase_shifts[index, :] = get_grating_phase_shift(wavefront.get_coordinate_y(),
+                                                             calculation_parameters.gwavelength,
+                                                             calculation_parameters.wangle_z,
+                                                             calculation_parameters.wangle_ref_z,
+                                                             calculation_parameters.wl_z,
+                                                             global_phase_shift_profile_z)
         wavefront.add_phase_shifts(phase_shifts)
 
     input_parameters.widget.set_progress_bar(50)
@@ -1755,20 +1798,20 @@ def calculate_focal_length_ff_2D(min_x_value, max_x_value, min_z_value, max_z_va
 def calculate_fft_size(min_value, max_value, wavelength, propagation_distance, fft_npts, factor=100):
     return int(min(factor * (max_value - min_value) ** 2 / wavelength / propagation_distance / 0.88, fft_npts))
 
-def get_mirror_figure_error_phase_shift(abscissas,
-                                        wavelength,
-                                        w_angle_function,
-                                        w_l_function,
-                                        mirror_figure_error):
-    return (-1.0) * 4 * numpy.pi / wavelength * numpy.sin(w_angle_function(abscissas)/1e3) * mirror_figure_error.interpolate_values(w_l_function(abscissas))
+def get_mirror_phase_shift(abscissas,
+                           wavelength,
+                           w_angle_function,
+                           w_l_function,
+                           mirror_profile):
+    return (-1.0) * 4 * numpy.pi / wavelength * numpy.sin(w_angle_function(abscissas)/1e3) * mirror_profile.interpolate_values(w_l_function(abscissas))
 
-def get_grating_figure_error_phase_shift(abscissas,
-                                         wavelength,
-                                         w_angle_function,
-                                         w_angle_ref_function,
-                                         w_l_function,
-                                         mirror_figure_error):
-    return (-1.0) * 2 * numpy.pi / wavelength * (numpy.sin(w_angle_function(abscissas)/1e3) + numpy.sin(w_angle_ref_function(abscissas)/1e3)) * mirror_figure_error.interpolate_values(w_l_function(abscissas))
+def get_grating_phase_shift(abscissas,
+                            wavelength,
+                            w_angle_function,
+                            w_angle_ref_function,
+                            w_l_function,
+                            grating_profile):
+    return (-1.0) * 2 * numpy.pi / wavelength * (numpy.sin(w_angle_function(abscissas)/1e3) + numpy.sin(w_angle_ref_function(abscissas)/1e3)) * grating_profile.interpolate_values(w_l_function(abscissas))
 
 def showConfirmMessage(title, message):
     msgBox = QMessageBox()
