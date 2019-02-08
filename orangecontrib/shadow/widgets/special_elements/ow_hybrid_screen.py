@@ -544,11 +544,12 @@ class HybridScreen(AutomaticElement):
                             else:
                                 self.plot_emtpy(94, 0)
 
-                    calculation_parameters.ff_beam.setScanningData(self.input_beam.scanned_variable_data)
+                    if not calculation_parameters.ff_beam is None:
+                        calculation_parameters.ff_beam.setScanningData(self.input_beam.scanned_variable_data)
 
                     self.send("Output Beam (Far Field)", calculation_parameters.ff_beam)
 
-                    if do_nf:
+                    if do_nf and not calculation_parameters.nf_beam is None:
                         calculation_parameters.nf_beam.setScanningData(self.input_beam.scanned_variable_data)
 
                         self.send("Output Beam (Near Field)", calculation_parameters.nf_beam)
@@ -559,9 +560,6 @@ class HybridScreen(AutomaticElement):
             else:
                 raise Exception("Empty Input Beam")
         except Exception as exception:
-            #self.error_id = self.error_id + 1
-            #self.error(self.error_id, "Exception occurred: " + str(exception))
-
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
             if self.IS_DEVELOP: raise exception
