@@ -61,7 +61,7 @@ class HybridScreen(AutomaticElement):
     ghy_nbins_x = Setting(100)
     ghy_nbins_z = Setting(100)
     ghy_npeak = Setting(10)
-    ghy_fftnpts = Setting(1e6)
+    ghy_fftnpts = Setting(1e5)
 
     file_to_write_out = Setting(0)
 

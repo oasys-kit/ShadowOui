@@ -8,8 +8,8 @@ except AttributeError:
     from setuptools import find_packages, setup
 
 NAME = 'OASYS1-ShadowOui'
-VERSION = '1.4.109'
-ISRELEASED = False
+VERSION = '1.4.110'
+ISRELEASED = True
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
 README_FILE = os.path.join(os.path.dirname(__file__), 'README.txt')
