@@ -75,12 +75,13 @@ class ZonePlate(GenericElement):
     substrate_material = Setting("Si3N4")
     substrate_thickness = Setting(50) # nm
 
-    avg_wavelength = 0.0
+    avg_wavelength  = 0.0
+    number_of_zones = 0
     focal_distance = 0.0
     image_position = 0.0
     magnification  = 0.0
     efficiency     = 0.0
-
+    
     automatically_set_image_plane = Setting(0)
 
     ##################################################
@@ -203,7 +204,7 @@ class ZonePlate(GenericElement):
 
         self.set_TypeOfZP()
 
-        zp_out_box = oasysgui.widgetBox(tab_zone_plate_2, "Output Parameters", addSpace=False, orientation="vertical", height=200)
+        zp_out_box = oasysgui.widgetBox(tab_zone_plate_2, "Output Parameters", addSpace=False, orientation="vertical", height=230)
 
         self.le_avg_wavelength = oasysgui.lineEdit(zp_out_box, self, "avg_wavelength", "Average Wavelenght [nm]", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_avg_wavelength.setReadOnly(True)
@@ -214,6 +215,16 @@ class ZonePlate(GenericElement):
         palette.setColor(QPalette.Text, QColor('dark blue'))
         palette.setColor(QPalette.Base, QColor(243, 240, 160))
         self.le_avg_wavelength.setPalette(palette)
+
+        self.le_number_of_zones = oasysgui.lineEdit(zp_out_box, self, "number_of_zones", "Number of Zones", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_number_of_zones.setReadOnly(True)
+        font = QFont(self.le_number_of_zones.font())
+        font.setBold(True)
+        self.le_number_of_zones.setFont(font)
+        palette = QPalette(self.le_number_of_zones.palette()) # make a copy of the palette
+        palette.setColor(QPalette.Text, QColor('dark blue'))
+        palette.setColor(QPalette.Base, QColor(243, 240, 160))
+        self.le_number_of_zones.setPalette(palette)
 
         self.le_focal_distance = oasysgui.lineEdit(zp_out_box, self, "focal_distance", "Focal Distance", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_focal_distance.setReadOnly(True)
@@ -412,16 +423,16 @@ class ZonePlate(GenericElement):
                     else:
                         self.efficiency = numpy.round(1/(numpy.pi**2), 4)
 
-                    focused_beam = ZonePlate.apply_fresnel_zone_plate(zone_plate_beam,  # WS Units
-                                                                      self.type_of_zp,
-                                                                      self.diameter,  # micron
-                                                                      self.delta_rn, # nm
-                                                                      self.substrate_material,
-                                                                      self.substrate_thickness,
-                                                                      self.zone_plate_material,
-                                                                      self.zone_plate_thickness,
-                                                                      self.source_distance, # WS Units
-                                                                      self.workspace_units_to_m)
+                    focused_beam, self.number_of_zones = ZonePlate.apply_fresnel_zone_plate(zone_plate_beam,  # WS Units
+                                                                                            self.type_of_zp,
+                                                                                            self.diameter,  # micron
+                                                                                            self.delta_rn, # nm
+                                                                                            self.substrate_material,
+                                                                                            self.substrate_thickness,
+                                                                                            self.zone_plate_material,
+                                                                                            self.zone_plate_thickness,
+                                                                                            self.source_distance, # WS Units
+                                                                                            self.workspace_units_to_m)
 
                     self.progressBarSet(60)
 
@@ -594,7 +605,7 @@ class ZonePlate(GenericElement):
                                       file_scr_ext)
 
 
-        return ShadowBeam.traceFromOE(self.input_beam, empty_element, history=True)
+        return ShadowBeam.traceFromOE(self.input_beam, empty_element, history=False)
 
 
     def get_output_beam(self, focused_beam):
@@ -612,7 +623,16 @@ class ZonePlate(GenericElement):
         empty_element._oe.FWRITE = 3
         empty_element._oe.F_ANGLE = 0
 
-        return ShadowBeam.traceFromOE(focused_beam, empty_element, history=True)
+        output_beam = ShadowBeam.traceFromOE(focused_beam, empty_element, history=True)
+        
+        # to provide correct O.E. infos and distance summaries.
+        
+        output_beam.getOEHistory(oe_number=-1)._shadow_oe_start._oe.T_SOURCE = self.source_plane_distance
+        output_beam.getOEHistory(oe_number=-1)._shadow_oe_end._oe.T_SOURCE = self.source_plane_distance
+
+        empty_element._oe.T_SOURCE = self.source_plane_distance
+
+        return output_beam
 
 
     # ALGORITHM EXTRACTED FROM webAbsorb.py by 11BM - Argonne National Laboratory
@@ -730,8 +750,6 @@ class ZonePlate(GenericElement):
         
         max_zones_number = int(diameter*1000/(4*delta_rn))
 
-        print ("Max Zone Number", max_zones_number)
-
         focused_beam = zone_plate_beam.duplicate(history=True)
 
         go = numpy.where(zone_plate_beam._beam.rays[:, 9] == GOOD)
@@ -791,4 +809,4 @@ class ZonePlate(GenericElement):
         focused_beam._beam.rays[go_2, 17] = focused_beam._beam.rays[go_2, 17]*efficiency_weight_factor[:]
         focused_beam._beam.rays[go_2, 9] = GOOD
 
-        return focused_beam
+        return focused_beam, max_zones_number
