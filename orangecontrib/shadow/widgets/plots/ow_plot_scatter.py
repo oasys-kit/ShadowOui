@@ -599,62 +599,62 @@ class PlotScatter(AutomaticElement):
 
 if __name__ == "__main__":
     from PyQt5.QtWidgets import QApplication
-    # app = QApplication(sys.argv)
-    # w = PlotScatter()
-    #
-    # #
-    # # load a Beam
-    # #
-    # from orangecontrib.shadow.util.shadow_objects import ShadowOEHistoryItem
-    # beam_out = ShadowBeam()
-    # beam_out.loadFromFile("/Users/srio/Oasys/test_transparency.00")
-    # beam_out.history.append(ShadowOEHistoryItem())  # fake Source
-    # beam_out._oe_number = 0
-    #
-    # # just to create a safe history for possible re-tracing
-    # beam_out.traceFromOE(beam_out, w.create_dummy_oe(), history=True)
-    #
-    # w.workspace_units_to_cm = 1.0
-    #
-    # w.setBeam(beam_out)
-    #
-    # w.show()
-    # app.exec()
-    # w.saveSettings()
-
-    import numpy
-    from PyQt5.QtWidgets import QApplication
-    n = 100
-    x = (numpy.random.random(n) - 0.5) * 100
-    y = (numpy.random.random(n) - 0.5) * 100
-
-    print(x.shape,y.shape)
-    use_backend = 'matplotlib'
-    # use_backend = 'gl'
-
     app = QApplication(sys.argv)
+    w = PlotScatter()
 
-    plot_canvas = ScatterView(backend=use_backend)
+    #
+    # load a Beam
+    #
+    from orangecontrib.shadow.util.shadow_objects import ShadowOEHistoryItem
+    beam_out = ShadowBeam()
+    beam_out.loadFromFile("/Users/srio/Oasys/test_transparency.00")
+    beam_out.history.append(ShadowOEHistoryItem())  # fake Source
+    beam_out._oe_number = 0
 
-    color_array = x
+    # just to create a safe history for possible re-tracing
+    beam_out.traceFromOE(beam_out, w.create_dummy_oe(), history=True)
 
-    plot_canvas.setColormap(Colormap('viridis'))
-    plot_canvas.setData(x,y,color_array,alpha=numpy.linspace(0.,1,n))
+    w.workspace_units_to_cm = 1.0
 
-    plot_canvas.resetZoom()
-    plot_canvas.setGraphTitle("title")
+    w.setBeam(beam_out)
 
-    ax = plot_canvas.getPlotWidget().getXAxis()
-    # if self.x_range == 1:
-    #     ax.setLimits(self.x_range_min, self.x_range_max)
-    ax.setLabel("xtitle")
-
-    ay = plot_canvas.getPlotWidget().getYAxis()
-    # if self.y_range == 1:
-    #     ay.setLimits(self.y_range_min, self.y_range_max)
-    ay.setLabel("ytitle")
-
-    plot_canvas.show()
+    w.show()
     app.exec()
-    # w.saveSettings()
+    w.saveSettings()
+
+    # import numpy
+    # from PyQt5.QtWidgets import QApplication
+    # n = 100
+    # x = (numpy.random.random(n) - 0.5) * 100
+    # y = (numpy.random.random(n) - 0.5) * 100
+    #
+    # print(x.shape,y.shape)
+    # use_backend = 'matplotlib'
+    # # use_backend = 'gl'
+    #
+    # app = QApplication(sys.argv)
+    #
+    # plot_canvas = ScatterView(backend=use_backend)
+    #
+    # color_array = x
+    #
+    # plot_canvas.setColormap(Colormap('viridis'))
+    # plot_canvas.setData(x,y,color_array,alpha=numpy.linspace(0.,1,n))
+    #
+    # plot_canvas.resetZoom()
+    # plot_canvas.setGraphTitle("title")
+    #
+    # ax = plot_canvas.getPlotWidget().getXAxis()
+    # # if self.x_range == 1:
+    # #     ax.setLimits(self.x_range_min, self.x_range_max)
+    # ax.setLabel("xtitle")
+    #
+    # ay = plot_canvas.getPlotWidget().getYAxis()
+    # # if self.y_range == 1:
+    # #     ay.setLimits(self.y_range_min, self.y_range_max)
+    # ay.setLabel("ytitle")
+    #
+    # plot_canvas.show()
+    # app.exec()
+
 
