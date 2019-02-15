@@ -788,13 +788,9 @@ class ZonePlate(GenericElement):
         if type_of_zp == PHASE_ZP: ZonePlate.analyze_zone(delta_rn, diameter, dark_zones, focused_beam, source_distance, workspace_units_to_m)
     
         go_2 = numpy.where(focused_beam._beam.rays[:, 9] == GOOD_ZP)
-        lo_2 = numpy.where(focused_beam._beam.rays[:, 9] == LOST_ZP)
-    
+
         intensity_go_2 = numpy.sum(focused_beam._beam.rays[go_2, 6] ** 2 + focused_beam._beam.rays[go_2, 7] ** 2 + focused_beam._beam.rays[go_2, 8] ** 2 + \
                                    focused_beam._beam.rays[go_2, 15] ** 2 + focused_beam._beam.rays[go_2, 16] ** 2 + focused_beam._beam.rays[go_2, 17] ** 2)
-    
-        intensity_lo_2 = numpy.sum(focused_beam._beam.rays[lo_2, 6] ** 2 + focused_beam._beam.rays[lo_2, 7] ** 2 + focused_beam._beam.rays[lo_2, 8] ** 2 + \
-                                   focused_beam._beam.rays[lo_2, 15] ** 2 + focused_beam._beam.rays[lo_2, 16] ** 2 + focused_beam._beam.rays[lo_2, 17] ** 2)
 
         if type_of_zp == PHASE_ZP:
             wavelength = ShadowPhysics.getWavelengthFromShadowK(focused_beam._beam.rays[go_2, 10]) # Angstrom
@@ -807,6 +803,11 @@ class ZonePlate(GenericElement):
     
             efficiency_weight_factor = numpy.sqrt(efficiency_zp)
         elif type_of_zp == AMPLITUDE_ZP:
+            lo_2 = numpy.where(focused_beam._beam.rays[:, 9] == LOST_ZP)
+
+            intensity_lo_2 = numpy.sum(focused_beam._beam.rays[lo_2, 6] ** 2 + focused_beam._beam.rays[lo_2, 7] ** 2 + focused_beam._beam.rays[lo_2, 8] ** 2 + \
+                                       focused_beam._beam.rays[lo_2, 15] ** 2 + focused_beam._beam.rays[lo_2, 16] ** 2 + focused_beam._beam.rays[lo_2, 17] ** 2)
+
             efficiency_zp = numpy.ones(len(focused_beam._beam.rays[go_2]))/(numpy.pi**2)
             efficiency_weight_factor = numpy.sqrt(efficiency_zp*(1 + (intensity_lo_2/intensity_go_2)))
 
