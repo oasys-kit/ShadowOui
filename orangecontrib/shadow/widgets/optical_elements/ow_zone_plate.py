@@ -20,8 +20,8 @@ from oasys.util.oasys_util import ChemicalFormulaParser
 AMPLITUDE_ZP = 0
 PHASE_ZP = 1
 
-LOST = -101
 GOOD = 1
+LOST_ZP = -191919
 GOOD_ZP = 2
 
 class ZonePlate(GenericElement):
@@ -392,7 +392,7 @@ class ZonePlate(GenericElement):
 
                     zone_plate_beam = self.get_zone_plate_beam()
 
-                    go = numpy.where(zone_plate_beam._beam.rays[:, 9] == 1)
+                    go = numpy.where(zone_plate_beam._beam.rays[:, 9] == GOOD)
 
                     self.avg_wavelength = ShadowPhysics.getWavelengthFromShadowK(numpy.average(zone_plate_beam._beam.rays[go, 10]))*1e-1 #ANGSTROM->nm
 
@@ -434,9 +434,20 @@ class ZonePlate(GenericElement):
                                                                                             self.source_distance, # WS Units
                                                                                             self.workspace_units_to_m)
 
+                    go = numpy.where(focused_beam._beam.rays[:, 9] == GOOD)
+                    lo = numpy.where(focused_beam._beam.rays[:, 9] != GOOD)
+
+                    print("Focused Beam: ", "GO", len(go[0]), "LO", len(lo[0]))
+
+
                     self.progressBarSet(60)
 
                     beam_out = self.get_output_beam(focused_beam)
+
+                    go = numpy.where(beam_out._beam.rays[:, 9] == GOOD)
+                    lo = numpy.where(beam_out._beam.rays[:, 9] != GOOD)
+
+                    print("Output Beam: ", "GO", len(go[0]), "LO", len(lo[0]))
 
                     self.progressBarSet(80)
 
@@ -454,8 +465,6 @@ class ZonePlate(GenericElement):
 
                     self.send("Beam", beam_out)
                     self.send("Trigger", TriggerIn(new_object=True))
-
-
                 else:
                     raise Exception("Input Beam with no good rays")
             else:
@@ -464,9 +473,6 @@ class ZonePlate(GenericElement):
         except Exception as exception:
             QMessageBox.critical(self, "Error",
                                        str(exception), QMessageBox.Ok)
-
-            #self.error_id = self.error_id + 1
-            #self.error(self.error_id, "Exception occurred: " + str(exception))
 
             if self.IS_DEVELOP: raise exception
 
@@ -604,9 +610,14 @@ class ZonePlate(GenericElement):
                                       cz_slit,
                                       file_scr_ext)
 
+        output_beam = ShadowBeam.traceFromOE(self.input_beam, empty_element, history=True)
 
-        return ShadowBeam.traceFromOE(self.input_beam, empty_element, history=False)
+        go = numpy.where(output_beam._beam.rays[:, 9] == GOOD)
+        lo = numpy.where(output_beam._beam.rays[:, 9] != GOOD)
 
+        print("Zone Plate Beam: ", "GO", len(go[0]), "LO", len(lo[0]))
+
+        return output_beam
 
     def get_output_beam(self, focused_beam):
 
@@ -623,16 +634,7 @@ class ZonePlate(GenericElement):
         empty_element._oe.FWRITE = 3
         empty_element._oe.F_ANGLE = 0
 
-        output_beam = ShadowBeam.traceFromOE(focused_beam, empty_element, history=True)
-        
-        # to provide correct O.E. infos and distance summaries.
-        
-        output_beam.getOEHistory(oe_number=-1)._shadow_oe_start._oe.T_SOURCE = self.source_plane_distance
-        output_beam.getOEHistory(oe_number=-1)._shadow_oe_end._oe.T_SOURCE = self.source_plane_distance
-
-        empty_element._oe.T_SOURCE = self.source_plane_distance
-
-        return output_beam
+        return ShadowBeam.traceFromOE(focused_beam, empty_element, history=True)
 
 
     # ALGORITHM EXTRACTED FROM webAbsorb.py by 11BM - Argonne National Laboratory
@@ -678,21 +680,27 @@ class ZonePlate(GenericElement):
     
     @classmethod
     def analyze_zone(cls, delta_rn, diameter, zones, focused_beam, p_zp, workspace_units_to_m):
-        retraced_beam = focused_beam.duplicate(history = False)
+        to_analyze = numpy.where(focused_beam._beam.rays[:, 9] == LOST_ZP)
+
+        candidate_rays = copy.deepcopy(focused_beam._beam.rays[to_analyze])
+
+        retraced_beam = ShadowBeam()
+        retraced_beam._beam.rays = copy.deepcopy(candidate_rays)
         retraced_beam._beam.retrace(-p_zp)
 
-        x = focused_beam._beam.rays[:, 0]
-        z = focused_beam._beam.rays[:, 2]
+        retraced_rays = retraced_beam._beam.rays
+
+        x = candidate_rays[:, 0]
+        z = candidate_rays[:, 2]
         r = numpy.sqrt(x**2 + z**2) 
 
         for zone in zones:
             t = numpy.where(numpy.logical_and(r >= zone[0], r <= zone[1]))
-    
-            intercepted_rays_i = retraced_beam._beam.rays[t]
-            intercepted_rays_f = focused_beam._beam.rays[t]
+
+            intercepted_rays_i = retraced_rays[t]
+            intercepted_rays_f = candidate_rays[t]
 
             if len(intercepted_rays_f) > 0:
-
                 # (see formulas in A.G. Michette, "X-ray science and technology"
                 #  Institute of Physics Publishing (1993))
 
@@ -729,11 +737,12 @@ class ZonePlate(GenericElement):
                 yp_out = k_y_out / k_mod_int
                 zp_out = k_z_out / k_mod_int
 
-                focused_beam._beam.rays[t, 3] = xp_out
-                focused_beam._beam.rays[t, 4] = yp_out
-                focused_beam._beam.rays[t, 5] = zp_out
-                focused_beam._beam.rays[t, 9] = GOOD_ZP
+                candidate_rays[t, 3] = xp_out
+                candidate_rays[t, 4] = yp_out
+                candidate_rays[t, 5] = zp_out
+                candidate_rays[t, 9] = GOOD_ZP
 
+        focused_beam._beam.rays[to_analyze] = candidate_rays
 
     @classmethod
     def apply_fresnel_zone_plate(cls, 
@@ -752,7 +761,7 @@ class ZonePlate(GenericElement):
 
         focused_beam = zone_plate_beam.duplicate(history=True)
 
-        go = numpy.where(zone_plate_beam._beam.rays[:, 9] == GOOD)
+        go = numpy.where(focused_beam._beam.rays[:, 9] == GOOD)
 
         if type_of_zp == PHASE_ZP: 
             substrate_weight_factor = ZonePlate.get_material_weight_factor(focused_beam._beam.rays[go], substrate_material, substrate_thickness)
@@ -773,13 +782,13 @@ class ZonePlate(GenericElement):
             else: dark_zones.append([r_zone_i_previous, r_zone_i])
             r_zone_i_previous = r_zone_i
                
-        focused_beam._beam.rays[go, 9] = LOST
+        focused_beam._beam.rays[go, 9] = LOST_ZP
         
         ZonePlate.analyze_zone(delta_rn, diameter, clear_zones, focused_beam, source_distance, workspace_units_to_m)
         if type_of_zp == PHASE_ZP: ZonePlate.analyze_zone(delta_rn, diameter, dark_zones, focused_beam, source_distance, workspace_units_to_m)
     
         go_2 = numpy.where(focused_beam._beam.rays[:, 9] == GOOD_ZP)
-        lo_2 = numpy.where(focused_beam._beam.rays[:, 9] == LOST)
+        lo_2 = numpy.where(focused_beam._beam.rays[:, 9] == LOST_ZP)
     
         intensity_go_2 = numpy.sum(focused_beam._beam.rays[go_2, 6] ** 2 + focused_beam._beam.rays[go_2, 7] ** 2 + focused_beam._beam.rays[go_2, 8] ** 2 + \
                                    focused_beam._beam.rays[go_2, 15] ** 2 + focused_beam._beam.rays[go_2, 16] ** 2 + focused_beam._beam.rays[go_2, 17] ** 2)
