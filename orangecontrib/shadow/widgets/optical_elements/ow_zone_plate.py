@@ -24,6 +24,8 @@ GOOD = 1
 LOST_ZP = -191919
 GOOD_ZP = 2
 
+COLLIMATED_SOURCE_LIMIT = 1e4 # m
+
 class ZonePlate(GenericElement):
 
     name = "Zone Plate"
@@ -679,16 +681,24 @@ class ZonePlate(GenericElement):
         return delta, beta 
     
     @classmethod
-    def analyze_zone(cls, delta_rn, diameter, zones, focused_beam, p_zp, workspace_units_to_m):
-        to_analyze = numpy.where(focused_beam._beam.rays[:, 9] == LOST_ZP)
+    def analyze_zone(cls, zones, focused_beam, p_zp, workspace_units_to_m):
+        to_analyze    = numpy.where(focused_beam._beam.rays[:, 9] == LOST_ZP)
 
         candidate_rays = copy.deepcopy(focused_beam._beam.rays[to_analyze])
 
-        retraced_beam = ShadowBeam()
-        retraced_beam._beam.rays = copy.deepcopy(candidate_rays)
-        retraced_beam._beam.retrace(-p_zp)
+        xp = candidate_rays[:, 3]
+        zp = candidate_rays[:, 5]
 
-        retraced_rays = retraced_beam._beam.rays
+        is_collimated = (numpy.max(numpy.abs(xp)) < 1e-9 and numpy.max(numpy.abs(zp)) < 1e-9)
+
+        if is_collimated and not p_zp*workspace_units_to_m > COLLIMATED_SOURCE_LIMIT:
+            raise ValueError("Beam is collimated, Source Distance should be set to infinite ('Different' and > 10 Km)")
+
+        if not is_collimated:
+            retraced_beam = ShadowBeam()
+            retraced_beam._beam.rays = copy.deepcopy(candidate_rays)
+            retraced_beam._beam.retrace(-p_zp)
+            retraced_rays = retraced_beam._beam.rays
 
         x = candidate_rays[:, 0]
         z = candidate_rays[:, 2]
@@ -697,15 +707,15 @@ class ZonePlate(GenericElement):
         for zone in zones:
             t = numpy.where(numpy.logical_and(r >= zone[0], r <= zone[1]))
 
-            intercepted_rays_i = retraced_rays[t]
+            if not is_collimated: intercepted_rays_i = retraced_rays[t]
             intercepted_rays_f = candidate_rays[t]
 
             if len(intercepted_rays_f) > 0:
                 # (see formulas in A.G. Michette, "X-ray science and technology"
                 #  Institute of Physics Publishing (1993))
 
-                x_int_i = intercepted_rays_i[:, 0] # WS Units
-                z_int_i = intercepted_rays_i[:, 2] # WS Units
+                x_int_i = intercepted_rays_i[:, 0] if not is_collimated else numpy.zeros(len(intercepted_rays_f)) # WS Units
+                z_int_i = intercepted_rays_i[:, 2] if not is_collimated else numpy.zeros(len(intercepted_rays_f))# WS Units
                 x_int_f = intercepted_rays_f[:, 0] # WS Units
                 z_int_f = intercepted_rays_f[:, 2] # WS Units
 
@@ -784,8 +794,8 @@ class ZonePlate(GenericElement):
                
         focused_beam._beam.rays[go, 9] = LOST_ZP
         
-        ZonePlate.analyze_zone(delta_rn, diameter, clear_zones, focused_beam, source_distance, workspace_units_to_m)
-        if type_of_zp == PHASE_ZP: ZonePlate.analyze_zone(delta_rn, diameter, dark_zones, focused_beam, source_distance, workspace_units_to_m)
+        ZonePlate.analyze_zone(clear_zones, focused_beam, source_distance, workspace_units_to_m)
+        if type_of_zp == PHASE_ZP: ZonePlate.analyze_zone(dark_zones, focused_beam, source_distance, workspace_units_to_m)
     
         go_2 = numpy.where(focused_beam._beam.rays[:, 9] == GOOD_ZP)
 
