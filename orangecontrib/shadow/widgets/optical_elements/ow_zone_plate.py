@@ -724,9 +724,6 @@ class ZonePlate(GenericElement):
 
                 k_mod_int = intercepted_rays_f[:, 10]       # CM-1!
 
-                #lambda_ray = ShadowPhysics.getWavelengthFromShadowK(k_mod_int) #ANGSTROM
-                #f_ray = (delta_rn*(diameter*1000)/(lambda_ray*1e-1))* (1e-9/workspace_units_to_m)
-
                 r_int = numpy.sqrt((x_int_f-x_int_i)**2 + (z_int_f-z_int_i)**2) # WS Units
 
                 k_x_int = k_mod_int*xp_int # CM-1
