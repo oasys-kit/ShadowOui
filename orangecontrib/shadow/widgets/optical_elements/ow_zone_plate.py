@@ -22,7 +22,7 @@ PHASE_ZP = 1
 
 GOOD = 1
 LOST_ZP = -191919
-GOOD_ZP = 2
+GOOD_ZP = 191919
 
 COLLIMATED_SOURCE_LIMIT = 1e4 # m
 
@@ -83,7 +83,9 @@ class ZonePlate(GenericElement):
     image_position = 0.0
     magnification  = 0.0
     efficiency     = 0.0
-    
+    max_efficiency  = 0.0
+    thickness_max_efficiency     = 0.0
+
     automatically_set_image_plane = Setting(0)
 
     ##################################################
@@ -206,7 +208,7 @@ class ZonePlate(GenericElement):
 
         self.set_TypeOfZP()
 
-        zp_out_box = oasysgui.widgetBox(tab_zone_plate_2, "Output Parameters", addSpace=False, orientation="vertical", height=230)
+        zp_out_box = oasysgui.widgetBox(tab_zone_plate_2, "Output Parameters", addSpace=False, orientation="vertical", height=290)
 
         self.le_avg_wavelength = oasysgui.lineEdit(zp_out_box, self, "avg_wavelength", "Average Wavelenght [nm]", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_avg_wavelength.setReadOnly(True)
@@ -258,7 +260,7 @@ class ZonePlate(GenericElement):
         palette.setColor(QPalette.Base, QColor(243, 240, 160))
         self.le_magnification.setPalette(palette)
 
-        self.le_efficiency = oasysgui.lineEdit(zp_out_box, self, "efficiency", "Efficiency(Avg. Wavelength)", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_efficiency = oasysgui.lineEdit(zp_out_box, self, "efficiency", "Efficiency % (Avg. Wavelength)", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_efficiency.setReadOnly(True)
         font = QFont(self.le_efficiency.font())
         font.setBold(True)
@@ -267,6 +269,26 @@ class ZonePlate(GenericElement):
         palette.setColor(QPalette.Text, QColor('dark blue'))
         palette.setColor(QPalette.Base, QColor(243, 240, 160))
         self.le_efficiency.setPalette(palette)
+
+        self.le_max_efficiency = oasysgui.lineEdit(zp_out_box, self, "max_efficiency", "Max Possible Efficiency %", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_max_efficiency.setReadOnly(True)
+        font = QFont(self.le_max_efficiency.font())
+        font.setBold(True)
+        self.le_max_efficiency.setFont(font)
+        palette = QPalette(self.le_max_efficiency.palette()) # make a copy of the palette
+        palette.setColor(QPalette.Text, QColor('dark blue'))
+        palette.setColor(QPalette.Base, QColor(243, 240, 160))
+        self.le_max_efficiency.setPalette(palette)
+
+        self.le_thickness_max_efficiency = oasysgui.lineEdit(zp_out_box, self, "thickness_max_efficiency", "Max Efficiency Thickness [nm]", labelWidth=260, valueType=float, orientation="horizontal")
+        self.le_thickness_max_efficiency.setReadOnly(True)
+        font = QFont(self.le_thickness_max_efficiency.font())
+        font.setBold(True)
+        self.le_thickness_max_efficiency.setFont(font)
+        palette = QPalette(self.le_thickness_max_efficiency.palette()) # make a copy of the palette
+        palette.setColor(QPalette.Text, QColor('dark blue'))
+        palette.setColor(QPalette.Base, QColor(243, 240, 160))
+        self.le_thickness_max_efficiency.setPalette(palette)
 
         gui.separator(zp_out_box, height=5)
 
@@ -416,25 +438,33 @@ class ZonePlate(GenericElement):
                         avg_energy_in_KeV = ShadowPhysics.getEnergyFromWavelength(self.avg_wavelength*10)/1000
 
                         density = xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(self.zone_plate_material))
-                        delta = (1-xraylib.Refractive_Index_Re(self.zone_plate_material, avg_energy_in_KeV, density))
-                        beta  = xraylib.Refractive_Index_Im(self.zone_plate_material, avg_energy_in_KeV, density)
-                        phi = 2*numpy.pi*self.zone_plate_thickness*delta/self.avg_wavelength
-                        r = beta/delta
+                        delta   = (1-xraylib.Refractive_Index_Re(self.zone_plate_material, avg_energy_in_KeV, density))
+                        beta    = xraylib.Refractive_Index_Im(self.zone_plate_material, avg_energy_in_KeV, density)
+                        phi     = 2*numpy.pi*self.zone_plate_thickness*delta/self.avg_wavelength
+                        rho     = beta/delta
 
-                        self.efficiency = numpy.round(((1 + numpy.exp(-2*r*phi) - (2*numpy.exp(-r*phi)*numpy.cos(phi)))/numpy.pi)**2, 6)
+                        efficiency     = (1/(numpy.pi**2))*(1 + numpy.exp(-2*rho*phi)      - (2*numpy.exp(-rho*phi)*numpy.cos(phi)))
+                        max_efficiency = (1/(numpy.pi**2))*(1 + numpy.exp(-2*rho*numpy.pi) + (2*numpy.exp(-rho*numpy.pi)))
+
+                        self.efficiency = numpy.round(100*efficiency, 3)
+                        self.max_efficiency = numpy.round(100*max_efficiency, 3)
+                        self.thickness_max_efficiency =  numpy.round(self.avg_wavelength /(2*delta), 2)
                     else:
-                        self.efficiency = numpy.round(1/(numpy.pi**2), 4)
+                        self.efficiency = numpy.round(100/(numpy.pi**2), 3)
+                        self.max_efficiency = numpy.nan
+                        self.thickness_max_efficiency =  numpy.nan
 
-                    focused_beam, self.number_of_zones = ZonePlate.apply_fresnel_zone_plate(zone_plate_beam,  # WS Units
-                                                                                            self.type_of_zp,
-                                                                                            self.diameter,  # micron
-                                                                                            self.delta_rn, # nm
-                                                                                            self.substrate_material,
-                                                                                            self.substrate_thickness,
-                                                                                            self.zone_plate_material,
-                                                                                            self.zone_plate_thickness,
-                                                                                            self.source_distance, # WS Units
-                                                                                            self.workspace_units_to_m)
+                    focused_beam, \
+                    self.number_of_zones = ZonePlate.apply_fresnel_zone_plate(zone_plate_beam,  # WS Units
+                                                                              self.type_of_zp,
+                                                                              self.diameter,  # micron
+                                                                              self.delta_rn, # nm
+                                                                              self.substrate_material,
+                                                                              self.substrate_thickness,
+                                                                              self.zone_plate_material,
+                                                                              self.zone_plate_thickness,
+                                                                              self.source_distance, # WS Units
+                                                                              self.workspace_units_to_m)
 
                     go = numpy.where(focused_beam._beam.rays[:, 9] == GOOD)
                     lo = numpy.where(focused_beam._beam.rays[:, 9] != GOOD)
@@ -700,6 +730,21 @@ class ZonePlate(GenericElement):
             retraced_beam._beam.retrace(-p_zp)
             retraced_rays = retraced_beam._beam.rays
 
+            if False:
+                from matplotlib import pyplot as plt
+                from matplotlib import cm
+
+                ticket = retraced_beam._beam.histo2(1, 3, nbins=100, nolost=0)
+
+                X = ticket["bin_h_center"]
+                Y = ticket["bin_v_center"]
+                Z = ticket["histogram"]
+
+                im = plt.imshow(Z, cmap=cm.Greys, vmin=numpy.min(Z), vmax=numpy.max(Z), extent=[min(X), max(X), min(Y), max(Y)])
+                im.set_interpolation('bilinear')
+
+                plt.show()
+
         x = candidate_rays[:, 0]
         z = candidate_rays[:, 2]
         r = numpy.sqrt(x**2 + z**2) 
@@ -800,14 +845,14 @@ class ZonePlate(GenericElement):
                                    focused_beam._beam.rays[go_2, 15] ** 2 + focused_beam._beam.rays[go_2, 16] ** 2 + focused_beam._beam.rays[go_2, 17] ** 2)
 
         if type_of_zp == PHASE_ZP:
-            wavelength = ShadowPhysics.getWavelengthFromShadowK(focused_beam._beam.rays[go_2, 10]) # Angstrom
+            wavelength = ShadowPhysics.getWavelengthFromShadowK(focused_beam._beam.rays[go_2, 10])*1e-1 # nm
             delta, beta = ZonePlate.get_delta_beta(focused_beam._beam.rays[go_2], zone_plate_material)
             
-            phi = 2*numpy.pi*(zone_plate_thickness*1e-9)*delta/(wavelength*1e-10)
-            r = beta/delta
+            phi = 2*numpy.pi*zone_plate_thickness*delta/wavelength
+            rho = beta/delta
                
-            efficiency_zp = ((1 + numpy.exp(-2*r*phi) - (2*numpy.exp(-r*phi)*numpy.cos(phi)))/numpy.pi)**2
-    
+            efficiency_zp = (1/(numpy.pi**2))*(1 + numpy.exp(-2*rho*phi) - (2*numpy.exp(-rho*phi)*numpy.cos(phi)))
+
             efficiency_weight_factor = numpy.sqrt(efficiency_zp)
         elif type_of_zp == AMPLITUDE_ZP:
             lo_2 = numpy.where(focused_beam._beam.rays[:, 9] == LOST_ZP)
