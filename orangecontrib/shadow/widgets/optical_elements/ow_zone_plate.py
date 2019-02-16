@@ -730,24 +730,9 @@ class ZonePlate(GenericElement):
             retraced_beam._beam.retrace(-p_zp)
             retraced_rays = retraced_beam._beam.rays
 
-            if False:
-                from matplotlib import pyplot as plt
-                from matplotlib import cm
-
-                ticket = retraced_beam._beam.histo2(1, 3, nbins=100, nolost=0)
-
-                X = ticket["bin_h_center"]
-                Y = ticket["bin_v_center"]
-                Z = ticket["histogram"]
-
-                im = plt.imshow(Z, cmap=cm.Greys, vmin=numpy.min(Z), vmax=numpy.max(Z), extent=[min(X), max(X), min(Y), max(Y)])
-                im.set_interpolation('bilinear')
-
-                plt.show()
-
         x = candidate_rays[:, 0]
         z = candidate_rays[:, 2]
-        r = numpy.sqrt(x**2 + z**2) 
+        r = numpy.sqrt(x**2 + z**2)
 
         for zone in zones:
             t = numpy.where(numpy.logical_and(r >= zone[0], r <= zone[1]))
@@ -852,8 +837,8 @@ class ZonePlate(GenericElement):
             rho = beta/delta
                
             efficiency_zp = (1/(numpy.pi**2))*(1 + numpy.exp(-2*rho*phi) - (2*numpy.exp(-rho*phi)*numpy.cos(phi)))
-
             efficiency_weight_factor = numpy.sqrt(efficiency_zp)
+
         elif type_of_zp == AMPLITUDE_ZP:
             lo_2 = numpy.where(focused_beam._beam.rays[:, 9] == LOST_ZP)
 
@@ -863,9 +848,9 @@ class ZonePlate(GenericElement):
             efficiency_zp = numpy.ones(len(focused_beam._beam.rays[go_2]))/(numpy.pi**2)
             efficiency_weight_factor = numpy.sqrt(efficiency_zp*(1 + (intensity_lo_2/intensity_go_2)))
 
-        focused_beam._beam.rays[go_2, 6] = focused_beam._beam.rays[go_2, 6]*efficiency_weight_factor[:]
-        focused_beam._beam.rays[go_2, 7] = focused_beam._beam.rays[go_2, 7]*efficiency_weight_factor[:]
-        focused_beam._beam.rays[go_2, 8] = focused_beam._beam.rays[go_2, 8]*efficiency_weight_factor[:]
+        focused_beam._beam.rays[go_2, 6]  = focused_beam._beam.rays[go_2, 6]*efficiency_weight_factor[:]
+        focused_beam._beam.rays[go_2, 7]  = focused_beam._beam.rays[go_2, 7]*efficiency_weight_factor[:]
+        focused_beam._beam.rays[go_2, 8]  = focused_beam._beam.rays[go_2, 8]*efficiency_weight_factor[:]
         focused_beam._beam.rays[go_2, 15] = focused_beam._beam.rays[go_2, 15]*efficiency_weight_factor[:]
         focused_beam._beam.rays[go_2, 16] = focused_beam._beam.rays[go_2, 16]*efficiency_weight_factor[:]
         focused_beam._beam.rays[go_2, 17] = focused_beam._beam.rays[go_2, 17]*efficiency_weight_factor[:]

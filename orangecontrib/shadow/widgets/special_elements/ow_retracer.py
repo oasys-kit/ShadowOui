@@ -82,6 +82,8 @@ class OWRetracer(GenericElement):
     def retrace(self):
         try:
             if not self.input_beam is None:
+                output_beam = self.input_beam.duplicate(history=True)
+
                 empty_element = ShadowOpticalElement.create_empty_oe()
 
                 empty_element._oe.DUMMY = 1.0 # self.workspace_units_to_cm
@@ -95,7 +97,7 @@ class OWRetracer(GenericElement):
                 empty_element._oe.FWRITE = 3
                 empty_element._oe.F_ANGLE = 0
 
-                output_beam = ShadowBeam.traceFromOE(self.input_beam, empty_element, history=True)
+                output_beam = ShadowBeam.traceFromOE(output_beam, empty_element, history=True)
 
                 self.setStatusMessage("Plotting Results")
 
@@ -104,9 +106,7 @@ class OWRetracer(GenericElement):
                 self.setStatusMessage("")
                 self.progressBarFinished()
 
-                self.input_beam._beam.rays = output_beam._beam.rays
-
-                self.send("Beam", self.input_beam)
+                self.send("Beam", output_beam)
                 self.send("Trigger", TriggerIn(new_object=True))
         except Exception as exception:
             QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
