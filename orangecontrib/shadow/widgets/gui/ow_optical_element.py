@@ -608,15 +608,15 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             self.le_focal_x = oasysgui.lineEdit(box_focus, self, "focal_x", "Focal Distance X", labelWidth=260, valueType=float, orientation="horizontal")
             self.le_focal_z = oasysgui.lineEdit(box_focus, self, "focal_z", "Focal Distance Z", labelWidth=260, valueType=float, orientation="horizontal")
         else:
-            gui.comboBox(self.orientation_box, self, "angles_respect_to", label="Angles in [deg] indicated with respect to the", labelWidth=260,
+            gui.comboBox(self.orientation_box, self, "angles_respect_to", label="Angles in [deg] with respect to the", labelWidth=250,
                          items=["Normal", "Surface"],
                          callback=self.set_AnglesRespectTo,
                          sendSelectedValue=False, orientation="horizontal")
 
-            self.incidence_angle_deg_le = oasysgui.lineEdit(self.orientation_box, self, "incidence_angle_deg", "--", labelWidth=300, callback=self.calculate_incidence_angle_mrad, valueType=float, orientation="horizontal")
-            self.incidence_angle_rad_le = oasysgui.lineEdit(self.orientation_box, self, "incidence_angle_mrad", "Incident Angle with respect to the surface [mrad]", labelWidth=300, callback=self.calculate_incidence_angle_deg, valueType=float, orientation="horizontal")
-            self.reflection_angle_deg_le = oasysgui.lineEdit(self.orientation_box, self, "reflection_angle_deg", "--", labelWidth=300, callback=self.calculate_reflection_angle_mrad, valueType=float, orientation="horizontal")
-            self.reflection_angle_rad_le = oasysgui.lineEdit(self.orientation_box, self, "reflection_angle_mrad", "Reflection Angle with respect to the surface [mrad]", labelWidth=300, callback=self.calculate_reflection_angle_deg, valueType=float, orientation="horizontal")
+            self.incidence_angle_deg_le = oasysgui.lineEdit(self.orientation_box, self, "incidence_angle_deg", "Incident Angle\nwith respect to the Normal [deg]", labelWidth=220, callback=self.calculate_incidence_angle_mrad, valueType=float, orientation="horizontal")
+            self.incidence_angle_rad_le = oasysgui.lineEdit(self.orientation_box, self, "incidence_angle_mrad", "Incident Angle\nwith respect to the surface [mrad]", labelWidth=220, callback=self.calculate_incidence_angle_deg, valueType=float, orientation="horizontal")
+            self.reflection_angle_deg_le = oasysgui.lineEdit(self.orientation_box, self, "reflection_angle_deg", "Reflection Angle\nwith respect to the Normal [deg]", labelWidth=220, callback=self.calculate_reflection_angle_mrad, valueType=float, orientation="horizontal")
+            self.reflection_angle_rad_le = oasysgui.lineEdit(self.orientation_box, self, "reflection_angle_mrad", "Reflection Angle\nwith respect to the surface [mrad]", labelWidth=220, callback=self.calculate_reflection_angle_deg, valueType=float, orientation="horizontal")
 
             self.set_AnglesRespectTo()
 
@@ -1482,15 +1482,14 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         label_2 = self.reflection_angle_deg_le.parent().layout().itemAt(0).widget()
 
         if self.angles_respect_to == 0:
-            label_1.setText("Incident Angle with respect to the normal [deg]")
-            label_2.setText("Reflection Angle with respect to the normal [deg]")
+            label_1.setText("Incident Angle\nwith respect to the normal [deg]")
+            label_2.setText("Reflection Angle\nwith respect to the normal [deg]")
         else:
-            label_1.setText("Incident Angle with respect to the surface [deg]")
-            label_2.setText("Reflection Angle with respect to the surface [deg]")
+            label_1.setText("Incident Angle\nwith respect to the surface [deg]")
+            label_2.setText("Reflection Angle\nwith respect to the surface [deg]")
 
         self.calculate_incidence_angle_mrad()
         self.calculate_reflection_angle_mrad()
-
     # TAB 1.1
 
     def set_IntExt_Parameters(self):
@@ -2024,8 +2023,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         self.le_file_prerefl_for_image_medium.setText(oasysgui.selectFileFromDialog(self, self.file_prerefl_for_image_medium, "Select File Prerefl for Image Medium"))
 
     def calculate_incidence_angle_mrad(self):
-        if self.graphical_options.is_grating: digits = 7
-        else: digits = 2
+        digits = 7
 
         if self.angles_respect_to == 0:
             self.incidence_angle_mrad = round(math.radians(90-self.incidence_angle_deg)*1000, digits)
@@ -2044,8 +2042,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             self.reflection_angle_mrad = self.incidence_angle_mrad
 
     def calculate_reflection_angle_mrad(self):
-        if self.graphical_options.is_grating: digits = 7
-        else: digits = 2
+        digits = 7
 
         if self.angles_respect_to == 0:
             self.reflection_angle_mrad = round(math.radians(90 - self.reflection_angle_deg)*1000, digits)
@@ -2053,8 +2050,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             self.reflection_angle_mrad = round(math.radians(self.reflection_angle_deg)*1000, digits)
 
     def calculate_incidence_angle_deg(self):
-        if self.graphical_options.is_grating: digits = 10
-        else: digits = 3
+        digits = 10
 
         if self.angles_respect_to == 0:
             self.incidence_angle_deg = round(math.degrees(0.5 * math.pi - (self.incidence_angle_mrad / 1000)), digits)
@@ -2073,8 +2069,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                     self.incidence_angle_respect_to_normal = round(90 - self.incidence_angle_deg, digits)
 
     def calculate_reflection_angle_deg(self):
-        if self.graphical_options.is_grating: digits = 10
-        else: digits = 3
+        digits = 10
 
         if self.angles_respect_to == 0:
             self.reflection_angle_deg = round(math.degrees(0.5*math.pi-(self.reflection_angle_mrad/1000)), digits)

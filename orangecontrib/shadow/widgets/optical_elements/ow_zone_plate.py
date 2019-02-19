@@ -730,9 +730,7 @@ class ZonePlate(GenericElement):
             retraced_beam._beam.retrace(-p_zp)
             retraced_rays = retraced_beam._beam.rays
 
-        x = candidate_rays[:, 0]
-        z = candidate_rays[:, 2]
-        r = numpy.sqrt(x**2 + z**2)
+        r = numpy.sqrt(candidate_rays[:, 0]**2 + candidate_rays[:, 2]**2)
 
         for zone in zones:
             t = numpy.where(numpy.logical_and(r >= zone[0], r <= zone[1]))
@@ -741,29 +739,43 @@ class ZonePlate(GenericElement):
             intercepted_rays_f = candidate_rays[t]
 
             if len(intercepted_rays_f) > 0:
-                # (see formulas in A.G. Michette, "X-ray science and technology"
-                #  Institute of Physics Publishing (1993))
+                d = (zone[1] - zone[0])*workspace_units_to_m*100  # to CM
 
-                x_int_i = intercepted_rays_i[:, 0] if not is_collimated else numpy.zeros(len(intercepted_rays_f)) # WS Units
-                z_int_i = intercepted_rays_i[:, 2] if not is_collimated else numpy.zeros(len(intercepted_rays_f))# WS Units
                 x_int_f = intercepted_rays_f[:, 0] # WS Units
                 z_int_f = intercepted_rays_f[:, 2] # WS Units
+
+                if not is_collimated:
+                    # (see formulas in A.G. Michette, "X-ray science and technology"
+                    #  Institute of Physics Publishing (1993))
+                    # par. 8.6, pg. 332-337
+
+                    x_int_i = intercepted_rays_i[:, 0] # WS Units
+                    z_int_i = intercepted_rays_i[:, 2] # WS Units
+
+                    r_int = numpy.sqrt((x_int_f-x_int_i)**2 + (z_int_f-z_int_i)**2) # WS Units
+
+                    cos_theta_i = (x_int_f-x_int_i)/r_int
+                    sin_theta_i = (z_int_f-z_int_i)/r_int
+                else:
+                    x_int_f = intercepted_rays_f[:, 0] # WS Units
+                    z_int_f = intercepted_rays_f[:, 2] # WS Units
+
+                    r_int = numpy.sqrt((x_int_f)**2 + (z_int_f)**2) # WS Units
+
+                    cos_theta_i = x_int_f/r_int
+                    sin_theta_i = z_int_f/r_int
+
+                # computing G (the "grating" wavevector in workspace units^-1)
+                gx = -(numpy.pi / d) * cos_theta_i
+                gz = -(numpy.pi / d) * sin_theta_i
 
                 xp_int = intercepted_rays_f[:, 3]
                 zp_int = intercepted_rays_f[:, 5]
 
                 k_mod_int = intercepted_rays_f[:, 10]       # CM-1!
 
-                r_int = numpy.sqrt((x_int_f-x_int_i)**2 + (z_int_f-z_int_i)**2) # WS Units
-
                 k_x_int = k_mod_int*xp_int # CM-1
                 k_z_int = k_mod_int*zp_int # CM-1
-
-                d = (zone[1] - zone[0])*workspace_units_to_m*100  # to CM
-
-                # computing G (the "grating" wavevector in workspace units^-1)
-                gx = -(numpy.pi / d) * ((x_int_f-x_int_i)/r_int) # cos(theta_i)
-                gz = -(numpy.pi / d) * ((z_int_f-z_int_i)/r_int) # sen(theta_i)
 
                 k_x_out = k_x_int + gx
                 k_z_out = k_z_int + gz
