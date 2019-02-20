@@ -77,7 +77,7 @@ class ZonePlate(GenericElement):
     substrate_material = Setting("Si3N4")
     substrate_thickness = Setting(50) # nm
 
-    compute_source_dimension = Setting(1)
+    compute_source_dimension = 0 # The source dimension calculation appears to be wrong. Disabled
 
     avg_wavelength  = 0.0
     number_of_zones = 0
@@ -183,7 +183,7 @@ class ZonePlate(GenericElement):
         tab_zone_plate_1 = oasysgui.createTabPage(tabs_basic_setting, "Zone Plate Input Parameters")
         tab_zone_plate_2 = oasysgui.createTabPage(tabs_basic_setting, "Zone Plate Output Parameters")
 
-        zp_box = oasysgui.widgetBox(tab_zone_plate_1, "Input Parameters", addSpace=False, orientation="vertical", height=320)
+        zp_box = oasysgui.widgetBox(tab_zone_plate_1, "Input Parameters", addSpace=False, orientation="vertical", height=290)
 
         oasysgui.lineEdit(zp_box, self, "delta_rn",  u"\u03B4" + "rn [nm]", labelWidth=260, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(zp_box, self, "diameter", "Z.P. Diameter [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
@@ -213,10 +213,6 @@ class ZonePlate(GenericElement):
         oasysgui.lineEdit(self.zp_box_3, self, "substrate_thickness",  "Substrate Thickness [nm]", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.set_TypeOfZP()
-
-        gui.comboBox(zp_box, self, "compute_source_dimension", label="Compute Source Size", labelWidth=350,
-                     items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
-
 
         zp_out_box = oasysgui.widgetBox(tab_zone_plate_2, "Output Parameters", addSpace=False, orientation="vertical", height=290)
 
