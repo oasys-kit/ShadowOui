@@ -77,8 +77,6 @@ class ZonePlate(GenericElement):
     substrate_material = Setting("Si3N4")
     substrate_thickness = Setting(50) # nm
 
-    compute_source_dimension = 0 # The source dimension calculation appears to be wrong. Disabled
-
     avg_wavelength  = 0.0
     number_of_zones = 0
     focal_distance = 0.0
@@ -470,8 +468,7 @@ class ZonePlate(GenericElement):
                                                                               self.zone_plate_material,
                                                                               self.zone_plate_thickness,
                                                                               self.source_distance, # WS Units
-                                                                              self.workspace_units_to_m,
-                                                                              self.compute_source_dimension)
+                                                                              self.workspace_units_to_m)
 
                     go = numpy.where(focused_beam._beam.rays[:, 9] == GOOD)
                     lo = numpy.where(focused_beam._beam.rays[:, 9] != GOOD)
@@ -718,7 +715,7 @@ class ZonePlate(GenericElement):
         return delta, beta 
     
     @classmethod
-    def analyze_zone(cls, zones, focused_beam, p_zp, workspace_units_to_m, compute_source_dimension):
+    def analyze_zone(cls, zones, focused_beam, p_zp, workspace_units_to_m):
         to_analyze    = numpy.where(focused_beam._beam.rays[:, 9] == LOST_ZP)
 
         candidate_rays = copy.deepcopy(focused_beam._beam.rays[to_analyze])
@@ -731,60 +728,35 @@ class ZonePlate(GenericElement):
         if is_collimated and not p_zp*workspace_units_to_m > COLLIMATED_SOURCE_LIMIT:
             raise ValueError("Beam is collimated, Source Distance should be set to infinite ('Different' and > 10 Km)")
 
-        do_retrace = not is_collimated and compute_source_dimension==1
-
-        if do_retrace:
-            retraced_beam = ShadowBeam()
-            retraced_beam._beam.rays = copy.deepcopy(candidate_rays)
-            retraced_beam._beam.retrace(-p_zp)
-            retraced_rays = retraced_beam._beam.rays
-
         r = numpy.sqrt(candidate_rays[:, 0]**2 + candidate_rays[:, 2]**2)
 
         for zone in zones:
             t = numpy.where(numpy.logical_and(r >= zone[0], r <= zone[1]))
 
-            if do_retrace: intercepted_rays_i = retraced_rays[t]
             intercepted_rays_f = candidate_rays[t]
 
             if len(intercepted_rays_f) > 0:
-                d = (zone[1] - zone[0])*workspace_units_to_m*100  # to CM
-
-                x_int_f = intercepted_rays_f[:, 0] # WS Units
-                z_int_f = intercepted_rays_f[:, 2] # WS Units
-
-                if do_retrace:
-                    # (see formulas in A.G. Michette, "X-ray science and technology"
-                    #  Institute of Physics Publishing (1993))
-                    # par. 8.6, pg. 332-337
-
-                    x_int_i = intercepted_rays_i[:, 0] # WS Units
-                    z_int_i = intercepted_rays_i[:, 2] # WS Units
-
-                    r_int = numpy.sqrt((x_int_f-x_int_i)**2 + (z_int_f-z_int_i)**2) # WS Units
-
-                    cos_theta_i = (x_int_f-x_int_i)/r_int
-                    sin_theta_i = (z_int_f-z_int_i)/r_int
-                else:
-                    x_int_f = intercepted_rays_f[:, 0] # WS Units
-                    z_int_f = intercepted_rays_f[:, 2] # WS Units
-
-                    r_int = numpy.sqrt((x_int_f)**2 + (z_int_f)**2) # WS Units
-
-                    cos_theta_i = x_int_f/r_int
-                    sin_theta_i = z_int_f/r_int
-
-                # computing G (the "grating" wavevector in workspace units^-1)
-                gx = -(numpy.pi / d) * cos_theta_i
-                gz = -(numpy.pi / d) * sin_theta_i
-
                 xp_int = intercepted_rays_f[:, 3]
                 zp_int = intercepted_rays_f[:, 5]
 
-                k_mod_int = intercepted_rays_f[:, 10]       # CM-1!
+                k_mod_int = intercepted_rays_f[:, 10] # CM-1
 
                 k_x_int = k_mod_int*xp_int # CM-1
                 k_z_int = k_mod_int*zp_int # CM-1
+
+                # (see formulas in A.G. Michette, "X-ray science and technology"
+                #  Institute of Physics Publishing (1993))
+                # par. 8.6, pg. 332-337
+                x_int_f = intercepted_rays_f[:, 0] # WS Units
+                z_int_f = intercepted_rays_f[:, 2] # WS Units
+
+                r_int = numpy.sqrt((x_int_f)**2 + (z_int_f)**2) # WS Units
+
+                d = (zone[1] - zone[0])*workspace_units_to_m*100  # to CM
+
+                # computing G (the "grating" wavevector in workspace units^-1)
+                gx = -(numpy.pi / d) * x_int_f/r_int
+                gz = -(numpy.pi / d) * z_int_f/r_int
 
                 k_x_out = k_x_int + gx
                 k_z_out = k_z_int + gz
@@ -813,8 +785,7 @@ class ZonePlate(GenericElement):
                                  zone_plate_material,
                                  zone_plate_thickness,
                                  source_distance,
-                                 workspace_units_to_m,
-                                 compute_source_dimension):
+                                 workspace_units_to_m):
         
         max_zones_number = int(diameter*1000/(4*delta_rn))
 
@@ -843,8 +814,8 @@ class ZonePlate(GenericElement):
                
         focused_beam._beam.rays[go, 9] = LOST_ZP
         
-        ZonePlate.analyze_zone(clear_zones, focused_beam, source_distance, workspace_units_to_m, compute_source_dimension)
-        if type_of_zp == PHASE_ZP: ZonePlate.analyze_zone(dark_zones, focused_beam, source_distance, workspace_units_to_m, compute_source_dimension)
+        ZonePlate.analyze_zone(clear_zones, focused_beam, source_distance, workspace_units_to_m)
+        if type_of_zp == PHASE_ZP: ZonePlate.analyze_zone(dark_zones, focused_beam, source_distance, workspace_units_to_m)
     
         go_2 = numpy.where(focused_beam._beam.rays[:, 9] == GOOD_ZP)
 
