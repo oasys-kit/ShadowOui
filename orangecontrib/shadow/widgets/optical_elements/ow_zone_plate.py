@@ -77,6 +77,8 @@ class ZonePlate(GenericElement):
     substrate_material = Setting("Si3N4")
     substrate_thickness = Setting(50) # nm
 
+    compute_source_dimension = Setting(1)
+
     avg_wavelength  = 0.0
     number_of_zones = 0
     focal_distance = 0.0
@@ -85,6 +87,10 @@ class ZonePlate(GenericElement):
     efficiency     = 0.0
     max_efficiency  = 0.0
     thickness_max_efficiency     = 0.0
+    predicted_focal_size_zp = 0.0
+    predicted_focal_size_ss = 0.0
+    predicted_focal_size_de = 0.0
+    predicted_focal_size_total = 0.0
 
     automatically_set_image_plane = Setting(0)
 
@@ -177,7 +183,7 @@ class ZonePlate(GenericElement):
         tab_zone_plate_1 = oasysgui.createTabPage(tabs_basic_setting, "Zone Plate Input Parameters")
         tab_zone_plate_2 = oasysgui.createTabPage(tabs_basic_setting, "Zone Plate Output Parameters")
 
-        zp_box = oasysgui.widgetBox(tab_zone_plate_1, "Input Parameters", addSpace=False, orientation="vertical", height=290)
+        zp_box = oasysgui.widgetBox(tab_zone_plate_1, "Input Parameters", addSpace=False, orientation="vertical", height=320)
 
         oasysgui.lineEdit(zp_box, self, "delta_rn",  u"\u03B4" + "rn [nm]", labelWidth=260, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(zp_box, self, "diameter", "Z.P. Diameter [" + u"\u03BC" + "m]", labelWidth=260, valueType=float, orientation="horizontal")
@@ -207,6 +213,10 @@ class ZonePlate(GenericElement):
         oasysgui.lineEdit(self.zp_box_3, self, "substrate_thickness",  "Substrate Thickness [nm]", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.set_TypeOfZP()
+
+        gui.comboBox(zp_box, self, "compute_source_dimension", label="Compute Source Size", labelWidth=350,
+                     items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
+
 
         zp_out_box = oasysgui.widgetBox(tab_zone_plate_2, "Output Parameters", addSpace=False, orientation="vertical", height=290)
 
@@ -464,7 +474,8 @@ class ZonePlate(GenericElement):
                                                                               self.zone_plate_material,
                                                                               self.zone_plate_thickness,
                                                                               self.source_distance, # WS Units
-                                                                              self.workspace_units_to_m)
+                                                                              self.workspace_units_to_m,
+                                                                              self.compute_source_dimension)
 
                     go = numpy.where(focused_beam._beam.rays[:, 9] == GOOD)
                     lo = numpy.where(focused_beam._beam.rays[:, 9] != GOOD)
@@ -711,7 +722,7 @@ class ZonePlate(GenericElement):
         return delta, beta 
     
     @classmethod
-    def analyze_zone(cls, zones, focused_beam, p_zp, workspace_units_to_m):
+    def analyze_zone(cls, zones, focused_beam, p_zp, workspace_units_to_m, compute_source_dimension):
         to_analyze    = numpy.where(focused_beam._beam.rays[:, 9] == LOST_ZP)
 
         candidate_rays = copy.deepcopy(focused_beam._beam.rays[to_analyze])
@@ -724,7 +735,9 @@ class ZonePlate(GenericElement):
         if is_collimated and not p_zp*workspace_units_to_m > COLLIMATED_SOURCE_LIMIT:
             raise ValueError("Beam is collimated, Source Distance should be set to infinite ('Different' and > 10 Km)")
 
-        if not is_collimated:
+        do_retrace = not is_collimated and compute_source_dimension==1
+
+        if do_retrace:
             retraced_beam = ShadowBeam()
             retraced_beam._beam.rays = copy.deepcopy(candidate_rays)
             retraced_beam._beam.retrace(-p_zp)
@@ -735,7 +748,7 @@ class ZonePlate(GenericElement):
         for zone in zones:
             t = numpy.where(numpy.logical_and(r >= zone[0], r <= zone[1]))
 
-            if not is_collimated: intercepted_rays_i = retraced_rays[t]
+            if do_retrace: intercepted_rays_i = retraced_rays[t]
             intercepted_rays_f = candidate_rays[t]
 
             if len(intercepted_rays_f) > 0:
@@ -744,7 +757,7 @@ class ZonePlate(GenericElement):
                 x_int_f = intercepted_rays_f[:, 0] # WS Units
                 z_int_f = intercepted_rays_f[:, 2] # WS Units
 
-                if not is_collimated:
+                if do_retrace:
                     # (see formulas in A.G. Michette, "X-ray science and technology"
                     #  Institute of Physics Publishing (1993))
                     # par. 8.6, pg. 332-337
@@ -804,7 +817,8 @@ class ZonePlate(GenericElement):
                                  zone_plate_material,
                                  zone_plate_thickness,
                                  source_distance,
-                                 workspace_units_to_m):
+                                 workspace_units_to_m,
+                                 compute_source_dimension):
         
         max_zones_number = int(diameter*1000/(4*delta_rn))
 
@@ -833,8 +847,8 @@ class ZonePlate(GenericElement):
                
         focused_beam._beam.rays[go, 9] = LOST_ZP
         
-        ZonePlate.analyze_zone(clear_zones, focused_beam, source_distance, workspace_units_to_m)
-        if type_of_zp == PHASE_ZP: ZonePlate.analyze_zone(dark_zones, focused_beam, source_distance, workspace_units_to_m)
+        ZonePlate.analyze_zone(clear_zones, focused_beam, source_distance, workspace_units_to_m, compute_source_dimension)
+        if type_of_zp == PHASE_ZP: ZonePlate.analyze_zone(dark_zones, focused_beam, source_distance, workspace_units_to_m, compute_source_dimension)
     
         go_2 = numpy.where(focused_beam._beam.rays[:, 9] == GOOD_ZP)
 
