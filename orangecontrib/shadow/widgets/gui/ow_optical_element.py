@@ -3010,7 +3010,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                             self.input_beam.setScanningData(ShadowBeam.ScanningData(variable_name, variable_value, variable_display_name, variable_um))
 
-                            self.traceOpticalElement()
+                        self.traceOpticalElement()
                 else:
                     raise Exception("Input Beam with no good rays")
             else:
