@@ -160,6 +160,8 @@ class AccumulatingLoopPoint(AutomaticElement):
                     proceed = False
 
             if proceed:
+                scanned_variable_data = beam.scanned_variable_data
+
                 go = numpy.where(beam._beam.rays[:, 9] == 1)
 
                 nr_good = len(beam._beam.rays[go])
@@ -183,6 +185,8 @@ class AccumulatingLoopPoint(AutomaticElement):
                     else:
                         beam._beam.rays[:, 11] = numpy.arange(1, len(beam._beam.rays) + 1, 1) # ray_index
                         self.input_beam = beam
+
+                    self.input_beam.setScanningData(scanned_variable_data)
 
                     self.send("Trigger", TriggerIn(new_object=True))
                 else:

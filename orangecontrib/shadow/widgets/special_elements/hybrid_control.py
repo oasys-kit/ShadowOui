@@ -777,6 +777,7 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
             input_parameters.ghy_nbins_x = 200
 
         input_parameters.ghy_nbins_x = min(input_parameters.ghy_nbins_x, round(len(calculation_parameters.xx_screen) / 20)) #xshi change from 100 to 20
+        input_parameters.ghy_nbins_x = max(input_parameters.ghy_nbins_x, 10)
 
         ticket = calculation_parameters.screen_plane_beam._beam.histo1(1,
                                                                        nbins=input_parameters.ghy_nbins_x,
@@ -792,6 +793,7 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
             input_parameters.ghy_nbins_z = 200
 
         input_parameters.ghy_nbins_z = min(input_parameters.ghy_nbins_z, round(len(calculation_parameters.zz_screen) / 20)) #xshi change from 100 to 20
+        input_parameters.ghy_nbins_z = max(input_parameters.ghy_nbins_z, 10)
 
         ticket = calculation_parameters.screen_plane_beam._beam.histo1(3,
                                                                        nbins=input_parameters.ghy_nbins_z,
@@ -811,6 +813,9 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
 
         input_parameters.ghy_nbins_x = min(input_parameters.ghy_nbins_x, round(numpy.sqrt(len(calculation_parameters.xx_screen) / 10)))
         input_parameters.ghy_nbins_z = min(input_parameters.ghy_nbins_z, round(numpy.sqrt(len(calculation_parameters.zz_screen) / 10)))
+
+        input_parameters.ghy_nbins_x = max(input_parameters.ghy_nbins_x, 10)
+        input_parameters.ghy_nbins_z = max(input_parameters.ghy_nbins_z, 10)
 
         ticket = calculation_parameters.screen_plane_beam._beam.histo2(col_h=1,
                                                                        col_v=3,
