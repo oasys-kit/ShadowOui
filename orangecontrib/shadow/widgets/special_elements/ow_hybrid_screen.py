@@ -49,6 +49,7 @@ class HybridScreen(AutomaticElement):
     want_main_area = 1
 
     view_type = Setting(1)
+    send_original_beam = Setting(0)
 
     ghy_diff_plane = Setting(1)
     ghy_calcType = Setting(2)
@@ -145,7 +146,7 @@ class HybridScreen(AutomaticElement):
         self.le_npeak   = oasysgui.lineEdit(box_2, self, "ghy_npeak", "Number of diffraction peaks", labelWidth=260, valueType=int, orientation="horizontal")
         self.le_fftnpts = oasysgui.lineEdit(box_2, self, "ghy_fftnpts", "Number of points for FFT", labelWidth=260, valueType=int, orientation="horizontal")
 
-        box_3 = oasysgui.widgetBox(tab_adv, "Propagation Parameters", addSpace=True, orientation="vertical", height=200)
+        box_3 = oasysgui.widgetBox(tab_adv, "Propagation Parameters", addSpace=True, orientation="vertical", height=240)
 
 
         self.cb_focal_length_calc = gui.comboBox(box_3, self, "focal_length_calc", label="Focal Length", labelWidth=180,
@@ -169,6 +170,12 @@ class HybridScreen(AutomaticElement):
         self.cb_nf = gui.comboBox(box_3, self, "ghy_nf", label="Near Field Calculation", labelWidth=310,
                                              items=["No", "Yes"],
                                              sendSelectedValue=False, orientation="horizontal", callback=self.set_NF)
+
+        gui.separator(box_3)
+
+        gui.comboBox(box_3, self, "send_original_beam", label="Send Original Beam in case of failure", labelWidth=310,
+                                             items=["No", "Yes"],
+                                             sendSelectedValue=False, orientation="horizontal")
 
 
         box_4 = oasysgui.widgetBox(tab_adv, "Geometrical Parameters", addSpace=True, orientation="vertical", height=70)
@@ -444,33 +451,40 @@ class HybridScreen(AutomaticElement):
 
                     input_parameters.ghy_automatic = self.ghy_automatic
 
-                    calculation_parameters = hybrid_control.hy_run(input_parameters)
+                    try:
+                        calculation_parameters = hybrid_control.hy_run(input_parameters)
 
-                    self.ghy_focallength = input_parameters.ghy_focallength
-                    self.ghy_distance = input_parameters.ghy_distance
-                    self.ghy_nbins_x = int(input_parameters.ghy_nbins_x)
-                    self.ghy_nbins_z = int(input_parameters.ghy_nbins_z)
-                    self.ghy_npeak   = int(input_parameters.ghy_npeak)
-                    self.ghy_fftnpts = int(input_parameters.ghy_fftnpts)
+                        self.ghy_focallength = input_parameters.ghy_focallength
+                        self.ghy_distance = input_parameters.ghy_distance
+                        self.ghy_nbins_x = int(input_parameters.ghy_nbins_x)
+                        self.ghy_nbins_z = int(input_parameters.ghy_nbins_z)
+                        self.ghy_npeak   = int(input_parameters.ghy_npeak)
+                        self.ghy_fftnpts = int(input_parameters.ghy_fftnpts)
 
-                    self.plotted_data = input_parameters, calculation_parameters
+                        self.plotted_data = input_parameters, calculation_parameters
 
-                    if self.view_type==1:
-                        self.plot_results(calculation_parameters, input_parameters)
+                        if self.view_type==1:
+                            self.plot_results(calculation_parameters, input_parameters)
 
-                    if not calculation_parameters.ff_beam is None:
-                        calculation_parameters.ff_beam.setScanningData(self.input_beam.scanned_variable_data)
+                        if not calculation_parameters.ff_beam is None:
+                            calculation_parameters.ff_beam.setScanningData(self.input_beam.scanned_variable_data)
 
-                    self.send("Output Beam (Far Field)", calculation_parameters.ff_beam)
+                        self.send("Output Beam (Far Field)", calculation_parameters.ff_beam)
 
-                    do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
+                        do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
 
-                    if do_nf and not calculation_parameters.nf_beam is None:
-                        calculation_parameters.nf_beam.setScanningData(self.input_beam.scanned_variable_data)
+                        if do_nf and not calculation_parameters.nf_beam is None:
+                            calculation_parameters.nf_beam.setScanningData(self.input_beam.scanned_variable_data)
 
-                        self.send("Output Beam (Near Field)", calculation_parameters.nf_beam)
+                            self.send("Output Beam (Near Field)", calculation_parameters.nf_beam)
 
-                    self.send("Trigger", TriggerIn(new_object=True))
+                        self.send("Trigger", TriggerIn(new_object=True))
+                    except Exception as e:
+                        if self.send_original_beam==1:
+                            self.send("Output Beam (Far Field)", self.input_beam.duplicate(history=True))
+                            self.send("Trigger", TriggerIn(new_object=True))
+                        else:
+                            raise e
                 else:
                     raise Exception("Input Beam with no good rays")
             else:
