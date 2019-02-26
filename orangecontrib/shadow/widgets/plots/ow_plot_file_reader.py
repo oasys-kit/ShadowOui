@@ -219,33 +219,4 @@ class OWPlotFileReader(OWWidget):
             if self.IS_DEVELOP: raise exception
 
     def selectPlotXYFile(self):
-        self.le_hdf5_file_name.setText(oasysgui.selectFileFromDialog(self, self.hdf5_file_name, "Select Input File", file_extension_filter="HDF5 Files (*.hdf5 *.h5 *.hdf)"))
-
-
-'''
-            if isinstance(data, H5Node) and hasattr(data, "maxshape") and len(data.maxshape)==2:
-                current_group = data.h5py_object.parent
-
-                self.datasets_1d_info = []
-                def func(name, obj):
-                    if isinstance(obj, Dataset) and obj.ndim==1:
-                       self.datasets_1d_info.append([name, obj.value])
-
-                current_group.visititems(func)
-
-                self.cb_x_scale.clear()
-                self.cb_y_scale.clear()
-
-                for dataset in self.datasets_1d_info:
-                    self.cb_x_scale.addItem(dataset[0])
-                    self.cb_y_scale.addItem(dataset[0])
-
-                #for key in group.keys():
-                #    print(key)
-
-                self.box_scale.setVisible(True)
-            else:
-                self.box_scale.setVisible(False)
-
-
-'''
+        self.le_hdf5_file_name.setText(oasysgui.selectFileFromDialog(self, self.hdf5_file_name, "Select Input File", file_extension_filter="HDF5/EDF Files (*.hdf5 *.h5 *.hdf *.edf)"))
