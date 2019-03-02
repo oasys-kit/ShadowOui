@@ -470,20 +470,20 @@ class ZonePlate(GenericElement):
                                                                               self.source_distance, # WS Units
                                                                               self.workspace_units_to_m)
 
-                    go = numpy.where(focused_beam._beam.rays[:, 9] == GOOD)
-                    lo = numpy.where(focused_beam._beam.rays[:, 9] != GOOD)
+                    #go = numpy.where(focused_beam._beam.rays[:, 9] == GOOD)
+                    #lo = numpy.where(focused_beam._beam.rays[:, 9] != GOOD)
 
-                    print("Focused Beam: ", "GO", len(go[0]), "LO", len(lo[0]))
+                    #print("Focused Beam: ", "GO", len(go[0]), "LO", len(lo[0]))
 
 
                     self.progressBarSet(60)
 
                     beam_out = self.get_output_beam(focused_beam)
 
-                    go = numpy.where(beam_out._beam.rays[:, 9] == GOOD)
-                    lo = numpy.where(beam_out._beam.rays[:, 9] != GOOD)
+                    #go = numpy.where(beam_out._beam.rays[:, 9] == GOOD)
+                    #lo = numpy.where(beam_out._beam.rays[:, 9] != GOOD)
 
-                    print("Output Beam: ", "GO", len(go[0]), "LO", len(lo[0]))
+                    #print("Output Beam: ", "GO", len(go[0]), "LO", len(lo[0]))
 
                     self.progressBarSet(80)
 
@@ -498,6 +498,8 @@ class ZonePlate(GenericElement):
                     self.plot_results(beam_out)
 
                     self.setStatusMessage("")
+
+                    beam_out.setScanningData(self.input_beam.scanned_variable_data)
 
                     self.send("Beam", beam_out)
                     self.send("Trigger", TriggerIn(new_object=True))
