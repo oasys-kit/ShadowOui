@@ -718,63 +718,64 @@ class ZonePlate(GenericElement):
     
     @classmethod
     def analyze_zone(cls, zones, focused_beam, p_zp, workspace_units_to_m):
-        to_analyze    = numpy.where(focused_beam._beam.rays[:, 9] == LOST_ZP)
+        to_analyze = numpy.where(focused_beam._beam.rays[:, 9] == LOST_ZP)
 
         candidate_rays = copy.deepcopy(focused_beam._beam.rays[to_analyze])
 
-        xp = candidate_rays[:, 3]
-        zp = candidate_rays[:, 5]
+        if len(candidate_rays) > 0:
+            xp = candidate_rays[:, 3]
+            zp = candidate_rays[:, 5]
 
-        is_collimated = (numpy.max(numpy.abs(xp)) < 1e-9 and numpy.max(numpy.abs(zp)) < 1e-9)
+            is_collimated = (numpy.max(numpy.abs(xp)) < 1e-9 and numpy.max(numpy.abs(zp)) < 1e-9)
 
-        if is_collimated and not p_zp*workspace_units_to_m > COLLIMATED_SOURCE_LIMIT:
-            raise ValueError("Beam is collimated, Source Distance should be set to infinite ('Different' and > 10 Km)")
+            if is_collimated and not p_zp*workspace_units_to_m > COLLIMATED_SOURCE_LIMIT:
+                raise ValueError("Beam is collimated, Source Distance should be set to infinite ('Different' and > 10 Km)")
 
-        r = numpy.sqrt(candidate_rays[:, 0]**2 + candidate_rays[:, 2]**2)
+            r = numpy.sqrt(candidate_rays[:, 0]**2 + candidate_rays[:, 2]**2)
 
-        for zone in zones:
-            t = numpy.where(numpy.logical_and(r >= zone[0], r <= zone[1]))
+            for zone in zones:
+                t = numpy.where(numpy.logical_and(r >= zone[0], r <= zone[1]))
 
-            intercepted_rays_f = candidate_rays[t]
+                intercepted_rays_f = candidate_rays[t]
 
-            if len(intercepted_rays_f) > 0:
-                xp_int = intercepted_rays_f[:, 3]
-                zp_int = intercepted_rays_f[:, 5]
+                if len(intercepted_rays_f) > 0:
+                    xp_int = intercepted_rays_f[:, 3]
+                    zp_int = intercepted_rays_f[:, 5]
 
-                k_mod_int = intercepted_rays_f[:, 10] # CM-1
+                    k_mod_int = intercepted_rays_f[:, 10] # CM-1
 
-                k_x_int = k_mod_int*xp_int # CM-1
-                k_z_int = k_mod_int*zp_int # CM-1
+                    k_x_int = k_mod_int*xp_int # CM-1
+                    k_z_int = k_mod_int*zp_int # CM-1
 
-                # (see formulas in A.G. Michette, "X-ray science and technology"
-                #  Institute of Physics Publishing (1993))
-                # par. 8.6, pg. 332-337
-                x_int_f = intercepted_rays_f[:, 0] # WS Units
-                z_int_f = intercepted_rays_f[:, 2] # WS Units
+                    # (see formulas in A.G. Michette, "X-ray science and technology"
+                    #  Institute of Physics Publishing (1993))
+                    # par. 8.6, pg. 332-337
+                    x_int_f = intercepted_rays_f[:, 0] # WS Units
+                    z_int_f = intercepted_rays_f[:, 2] # WS Units
 
-                r_int = numpy.sqrt((x_int_f)**2 + (z_int_f)**2) # WS Units
+                    r_int = numpy.sqrt((x_int_f)**2 + (z_int_f)**2) # WS Units
 
-                d = (zone[1] - zone[0])*workspace_units_to_m*100  # to CM
+                    d = (zone[1] - zone[0])*workspace_units_to_m*100  # to CM
 
-                # computing G (the "grating" wavevector in workspace units^-1)
-                gx = -(numpy.pi / d) * x_int_f/r_int
-                gz = -(numpy.pi / d) * z_int_f/r_int
+                    # computing G (the "grating" wavevector in workspace units^-1)
+                    gx = -(numpy.pi / d) * x_int_f/r_int
+                    gz = -(numpy.pi / d) * z_int_f/r_int
 
-                k_x_out = k_x_int + gx
-                k_z_out = k_z_int + gz
+                    k_x_out = k_x_int + gx
+                    k_z_out = k_z_int + gz
 
-                k_y_out = numpy.sqrt(k_mod_int**2 - (k_z_out**2 + k_x_out**2)) # keep energy of the photon constant
+                    k_y_out = numpy.sqrt(k_mod_int**2 - (k_z_out**2 + k_x_out**2)) # keep energy of the photon constant
 
-                xp_out = k_x_out / k_mod_int
-                yp_out = k_y_out / k_mod_int
-                zp_out = k_z_out / k_mod_int
+                    xp_out = k_x_out / k_mod_int
+                    yp_out = k_y_out / k_mod_int
+                    zp_out = k_z_out / k_mod_int
 
-                candidate_rays[t, 3] = xp_out
-                candidate_rays[t, 4] = yp_out
-                candidate_rays[t, 5] = zp_out
-                candidate_rays[t, 9] = GOOD_ZP
+                    candidate_rays[t, 3] = xp_out
+                    candidate_rays[t, 4] = yp_out
+                    candidate_rays[t, 5] = zp_out
+                    candidate_rays[t, 9] = GOOD_ZP
 
-        focused_beam._beam.rays[to_analyze] = candidate_rays
+            focused_beam._beam.rays[to_analyze] = candidate_rays
 
     @classmethod
     def apply_fresnel_zone_plate(cls, 
