@@ -537,35 +537,45 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
         self.progressBarSet(50)
 
         try:
+            self.shadow_output.setText("")
+            su = Undulator.initialize_as_vertical_undulator(
+                K=self.K,
+                period_length=self.period_length,
+                periods_number=self.periods_number)
 
-            print("\n\n\n#\n# New run \n#\n\n\n")
-            su = Undulator.initialize_as_vertical_undulator(K=self.K,period_length=self.period_length,
-                                                    periods_number=self.periods_number)
 
-
-            ebeam = ElectronBeam(energy_in_GeV=self.energy_in_GeV,
-                         energy_spread = 0.0,
-                         current = self.current,
-                         number_of_bunches = 1,
-                         moment_xx=(self.sigma_x)**2,
-                         moment_xxp=0.0,
-                         moment_xpxp=(self.sigma_divergence_x)**2,
-                         moment_yy=(self.sigma_z)**2,
-                         moment_yyp=0.0,
-                         moment_ypyp=(self.sigma_divergence_z)**2 )
+            ebeam = ElectronBeam(
+                energy_in_GeV=self.energy_in_GeV,
+                energy_spread = 0.0,
+                current = self.current,
+                number_of_bunches = 1,
+                moment_xx=(self.sigma_x)**2,
+                moment_xxp=0.0,
+                moment_xpxp=(self.sigma_divergence_x)**2,
+                moment_yy=(self.sigma_z)**2,
+                moment_yyp=0.0,
+                moment_ypyp=(self.sigma_divergence_z)**2 )
 
             print(ebeam.info())
 
 
             codes = ["internal","pySRU","SRW"]
+            selected_code = codes[self.code_undul_phot]
 
-            self.sourceundulator = SourceUndulator(name="shadowOui-Full-Undulator",
-                            syned_electron_beam=ebeam,
-                            syned_undulator=su,
-                            flag_emittance=self.use_emittances_combo,flag_size=self.flag_size,
-                            emin=1000,emax=1001,ng_e=2, # to be set later
-                            maxangle=self.maxangle_urad*1e-6,ng_t=self.ng_t,ng_p=self.ng_p,ng_j=self.ng_j,
-                            code_undul_phot=codes[self.code_undul_phot])
+            self.sourceundulator = SourceUndulator(
+                name="shadowOui-Full-Undulator",
+                syned_electron_beam=ebeam,
+                syned_undulator=su,
+                flag_emittance=self.use_emittances_combo,
+                flag_size=self.flag_size,
+                emin=1000, # to be set later
+                emax=1001, # to be set later
+                ng_e=2,    # to be set later
+                maxangle=self.maxangle_urad*1e-6,
+                ng_t=self.ng_t,
+                ng_p=self.ng_p,
+                ng_j=self.ng_j,
+                code_undul_phot=selected_code)
 
 
             if self.set_at_resonance == 0:
@@ -582,8 +592,11 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
 
 
 
-            rays = self.sourceundulator.calculate_rays(user_unit_to_m=self.workspace_units_to_m,
-                                            F_COHER=self.coherent,SEED=self.seed,NRAYS=self.number_of_rays)
+            rays = self.sourceundulator.calculate_rays(
+                user_unit_to_m=self.workspace_units_to_m,
+                F_COHER=self.coherent,
+                SEED=self.seed,
+                NRAYS=self.number_of_rays)
 
             if self.plot_aux_graph:
                 self.set_PlotAuxGraphs()
@@ -592,6 +605,7 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
 
             shadow3_beam = Shadow3Beam(N=rays.shape[0])
             shadow3_beam.rays = rays
+
             if self.file_to_write_out >= 1:
                 shadow3_beam.write("begin.dat")
                 print("File written to disk: begin.dat")
@@ -618,6 +632,50 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
             self.progressBarSet(80)
             self.plot_results(beam_out)
 
+
+            #
+            # create python script for creating the shadow3 beam and display the script in the standard output
+            #
+            dict_parameters = {
+                "K"                  : self.K,
+                "period_length"      : self.period_length,
+                "periods_number"     : self.periods_number,
+                "energy_in_GeV"      : self.energy_in_GeV,
+                "energy_spread"      : 0.0,
+                "current"            : self.current,
+                "number_of_bunches"  : 1,
+                "moment_xx"          : (self.sigma_x) ** 2,
+                "moment_xxp"         : 0.0,
+                "moment_xpxp"        : (self.sigma_divergence_x) ** 2,
+                "moment_yy"          : (self.sigma_z) ** 2,
+                "moment_yyp"         : 0.0,
+                "moment_ypyp"        : (self.sigma_divergence_z) ** 2,
+                "name"               : "shadowOui-Full-Undulator",
+                "flag_emittance"     : self.use_emittances_combo,
+                "flag_size"          : self.flag_size,
+                "emin"               : 1000,  # to be set later
+                "emax"               : 1001,  # to be set later
+                "ng_e"               : 2,  # to be set later
+                "maxangle"           : self.maxangle_urad * 1e-6,
+                "ng_t"               : self.ng_t,
+                "ng_p"               : self.ng_p,
+                "ng_j"               : self.ng_j,
+                "code_undul_phot"    : selected_code,
+                "user_unit_to_m"     : self.workspace_units_to_m,
+                "F_COHER"            : self.coherent,
+                "SEED"               : self.seed,
+                "NRAYS"              : self.number_of_rays,
+                "EMIN": self.sourceundulator._EMIN,
+                "EMAX": self.sourceundulator._EMAX,
+                "NG_E": self.sourceundulator._NG_E,
+                "MAXANGLE": self.sourceundulator._MAXANGLE,
+
+            }
+
+            # write python script in standard output
+            print(self.script_template().format_map(dict_parameters))
+
+
             self.setStatusMessage("")
             self.send("Beam", beam_out)
 
@@ -629,6 +687,78 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
             if self.IS_DEVELOP: raise exception
 
         self.progressBarFinished()
+
+    def script_template(self):
+     return """
+#
+# script to calculate the shadow3 beam for the full undulator (created by ShadowOui:UndulatorFull\)
+#
+from syned.storage_ring.electron_beam import ElectronBeam
+from syned.storage_ring.magnetic_structures.undulator import Undulator
+from orangecontrib.shadow.util.undulator.source_undulator import SourceUndulator
+import Shadow
+from Shadow import Beam as Shadow3Beam
+
+su = Undulator.initialize_as_vertical_undulator(
+    K={K},
+    period_length={period_length},
+    periods_number={periods_number})
+
+
+ebeam = ElectronBeam(
+    energy_in_GeV={energy_in_GeV},
+    energy_spread = {energy_spread},
+    current = {current},
+    number_of_bunches = {number_of_bunches},
+    moment_xx   ={moment_xx},
+    moment_xxp  ={moment_xxp},
+    moment_xpxp ={moment_xpxp},
+    moment_yy  ={moment_yy},
+    moment_yyp ={moment_yyp},
+    moment_ypyp={moment_ypyp})
+
+print(ebeam.info())
+
+sourceundulator = SourceUndulator(
+    name="{name}",
+    syned_electron_beam=ebeam,
+    syned_undulator=su,
+    flag_emittance={flag_emittance},
+    flag_size={flag_size},
+    emin       = {emin},
+    emax       = {emax},
+    ng_e       = {ng_e},
+    maxangle   = {maxangle},
+    ng_t={ng_t},
+    ng_p={ng_p},
+    ng_j={ng_j},
+    code_undul_phot="{code_undul_phot}")
+    
+sourceundulator._EMIN = {EMIN}
+sourceundulator._EMAX = {EMAX}
+sourceundulator._NG_E = {NG_E}
+sourceundulator._MAXANGLE = {MAXANGLE}
+
+rays = sourceundulator.calculate_rays(
+    user_unit_to_m={user_unit_to_m},
+    F_COHER={F_COHER},
+    SEED={SEED},
+    NRAYS={NRAYS})
+
+print(sourceundulator.info())
+
+beam = Shadow3Beam(N=rays.shape[0])
+beam.rays = rays
+
+Shadow.ShadowTools.plotxy(beam,1,3,nbins=101,nolost=1,title="Real space")
+# Shadow.ShadowTools.plotxy(beam,1,4,nbins=101,nolost=1,title="Phase space X")
+# Shadow.ShadowTools.plotxy(beam,3,6,nbins=101,nolost=1,title="Phase space Z")
+    
+#
+# end script
+#
+"""
+
 
     def sendNewBeam(self, trigger):
        if trigger and trigger.new_object == True:
