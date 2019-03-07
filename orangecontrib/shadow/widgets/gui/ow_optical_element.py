@@ -2525,7 +2525,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
         if self.graphical_options.is_crystal and self.diffraction_calculation == 1:
             shadow_oe._oe.F_ANGLE = 1
-        elif self.graphical_options.is_mirror and self.source_of_reflectivity == 3:
+        elif self.graphical_options.is_mirror and self.reflectivity_type > 0 and self.source_of_reflectivity == 3:
             shadow_oe._oe.F_ANGLE = 1
         else:
             shadow_oe._oe.F_ANGLE = self.write_out_inc_ref_angles
@@ -2768,7 +2768,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             if self.graphical_options.is_crystal and self.diffraction_calculation == 1:
                 beam_out = self.apply_user_diffraction_profile(beam_out)
-            elif self.graphical_options.is_mirror and self.source_of_reflectivity == 3:
+            elif self.graphical_options.is_mirror and self.reflectivity_type > 0 and self.source_of_reflectivity == 3:
                 beam_out = self.apply_user_reflectvity(beam_out)
             elif self.graphical_options.is_grating and self.grating_use_efficiency == 1:
                 beam_out = self.apply_user_grating_efficiency(beam_out)
