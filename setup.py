@@ -8,7 +8,7 @@ except AttributeError:
     from setuptools import find_packages, setup
 
 NAME = 'OASYS1-ShadowOui'
-VERSION = '1.4.129'
+VERSION = '1.4.130'
 ISRELEASED = True
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
@@ -41,7 +41,7 @@ SETUP_REQUIRES = (
 
 INSTALL_REQUIRES = (
     'shadow3>=18.4.11',
-    'oasys1>=1.1.38',
+    'oasys1>=1.1.41',
     'wofryshadow>=1.0.2',
 )
 
