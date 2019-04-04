@@ -173,7 +173,7 @@ class Wiggler(ow_source.Source, WidgetDecorator):
 
         file_box = oasysgui.widgetBox(self.b_from_file_box, "", addSpace=True, orientation="horizontal", height=25)
 
-        self.le_file_with_b_vs_y = oasysgui.lineEdit(file_box, self, "file_with_b_vs_y", "File with B vs Y", labelWidth=150, tooltip="File with B vs Y", valueType=str, orientation="horizontal")
+        self.le_file_with_b_vs_y = oasysgui.lineEdit(file_box, self, "file_with_b_vs_y", "File/Url with B vs Y", labelWidth=150, tooltip="File/Url with B vs Y", valueType=str, orientation="horizontal")
 
         gui.button(file_box, self, "...", callback=self.selectFileWithBvsY)
 
@@ -183,7 +183,7 @@ class Wiggler(ow_source.Source, WidgetDecorator):
 
         file_box = oasysgui.widgetBox(self.b_from_harmonics_box, "", addSpace=True, orientation="horizontal", height=25)
 
-        self.le_file_with_harmonics = oasysgui.lineEdit(file_box, self, "file_with_harmonics", "File with harmonics", labelWidth=150, tooltip="File with harmonics", valueType=str, orientation="horizontal")
+        self.le_file_with_harmonics = oasysgui.lineEdit(file_box, self, "file_with_harmonics", "File/Url with harmonics", labelWidth=150, tooltip="File/Url with harmonics", valueType=str, orientation="horizontal")
 
         gui.button(file_box, self, "...", callback=self.selectFileWithHarmonics)
 
@@ -430,6 +430,11 @@ class Wiggler(ow_source.Source, WidgetDecorator):
         self.setStatusMessage("")
         self.progressBarInit()
 
+        sys.stdout = EmittingStream(textWritten=self.writeStdOut)
+        if self.trace_shadow:
+            grabber = TTYGrabber()
+            grabber.start()
+
         try:
             self.checkFields()
 
@@ -445,13 +450,17 @@ class Wiggler(ow_source.Source, WidgetDecorator):
             if self.type_combo == 0:
                 inData = ""
             elif self.type_combo == 1:
-                inData = congruence.checkFileName(self.file_with_b_vs_y)
+                inData = congruence.checkUrl(self.file_with_b_vs_y)
             elif self.type_combo == 2:
-                inData = congruence.checkFileName(self.file_with_harmonics)
+                inData = congruence.checkUrl(self.file_with_harmonics)
 
             self.progressBarSet(10)
             #self.information(0, "Calculate electron trajectory")
+
+            self.shadow_output.setText("")
+
             self.setStatusMessage("Calculate electron trajectory")
+
 
             (traj, pars) = srfunc.wiggler_trajectory(b_from=self.type_combo,
                                                      inData=inData,
@@ -495,10 +504,6 @@ class Wiggler(ow_source.Source, WidgetDecorator):
 
             shadow_src.src.FILE_TRAJ = wigFile
 
-            sys.stdout = EmittingStream(textWritten=self.writeStdOut)
-            if self.trace_shadow:
-                grabber = TTYGrabber()
-                grabber.start()
 
             self.progressBarSet(50)
 
@@ -532,6 +537,34 @@ class Wiggler(ow_source.Source, WidgetDecorator):
             self.setStatusMessage("")
 
             self.send("Beam", beam_out)
+
+            #
+            # create python script for the preprocessors and display in the standard output
+            #
+            dict_parameters = {
+                "b_from"               : self.type_combo,
+                "inData"               : inData,
+                "nPer"                 : self.number_of_periods,
+                "nTrajPoints"          : 501,
+                "ener_gev"             : self.energy,
+                "per"                  : self.id_period,
+                "kValue"               : self.k_value,
+                "trajFile"             : "tmp.traj",
+                "shift_x_flag"         : self.shift_x_flag,
+                "shift_x_value"        : self.shift_x_value,
+                "shift_betax_flag"     : self.shift_betax_flag,
+                "shift_betax_value"    : self.shift_betax_value,
+                "enerMin"              : self.e_min,
+                "enerMax"              : self.e_max,
+                "enerPoints"           : 1001,
+                "outFile"              : wigFile,
+                "elliptical"           : False,
+                "electron_current_mA"  : self.electron_current,
+            }
+
+            # write python script in standard output
+            print(self.script_template().format_map(dict_parameters))
+
         except Exception as exception:
             QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception),
@@ -546,6 +579,59 @@ class Wiggler(ow_source.Source, WidgetDecorator):
     #def sendNewBeam(self, trigger):
     #    if trigger and trigger.new_object == True:
     #        self.runShadowSource()
+
+    def script_template(self):
+        return """
+#
+# script to run the wiggler preprocessor (created by ShadowOui:Wiggler)
+#
+from srxraylib.sources import srfunc
+  
+(traj, pars) = srfunc.wiggler_trajectory(
+    b_from            ={b_from},
+    inData            ="{inData}",
+    nPer              ={nPer},
+    nTrajPoints       ={nTrajPoints},
+    ener_gev          ={ener_gev},
+    per               ={per},
+    kValue            ={kValue},
+    trajFile          ="{trajFile}",
+    shift_x_flag      ={shift_x_flag},
+    shift_x_value     ={shift_x_value},
+    shift_betax_flag  ={shift_betax_flag},
+    shift_betax_value ={shift_betax_value})
+
+#
+# calculate cdf and write file for Shadow/Source
+#
+
+srfunc.wiggler_cdf(traj,
+    enerMin        ={enerMin},
+    enerMax        ={enerMax},
+    enerPoints     ={enerPoints},
+    outFile        ={outFile},
+    elliptical     ={elliptical})
+
+calculate_spectrum = False 
+
+if calculate_spectrum:
+    e, f, w = srfunc.wiggler_spectrum(traj,
+        enerMin={enerMin},
+        enerMax={enerMax},
+        nPoints=500,
+        electronCurrent={electron_current_mA}*1e-3,
+        outFile="spectrum.dat",
+        elliptical={elliptical})
+    from srxraylib.plot.gol import plot
+    plot(e, f, xlog=False, ylog=False,show=False,
+        xtitle="Photon energy [eV]",ytitle="Flux [Photons/s/0.1%bw]",title="Flux")
+    plot(e, w, xlog=False, ylog=False,show=True,
+        xtitle="Photon energy [eV]",ytitle="Spectral Power [E/eV]",title="Spectral Power")                     
+#
+# end script
+#
+"""
+
 
     def setupUI(self):
         self.set_OptimizeSource()
@@ -582,9 +668,9 @@ class Wiggler(ow_source.Source, WidgetDecorator):
             congruence.checkFile(self.file_with_phase_space_volume)
 
         if self.type_combo == 1:
-            congruence.checkFile(self.file_with_b_vs_y)
+            congruence.checkUrl(self.file_with_b_vs_y)
         elif self.type_combo == 2:
-            congruence.checkFile(self.file_with_harmonics)
+            congruence.checkUrl(self.file_with_harmonics)
 
     def deserialize(self, shadow_file):
         if not shadow_file is None:
@@ -652,6 +738,15 @@ class Wiggler(ow_source.Source, WidgetDecorator):
 if __name__ == "__main__":
     a = QApplication(sys.argv)
     ow = Wiggler()
+    ow.workspace_units_to_m = 1.0
+    ow.workspace_units_to_cm = 100.0
+
+    # test remote B file
+    ow.file_with_b_vs_y = "https://raw.githubusercontent.com/srio/oasys_school/master/session1.1_xoppy/ID17_W150_SI.dat"
+    ow.type_combo = 1
+    ow.set_Type()
+    ow.number_of_periods = 1
+
     ow.show()
     a.exec_()
     ow.saveSettings()
