@@ -1,13 +1,13 @@
-
 import sys
 import time
 
 from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtWidgets import QMessageBox
+
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
-from oasys.widgets.gui import ConfirmDialog
 
 from oasys.util.oasys_util import EmittingStream, TTYGrabber
 
@@ -17,6 +17,13 @@ from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticEleme
 
 from silx.gui.plot.ScatterView import ScatterView
 from silx.gui.colors import Colormap
+
+
+try:
+    import OpenGL
+    has_opengl = True
+except:
+    has_opengl = False
 
 class PlotScatter(AutomaticElement):
 
@@ -63,7 +70,10 @@ class PlotScatter(AutomaticElement):
 
     is_conversion_active = Setting(1)
 
-    backend = 1
+    if has_opengl:
+        backend = 1
+    else:
+        backend = 0
 
     def __init__(self):
         super().__init__()
@@ -80,7 +90,6 @@ class PlotScatter(AutomaticElement):
 
         # graph tab
         tab_set = oasysgui.createTabPage(self.tabs_setting, "Plot Settings")
-        # tab_gen = oasysgui.createTabPage(self.tabs_setting, "Histogram Settings")
 
         screen_box = oasysgui.widgetBox(tab_set, "Screen Position Settings", addSpace=True, orientation="vertical", height=120)
 
@@ -278,21 +287,6 @@ class PlotScatter(AutomaticElement):
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)
 
-    # def clearResults(self, interactive=True):
-    #     if not interactive: proceed = True
-    #     else: proceed = ConfirmDialog.confirmed(parent=self)
-    #
-    #     if proceed:
-    #         self.input_beam = None
-    #         self.cumulated_ticket = None
-    #         self.plotted_ticket = None
-    #         self.autosave_prog_id = 0
-    #         if not self.autosave_file is None:
-    #             self.autosave_file.close()
-    #             self.autosave_file = None
-    #
-    #         if not self.plot_canvas is None:
-    #             self.plot_canvas.clear()
 
     def set_autosave(self):
         self.autosave_box_1.setVisible(self.autosave==1)
@@ -321,25 +315,26 @@ class PlotScatter(AutomaticElement):
         if self.backend == 0:
             use_backend = 'matplotlib'
         elif self.backend == 1:
-            use_backend = 'gl'
+            if not has_opengl:
+                QMessageBox.information(self, "Plot Scatter Information",
+                        "It seems that PyOpenGL is not installed in your system.\n Install it to get much faster scatter plots.",
+                        QMessageBox.Ok)
+                use_backend = 'matplotlib'
+                self.backend = 0
+            else:
+                use_backend = 'gl'
 
         if self.plot_canvas is None:
             self.plot_canvas = ScatterView(backend=use_backend)
         else:
-            # self.plot_canvas.layout().clear() # removeItem(self.plot_canvas.layout().itemAt(0))
-            #self.plot_canvas.clear()
             self.image_box.layout().removeWidget(self.plot_canvas)
-            #self.plot_canvas.close()
             self.plot_canvas = None
             self.plot_canvas = ScatterView(backend=use_backend)
-        # self.plot_canvas = ScatterView(backend=use_backend)
 
         if self.color_column != 0:
             color_array = beam.getshonecol(var_color, nolost=nolost)
         else:
             color_array = beam.getshonecol(1, nolost=nolost) * 0.0
-
-        print(color_array[0:20])
 
         factor1 = ShadowPlot.get_factor(var_x, self.workspace_units_to_cm)
         factor2 = ShadowPlot.get_factor(var_y, self.workspace_units_to_cm)
@@ -580,39 +575,36 @@ class PlotScatter(AutomaticElement):
     def getConversionActive(self):
         return self.is_conversion_active==1
 
-    # TODO Remove!!
-    def create_dummy_oe(self):
-        empty_element = ShadowOpticalElement.create_empty_oe()
 
-        empty_element._oe.DUMMY = 1.0 # self.workspace_units_to_cm
-
-        empty_element._oe.T_SOURCE     = 0.0
-        empty_element._oe.T_IMAGE = 0.0
-        empty_element._oe.T_INCIDENCE  = 0.0
-        empty_element._oe.T_REFLECTION = 180.0
-        empty_element._oe.ALPHA        = 0.0
-
-        empty_element._oe.FWRITE = 3
-        empty_element._oe.F_ANGLE = 0
-
-        return empty_element
 
 if __name__ == "__main__":
     from PyQt5.QtWidgets import QApplication
+
+    def create_dummy_oe():
+        empty_element = ShadowOpticalElement.create_empty_oe()
+        empty_element._oe.DUMMY = 1.0  # self.workspace_units_to_cm
+        empty_element._oe.T_SOURCE = 0.0
+        empty_element._oe.T_IMAGE = 0.0
+        empty_element._oe.T_INCIDENCE = 0.0
+        empty_element._oe.T_REFLECTION = 180.0
+        empty_element._oe.ALPHA = 0.0
+        empty_element._oe.FWRITE = 3
+        empty_element._oe.F_ANGLE = 0
+        return empty_element
+
+
     app = QApplication(sys.argv)
     w = PlotScatter()
 
-    #
     # load a Beam
-    #
     from orangecontrib.shadow.util.shadow_objects import ShadowOEHistoryItem
     beam_out = ShadowBeam()
-    beam_out.loadFromFile("/Users/srio/Oasys/test_transparency.00")
+    beam_out.loadFromFile("/users/srio/Oasys/test_transparency.00")
     beam_out.history.append(ShadowOEHistoryItem())  # fake Source
     beam_out._oe_number = 0
 
     # just to create a safe history for possible re-tracing
-    beam_out.traceFromOE(beam_out, w.create_dummy_oe(), history=True)
+    beam_out.traceFromOE(beam_out, create_dummy_oe(), history=True)
 
     w.workspace_units_to_cm = 1.0
 
@@ -621,40 +613,5 @@ if __name__ == "__main__":
     w.show()
     app.exec()
     w.saveSettings()
-
-    # import numpy
-    # from PyQt5.QtWidgets import QApplication
-    # n = 100
-    # x = (numpy.random.random(n) - 0.5) * 100
-    # y = (numpy.random.random(n) - 0.5) * 100
-    #
-    # print(x.shape,y.shape)
-    # use_backend = 'matplotlib'
-    # # use_backend = 'gl'
-    #
-    # app = QApplication(sys.argv)
-    #
-    # plot_canvas = ScatterView(backend=use_backend)
-    #
-    # color_array = x
-    #
-    # plot_canvas.setColormap(Colormap('viridis'))
-    # plot_canvas.setData(x,y,color_array,alpha=numpy.linspace(0.,1,n))
-    #
-    # plot_canvas.resetZoom()
-    # plot_canvas.setGraphTitle("title")
-    #
-    # ax = plot_canvas.getPlotWidget().getXAxis()
-    # # if self.x_range == 1:
-    # #     ax.setLimits(self.x_range_min, self.x_range_max)
-    # ax.setLabel("xtitle")
-    #
-    # ay = plot_canvas.getPlotWidget().getYAxis()
-    # # if self.y_range == 1:
-    # #     ay.setLimits(self.y_range_min, self.y_range_max)
-    # ay.setLabel("ytitle")
-    #
-    # plot_canvas.show()
-    # app.exec()
 
 
