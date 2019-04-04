@@ -8,7 +8,7 @@ except AttributeError:
     from setuptools import find_packages, setup
 
 NAME = 'OASYS1-ShadowOui'
-VERSION = '1.4.130'
+VERSION = '1.4.131'
 ISRELEASED = True
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
@@ -16,8 +16,8 @@ README_FILE = os.path.join(os.path.dirname(__file__), 'README.txt')
 LONG_DESCRIPTION = open(README_FILE).read()
 AUTHOR = 'Luca Rebuffi, Manuel Sanchez del Rio and Bioinformatics Laboratory, FRI UL'
 AUTHOR_EMAIL = 'lrebuffi@anl.gov'
-URL = 'http://github.com/lucarebuffi/ShadowOui'
-DOWNLOAD_URL = 'http://github.com/lucarebuffi/ShadowOui'
+URL = 'http://github.com/oasys-kit/ShadowOui'
+DOWNLOAD_URL = 'http://github.com/oasys-kit/ShadowOui'
 LICENSE = 'GPLv3'
 
 KEYWORDS = (
@@ -41,7 +41,7 @@ SETUP_REQUIRES = (
 
 INSTALL_REQUIRES = (
     'shadow3>=18.4.11',
-    'oasys1>=1.1.41',
+    'oasys1>=1.1.42',
     'wofryshadow>=1.0.2',
 )
 
