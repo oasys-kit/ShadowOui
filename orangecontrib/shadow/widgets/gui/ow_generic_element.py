@@ -19,6 +19,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
     view_type=Setting(2)
 
     plotted_beam=None
+    footprint_beam=None
 
     def __init__(self, show_automatic_box=True):
         super().__init__(show_automatic_box)
@@ -159,7 +160,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
         self.progressBarSet(progressBarValue)
 
-    def plot_results(self, beam_out, progressBarValue=80):
+    def plot_results(self, beam_out, footprint_beam=None, progressBarValue=80):
         if not self.view_type == 2:
             if ShadowCongruence.checkEmptyBeam(beam_out):
                 if ShadowCongruence.checkGoodBeam(beam_out):
@@ -167,12 +168,12 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
                     ShadowPlot.set_conversion_active(self.getConversionActive())
 
-                    if self.isFootprintEnabled():
-                        beam_foot_print = ShadowBeam()
-                        if beam_out._oe_number < 10:
-                            beam_foot_print.loadFromFile(file_name="mirr.0" + str(beam_out._oe_number))
-                        else:
-                            beam_foot_print.loadFromFile(file_name="mirr." + str(beam_out._oe_number))
+                    if self.isFootprintEnabled() and footprint_beam is None:
+                            footprint_beam = ShadowBeam()
+                            if beam_out._oe_number < 10:
+                                footprint_beam.loadFromFile(file_name="mirr.0" + str(beam_out._oe_number))
+                            else:
+                                footprint_beam.loadFromFile(file_name="mirr." + str(beam_out._oe_number))
 
                     variables = self.getVariablestoPlot()
                     titles = self.getTitles()
@@ -190,7 +191,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                             self.plot_histo_fast(beam_out, progressBarValue + 20, variables[4],                  plot_canvas_index=4, title=titles[4], xtitle=xtitles[4], ytitle=ytitles[4])
 
                             if self.isFootprintEnabled():
-                                self.plot_xy_fast(beam_foot_print, progressBarValue + 20, 2, 1, plot_canvas_index=5, title="Footprint", xtitle="Y [" + self.workspace_units_label +"]", ytitle="X [" + self.workspace_units_label +"]", is_footprint=True)
+                                self.plot_xy_fast(footprint_beam, progressBarValue + 20, 2, 1, plot_canvas_index=5, title="Footprint", xtitle="Y [" + self.workspace_units_label +"]", ytitle="X [" + self.workspace_units_label +"]", is_footprint=True)
 
 
                         elif self.view_type == 0:
@@ -201,7 +202,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                             self.plot_histo(beam_out, progressBarValue + 20, variables[4],                  plot_canvas_index=4, title=titles[4], xtitle=xtitles[4], ytitle=ytitles[4], xum=xums[4] )
 
                             if self.isFootprintEnabled():
-                                self.plot_xy(beam_foot_print, progressBarValue + 20, 2, 1, plot_canvas_index=5, title="Footprint", xtitle="Y [" + self.workspace_units_label +"]", ytitle="X [" + self.workspace_units_label +"]",
+                                self.plot_xy(footprint_beam, progressBarValue + 20, 2, 1, plot_canvas_index=5, title="Footprint", xtitle="Y [" + self.workspace_units_label +"]", ytitle="X [" + self.workspace_units_label +"]",
                                              xum=("Y [" + self.workspace_units_label +"]"), yum=("X [" + self.workspace_units_label +"]"), is_footprint=True)
 
                     except Exception as e:

@@ -3,7 +3,7 @@ import os
 import sys
 
 from PyQt5 import QtGui, QtWidgets
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSettings
 from PyQt5.QtWidgets import QDialog, QWidget, QLabel, QSizePolicy, QFileDialog
 from PyQt5.QtGui import QPalette, QColor, QFont, QPixmap
 
@@ -111,14 +111,30 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
     WidgetDecorator.append_syned_input_data(inputs)
 
-    outputs = [{"name":"Beam",
-                "type":ShadowBeam,
-                "doc":"Shadow Beam",
-                "id":"beam"},
-               {"name":"Trigger",
-                "type": TriggerIn,
-                "doc":"Feedback signal to start a new beam simulation",
-                "id":"Trigger"}]
+    send_footprint_beam = QSettings().value("output/send-footprint", 0, int) == 1
+
+    if send_footprint_beam:
+        outputs = [{"name":"Beam",
+                    "type":ShadowBeam,
+                    "doc":"Shadow Beam",
+                    "id":"beam"},
+                   {"name":"Footprint",
+                    "type":list,
+                    "doc":"Footprint",
+                    "id":"beam"},
+                   {"name":"Trigger",
+                    "type": TriggerIn,
+                    "doc":"Feedback signal to start a new beam simulation",
+                    "id":"Trigger"}]
+    else:
+        outputs = [{"name":"Beam",
+                    "type":ShadowBeam,
+                    "doc":"Shadow Beam",
+                    "id":"beam"},
+                   {"name":"Trigger",
+                    "type": TriggerIn,
+                    "doc":"Feedback signal to start a new beam simulation",
+                    "id":"Trigger"}]
 
     input_beam = None
     output_beam = None
@@ -2756,6 +2772,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             beam_out = ShadowBeam.traceIdealLensOE(self.input_beam,
                                                    shadow_oe,
                                                    widget_class_name=type(self).__name__)
+
+            footprint_beam = None
         else:
 
             write_start_file, write_end_file = self.get_write_file_options()
@@ -2775,6 +2793,17 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             self.writeCalculatedFields(shadow_oe)
 
+            footprint_beam = None
+
+            if self.send_footprint_beam and self.isFootprintEnabled():
+                footprint_beam = ShadowBeam()
+                if beam_out._oe_number < 10:
+                    footprint_beam.loadFromFile(file_name="mirr.0" + str(beam_out._oe_number))
+                else:
+                    footprint_beam.loadFromFile(file_name="mirr." + str(beam_out._oe_number))
+
+                footprint_beam.setScanningData()
+
         if self.trace_shadow:
             grabber.stop()
 
@@ -2783,11 +2812,12 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
         self.setStatusMessage("Plotting Results")
 
-        self.plot_results(beam_out)
+        self.plot_results(beam_out, footprint_beam=footprint_beam)
 
         self.setStatusMessage("")
 
         self.send("Beam", beam_out)
+        if self.send_footprint_beam and self.isFootprintEnabled(): self.send("Footprint", [beam_out, footprint_beam])
         self.send("Trigger", TriggerIn(new_object=True))
 
     def get_write_file_options(self):

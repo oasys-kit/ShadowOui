@@ -613,9 +613,12 @@ class GeometricalSource(ow_source.Source):
         y_values /= numpy.max(y_values)
         y_values /= y_values.sum()
 
-        random_generator = stats.rv_discrete(name='user_defined_distribution', values=(x_values, y_values))
+        refining_factor = 1e7
 
-        return random_generator.rvs(size=npoints)
+        if self.seed != 0: numpy.random.seed(seed=self.seed)
+        random_generator = stats.rv_discrete(name='user_defined_distribution', values=(x_values*refining_factor, y_values))
+
+        return random_generator.rvs(size=npoints)/refining_factor
 
     def resample_spectrum(self, x_values, y_values, new_dim):
         e_min = x_values[0]
