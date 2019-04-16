@@ -785,8 +785,13 @@ class ShadowPlot:
                 self.x[...] = ticket["bin_h_center"]
                 self.y[...] = ticket["bin_v_center"]
 
-            self.coordinates.attrs["x_label"] = ShadowPlot.get_shadow_label(ticket["col_h"])
-            self.coordinates.attrs["y_label"] = ShadowPlot.get_shadow_label(ticket["col_v"])
+            try:
+                self.coordinates.attrs["x_label"] = ShadowPlot.get_shadow_label(ticket["col_h"])
+                self.coordinates.attrs["y_label"] = ShadowPlot.get_shadow_label(ticket["col_v"])
+            except:
+                self.coordinates.attrs["x_label"] = ticket["h_label"]
+                self.coordinates.attrs["y_label"] = ticket["v_label"]
+
 
         def add_plot_xy(self, ticket, plot_name="last_plot", dataset_name="intensity", attributes={}):
                 if plot_name is None or plot_name.strip() == "" or plot_name.strip() == "last_plot":
