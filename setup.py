@@ -41,7 +41,7 @@ SETUP_REQUIRES = (
 
 INSTALL_REQUIRES = (
     'shadow3>=18.4.11',
-    'oasys1>=1.1.44',
+    'oasys1>=1.1.45',
     'wofryshadow>=1.0.2',
 )
 
