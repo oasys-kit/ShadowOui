@@ -738,24 +738,43 @@ class ShadowPlot:
             try:
                 super(ShadowPlot.PlotXYHdf5File, self).__init__(name=file_name, mode=mode)
             except OSError as e:
-                if "already open" in str(e):
+                if "already open" in str(e) and mode=="w":
                     super(ShadowPlot.PlotXYHdf5File, self).__init__(name=file_name, mode="a")
                     self.close()
                     super(ShadowPlot.PlotXYHdf5File, self).__init__(name=file_name, mode="w")
 
-            self.coordinates = self.create_group("coordinates")
-            self.plots = self.create_group("xy_plots")
-            self.last_plot = self.plots.create_group("last_plot")
-            self.has_last_plot = False
-            self.has_coordinate = False
+            if mode != "r":
+                self.coordinates = self.create_group("coordinates")
+                self.plots = self.create_group("xy_plots")
+                self.last_plot = self.plots.create_group("last_plot")
+                self.has_last_plot = False
+                self.has_coordinate = False
 
-            self.attrs["default"]          = "coordinates/X"
-            self.attrs["file_name"]        = file_name
-            self.attrs["file_time"]        = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
-            self.attrs["creator"]          = "PlotXYHdf5File.__init__"
-            self.attrs["code"]             = "ShadowOui"
-            self.attrs["HDF5_Version"]     = h5py.version.hdf5_version
-            self.attrs["h5py_version"]     = h5py.version.version
+                self.attrs["default"]          = "coordinates/X"
+                self.attrs["file_name"]        = file_name
+                self.attrs["file_time"]        = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+                self.attrs["creator"]          = "PlotXYHdf5File.__init__"
+                self.attrs["code"]             = "ShadowOui"
+                self.attrs["HDF5_Version"]     = h5py.version.hdf5_version
+                self.attrs["h5py_version"]     = h5py.version.version
+
+        def get_last_plot(self, dataset_name="intensity"):
+            return self.get_plot_xy(dataset_name=dataset_name)
+
+        def get_coordinates(self):
+            bin_h_center = self["coordinates/X"].value
+            h_label = self["coordinates"].attrs["x_label"]
+            bin_v_center = self["coordinates/Y"].value
+            v_label = self["coordinates"].attrs["y_label"]
+
+            return bin_h_center, bin_v_center, h_label, v_label
+
+        def get_plot_xy(self, plot_name="last_plot", dataset_name="intensity"):
+            histogram = self["/xy_plots/" + plot_name + "/" + dataset_name].value
+            histogram_h = self["/xy_plots/" + plot_name + "/histogram_h"].value
+            histogram_v = self["/xy_plots/" + plot_name + "/histogram_v"].value
+
+            return histogram, histogram_h, histogram_v, self["/xy_plots/" + plot_name].attrs
 
         def write_coordinates(self, ticket):
             if not self.has_coordinate:
@@ -766,8 +785,13 @@ class ShadowPlot:
                 self.x[...] = ticket["bin_h_center"]
                 self.y[...] = ticket["bin_v_center"]
 
-            self.coordinates.attrs["x_label"] = ShadowPlot.get_shadow_label(ticket["col_h"])
-            self.coordinates.attrs["y_label"] = ShadowPlot.get_shadow_label(ticket["col_v"])
+            try:
+                self.coordinates.attrs["x_label"] = ShadowPlot.get_shadow_label(ticket["col_h"])
+                self.coordinates.attrs["y_label"] = ShadowPlot.get_shadow_label(ticket["col_v"])
+            except:
+                self.coordinates.attrs["x_label"] = ticket["h_label"]
+                self.coordinates.attrs["y_label"] = ticket["v_label"]
+
 
         def add_plot_xy(self, ticket, plot_name="last_plot", dataset_name="intensity", attributes={}):
                 if plot_name is None or plot_name.strip() == "" or plot_name.strip() == "last_plot":
