@@ -757,20 +757,20 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                     if not self.graphical_options.is_conic_coefficients:
                         if self.graphical_options.is_spheric:
-                            self.le_spherical_radius_2 = oasysgui.lineEdit(view_shape_box, self, "spherical_radius", "Calculated Radius", labelWidth=260, valueType=float, orientation="horizontal")
+                            self.le_spherical_radius_2 = oasysgui.lineEdit(view_shape_box, self, "spherical_radius", "Radius", labelWidth=170, valueType=float, orientation="horizontal")
                             self.le_spherical_radius_2.setReadOnly(True)
                         elif self.graphical_options.is_toroidal:
-                            self.le_torus_major_radius_2 = oasysgui.lineEdit(view_shape_box, self, "torus_major_radius", "Calculated Major Radius", labelWidth=260, valueType=float, orientation="horizontal")
-                            self.le_torus_minor_radius_2 = oasysgui.lineEdit(view_shape_box, self, "torus_minor_radius", "Calculated Minor Radius", labelWidth=260, valueType=float, orientation="horizontal")
+                            self.le_torus_major_radius_2 = oasysgui.lineEdit(view_shape_box, self, "torus_major_radius", "Major Radius", labelWidth=170, valueType=float, orientation="horizontal")
+                            self.le_torus_minor_radius_2 = oasysgui.lineEdit(view_shape_box, self, "torus_minor_radius", "Minor Radius", labelWidth=170, valueType=float, orientation="horizontal")
                             self.le_torus_major_radius_2.setReadOnly(True)
                             self.le_torus_minor_radius_2.setReadOnly(True)
                         elif self.graphical_options.is_hyperboloid or self.graphical_options.is_ellipsoidal:
-                            self.le_ellipse_hyperbola_semi_major_axis_2 = oasysgui.lineEdit(view_shape_box, self, "ellipse_hyperbola_semi_major_axis", "Calculated semi-major Axis",  labelWidth=260, valueType=float, orientation="horizontal")
-                            self.le_ellipse_hyperbola_semi_minor_axis_2 = oasysgui.lineEdit(view_shape_box, self, "ellipse_hyperbola_semi_minor_axis", "Calculated semi-minor Axis", labelWidth=260, valueType=float, orientation="horizontal")
+                            self.le_ellipse_hyperbola_semi_major_axis_2 = oasysgui.lineEdit(view_shape_box, self, "ellipse_hyperbola_semi_major_axis", "Semi-major Axis",  labelWidth=170, valueType=float, orientation="horizontal")
+                            self.le_ellipse_hyperbola_semi_minor_axis_2 = oasysgui.lineEdit(view_shape_box, self, "ellipse_hyperbola_semi_minor_axis", "Semi-minor Axis", labelWidth=170, valueType=float, orientation="horizontal")
                             self.le_ellipse_hyperbola_semi_major_axis_2.setReadOnly(True)
                             self.le_ellipse_hyperbola_semi_minor_axis_2.setReadOnly(True)
                         elif self.graphical_options.is_paraboloid:
-                            self.le_paraboloid_parameter_2 = oasysgui.lineEdit(view_shape_box, self, "paraboloid_parameter", "Calculater Paraboloid Parameter", labelWidth=260, valueType=float, orientation="horizontal")
+                            self.le_paraboloid_parameter_2 = oasysgui.lineEdit(view_shape_box, self, "paraboloid_parameter", "Paraboloid Parameter", labelWidth=170, valueType=float, orientation="horizontal")
                             self.le_paraboloid_parameter_2.setReadOnly(True)
 
                     if not self.graphical_options.is_toroidal:
