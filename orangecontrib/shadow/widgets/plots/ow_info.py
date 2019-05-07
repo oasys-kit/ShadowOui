@@ -67,7 +67,7 @@ class Info(widget.OWWidget):
         self.sysPlotSide.setMaximumHeight(self.WIDGET_HEIGHT-100)
 
         self.sysPlotTop = oasysgui.plotWindow(tab_sys_plot_top)
-        self.sysPlotSide.setMaximumHeight(self.WIDGET_HEIGHT-100)
+        self.sysPlotTop.setMaximumHeight(self.WIDGET_HEIGHT-100)
 
         self.mirInfo = oasysgui.textArea()
         self.mirInfo.setMaximumHeight(self.WIDGET_HEIGHT-100)
@@ -190,15 +190,17 @@ class Info(widget.OWWidget):
                 try:
                     dic = coe_end._oe.syspositions()
 
-                    self.sysPlotSide.addCurve(dic["optical_axis_y"],dic["optical_axis_z"],replace=True,replot=True)
+                    self.sysPlotSide.addCurve(dic["optical_axis_y"],dic["optical_axis_z"],symbol='o',replace=True)
                     self.sysPlotSide.setGraphXLabel("Y [%s]"%self.workspace_units_label)
                     self.sysPlotSide.setGraphYLabel("Z [%s]"%self.workspace_units_label)
                     self.sysPlotSide.setGraphTitle("Side View of optical axis")
+                    self.sysPlotSide.replot()
 
-                    self.sysPlotTop.addCurve(dic["optical_axis_y"],dic["optical_axis_x"],replace=True,replot=True)
+                    self.sysPlotTop.addCurve(dic["optical_axis_y"],dic["optical_axis_x"],symbol='o',replace=True)
                     self.sysPlotTop.setGraphXLabel("Y [%s]"%self.workspace_units_label)
                     self.sysPlotTop.setGraphYLabel("X [%s]"%self.workspace_units_label)
                     self.sysPlotTop.setGraphTitle("Top View of optical axis")
+                    self.sysPlotTop.replot()
 
                 except:
                     self.distancesSummary.setText("Problem in calculating SysPlot:\n" + str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]))
