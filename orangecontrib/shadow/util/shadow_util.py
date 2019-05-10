@@ -372,7 +372,7 @@ class ShadowPlot:
         def __init__(self, x_scale_factor = 1.0, y_scale_factor = 1.0):
             super(ShadowPlot.DetailedHistoWidget, self).__init__()
 
-            self.plot_canvas = gui.plotWindow(roi=False, control=False, position=True, logScale=False)
+            self.plot_canvas = gui.plotWindow(roi=False, control=False, position=True, logScale=True)
             self.plot_canvas.setDefaultPlotLines(True)
             self.plot_canvas.setActiveCurveColor(color='blue')
             self.plot_canvas.setMinimumWidth(590*x_scale_factor)
@@ -485,7 +485,7 @@ class ShadowPlot:
 
             layout = QGridLayout()
 
-            layout.addWidget(   self.info_box, 0, 1, 1, 1)
+            layout.addWidget(self.info_box,    0, 1, 1, 1)
             layout.addWidget(self.plot_canvas, 0, 0, 1, 1)
 
             layout.setColumnMinimumWidth(0, 600*x_scale_factor)
