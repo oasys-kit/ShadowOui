@@ -9,6 +9,7 @@ import numpy
 import xraylib
 import h5py
 
+from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel
 from PyQt5.QtGui import QFont, QPalette, QColor
 from matplotlib.patches import FancyArrowPatch, ArrowStyle
@@ -553,6 +554,14 @@ class ShadowPlot:
                     x_values.append(ticket['histogram'][x_index][y_index])
 
                 data_to_plot.append(x_values)
+
+
+            self.plot_canvas.setColormap({"name":QSettings().value("output/shadow-default-colormap", "temperature", str),
+                                          "normalization":"linear",
+                                          "autoscale":True,
+                                          "vmin":0,
+                                          "vmax":0,
+                                          "colors":256})
 
             self.plot_canvas.setImage(numpy.array(data_to_plot), origin=origin, scale=scale)
 
