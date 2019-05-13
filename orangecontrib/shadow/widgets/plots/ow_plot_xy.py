@@ -16,7 +16,7 @@ from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
 from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticElement
 
-
+from Shadow.ShadowLibExtensions import CompoundOE
 class PlotXY(AutomaticElement):
 
     name = "Plot XY"
@@ -409,7 +409,11 @@ class PlotXY(AutomaticElement):
 
                 if historyItem is None: image_plane = 0.0
                 elif self.input_beam._oe_number == 0: image_plane = 0.0
-                else: image_plane = historyItem._shadow_oe_end._oe.T_IMAGE
+                else:
+                    if isinstance(historyItem._shadow_oe_end._oe, CompoundOE):
+                        image_plane = historyItem._shadow_oe_end._oe.list[-1].T_IMAGE
+                    else:
+                        image_plane = historyItem._shadow_oe_end._oe.T_IMAGE
 
                 dist = self.image_plane_new_position - image_plane
 
