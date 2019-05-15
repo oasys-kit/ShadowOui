@@ -105,7 +105,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
             try:
                 self.initializeTabs()
 
-                self.plot_results(self.plotted_beam, 80)
+                self.plot_results(self.plotted_beam, progressBarValue=80)
             except Exception as exception:
                 QtWidgets.QMessageBox.critical(self, "Error",
                                            str(exception),

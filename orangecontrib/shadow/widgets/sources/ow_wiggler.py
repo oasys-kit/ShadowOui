@@ -527,7 +527,7 @@ class Wiggler(ow_source.Source, WidgetDecorator):
 
             self.progressBarSet(80)
 
-            self.plot_results(beam_out, 80)
+            self.plot_results(beam_out, progressBarValue=80)
 
             self.setStatusMessage("Plotting Wiggler Data")
 
