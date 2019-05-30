@@ -4,6 +4,7 @@ import os, sys
 
 from PyQt5.QtGui import QPalette, QColor, QFont
 from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtCore import QSettings
 from orangewidget import gui
 from orangewidget import widget
 from orangewidget.settings import Setting
@@ -85,6 +86,55 @@ class Source(ow_generic_element.GenericElement):
 
         gui.separator(self.controlArea)
 
+
+    def initializeTabs(self):
+        current_tab = self.tabs.currentIndex()
+
+        enabled = self.isFootprintEnabled()
+
+        size = len(self.tab)
+        indexes = range(0, size)
+        for index in indexes:
+            self.tabs.removeTab(size-1-index)
+
+        show_effective_source_size = QSettings().value("output/show-effective-source-size", 0, int) == 1
+
+        titles = self.getTitles()
+
+        if show_effective_source_size:
+            self.tab = [oasysgui.createTabPage(self.tabs, titles[0]),
+                        oasysgui.createTabPage(self.tabs, titles[1]),
+                        oasysgui.createTabPage(self.tabs, titles[2]),
+                        oasysgui.createTabPage(self.tabs, titles[3]),
+                        oasysgui.createTabPage(self.tabs, titles[4]),
+                        oasysgui.createTabPage(self.tabs, titles[5]),
+            ]
+
+            self.plot_canvas = [None, None, None, None, None, None]
+        else:
+            self.tab = [oasysgui.createTabPage(self.tabs, titles[0]),
+                        oasysgui.createTabPage(self.tabs, titles[1]),
+                        oasysgui.createTabPage(self.tabs, titles[2]),
+                        oasysgui.createTabPage(self.tabs, titles[3]),
+                        oasysgui.createTabPage(self.tabs, titles[4]),
+            ]
+
+            self.plot_canvas = [None, None, None, None, None]
+
+        for tab in self.tab:
+            tab.setFixedHeight(self.IMAGE_HEIGHT)
+            tab.setFixedWidth(self.IMAGE_WIDTH)
+
+        self.enableFootprint(enabled)
+
+        self.tabs.setCurrentIndex(min(current_tab, len(self.tab)-1))
+
+    def isFootprintEnabled(self):
+        return False
+
+    def enableFootprint(self, enabled=False):
+        pass
+
     def get_write_file_options(self):
         write_begin_file = 0
         write_start_file = 0
@@ -152,3 +202,35 @@ class Source(ow_generic_element.GenericElement):
 
     def deserialize(self, shadow_file):
         pass
+
+    def plot_results(self, beam_out, footprint_beam=None, progressBarValue=80):
+        show_effective_source_size = QSettings().value("output/show-effective-source-size", 0, int) == 1
+
+        if show_effective_source_size:
+            if len(self.tab)==5: self.initializeTabs()
+        else:
+            if len(self.tab)==6: self.initializeTabs()
+
+        super().plot_results(beam_out, footprint_beam, progressBarValue)
+
+        if show_effective_source_size and not self.view_type == 2:
+            effective_source_size_beam = beam_out.duplicate(history=False)
+            effective_source_size_beam._beam.retrace(0)
+
+            variables = self.getVariablestoPlot()
+            titles = self.getTitles()
+            xtitles = self.getXTitles()
+            ytitles = self.getYTitles()
+            xums = self.getXUM()
+            yums = self.getYUM()
+
+            if self.view_type == 1:
+                self.plot_xy_fast(effective_source_size_beam, 100,  variables[0][0], variables[0][1], plot_canvas_index=5, title=titles[0], xtitle=xtitles[0], ytitle=ytitles[0])
+            elif self.view_type == 0:
+                self.plot_xy(effective_source_size_beam, 100,  variables[0][0], variables[0][1], plot_canvas_index=5, title=titles[0], xtitle=xtitles[0], ytitle=ytitles[0], xum=xums[0], yum=yums[0])
+
+    def runShadowSource(self):
+        raise NotImplementedError("This method is abstract")
+
+    def getTitles(self):
+        return ["X,Z", "X',Z'", "X,X'", "Z,Z'", "Energy", "Effective Source Size"]

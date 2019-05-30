@@ -3,7 +3,9 @@ import sys
 import time
 
 import numpy
-from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from PyQt5.QtGui import QTextCursor
+from PyQt5.QtCore import QSettings
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -28,7 +30,12 @@ class PlotXY(AutomaticElement):
     category = "Display Data Tools"
     keywords = ["data", "file", "load", "read"]
 
-    inputs = [("Input Beam", ShadowBeam, "setBeam")]
+    send_footprint_beam = QSettings().value("output/send-footprint", 0, int) == 1
+
+    if send_footprint_beam:
+        inputs = [("Input Beam", object, "setBeam")]
+    else:
+        inputs = [("Input Beam", ShadowBeam, "setBeam")]
 
     IMAGE_WIDTH = 878
     IMAGE_HEIGHT = 635
@@ -480,7 +487,7 @@ class PlotXY(AutomaticElement):
     def save_results(self):
         if not self.plotted_ticket is None:
             try:
-                file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Current Plot", filter="HDF5 Files (*.hdf5 *.h5 *.hdf)")
+                file_name, _ = QFileDialog.getSaveFileName(self, "Save Current Plot", filter="HDF5 Files (*.hdf5 *.h5 *.hdf)")
 
                 if not file_name is None and not file_name.strip()=="":
                     if not (file_name.endswith("hd5") or file_name.endswith("hdf5") or file_name.endswith("hdf")):
@@ -495,7 +502,7 @@ class PlotXY(AutomaticElement):
 
                     save_file.close()
             except Exception as exception:
-                QtWidgets.QMessageBox.critical(self, "Error", str(exception), QtWidgets.QMessageBox.Ok)
+                QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
                 if self.IS_DEVELOP: raise exception
 
@@ -529,9 +536,9 @@ class PlotXY(AutomaticElement):
 
             return plotted
         except Exception as exception:
-            QtWidgets.QMessageBox.critical(self, "Error",
+            QMessageBox.critical(self, "Error",
                                        str(exception),
-                                       QtWidgets.QMessageBox.Ok)
+                                       QMessageBox.Ok)
 
             if self.IS_DEVELOP: raise exception
 
@@ -625,27 +632,83 @@ class PlotXY(AutomaticElement):
         return x, y, auto_x_title, auto_y_title, xum, yum
 
     def setBeam(self, beam):
-        if ShadowCongruence.checkEmptyBeam(beam):
-            if ShadowCongruence.checkGoodBeam(beam):
-                self.input_beam = beam
+        if not beam is None:
+            send_footprint_beam = QSettings().value("output/send-footprint", 0, int) == 1
 
-                if self.is_automatic_run:
-                    self.plot_results()
+            if send_footprint_beam and isinstance(beam, list):
+                footprint_beam = beam[1]
+
+                if ShadowCongruence.checkEmptyBeam(footprint_beam):
+                    if ShadowCongruence.checkGoodBeam(footprint_beam):
+                        self.input_beam = footprint_beam
+
+                        self.x_column_index = 1
+                        self.x_range=0
+                        self.y_column_index = 0
+                        self.y_range = 0
+                        self.image_plane = 0
+
+                        self.set_XRange()
+                        self.set_YRange()
+                        self.set_ImagePlane()
+
+                        if self.is_automatic_run:
+                            self.plot_results()
+                    else:
+                        QMessageBox.critical(self, "Error",
+                                                   "Data not displayable: No good rays, bad content, bad limits or axes",
+                                                   QMessageBox.Ok)
+
+            elif isinstance(beam, ShadowBeam):
+                if ShadowCongruence.checkEmptyBeam(beam):
+                    if ShadowCongruence.checkGoodBeam(beam):
+                        self.input_beam = beam
+
+                        if self.is_automatic_run:
+                            self.plot_results()
+                    else:
+                        QMessageBox.critical(self, "Error",
+                                                   "Data not displayable: No good rays, bad content, bad limits or axes",
+                                                   QMessageBox.Ok)
             else:
-                QtWidgets.QMessageBox.critical(self, "Error",
-                                           "Data not displayable: No good rays, bad content, bad limits or axes",
-                                           QtWidgets.QMessageBox.Ok)
+                QMessageBox.critical(self, "Error",
+                                           "Data not displayable: input type not recognized (must be Shadow Beam or Footprint)",
+                                           QMessageBox.Ok)
 
+    def setFootprintBeam(self, footprint):
+        if not footprint is None:
+            beam = footprint[1]
+
+            if ShadowCongruence.checkEmptyBeam(beam):
+                if ShadowCongruence.checkGoodBeam(beam):
+                    self.input_beam = beam
+
+                    self.x_column_index = 1
+                    self.x_range=0
+                    self.y_column_index = 0
+                    self.y_range = 0
+                    self.image_plane = 0
+
+                    self.set_XRange()
+                    self.set_YRange()
+                    self.set_ImagePlane()
+
+                    if self.is_automatic_run:
+                        self.plot_results()
+                else:
+                    QMessageBox.critical(self, "Error",
+                                               "Data not displayable: No good rays, bad content, bad limits or axes",
+                                               QMessageBox.Ok)
 
     def writeStdOut(self, text):
         cursor = self.shadow_output.textCursor()
-        cursor.movePosition(QtGui.QTextCursor.End)
+        cursor.movePosition(QTextCursor.End)
         cursor.insertText(text)
         self.shadow_output.setTextCursor(cursor)
         self.shadow_output.ensureCursorVisible()
 
     def retrace_beam(self, new_shadow_beam, dist):
-            new_shadow_beam._beam.retrace(dist)
+        new_shadow_beam._beam.retrace(dist)
 
     def getConversionActive(self):
         return self.is_conversion_active==1
