@@ -773,8 +773,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                             self.le_paraboloid_parameter_2 = oasysgui.lineEdit(view_shape_box, self, "paraboloid_parameter", "Paraboloid Parameter", labelWidth=170, valueType=float, orientation="horizontal")
                             self.le_paraboloid_parameter_2.setReadOnly(True)
 
-                    if not self.graphical_options.is_toroidal:
-                        self.render_surface_button = gui.button(view_shape_box, self, "Render Surface Shape", callback=self.viewSurfaceShape)
+                    #if not self.graphical_options.is_toroidal:
+                    self.render_surface_button = gui.button(view_shape_box, self, "Render Surface Shape", callback=self.viewSurfaceShape)
 
                     if not self.graphical_options.is_conic_coefficients:
                         self.set_IntExt_Parameters()
@@ -1785,6 +1785,9 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         c9  = 0.0
         c10 = 0.0
 
+        torus_major_radius = 0.0
+        torus_minor_radius = 0.0
+
         xx = None
         yy = None
         zz = None
@@ -1818,58 +1821,68 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             axis.plot_surface(X, Y, z_values,
                               rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
 
-            title_head = "Surface from generated conic coefficients:\n"
-            title = ""
-            max_dim = 40
-            
-            if self.c1 != 0: title +=       str(self.c1) + u"\u00B7" + "X" + u"\u00B2"
-            if len(title) >=  max_dim:
-                title_head += title + "\n"
+            if parent.graphical_options.is_toroidal:
+                axis.set_title("Surface from Torus equation:\n" +
+                               "[(Z + R + r)" + u"\u00B2" +
+                               " + Y" + u"\u00B2" +
+                               " + X" + u"\u00B2" +
+                               " + R" + u"\u00B2" +
+                               " - r" + u"\u00B2"
+                               + "]" + u"\u00B2" +
+                               "= 4R" + u"\u00B2" + "[(Z + R + r)" + u"\u00B2" + " + Y" + u"\u00B2" + "]")
+            else:
+                title_head = "Surface from generated conic coefficients:\n"
                 title = ""
-            if self.c2 < 0 or (self.c2 > 0 and title == ""): title +=       str(self.c2) + u"\u00B7" + "Y" + u"\u00B2"
-            elif self.c2 > 0                                 : title += "+" + str(self.c2) + u"\u00B7" + "Y" + u"\u00B2"
-            if len(title) >=  max_dim:
-                title_head += title + "\n"
-                title = ""
-            if self.c3 < 0 or (self.c3 > 0 and title == ""): title +=       str(self.c3) + u"\u00B7" + "Z" + u"\u00B2"
-            elif self.c3 > 0                                 : title += "+" + str(self.c3) + u"\u00B7" + "Z" + u"\u00B2"
-            if len(title) >=  max_dim:
-                title_head += title + "\n"
-                title = ""
-            if self.c4 < 0 or (self.c4 > 0 and title == ""): title +=       str(self.c4) + u"\u00B7" + "XY"
-            elif self.c4 > 0                                 : title += "+" + str(self.c4) + u"\u00B7" + "XY"
-            if len(title) >=  max_dim:
-                title_head += title + "\n"
-                title = ""
-            if self.c5 < 0 or (self.c5 > 0 and title == ""): title +=       str(self.c5) + u"\u00B7" + "YZ"
-            elif self.c5 > 0                                 : title += "+" + str(self.c5) + u"\u00B7" + "YZ"
-            if len(title) >=  max_dim:
-                title_head += title + "\n"
-                title = ""
-            if self.c6 < 0 or (self.c6 > 0 and title == ""): title +=       str(self.c6) + u"\u00B7" + "XZ"
-            elif self.c6 > 0                                 : title += "+" + str(self.c6) + u"\u00B7" + "XZ"
-            if len(title) >=  max_dim:
-                title_head += title + "\n"
-                title = ""
-            if self.c7 < 0 or (self.c7 > 0 and title == ""): title +=       str(self.c7) + u"\u00B7" + "X"
-            elif self.c7 > 0                                 : title += "+" + str(self.c7) + u"\u00B7" + "X"
-            if len(title) >=  max_dim:
-                title_head += title + "\n"
-                title = ""
-            if self.c8 < 0 or (self.c8 > 0 and title == ""): title +=       str(self.c8) + u"\u00B7" + "Y"
-            elif self.c8 > 0                                 : title += "+" + str(self.c8) + u"\u00B7" + "Y"
-            if len(title) >=  max_dim:
-                title_head += title + "\n"
-                title = ""
-            if self.c9 < 0 or (self.c9 > 0 and title == ""): title +=       str(self.c9) + u"\u00B7" + "Z"
-            elif self.c9 > 0                                 : title += "+" + str(self.c9) + u"\u00B7" + "Z"
-            if len(title) >=  max_dim:
-                title_head += title + "\n"
-                title = ""
-            if self.c10< 0 or (self.c10> 0 and title == ""): title +=       str(self.c10)
-            elif self.c10> 0                                 : title += "+" + str(self.c10)
+                max_dim = 40
 
-            axis.set_title(title_head + title + " = 0")
+                if self.c1 != 0: title +=       str(self.c1) + u"\u00B7" + "X" + u"\u00B2"
+                if len(title) >=  max_dim:
+                    title_head += title + "\n"
+                    title = ""
+                if self.c2 < 0 or (self.c2 > 0 and title == ""): title +=       str(self.c2) + u"\u00B7" + "Y" + u"\u00B2"
+                elif self.c2 > 0                                 : title += "+" + str(self.c2) + u"\u00B7" + "Y" + u"\u00B2"
+                if len(title) >=  max_dim:
+                    title_head += title + "\n"
+                    title = ""
+                if self.c3 < 0 or (self.c3 > 0 and title == ""): title +=       str(self.c3) + u"\u00B7" + "Z" + u"\u00B2"
+                elif self.c3 > 0                                 : title += "+" + str(self.c3) + u"\u00B7" + "Z" + u"\u00B2"
+                if len(title) >=  max_dim:
+                    title_head += title + "\n"
+                    title = ""
+                if self.c4 < 0 or (self.c4 > 0 and title == ""): title +=       str(self.c4) + u"\u00B7" + "XY"
+                elif self.c4 > 0                                 : title += "+" + str(self.c4) + u"\u00B7" + "XY"
+                if len(title) >=  max_dim:
+                    title_head += title + "\n"
+                    title = ""
+                if self.c5 < 0 or (self.c5 > 0 and title == ""): title +=       str(self.c5) + u"\u00B7" + "YZ"
+                elif self.c5 > 0                                 : title += "+" + str(self.c5) + u"\u00B7" + "YZ"
+                if len(title) >=  max_dim:
+                    title_head += title + "\n"
+                    title = ""
+                if self.c6 < 0 or (self.c6 > 0 and title == ""): title +=       str(self.c6) + u"\u00B7" + "XZ"
+                elif self.c6 > 0                                 : title += "+" + str(self.c6) + u"\u00B7" + "XZ"
+                if len(title) >=  max_dim:
+                    title_head += title + "\n"
+                    title = ""
+                if self.c7 < 0 or (self.c7 > 0 and title == ""): title +=       str(self.c7) + u"\u00B7" + "X"
+                elif self.c7 > 0                                 : title += "+" + str(self.c7) + u"\u00B7" + "X"
+                if len(title) >=  max_dim:
+                    title_head += title + "\n"
+                    title = ""
+                if self.c8 < 0 or (self.c8 > 0 and title == ""): title +=       str(self.c8) + u"\u00B7" + "Y"
+                elif self.c8 > 0                                 : title += "+" + str(self.c8) + u"\u00B7" + "Y"
+                if len(title) >=  max_dim:
+                    title_head += title + "\n"
+                    title = ""
+                if self.c9 < 0 or (self.c9 > 0 and title == ""): title +=       str(self.c9) + u"\u00B7" + "Z"
+                elif self.c9 > 0                                 : title += "+" + str(self.c9) + u"\u00B7" + "Z"
+                if len(title) >=  max_dim:
+                    title_head += title + "\n"
+                    title = ""
+                if self.c10< 0 or (self.c10> 0 and title == ""): title +=       str(self.c10)
+                elif self.c10> 0                                 : title += "+" + str(self.c10)
+
+                axis.set_title(title_head + title + " = 0")
 
             figure_canvas.draw()
 
@@ -1879,37 +1892,46 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             container = oasysgui.widgetBox(widget, "", addSpace=False, orientation="vertical", width=220)
 
-            surface_box = oasysgui.widgetBox(container, "Conic Coefficients", addSpace=False, orientation="vertical", width=220, height=375)
+            if parent.graphical_options.is_toroidal:
+                surface_box = oasysgui.widgetBox(container, "Torus Parameters", addSpace=False, orientation="vertical", width=220, height=375)
 
-            label  = "c[1]" + u"\u00B7" + "X" + u"\u00B2" + " + c[2]" + u"\u00B7" + "Y" + u"\u00B2" + " + c[3]" + u"\u00B7" + "Z" + u"\u00B2" + " +\n"
-            label += "c[4]" + u"\u00B7" + "XY" + " + c[5]" + u"\u00B7" + "YZ" + " + c[6]" + u"\u00B7" + "XZ" + " +\n"
-            label += "c[7]" + u"\u00B7" + "X" + " + c[8]" + u"\u00B7" + "Y" + " + c[9]" + u"\u00B7" + "Z" + " + c[10] = 0"
+                le_torus_major_radius = oasysgui.lineEdit(surface_box, self, "torus_major_radius" , "R" , labelWidth=60, valueType=float, orientation="horizontal")
+                le_torus_minor_radius = oasysgui.lineEdit(surface_box, self, "torus_minor_radius" , "r" , labelWidth=60, valueType=float, orientation="horizontal")
 
-            gui.label(surface_box, self, label)
+                le_torus_major_radius.setReadOnly(True)
+                le_torus_minor_radius.setReadOnly(True)
+            else:
+                surface_box = oasysgui.widgetBox(container, "Conic Coefficients", addSpace=False, orientation="vertical", width=220, height=375)
 
-            gui.separator(surface_box, 10)
+                label  = "c[1]" + u"\u00B7" + "X" + u"\u00B2" + " + c[2]" + u"\u00B7" + "Y" + u"\u00B2" + " + c[3]" + u"\u00B7" + "Z" + u"\u00B2" + " +\n"
+                label += "c[4]" + u"\u00B7" + "XY" + " + c[5]" + u"\u00B7" + "YZ" + " + c[6]" + u"\u00B7" + "XZ" + " +\n"
+                label += "c[7]" + u"\u00B7" + "X" + " + c[8]" + u"\u00B7" + "Y" + " + c[9]" + u"\u00B7" + "Z" + " + c[10] = 0"
 
-            le_0 = oasysgui.lineEdit(surface_box, self, "c1" , "c[1]" , labelWidth=60, valueType=float, orientation="horizontal")
-            le_1 = oasysgui.lineEdit(surface_box, self, "c2" , "c[2]" , labelWidth=60, valueType=float, orientation="horizontal")
-            le_2 = oasysgui.lineEdit(surface_box, self, "c3" , "c[3]" , labelWidth=60, valueType=float, orientation="horizontal")
-            le_3 = oasysgui.lineEdit(surface_box, self, "c4" , "c[4]" , labelWidth=60, valueType=float, orientation="horizontal")
-            le_4 = oasysgui.lineEdit(surface_box, self, "c5" , "c[5]" , labelWidth=60, valueType=float, orientation="horizontal")
-            le_5 = oasysgui.lineEdit(surface_box, self, "c6" , "c[6]" , labelWidth=60, valueType=float, orientation="horizontal")
-            le_6 = oasysgui.lineEdit(surface_box, self, "c7" , "c[7]" , labelWidth=60, valueType=float, orientation="horizontal")
-            le_7 = oasysgui.lineEdit(surface_box, self, "c8" , "c[8]" , labelWidth=60, valueType=float, orientation="horizontal")
-            le_8 = oasysgui.lineEdit(surface_box, self, "c9" , "c[9]" , labelWidth=60, valueType=float, orientation="horizontal")
-            le_9 = oasysgui.lineEdit(surface_box, self, "c10", "c[10]", labelWidth=60, valueType=float, orientation="horizontal")
+                gui.label(surface_box, self, label)
 
-            le_0.setReadOnly(True)
-            le_1.setReadOnly(True)
-            le_2.setReadOnly(True)
-            le_3.setReadOnly(True)
-            le_4.setReadOnly(True)
-            le_5.setReadOnly(True)
-            le_6.setReadOnly(True)
-            le_7.setReadOnly(True)
-            le_8.setReadOnly(True)
-            le_9.setReadOnly(True)
+                gui.separator(surface_box, 10)
+
+                le_0 = oasysgui.lineEdit(surface_box, self, "c1" , "c[1]" , labelWidth=60, valueType=float, orientation="horizontal")
+                le_1 = oasysgui.lineEdit(surface_box, self, "c2" , "c[2]" , labelWidth=60, valueType=float, orientation="horizontal")
+                le_2 = oasysgui.lineEdit(surface_box, self, "c3" , "c[3]" , labelWidth=60, valueType=float, orientation="horizontal")
+                le_3 = oasysgui.lineEdit(surface_box, self, "c4" , "c[4]" , labelWidth=60, valueType=float, orientation="horizontal")
+                le_4 = oasysgui.lineEdit(surface_box, self, "c5" , "c[5]" , labelWidth=60, valueType=float, orientation="horizontal")
+                le_5 = oasysgui.lineEdit(surface_box, self, "c6" , "c[6]" , labelWidth=60, valueType=float, orientation="horizontal")
+                le_6 = oasysgui.lineEdit(surface_box, self, "c7" , "c[7]" , labelWidth=60, valueType=float, orientation="horizontal")
+                le_7 = oasysgui.lineEdit(surface_box, self, "c8" , "c[8]" , labelWidth=60, valueType=float, orientation="horizontal")
+                le_8 = oasysgui.lineEdit(surface_box, self, "c9" , "c[9]" , labelWidth=60, valueType=float, orientation="horizontal")
+                le_9 = oasysgui.lineEdit(surface_box, self, "c10", "c[10]", labelWidth=60, valueType=float, orientation="horizontal")
+
+                le_0.setReadOnly(True)
+                le_1.setReadOnly(True)
+                le_2.setReadOnly(True)
+                le_3.setReadOnly(True)
+                le_4.setReadOnly(True)
+                le_5.setReadOnly(True)
+                le_6.setReadOnly(True)
+                le_7.setReadOnly(True)
+                le_8.setReadOnly(True)
+                le_9.setReadOnly(True)
 
             export_box = oasysgui.widgetBox(container, "Export", addSpace=False, orientation="vertical", width=220)
 
@@ -1947,23 +1969,35 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             X, Y = numpy.meshgrid(self.xx, self.yy)
 
-            self.c1 = round(parent.conic_coefficient_0, 10)
-            self.c2 = round(parent.conic_coefficient_1, 10)
-            self.c3 = round(parent.conic_coefficient_2, 10)
-            self.c4 = round(parent.conic_coefficient_3, 10)
-            self.c5 = round(parent.conic_coefficient_4, 10)
-            self.c6 = round(parent.conic_coefficient_5, 10)
-            self.c7 = round(parent.conic_coefficient_6, 10)
-            self.c8 = round(parent.conic_coefficient_7, 10)
-            self.c9 = round(parent.conic_coefficient_8, 10)
-            self.c10= round(parent.conic_coefficient_9, 10)
+            if parent.graphical_options.is_toroidal:
+                self.torus_major_radius = parent.torus_major_radius
+                self.torus_minor_radius = parent.torus_minor_radius
 
-            c = self.c1*(X**2) + self.c2*(Y**2) + self.c4*X*Y + self.c7*X + self.c8*Y + self.c10
-            b = self.c5*Y + self.c6*X + self.c9
-            a = self.c3
+                sign = -1 if parent.toroidal_mirror_pole_location <= 1 else 1
 
-            z_values = (-b + sign*numpy.sqrt(b**2 - 4*a*c))/(2*a)
-            z_values[b**2 - 4*a*c < 0] = numpy.nan
+                z_values = sign*(numpy.sqrt((self.torus_major_radius
+                                             + numpy.sqrt(self.torus_minor_radius**2-X**2))**2
+                                            - Y**2)
+                                - self.torus_major_radius - self.torus_minor_radius)
+                z_values[z_values==numpy.nan] = 0
+            else:
+                self.c1 = round(parent.conic_coefficient_0, 10)
+                self.c2 = round(parent.conic_coefficient_1, 10)
+                self.c3 = round(parent.conic_coefficient_2, 10)
+                self.c4 = round(parent.conic_coefficient_3, 10)
+                self.c5 = round(parent.conic_coefficient_4, 10)
+                self.c6 = round(parent.conic_coefficient_5, 10)
+                self.c7 = round(parent.conic_coefficient_6, 10)
+                self.c8 = round(parent.conic_coefficient_7, 10)
+                self.c9 = round(parent.conic_coefficient_8, 10)
+                self.c10= round(parent.conic_coefficient_9, 10)
+
+                c = self.c1*(X**2) + self.c2*(Y**2) + self.c4*X*Y + self.c7*X + self.c8*Y + self.c10
+                b = self.c5*Y + self.c6*X + self.c9
+                a = self.c3
+
+                z_values = (-b + sign*numpy.sqrt(b**2 - 4*a*c))/(2*a)
+                z_values[b**2 - 4*a*c < 0] = numpy.nan
 
             self.zz = z_values
 
