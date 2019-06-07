@@ -58,19 +58,16 @@ class GenericElement(ow_automatic_element.AutomaticElement):
             self.tabs.removeTab(size-1-index)
 
         titles = self.getTitles()
+        self.plot_canvas = [None]*len(titles)
+        self.tab = []
 
-        self.tab = [oasysgui.createTabPage(self.tabs, titles[0]),
-                    oasysgui.createTabPage(self.tabs, titles[1]),
-                    oasysgui.createTabPage(self.tabs, titles[2]),
-                    oasysgui.createTabPage(self.tabs, titles[3]),
-                    oasysgui.createTabPage(self.tabs, titles[4]),
-        ]
+        for title in titles:
+            self.tab.append(oasysgui.createTabPage(self.tabs, title))
+            self.plot_canvas.append(None)
 
         for tab in self.tab:
             tab.setFixedHeight(self.IMAGE_HEIGHT)
             tab.setFixedWidth(self.IMAGE_WIDTH)
-
-        self.plot_canvas = [None, None, None, None, None]
 
         self.enableFootprint(enabled)
 

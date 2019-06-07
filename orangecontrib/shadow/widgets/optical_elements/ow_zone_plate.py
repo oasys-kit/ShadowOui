@@ -1,7 +1,7 @@
 import sys, numpy, copy
 
 from PyQt5.QtGui import QPalette, QColor, QFont
-from PyQt5.QtWidgets import QDialog, QWidget, QMessageBox
+from PyQt5.QtWidgets import QMessageBox
 
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
@@ -12,6 +12,8 @@ from oasys.util.oasys_util import EmittingStream, TTYGrabber, TriggerIn
 from orangecontrib.shadow.util.shadow_objects import ShadowOpticalElement, ShadowBeam
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics, ShadowMath
 from orangecontrib.shadow.widgets.gui.ow_generic_element import GenericElement
+
+from silx.gui.plot import Plot1D
 
 import xraylib
 from oasys.util.oasys_util import ChemicalFormulaParser
@@ -25,6 +27,8 @@ LOST_ZP = -191919
 GOOD_ZP = 191919
 
 COLLIMATED_SOURCE_LIMIT = 1e4 # m
+
+
 
 class ZonePlate(GenericElement):
 
@@ -92,6 +96,10 @@ class ZonePlate(GenericElement):
 
     automatically_set_image_plane = Setting(0)
 
+    kind_of_plot = Setting(0)
+    efficiency_from = Setting(0)
+    efficiency_to = Setting(0)
+
     ##################################################
 
     mirror_movement = Setting(0)
@@ -125,7 +133,7 @@ class ZonePlate(GenericElement):
     write_out_inc_ref_angles = Setting(0)
 
     def __init__(self):
-        super().__init__()
+        super(ZonePlate, self).__init__()
 
         self.runaction = widget.OWAction("Run Shadow/Trace", self)
         self.runaction.triggered.connect(self.traceOpticalElement)
@@ -299,6 +307,15 @@ class ZonePlate(GenericElement):
         gui.comboBox(zp_out_box, self, "automatically_set_image_plane", label="Automatically set Image Plane Distance", labelWidth=350,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
+        zp_out_box_2 = oasysgui.widgetBox(tab_zone_plate_2, "Efficiency Plot", addSpace=False, orientation="vertical", height=150)
+
+        gui.comboBox(zp_out_box_2, self, "kind_of_plot", label="Kind Of Range", labelWidth=350,
+                     items=["Energy [eV]", "Thicnkess [nm]"],
+                     sendSelectedValue=False, orientation="horizontal")
+
+        oasysgui.lineEdit(zp_out_box_2, self, "efficiency_from",  "From", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(zp_out_box_2, self, "efficiency_to",  "To", labelWidth=260, valueType=float, orientation="horizontal")
+
 
         ##########################################
         ##########################################
@@ -389,10 +406,14 @@ class ZonePlate(GenericElement):
         gui.rubber(self.controlArea)
         gui.rubber(self.mainArea)
 
+    def isFootprintEnabled(self):
+        return False
+
+    def enableFootprint(self, enabled=False):
+        pass
 
     def traceOpticalElement(self):
         try:
-            #self.error(self.error_id)
             self.setStatusMessage("")
             self.progressBarInit()
 
@@ -439,20 +460,13 @@ class ZonePlate(GenericElement):
                     self.progressBarSet(30)
 
                     if self.type_of_zp == PHASE_ZP:
-                        avg_energy_in_KeV = ShadowPhysics.getEnergyFromWavelength(self.avg_wavelength*10)/1000
-
-                        density = xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(self.zone_plate_material))
-                        delta   = (1-xraylib.Refractive_Index_Re(self.zone_plate_material, avg_energy_in_KeV, density))
-                        beta    = xraylib.Refractive_Index_Im(self.zone_plate_material, avg_energy_in_KeV, density)
-                        phi     = 2*numpy.pi*self.zone_plate_thickness*delta/self.avg_wavelength
-                        rho     = beta/delta
-
-                        efficiency     = (1/(numpy.pi**2))*(1 + numpy.exp(-2*rho*phi)      - (2*numpy.exp(-rho*phi)*numpy.cos(phi)))
-                        max_efficiency = (1/(numpy.pi**2))*(1 + numpy.exp(-2*rho*numpy.pi) + (2*numpy.exp(-rho*numpy.pi)))
+                        efficiency, max_efficiency, thickness_max_efficiency = ZonePlate.calculate_efficiency(self.avg_wavelength, # Angstrom
+                                                                                                              self.zone_plate_material,
+                                                                                                              self.zone_plate_thickness)
 
                         self.efficiency = numpy.round(100*efficiency, 3)
                         self.max_efficiency = numpy.round(100*max_efficiency, 3)
-                        self.thickness_max_efficiency =  numpy.round(self.avg_wavelength /(2*delta), 2)
+                        self.thickness_max_efficiency =  thickness_max_efficiency
                     else:
                         self.efficiency = numpy.round(100/(numpy.pi**2), 3)
                         self.max_efficiency = numpy.nan
@@ -470,20 +484,9 @@ class ZonePlate(GenericElement):
                                                                               self.source_distance, # WS Units
                                                                               self.workspace_units_to_m)
 
-                    #go = numpy.where(focused_beam._beam.rays[:, 9] == GOOD)
-                    #lo = numpy.where(focused_beam._beam.rays[:, 9] != GOOD)
-
-                    #print("Focused Beam: ", "GO", len(go[0]), "LO", len(lo[0]))
-
-
                     self.progressBarSet(60)
 
                     beam_out = self.get_output_beam(focused_beam)
-
-                    #go = numpy.where(beam_out._beam.rays[:, 9] == GOOD)
-                    #lo = numpy.where(beam_out._beam.rays[:, 9] != GOOD)
-
-                    #print("Output Beam: ", "GO", len(go[0]), "LO", len(lo[0]))
 
                     self.progressBarSet(80)
 
@@ -496,6 +499,7 @@ class ZonePlate(GenericElement):
                     self.setStatusMessage("Plotting Results")
 
                     self.plot_results(beam_out)
+                    self.plot_efficiency()
 
                     self.setStatusMessage("")
 
@@ -516,6 +520,39 @@ class ZonePlate(GenericElement):
 
         self.progressBarFinished()
 
+
+    def plot_efficiency(self):
+        if self.type_of_zp == PHASE_ZP:
+            if self.plot_canvas[5] is None:
+                self.plot_canvas[5] = oasysgui.plotWindow(roi=False, control=False, position=True, logScale=False)
+                self.tab[5].layout().addWidget(self.plot_canvas[5] )
+
+            self.plot_canvas[5].setDefaultPlotLines(True)
+            self.plot_canvas[5].setActiveCurveColor(color='blue')
+
+            self.plot_canvas[5].getXAxis().setLabel('Energy [eV]' if self.kind_of_plot==0 else "Thickness [nm]")
+            self.plot_canvas[5].getYAxis().setLabel('Efficiency [%]')
+
+            x_values = numpy.linspace(self.efficiency_from, self.efficiency_to, 100)
+            y_values = numpy.zeros(100)
+
+            if self.kind_of_plot == 0: # energy
+                for index in range(len(x_values)):
+                    y_values[index], _, _ = ZonePlate.calculate_efficiency(ShadowPhysics.getWavelengthFromEnergy(x_values[index])/10,
+                                                                           self.zone_plate_material,
+                                                                           self.zone_plate_thickness)
+            else:
+                for index in range(len(x_values)):
+                    y_values[index], _, _ = ZonePlate.calculate_efficiency(self.avg_wavelength,
+                                                                           self.zone_plate_material,
+                                                                           x_values[index])
+            y_values = numpy.round(100*y_values, 3)
+
+            self.plot_canvas[5].addCurve(x_values, y_values, "Efficiency vs " + "Energy" if self.kind_of_plot==0 else "Thickness", symbol='', color='blue', replace=True)
+        else:
+            if not self.plot_canvas[5] is None:
+                self.tab[6].layout().removeWidget(self.plot_canvas[5])
+            self.plot_canvas[5] = None
     def setBeam(self, beam):
         if ShadowCongruence.checkEmptyBeam(beam):
             self.input_beam = beam
@@ -853,3 +890,25 @@ class ZonePlate(GenericElement):
         focused_beam._beam.rays[go_2, 9] = GOOD
 
         return focused_beam, max_zones_number
+
+    @classmethod
+    def calculate_efficiency(cls, wavelength, zone_plate_material, zone_plate_thickness):
+        energy_in_KeV = ShadowPhysics.getEnergyFromWavelength(wavelength*10)/1000
+
+        density = xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(zone_plate_material))
+        delta   = (1-xraylib.Refractive_Index_Re(zone_plate_material, energy_in_KeV, density))
+        beta    = xraylib.Refractive_Index_Im(zone_plate_material, energy_in_KeV, density)
+        phi     = 2*numpy.pi*zone_plate_thickness*delta/wavelength
+        rho     = beta/delta
+
+        efficiency     = (1/(numpy.pi**2))*(1 + numpy.exp(-2*rho*phi)      - (2*numpy.exp(-rho*phi)*numpy.cos(phi)))
+        max_efficiency = (1/(numpy.pi**2))*(1 + numpy.exp(-2*rho*numpy.pi) + (2*numpy.exp(-rho*numpy.pi)))
+        thickness_max_efficiency = numpy.round(wavelength/(2*delta), 2)
+
+        return efficiency, max_efficiency, thickness_max_efficiency
+
+    def getTitles(self):
+        titles = super().getTitles()
+        titles.append("Efficiency")
+
+        return titles
