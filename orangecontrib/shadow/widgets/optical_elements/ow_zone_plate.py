@@ -13,8 +13,6 @@ from orangecontrib.shadow.util.shadow_objects import ShadowOpticalElement, Shado
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics, ShadowMath
 from orangecontrib.shadow.widgets.gui.ow_generic_element import GenericElement
 
-from silx.gui.plot import Plot1D
-
 import xraylib
 from oasys.util.oasys_util import ChemicalFormulaParser
 
@@ -96,9 +94,12 @@ class ZonePlate(GenericElement):
 
     automatically_set_image_plane = Setting(0)
 
-    kind_of_plot = Setting(0)
-    efficiency_from = Setting(0)
-    efficiency_to = Setting(0)
+    energy_plot = Setting(0)
+    thickness_plot = Setting(0)
+    energy_from = Setting(0)
+    energy_to = Setting(0)
+    thickness_from = Setting(0)
+    thickness_to = Setting(0)
 
     ##################################################
 
@@ -220,7 +221,7 @@ class ZonePlate(GenericElement):
 
         self.set_TypeOfZP()
 
-        zp_out_box = oasysgui.widgetBox(tab_zone_plate_2, "Output Parameters", addSpace=False, orientation="vertical", height=290)
+        zp_out_box = oasysgui.widgetBox(tab_zone_plate_2, "Output Parameters", addSpace=False, orientation="vertical", height=270)
 
         self.le_avg_wavelength = oasysgui.lineEdit(zp_out_box, self, "avg_wavelength", "Average Wavelenght [nm]", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_avg_wavelength.setReadOnly(True)
@@ -302,20 +303,33 @@ class ZonePlate(GenericElement):
         palette.setColor(QPalette.Base, QColor(243, 240, 160))
         self.le_thickness_max_efficiency.setPalette(palette)
 
-        gui.separator(zp_out_box, height=5)
-
         gui.comboBox(zp_out_box, self, "automatically_set_image_plane", label="Automatically set Image Plane Distance", labelWidth=350,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal")
 
-        zp_out_box_2 = oasysgui.widgetBox(tab_zone_plate_2, "Efficiency Plot", addSpace=False, orientation="vertical", height=150)
+        zp_out_box_2 = oasysgui.widgetBox(tab_zone_plate_2, "Efficiency Plot", addSpace=False, orientation="vertical", height=200)
 
-        gui.comboBox(zp_out_box_2, self, "kind_of_plot", label="Kind Of Range", labelWidth=350,
-                     items=["Energy [eV]", "Thicnkess [nm]"],
-                     sendSelectedValue=False, orientation="horizontal")
+        gui.comboBox(zp_out_box_2, self, "energy_plot", label="Plot Efficiency vs. Energy", labelWidth=350,
+                     items=["No", "Yes"],
+                     sendSelectedValue=False, orientation="horizontal", callback=self.set_EnergyPlot)
 
-        oasysgui.lineEdit(zp_out_box_2, self, "efficiency_from",  "From", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(zp_out_box_2, self, "efficiency_to",  "To", labelWidth=260, valueType=float, orientation="horizontal")
+        self.zp_out_box_2_1 = oasysgui.widgetBox(zp_out_box_2, "", addSpace=False, orientation="vertical", height=50)
+        self.zp_out_box_2_2 = oasysgui.widgetBox(zp_out_box_2, "", addSpace=False, orientation="vertical", height=50)
 
+        oasysgui.lineEdit(self.zp_out_box_2_1, self, "energy_from",  "Energy From [eV]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.zp_out_box_2_1, self, "energy_to",  "Energy To [eV]", labelWidth=260, valueType=float, orientation="horizontal")
+
+        gui.comboBox(zp_out_box_2, self, "thickness_plot", label="Plot Efficiency vs. Thickness", labelWidth=350,
+                     items=["No", "Yes"],
+                     sendSelectedValue=False, orientation="horizontal", callback=self.set_ThicknessPlot)
+
+        self.zp_out_box_2_3 = oasysgui.widgetBox(zp_out_box_2, "", addSpace=False, orientation="vertical", height=50)
+        self.zp_out_box_2_4 = oasysgui.widgetBox(zp_out_box_2, "", addSpace=False, orientation="vertical", height=50)
+
+        oasysgui.lineEdit(self.zp_out_box_2_3, self, "thickness_from",  "Thickness From [nm]", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.zp_out_box_2_3, self, "thickness_to",  "Thickness To [nm]", labelWidth=260, valueType=float, orientation="horizontal")
+
+        self.set_EnergyPlot()
+        self.set_ThicknessPlot()
 
         ##########################################
         ##########################################
@@ -405,6 +419,15 @@ class ZonePlate(GenericElement):
 
         gui.rubber(self.controlArea)
         gui.rubber(self.mainArea)
+
+    def set_EnergyPlot(self):
+        self.zp_out_box_2_1.setVisible(self.energy_plot==1)
+        self.zp_out_box_2_2.setVisible(self.energy_plot==0)
+
+    def set_ThicknessPlot(self):
+        self.zp_out_box_2_3.setVisible(self.thickness_plot==1)
+        self.zp_out_box_2_4.setVisible(self.thickness_plot==0)
+
 
     def isFootprintEnabled(self):
         return False
@@ -523,36 +546,62 @@ class ZonePlate(GenericElement):
 
     def plot_efficiency(self):
         if self.type_of_zp == PHASE_ZP:
-            if self.plot_canvas[5] is None:
-                self.plot_canvas[5] = oasysgui.plotWindow(roi=False, control=False, position=True, logScale=False)
-                self.tab[5].layout().addWidget(self.plot_canvas[5] )
+            if self.energy_plot == 1:
+                if self.plot_canvas[5] is None:
+                    self.plot_canvas[5] = oasysgui.plotWindow(roi=False, control=False, position=True, logScale=False)
+                    self.tab[5].layout().addWidget(self.plot_canvas[5] )
 
-            self.plot_canvas[5].setDefaultPlotLines(True)
-            self.plot_canvas[5].setActiveCurveColor(color='blue')
+                self.plot_canvas[5].clear()
 
-            self.plot_canvas[5].getXAxis().setLabel('Energy [eV]' if self.kind_of_plot==0 else "Thickness [nm]")
-            self.plot_canvas[5].getYAxis().setLabel('Efficiency [%]')
-
-            x_values = numpy.linspace(self.efficiency_from, self.efficiency_to, 100)
-            y_values = numpy.zeros(100)
-
-            if self.kind_of_plot == 0: # energy
+                self.plot_canvas[5].setDefaultPlotLines(True)
+                self.plot_canvas[5].setActiveCurveColor(color='blue')
+    
+                self.plot_canvas[5].setGraphTitle('Thickness: ' + str(self.zone_plate_thickness) + " nm")
+                self.plot_canvas[5].getXAxis().setLabel('Energy [eV]')
+                self.plot_canvas[5].getYAxis().setLabel('Efficiency [%]')
+    
+                x_values = numpy.linspace(self.energy_from, self.energy_to, 100)
+                y_values = numpy.zeros(100)
+    
                 for index in range(len(x_values)):
                     y_values[index], _, _ = ZonePlate.calculate_efficiency(ShadowPhysics.getWavelengthFromEnergy(x_values[index])/10,
                                                                            self.zone_plate_material,
                                                                            self.zone_plate_thickness)
+                y_values = numpy.round(100.0*y_values, 3)
+    
+                self.plot_canvas[5].addCurve(x_values, y_values, "Efficiency vs Energy", symbol='', color='blue', replace=True)
             else:
+                if not self.plot_canvas[5] is None: self.plot_canvas[5].clear()
+
+            if self.thickness_plot == 1:
+                if self.plot_canvas[6] is None:
+                    self.plot_canvas[6] = oasysgui.plotWindow(roi=False, control=False, position=True, logScale=False)
+                    self.tab[6].layout().addWidget(self.plot_canvas[6] )
+    
+                self.plot_canvas[6].setDefaultPlotLines(True)
+                self.plot_canvas[6].setActiveCurveColor(color='blue')
+    
+                self.plot_canvas[6].setGraphTitle('Energy: ' + str(round(ShadowPhysics.getEnergyFromWavelength(self.avg_wavelength*10), 3)) + " eV")
+                self.plot_canvas[6].getXAxis().setLabel('Thickness [nm]')
+                self.plot_canvas[6].getYAxis().setLabel('Efficiency [%]')
+    
+                x_values = numpy.linspace(self.thickness_from, self.thickness_to, 100)
+                y_values = numpy.zeros(100)
+    
                 for index in range(len(x_values)):
                     y_values[index], _, _ = ZonePlate.calculate_efficiency(self.avg_wavelength,
                                                                            self.zone_plate_material,
                                                                            x_values[index])
-            y_values = numpy.round(100*y_values, 3)
+                y_values = numpy.round(100*y_values, 3)
+    
+                self.plot_canvas[6].addCurve(x_values, y_values, "Efficiency vs Thickness", symbol='', color='blue', replace=True)
+            else:
+                if not self.plot_canvas[6] is None: self.plot_canvas[6].clear()
 
-            self.plot_canvas[5].addCurve(x_values, y_values, "Efficiency vs " + "Energy" if self.kind_of_plot==0 else "Thickness", symbol='', color='blue', replace=True)
         else:
-            if not self.plot_canvas[5] is None:
-                self.tab[6].layout().removeWidget(self.plot_canvas[5])
-            self.plot_canvas[5] = None
+            if not self.plot_canvas[5] is None: self.plot_canvas[5].clear()
+            if not self.plot_canvas[6] is None: self.plot_canvas[6].clear()
+
     def setBeam(self, beam):
         if ShadowCongruence.checkEmptyBeam(beam):
             self.input_beam = beam
@@ -710,7 +759,6 @@ class ZonePlate(GenericElement):
         empty_element._oe.F_ANGLE = 0
 
         return ShadowBeam.traceFromOE(focused_beam, empty_element, history=True)
-
 
     # ALGORITHM EXTRACTED FROM webAbsorb.py by 11BM - Argonne National Laboratory
     @classmethod
@@ -909,6 +957,7 @@ class ZonePlate(GenericElement):
 
     def getTitles(self):
         titles = super().getTitles()
-        titles.append("Efficiency")
+        titles.append("Efficiency vs. Energy")
+        titles.append("Efficiency vs. Thickness")
 
         return titles
