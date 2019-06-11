@@ -50,6 +50,8 @@ class HybridInputParameters(object):
 
     ghy_automatic = 1
 
+    crl_error_profiles = None
+
     def __init__(self):
         super().__init__()
 

@@ -19,32 +19,8 @@ from orangecontrib.shadow.widgets.special_elements import hybrid_control
 
 from silx.gui.plot.ImageView import ImageView
 
-class HybridScreen(AutomaticElement):
 
-    inputs = [("Input Beam", ShadowBeam, "setBeam"),]
-
-    outputs = [{"name":"Output Beam (Far Field)",
-                "type":ShadowBeam,
-                "doc":"Shadow Beam",
-                "id":"beam_ff"},
-               {"name":"Output Beam (Near Field)",
-                "type":ShadowBeam,
-                "doc":"Shadow Beam",
-                "id":"beam_nf"},
-               {"name":"Trigger",
-                "type": TriggerIn,
-                "doc":"Feedback signal to start a new beam simulation",
-                "id":"Trigger"}]
-
-    name = "Hybrid Screen"
-    description = "Shadow HYBRID: Hybrid Screen"
-    icon = "icons/hybrid_screen.png"
-    maintainer = "Luca Rebuffi and Xianbo Shi"
-    maintainer_email = "lrebuffi(@at@)anl.gov, xshi(@at@)aps.anl.gov"
-    priority = 4
-    category = "HYBRID"
-    keywords = ["data", "file", "load", "read"]
-
+class AbstractHybridScreen(AutomaticElement):
     want_control_area = 1
     want_main_area = 1
 
@@ -120,7 +96,7 @@ class HybridScreen(AutomaticElement):
         tab_bas = oasysgui.createTabPage(tabs_setting, "Basic Setting")
         tab_adv = oasysgui.createTabPage(tabs_setting, "Advanced Setting")
 
-        box_1 = oasysgui.widgetBox(tab_bas, "Calculation Parameters", addSpace=True, orientation="vertical", height=110)
+        box_1 = oasysgui.widgetBox(tab_bas, "Calculation Parameters", addSpace=True, orientation="vertical", height=120)
 
         gui.comboBox(box_1, self, "ghy_diff_plane", label="Diffraction Plane", labelWidth=310,
                      items=["Sagittal", "Tangential", "Both (2D)", "Both (1D+1D)"],
@@ -128,13 +104,9 @@ class HybridScreen(AutomaticElement):
                      sendSelectedValue=False, orientation="horizontal")
 
         gui.comboBox(box_1, self, "ghy_calcType", label="Calculation", labelWidth=70,
-                     items=["Diffraction by Simple Aperture",
-                            "Diffraction by Mirror or Grating Size",
-                            "Diffraction by Mirror Size + Figure Errors",
-                            "Diffraction by Grating Size + Figure Errors",
-                            "Diffraction by Lens/C.R.L./Transfocator Size",],
+                     items=self.get_calculation_type_items(),
                      callback=self.set_CalculationType,
-                     sendSelectedValue=False, orientation="horizontal")
+                     sendSelectedValue=False, orientation="vertical")
 
         gui.separator(box_1, 10)
 
@@ -204,6 +176,13 @@ class HybridScreen(AutomaticElement):
         out_box.layout().addWidget(self.shadow_output)
 
         self.set_PlotQuality()
+
+    def get_calculation_type_items(self):
+        return ["Diffraction by Simple Aperture",
+                "Diffraction by Mirror or Grating Size",
+                "Diffraction by Mirror Size + Figure Errors",
+                "Diffraction by Grating Size + Figure Errors",
+                "Diffraction by Lens/C.R.L./Transfocator Size", ]
 
     def after_change_workspace_units(self):
         label = self.le_focal_length.parent().layout().itemAt(0).widget()
@@ -675,3 +654,29 @@ class HybridScreen(AutomaticElement):
         self.shadow_output.setTextCursor(cursor)
         self.shadow_output.ensureCursorVisible()
 
+
+class HybridScreen(AbstractHybridScreen):
+
+    inputs = [("Input Beam", ShadowBeam, "setBeam"),]
+
+    outputs = [{"name":"Output Beam (Far Field)",
+                "type":ShadowBeam,
+                "doc":"Shadow Beam",
+                "id":"beam_ff"},
+               {"name":"Output Beam (Near Field)",
+                "type":ShadowBeam,
+                "doc":"Shadow Beam",
+                "id":"beam_nf"},
+               {"name":"Trigger",
+                "type": TriggerIn,
+                "doc":"Feedback signal to start a new beam simulation",
+                "id":"Trigger"}]
+
+    name = "Hybrid Screen"
+    description = "Shadow HYBRID: Hybrid Screen"
+    icon = "icons/hybrid_screen.png"
+    maintainer = "Luca Rebuffi and Xianbo Shi"
+    maintainer_email = "lrebuffi(@at@)anl.gov, xshi(@at@)aps.anl.gov"
+    priority = 4
+    category = "HYBRID"
+    keywords = ["data", "file", "load", "read"]
