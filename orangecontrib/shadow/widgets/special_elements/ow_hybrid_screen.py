@@ -1,6 +1,7 @@
 __author__ = 'labx'
 
 import os, sys, numpy
+
 import orangecanvas.resources as resources
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
@@ -10,15 +11,14 @@ from oasys.util.oasys_util import EmittingStream, TriggerIn
 
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
+from orangecontrib.shadow.util.hybrid import hybrid_control
 
 from PyQt5.QtGui import QImage, QPixmap,  QPalette, QFont, QColor, QTextCursor
 from PyQt5.QtWidgets import QLabel, QWidget, QHBoxLayout, QMessageBox
 
 from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticElement
-from orangecontrib.shadow.widgets.special_elements import hybrid_control
 
 from silx.gui.plot.ImageView import ImageView
-
 
 class AbstractHybridScreen(AutomaticElement):
     want_control_area = 1
@@ -89,16 +89,16 @@ class AbstractHybridScreen(AutomaticElement):
 
         self.tabs = oasysgui.tabWidget(plot_tab)
 
-        tabs_setting = oasysgui.tabWidget(self.controlArea)
-        tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
-        tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
+        self.tabs_setting = oasysgui.tabWidget(self.controlArea)
+        self.tabs_setting.setFixedHeight(self.TABS_AREA_HEIGHT)
+        self.tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
-        tab_bas = oasysgui.createTabPage(tabs_setting, "Basic Setting")
-        tab_adv = oasysgui.createTabPage(tabs_setting, "Advanced Setting")
+        tab_bas = oasysgui.createTabPage(self.tabs_setting, "Basic Setting")
+        tab_adv = oasysgui.createTabPage(self.tabs_setting, "Advanced Setting")
 
         box_1 = oasysgui.widgetBox(tab_bas, "Calculation Parameters", addSpace=True, orientation="vertical", height=120)
 
-        gui.comboBox(box_1, self, "ghy_diff_plane", label="Diffraction Plane", labelWidth=310,
+        self.cb_ghy_diff_plane = gui.comboBox(box_1, self, "ghy_diff_plane", label="Diffraction Plane", labelWidth=310,
                      items=["Sagittal", "Tangential", "Both (2D)", "Both (1D+1D)"],
                      callback=self.set_DiffPlane,
                      sendSelectedValue=False, orientation="horizontal")
@@ -370,6 +370,11 @@ class AbstractHybridScreen(AutomaticElement):
 
         self.set_NF()
 
+        self.set_CalculationType_Aux()
+
+    def set_CalculationType_Aux(self):
+        pass
+
     def set_NF(self):
         if self.ghy_nf == 0:
             self.focal_length_calc = 0
@@ -430,6 +435,8 @@ class AbstractHybridScreen(AutomaticElement):
 
                     input_parameters.ghy_automatic = self.ghy_automatic
 
+                    self.add_input_parameters_aux(input_parameters)
+
                     try:
                         calculation_parameters = hybrid_control.hy_run(input_parameters)
 
@@ -475,6 +482,9 @@ class AbstractHybridScreen(AutomaticElement):
 
         self.setStatusMessage("")
         self.progressBarFinished()
+
+    def add_input_parameters_aux(self, input_parameters):
+        pass
 
     def plot_results(self, calculation_parameters, input_parameters):
         if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:

@@ -17,6 +17,12 @@ from srxraylib.waveoptics.wavefront import Wavefront1D
 from srxraylib.waveoptics.wavefront2D import Wavefront2D
 from srxraylib.waveoptics import propagator
 from srxraylib.waveoptics import propagator2D
+from srxraylib.util.inverse_method_sampler import Sampler2D
+
+import oasys.util.oasys_util as OU
+from scipy.interpolate import RectBivariateSpline
+
+import xraylib
 
 class HybridNotNecessaryWarning(Exception):
     def __init__(self, *args, **kwargs):
@@ -51,6 +57,7 @@ class HybridInputParameters(object):
     ghy_automatic = 1
 
     crl_error_profiles = None
+    crl_material = "Be"
 
     def __init__(self):
         super().__init__()
@@ -247,7 +254,7 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
         if not ("Grating" in widget_class_name):
             raise Exception("Grating calculation runs for Gratings widgets only")
 
-    if input_parameters.ghy_calcType == 5:
+    if input_parameters.ghy_calcType in [5, 6]:
         if not ("Lens" in widget_class_name or "CRL" in widget_class_name or "Transfocator"):
             raise Exception("CRL calculation runs for Lens, CRLs or Transfocators widgets only")
 
@@ -268,7 +275,7 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
                 raise HybridNotNecessaryWarning("O.E. contains the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
         else:
             # displacements analysis
-            if oe_before._oe.F_MOVE==1:
+            if input_parameters.ghy_calcType < 5 and oe_before._oe.F_MOVE==1:
                 if input_parameters.ghy_calcType == 2 or input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
                     if input_parameters.ghy_diff_plane == 1: #X
                         if oe_before._oe.X_ROT != 0.0 or oe_before._oe.Z_ROT != 0.0:
@@ -331,7 +338,7 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
                     ticket_tangential = mirror_beam._beam.histo1(2, nbins=500, nolost=0, ref=23) # ALL THE RAYS FOR ANALYSIS
                     ticket_sagittal = mirror_beam._beam.histo1(1, nbins=500, nolost=0, ref=23) # ALL THE RAYS  FOR ANALYSIS
 
-            elif input_parameters.ghy_calcType == 5: # CRL/LENS/TRANSFOCATOR
+            elif input_parameters.ghy_calcType in [5, 6]: # CRL/LENS/TRANSFOCATOR
                 oes_list = history_entry._shadow_oe_end._oe.list
 
                 beam_at_the_slit = beam_before.duplicate(history=False)
@@ -425,7 +432,7 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
 ##########################################################################
 
 def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameters=HybridCalculationParameters()):
-    if input_parameters.ghy_calcType == 5: #CRL OR LENS
+    if input_parameters.ghy_calcType in [5, 6]: #CRL OR LENS
         history_entry =  input_parameters.shadow_beam.getOEHistory(input_parameters.shadow_beam._oe_number)
         compound_oe = history_entry._shadow_oe_end
 
@@ -482,7 +489,6 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
                                   file_scr_ext)
 
         input_parameters.shadow_beam = ShadowBeam.traceFromOE(input_parameters.shadow_beam, screen_slit)
-        input_parameters.ghy_calcType = 1
 
     str_n_oe = str(input_parameters.shadow_beam._oe_number)
 
@@ -549,7 +555,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
     fileShadowScreen = "screen." + str_n_oe + ("0" + str(n_screen)) if n_screen < 10 else "10"
 
-    if input_parameters.ghy_calcType == 1: # simple aperture
+    if input_parameters.ghy_calcType in [1, 5, 6]: # simple aperture or CRLs
         if (shadow_oe._oe.FMIRR == 5 and \
             shadow_oe._oe.F_CRYSTAL == 0 and \
             shadow_oe._oe.F_REFRAC == 2 and \
@@ -575,7 +581,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
                 thick[index] = shadow_oe._oe.THICK[index]
                 file_abs[index] = shadow_oe._oe.FILE_ABS[index]
         else:
-            raise Exception("Connected O.E. is not a Screen-Slit widget!")
+            raise Exception("Connected O.E. is not a Screen-Slit or CRL widget!")
     elif input_parameters.ghy_calcType == 2: # ADDED BY XIANBO SHI
         shadow_oe._oe.F_RIPPLE = 0
     elif input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4: # mirror/grating + figure error
@@ -674,7 +680,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 	# reads file with mirror height mesh
  	# calculates the function of the "incident angle" and the "mirror height" versus the Z coordinate in the screen.
 
-    if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4 or input_parameters.ghy_calcType == 2:
+    if input_parameters.ghy_calcType in [2, 3, 4]:
         mirror_beam = sh_readsh("mirr." + str_n_oe)  #xshi change from 0 to 1
 
         if input_parameters.file_to_write_out == 1:
@@ -712,6 +718,8 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
             calculation_parameters.wangle_z     = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.angle_inc, hy_npoly_angle))
             calculation_parameters.wl_z         = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.yy_mirr, hy_npoly_l))
             if input_parameters.ghy_calcType == 4: calculation_parameters.wangle_ref_z = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.angle_ref, hy_npoly_angle))
+    elif input_parameters.ghy_calcType == 6:
+        calculation_parameters.w_mirr_2D_values = [h5_readsurface(thickness_error_file) for thickness_error_file in input_parameters.crl_error_profiles]
 
 ##########################################################################
 
@@ -855,7 +863,7 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
 def hy_prop(input_parameters=HybridInputParameters(), calculation_parameters=HybridCalculationParameters()):
 
     # set distance and focal length for the aperture propagation.
-    if input_parameters.ghy_calcType == 1: # simple aperture
+    if input_parameters.ghy_calcType in [1, 5, 6]: # simple aperture
         if input_parameters.ghy_diff_plane == 1: # X
             calculation_parameters.ghy_focallength = (calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min)**2/calculation_parameters.gwavelength/input_parameters.ghy_npeak
         elif input_parameters.ghy_diff_plane == 2: # Z
@@ -920,8 +928,14 @@ def hy_conv(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
 
             calculation_parameters.zz_image_nf = pos_dif + calculation_parameters.zz_focal_ray
     elif input_parameters.ghy_diff_plane == 3: #2D
-        mDist, ForHor, ForVer = hy_CreateCDF2D(calculation_parameters.dif_xpzp)		# create cumulative distribution function from the angular diffraction profile
-        pos_dif_x, pos_dif_z = hy_MakeDist2D(calculation_parameters.zp_screen, mDist, ForHor, ForVer)	# generate random ray divergence kicks based on the CDF, the number of rays is the same as in the original shadow file
+        #mDist, ForHor, ForVer = hy_CreateCDF2D(calculation_parameters.dif_xpzp)		# create cumulative distribution function from the angular diffraction profile
+        #pos_dif_x, pos_dif_z = hy_MakeDist2D(calculation_parameters.zp_screen, mDist, ForHor, ForVer)	# generate random ray divergence kicks based on the CDF, the number of rays is the same as in the original shadow file
+
+        s2d = Sampler2D(calculation_parameters.dif_xpzp.z_values,
+                        calculation_parameters.dif_xpzp.x_coord,
+                        calculation_parameters.dif_xpzp.y_coord)
+
+        pos_dif_x, pos_dif_z = s2d.get_n_sampled_points(len(calculation_parameters.zp_screen))
 
         dx_wave = numpy.arctan(pos_dif_x) # calculate dx from tan(dx)
         dx_conv = dx_wave + calculation_parameters.dx_ray # add the ray divergence kicks
@@ -1435,16 +1449,13 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters, debug=Fal
 def propagate_2D(calculation_parameters, input_parameters):
     shadow_oe = calculation_parameters.shadow_oe_end
 
-    global_phase_shift_profile = None
-
-    if shadow_oe._oe.F_MOVE == 1 and shadow_oe._oe.X_ROT != 0.0:
+    if input_parameters.ghy_calcType < 5 and shadow_oe._oe.F_MOVE == 1 and shadow_oe._oe.X_ROT != 0.0:
         if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
             global_phase_shift_profile = calculation_parameters.w_mirr_2D_values
         else:
             global_phase_shift_profile = ScaledMatrix.initialize_from_range(numpy.zeros((3, 3)),
                                                                             shadow_oe._oe.RWIDX2, shadow_oe._oe.RWIDX1,
                                                                             shadow_oe._oe.RLEN2,  shadow_oe._oe.RLEN1)
-
         for x_index in range(global_phase_shift_profile.size_x()):
             global_phase_shift_profile.z_values[x_index, :] += global_phase_shift_profile.get_y_values()*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT))
 
@@ -1547,6 +1558,14 @@ def propagate_2D(calculation_parameters, input_parameters):
                                                              calculation_parameters.wl_z,
                                                              global_phase_shift_profile_z)
         wavefront.add_phase_shifts(phase_shifts)
+    elif input_parameters.ghy_calcType == 6:
+        for w_mirr_2D_values in calculation_parameters.w_mirr_2D_values:
+            phase_shift = get_crl_phase_shift(w_mirr_2D_values,
+                                              input_parameters,
+                                              calculation_parameters,
+                                              [wavefront.get_coordinate_x(), wavefront.get_coordinate_y()])
+
+            wavefront.add_phase_shift(phase_shift)
 
     input_parameters.widget.set_progress_bar(50)
     input_parameters.widget.status_message("calculated plane wave: begin FF propagation (distance = " +  str(focallength_ff) + ")")
@@ -1612,6 +1631,15 @@ def propagate_2D(calculation_parameters, input_parameters):
 def sh_read_gfile(gfilename):
     return ShadowOpticalElement.create_oe_from_file(congruence.checkFile(gfilename))
 
+
+def get_delta(input_parameters, calculation_parameters):
+    density = xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(input_parameters.crl_material))
+
+    energy_in_KeV = ShadowPhysics.getEnergyFromWavelength(calculation_parameters.gwavelength*input_parameters.widget.workspace_units_to_m*1e10)/1000
+    delta = 1-xraylib.Refractive_Index_Re(input_parameters.crl_material, energy_in_KeV, density)
+
+    return delta
+
 #########################################################
 
 def read_shadow_beam(shadow_beam, lost=False):
@@ -1674,6 +1702,12 @@ def sh_readsurface(filename, dimension):
         x_coords, y_coords, z_values = ShadowPreProcessor.read_surface_error_file(filename)
 
         return ScaledMatrix(x_coords, y_coords, z_values)
+
+def h5_readsurface(filename):
+    x_coords, y_coords, z_values = OU.read_surface_file(filename)
+
+    return ScaledMatrix(x_coords, y_coords, z_values.T)
+
 
 #########################################################
 
@@ -1788,7 +1822,7 @@ def hy_GetOnePoint2D(mDist, ForHor, ForVer, random_generator, reset=0):
     ForHor.set_values(mDist.z_values[:, pointNumber])	#Finding the horizontal angle
 
     if xDiv <= ForHor.get_value(0):
-        res_x=mDist.get_x_value(0)
+        res_x = mDist.get_x_value(0)
     else:
         res_x = ForHor.interpolate_scale_value(xDiv)
 
@@ -1819,6 +1853,23 @@ def get_grating_phase_shift(abscissas,
                             w_l_function,
                             grating_profile):
     return (-1.0) * 2 * numpy.pi / wavelength * (numpy.sin(w_angle_function(abscissas)/1e3) + numpy.sin(w_angle_ref_function(abscissas)/1e3)) * grating_profile.interpolate_values(w_l_function(abscissas))
+
+
+def get_crl_phase_shift(thickness_error_profile, input_parameters, calculation_parameters, coordinates):
+    coord_x = thickness_error_profile.x_coord
+    coord_y = thickness_error_profile.y_coord
+    thickness_error = thickness_error_profile.z_values
+
+    interpolator = RectBivariateSpline(coord_x, coord_y, thickness_error, bbox=[None, None, None, None], kx=1, ky=1, s=0)
+
+    wavefront_coord_x = coordinates[0]
+    wavefront_coord_y = coordinates[1]
+
+    thickness_error = interpolator(wavefront_coord_x, wavefront_coord_y)
+    thickness_error[numpy.where(thickness_error==numpy.nan)]= 0.0
+
+    return -2*numpy.pi*get_delta(input_parameters, calculation_parameters)*thickness_error/calculation_parameters.gwavelength
+
 
 def showConfirmMessage(title, message):
     msgBox = QMessageBox()
