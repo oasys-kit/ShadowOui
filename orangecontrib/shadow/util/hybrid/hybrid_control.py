@@ -57,7 +57,9 @@ class HybridInputParameters(object):
     ghy_automatic = 1
 
     crl_error_profiles = None
-    crl_material = "Be"
+    crl_material = None
+    crl_delta = None
+    crl_scaling_factor = 1.0
 
     def __init__(self):
         super().__init__()
@@ -145,6 +147,8 @@ class HybridCalculationParameters(object):
     zz_image_ff = None
     xx_image_nf = None
     zz_image_nf = None
+
+    crl_delta = None
 
 ##########################################################################
 
@@ -857,6 +861,12 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
     input_parameters.widget.status_message("Using MEAN photon wavelength (" + um + "): " + str(calculation_parameters.gwavelength))
 
     calculation_parameters.gknum = 2.0*numpy.pi/calculation_parameters.gwavelength #in [user-unit]^-1, wavenumber
+
+    if input_parameters.ghy_calcType == 6:
+        if input_parameters.crl_delta is None:
+            calculation_parameters.crl_delta = get_delta(input_parameters, calculation_parameters)
+        else:
+            calculation_parameters.crl_delta = input_parameters.crl_delta
 
 ##########################################################################
 
@@ -1866,9 +1876,10 @@ def get_crl_phase_shift(thickness_error_profile, input_parameters, calculation_p
     wavefront_coord_y = coordinates[1]
 
     thickness_error = interpolator(wavefront_coord_x, wavefront_coord_y)
-    thickness_error[numpy.where(thickness_error==numpy.nan)]= 0.0
+    thickness_error[numpy.where(thickness_error==numpy.nan)] = 0.0
+    thickness_error *= input_parameters.crl_scaling_factor
 
-    return -2*numpy.pi*get_delta(input_parameters, calculation_parameters)*thickness_error/calculation_parameters.gwavelength
+    return -2*numpy.pi*calculation_parameters.crl_delta*thickness_error/calculation_parameters.gwavelength
 
 
 def showConfirmMessage(title, message):
