@@ -17,7 +17,7 @@ from srxraylib.waveoptics.wavefront import Wavefront1D
 from srxraylib.waveoptics.wavefront2D import Wavefront2D
 from srxraylib.waveoptics import propagator
 from srxraylib.waveoptics import propagator2D
-from srxraylib.util.inverse_method_sampler import Sampler2D
+from srxraylib.util.inverse_method_sampler import Sampler2D, Sampler1D
 
 import oasys.util.oasys_util as OU
 from scipy.interpolate import RectBivariateSpline
@@ -908,8 +908,8 @@ def hy_prop(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
 
 def hy_conv(input_parameters=HybridInputParameters(), calculation_parameters=HybridCalculationParameters()):
     if input_parameters.ghy_diff_plane == 1: #1d calculation in x direction
-        mDist = hy_CreateCDF1D(calculation_parameters.dif_xp)		#create cumulative distribution function from the angular diffraction profile
-        pos_dif = hy_MakeDist1D(calculation_parameters.xp_screen, mDist)	#generate random ray divergence kicks based on the CDF, the number of rays is the same as in the original shadow file
+        s1d = Sampler1D(calculation_parameters.dif_xp.get_values(), calculation_parameters.dif_xp.get_abscissas())
+        pos_dif = s1d.get_n_sampled_points(len(calculation_parameters.xp_screen))
 
         dx_wave = numpy.arctan(pos_dif) # calculate dx from tan(dx)
         dx_conv = dx_wave + calculation_parameters.dx_ray # add the ray divergence kicks
@@ -918,13 +918,13 @@ def hy_conv(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
         calculation_parameters.dx_conv = dx_conv
 
         if input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1:
-            mDist = hy_CreateCDF1D(calculation_parameters.dif_x)
-            pos_dif = hy_MakeDist1D(calculation_parameters.xx_focal_ray, mDist)
+            s1d = Sampler1D(calculation_parameters.dif_x.get_values(), calculation_parameters.dif_x.get_abscissas())
+            pos_dif = s1d.get_n_sampled_points(len(calculation_parameters.xx_focal_ray))
 
             calculation_parameters.xx_image_nf = pos_dif + calculation_parameters.xx_focal_ray
     elif input_parameters.ghy_diff_plane == 2: #1d calculation in z direction
-        mDist = hy_CreateCDF1D(calculation_parameters.dif_zp)		# create cumulative distribution function from the angular diffraction profile
-        pos_dif = hy_MakeDist1D(calculation_parameters.zp_screen, mDist)	# generate random ray divergence kicks based on the CDF, the number of rays is the same as in the original shadow file
+        s1d = Sampler1D(calculation_parameters.dif_zp.get_values(), calculation_parameters.dif_zp.get_abscissas())
+        pos_dif = s1d.get_n_sampled_points(len(calculation_parameters.zp_screen))
 
         dz_wave = numpy.arctan(pos_dif) # calculate dz from tan(dz)
         dz_conv = dz_wave + calculation_parameters.dz_ray # add the ray divergence kicks
@@ -933,14 +933,11 @@ def hy_conv(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
         calculation_parameters.dz_conv = dz_conv
 
         if input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1:
-            mDist = hy_CreateCDF1D(calculation_parameters.dif_z)
-            pos_dif = hy_MakeDist1D(calculation_parameters.zz_focal_ray, mDist)
+            s1d = Sampler1D(calculation_parameters.dif_z.get_values(), calculation_parameters.dif_z.get_abscissas())
+            pos_dif = s1d.get_n_sampled_points(len(calculation_parameters.zz_focal_ray))
 
             calculation_parameters.zz_image_nf = pos_dif + calculation_parameters.zz_focal_ray
     elif input_parameters.ghy_diff_plane == 3: #2D
-        #mDist, ForHor, ForVer = hy_CreateCDF2D(calculation_parameters.dif_xpzp)		# create cumulative distribution function from the angular diffraction profile
-        #pos_dif_x, pos_dif_z = hy_MakeDist2D(calculation_parameters.zp_screen, mDist, ForHor, ForVer)	# generate random ray divergence kicks based on the CDF, the number of rays is the same as in the original shadow file
-
         s2d = Sampler2D(calculation_parameters.dif_xpzp.z_values,
                         calculation_parameters.dif_xpzp.x_coord,
                         calculation_parameters.dif_xpzp.y_coord)
@@ -1750,93 +1747,6 @@ def hy_findrmserror(data):
     return numpy.sqrt(waRMS)
 
 #########################################################
-
-# Create sampling from 2d wave
-def hy_CreateCDF1D(data):
-    mDist = ScaledArray(data.np_array, data.scale)
-
-    for index in range(1, mDist.size()):
-       mDist.np_array[index] += mDist.np_array[index-1] # mDist matrix contains the rows
-
-    mDist.np_array /= mDist.np_array[mDist.size()-1] # Normalizing each row of the matrix
-
-    return mDist
-
-def hy_MakeDist1D(np_array, mDist):
-    random_generator = random.Random()
-    random_generator.seed()
-
-    pos_dif = numpy.zeros(len(np_array))
-    for index in range(0, len(np_array)):
-        pos_dif[index] = hy_GetOnePoint1D(mDist, random_generator)
-
-    return pos_dif
-
-def hy_GetOnePoint1D(mDist, random_generator, reset=0):
-    if reset==1 : random_generator.seed(1)
-
-    return mDist.interpolate_scale_value(random_generator.random()) # Finding vertical x value
-
-def hy_CreateCDF2D(data):
-    mDist = ScaledMatrix(data.x_coord, data.y_coord, data.z_values)
-    numx = mDist.shape()[0]
-    numy = mDist.shape()[1]
-
-    for i in range(1, numx):
-        for j in range(0, numy):
-            mDist.z_values[i, j] += mDist.z_values[i - 1, j] # mDist matrix contains the rows
-
-    ForHor = ScaledArray.initialize(numpy.zeros(numx))
-    ForHor.scale = mDist.x_coord
-    ForVer = ScaledArray.initialize(mDist.z_values[numx-1, :])
-    ForVer.scale = mDist.y_coord
-
-    for j in range(1, numy):
-        ForVer.np_array[j] += ForVer.np_array[j-1]
-    ForVer.np_array /= ForVer.np_array[numy-1]
-
-    for j in range(0, numy):
-        mDist.z_values[:, j] /= mDist.z_values[numx-1, j] # normalization of each row
-
-    return mDist, ForHor, ForVer
-
-def hy_MakeDist2D(np_array, mDist, ForHor, ForVer):
-    random_generator = random.Random()
-    random_generator.seed()
-
-    pos_dif_x = numpy.zeros(len(np_array))
-    pos_dif_z = numpy.zeros(len(np_array))
-
-    for index in range(0, len(np_array)):
-        dif_x, dif_z =  hy_GetOnePoint2D(mDist, ForHor, ForVer, random_generator)
-        pos_dif_x[index] = dif_x
-        pos_dif_z[index] = dif_z
-
-    return pos_dif_x, pos_dif_z
-
-def hy_GetOnePoint2D(mDist, ForHor, ForVer, random_generator, reset=0):
-    if reset==1 : random_generator.seed()
-
-    xDiv = random_generator.random()
-    zDiv = random_generator.random()
-    pointNumber = 0
-
-    if zDiv <= ForVer.get_value(0):
-        res_y = mDist.get_y_value(0)
-    else:
-        res_y = ForVer.interpolate_scale_value(zDiv) #Finding vertical x value
-        for index in range(0, ForVer.size()):
-            pointNumber = index
-            if ForVer.get_value(index) > res_y: break
-
-    ForHor.set_values(mDist.z_values[:, pointNumber])	#Finding the horizontal angle
-
-    if xDiv <= ForHor.get_value(0):
-        res_x = mDist.get_x_value(0)
-    else:
-        res_x = ForHor.interpolate_scale_value(xDiv)
-
-    return res_x, res_y
 
 # 1D
 def calculate_focal_length_ff(min_value, max_value, n_peaks, wavelength):
