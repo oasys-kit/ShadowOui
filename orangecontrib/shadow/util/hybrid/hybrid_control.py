@@ -1039,11 +1039,13 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
     if shadow_oe._oe.F_MOVE == 1 and shadow_oe._oe.Y_ROT != 0.0:
         if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
             global_phase_shift_profile = calculation_parameters.w_mirror_lx
-        else:
+        elif input_parameters.ghy_calcType == 2:
             global_phase_shift_profile = ScaledArray.initialize_from_range(numpy.zeros(3), shadow_oe._oe.RWIDX2, shadow_oe._oe.RWIDX1)
 
         global_phase_shift_profile.set_values(global_phase_shift_profile.get_values() +
                                               global_phase_shift_profile.get_abscissas()*numpy.sin(numpy.radians(-shadow_oe._oe.Y_ROT)))
+    elif input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
+        global_phase_shift_profile = calculation_parameters.w_mirror_lx
 
     if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
         rms_slope = hy_findrmsslopefromheight(global_phase_shift_profile)
@@ -1246,7 +1248,7 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters, debug=Fal
     if shadow_oe._oe.F_MOVE == 1 and shadow_oe._oe.X_ROT != 0.0:
         if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
             global_phase_shift_profile = calculation_parameters.w_mirror_lz
-        else:
+        elif input_parameters.ghy_calcType == 2:
             global_phase_shift_profile = ScaledArray.initialize_from_range(numpy.zeros(3), shadow_oe._oe.RLEN2, shadow_oe._oe.RLEN1)
 
         global_phase_shift_profile.set_values(global_phase_shift_profile.get_values() +
@@ -1456,19 +1458,26 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters, debug=Fal
 def propagate_2D(calculation_parameters, input_parameters):
     shadow_oe = calculation_parameters.shadow_oe_end
 
-    if input_parameters.ghy_calcType < 5 and shadow_oe._oe.F_MOVE == 1 and shadow_oe._oe.X_ROT != 0.0:
+    global_phase_shift_profile = None
+
+    if shadow_oe._oe.F_MOVE == 1 and shadow_oe._oe.X_ROT != 0.0:
         if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
             global_phase_shift_profile = calculation_parameters.w_mirr_2D_values
-        else:
+        elif input_parameters.ghy_calcType == 2:
             global_phase_shift_profile = ScaledMatrix.initialize_from_range(numpy.zeros((3, 3)),
                                                                             shadow_oe._oe.RWIDX2, shadow_oe._oe.RWIDX1,
                                                                             shadow_oe._oe.RLEN2,  shadow_oe._oe.RLEN1)
+
         for x_index in range(global_phase_shift_profile.size_x()):
             global_phase_shift_profile.z_values[x_index, :] += global_phase_shift_profile.get_y_values()*numpy.sin(numpy.radians(-shadow_oe._oe.X_ROT))
+    elif input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
+        global_phase_shift_profile = calculation_parameters.w_mirr_2D_values
+
 
     # only tangential slopes
     if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
-        rms_slope = hy_findrmsslopefromheight(global_phase_shift_profile.z_values[int(global_phase_shift_profile.size_x()/2), :])
+        rms_slope = hy_findrmsslopefromheight(ScaledArray(np_array=global_phase_shift_profile.z_values[int(global_phase_shift_profile.size_x()/2), :],
+                                                          scale=global_phase_shift_profile.get_y_values()))
 
         input_parameters.widget.status_message("Using RMS slope = " + str(rms_slope))
 
