@@ -32,6 +32,8 @@ except ImportError:
 
 import Shadow.ShadowToolsPrivate as stp
 
+import scipy.constants as codata
+
 class ShadowCongruence():
 
     @classmethod
@@ -1157,15 +1159,8 @@ class ShadowMath:
 
 class ShadowPhysics:
 
-    ######################################
-    # FROM NIST
-    codata_h = numpy.array(6.62606957e-34)
-    codata_ec = numpy.array(1.602176565e-19)
-    codata_c = numpy.array(299792458.0)
-    ######################################
-
-    A2EV = (codata_h*codata_c/codata_ec)*1e+10
-    K2EV = 2*numpy.pi/(codata_h*codata_c/codata_ec*1e+2)
+    A2EV = (codata.h*codata.c/codata.e)*1e+10
+    K2EV = 2*numpy.pi/(codata.h*codata.c/codata.e*1e+2)
 
     @classmethod
     def getWavelengthFromShadowK(cls, k_mod): # in cm

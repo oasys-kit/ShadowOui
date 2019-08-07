@@ -207,6 +207,25 @@ class UndulatorGaussian(ow_source.Source, WidgetDecorator):
         photon_hp = numpy.sqrt(numpy.power(sigdi_x,2) + numpy.power(sp_phot,2) )
         photon_vp = numpy.sqrt(numpy.power(sigdi_z,2) + numpy.power(sp_phot,2) )
 
+        txt = ""
+        txt += "Photon single electron emission at wavelength %f A: \n"%(lambda1*1e10)
+        txt += "    sigma_u:      %g um \n"%(1e6*s_phot)
+        txt += "    sigma_uprime: %g urad \n" %(1e6*sp_phot)
+        txt += "Electron sizes: \n"
+        txt += "    sigma_x: %g um \n"%(1e6*sigma_x*user_unit_to_m)
+        txt += "    sigma_z: %g um \n" %(1e6*sigma_z*user_unit_to_m)
+        txt += "    sigma_x': %g urad \n"%(1e6*sigdi_x)
+        txt += "    sigma_z': %g urad \n" %(1e6*sigdi_z)
+        txt += "Photon source sizes (convolution): \n"
+        txt += "    Sigma_x: %g um \n"%(1e6*photon_h)
+        txt += "    Sigma_z: %g um \n" %(1e6*photon_v)
+        txt += "    Sigma_x': %g urad \n"%(1e6*photon_hp)
+        txt += "    Sigma_z': %g urad \n" %(1e6*photon_vp)
+
+        # print(txt)
+        self.writeStdOut(txt)
+
+
         return (photon_h/user_unit_to_m, photon_v/user_unit_to_m, photon_hp,photon_vp)
 
 
@@ -237,6 +256,7 @@ class UndulatorGaussian(ow_source.Source, WidgetDecorator):
 if __name__ == "__main__":
     a = QApplication(sys.argv)
     ow = UndulatorGaussian()
+    ow.workspace_units_to_cm = 100.0
     ow.show()
     a.exec_()
     ow.saveSettings()
