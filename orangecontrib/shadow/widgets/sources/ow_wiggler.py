@@ -715,11 +715,14 @@ if calculate_spectrum:
                         self.electron_current = 1e3*light_source._electron_beam._current
 
                         self.use_emittances_combo = 1
-                        self.emittance_x = light_source._electron_beam._moment_xxp / self.workspace_units_to_m
-                        self.emittance_z = light_source._electron_beam._moment_yyp / self.workspace_units_to_m
+
                         self.sigma_x, self.sigma_z = light_source._electron_beam.get_sigmas_real_space()
                         self.sigma_x /= self.workspace_units_to_m
                         self.sigma_z /= self.workspace_units_to_m
+
+                        sigma_xp, sigma_zp = light_source._electron_beam.get_sigmas_divergence_space()
+                        self.emittance_x = self.sigma_x * sigma_xp
+                        self.emittance_z = self.sigma_z * sigma_zp
 
                         self.type_combo = 0
                         self.number_of_periods = int(data._light_source._magnetic_structure._number_of_periods)

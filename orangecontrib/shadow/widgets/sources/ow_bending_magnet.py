@@ -15,6 +15,7 @@ from syned.widget.widget_decorator import WidgetDecorator
 
 import syned.beamline.beamline as synedb
 import syned.storage_ring.magnetic_structures.bending_magnet as synedbm
+import scipy.constants as codata
 
 class BendingMagnet(ow_source.Source, WidgetDecorator):
 
@@ -140,12 +141,10 @@ class BendingMagnet(ow_source.Source, WidgetDecorator):
         self.le_optimize_file_name.setText(oasysgui.selectFileFromDialog(self, self.optimize_file_name, "Open Optimize Source Parameters File"))
 
     def calculateMagneticField(self):
-        if self.magnetic_radius > 0:
-           self.magnetic_field=3.334728*self.energy/self.magnetic_radius
+        self.magnetic_field=(1e9/codata.c)*self.energy/self.magnetic_radius
 
     def calculateMagneticRadius(self):
-        if self.magnetic_field > 0:
-           self.magnetic_radius=3.334728*self.energy/self.magnetic_field
+        self.magnetic_radius=(1e9/codata.c)*self.energy/self.magnetic_field
 
     def runShadowSource(self):
         self.setStatusMessage("")
@@ -228,7 +227,7 @@ class BendingMagnet(ow_source.Source, WidgetDecorator):
         self.distance_from_waist_x = congruence.checkPositiveNumber(self.distance_from_waist_x, "Distance from waist x")
         self.distance_from_waist_z = congruence.checkPositiveNumber(self.distance_from_waist_z, "Distance from waist z")
         self.energy = congruence.checkPositiveNumber(self.energy, "Energy")
-        self.magnetic_radius = congruence.checkPositiveNumber(self.magnetic_radius, "Magnetic radius")
+        self.magnetic_radius = congruence.checkNumber(self.magnetic_radius, "Magnetic radius")
         self.horizontal_half_divergence_from = congruence.checkPositiveNumber(self.horizontal_half_divergence_from,
                                                                              "Horizontal half-divergence from [+]")
         self.horizontal_half_divergence_to = congruence.checkPositiveNumber(self.horizontal_half_divergence_to,
@@ -314,11 +313,12 @@ class BendingMagnet(ow_source.Source, WidgetDecorator):
                         light_source = data._light_source
 
                         self.energy = light_source._electron_beam._energy_in_GeV
-                        self.emittance_x = light_source._electron_beam._moment_xxp / self.workspace_units_to_m
-                        self.emittance_z = light_source._electron_beam._moment_yyp / self.workspace_units_to_m
                         self.sigma_x, self.sigma_z = light_source._electron_beam.get_sigmas_real_space()
                         self.sigma_x /= self.workspace_units_to_m
                         self.sigma_z /= self.workspace_units_to_m
+                        sigma_xp, sigma_zp = light_source._electron_beam.get_sigmas_divergence_space()
+                        self.emittance_x = self.sigma_x * sigma_xp
+                        self.emittance_z = self.sigma_z * sigma_zp
 
                         if light_source._magnetic_structure._radius > 0:
                             self.magnetic_radius=light_source._magnetic_structure._radius
