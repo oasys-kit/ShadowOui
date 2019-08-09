@@ -271,6 +271,8 @@ class ShadowPlot:
         total_lost_rays_field = ""
         fwhm_h_field = ""
         fwhm_v_field = ""
+        sigma_h_field = ""
+        sigma_v_field = ""
 
         def __init__(self, x_scale_factor = 1.0, y_scale_factor = 1.0, is_2d=True):
             super(ShadowPlot.InfoBoxWidget, self).__init__()
@@ -294,16 +296,36 @@ class ShadowPlot:
             label_box_1.layout().addWidget(self.label_h)
             self.fwhm_h = gui.lineEdit(label_box_1, self, "fwhm_h_field", "", tooltip="FWHM", labelWidth=115, valueType=str, orientation="horizontal")
 
+            label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+
+            self.label_s_h = QLabel("R.M.S. ")
+            self.label_s_h.setFixedWidth(115)
+            palette =  QPalette(self.label_s_h.palette())
+            palette.setColor(QPalette.Foreground, QColor('blue'))
+            self.label_s_h.setPalette(palette)
+            label_box_1.layout().addWidget(self.label_s_h)
+            self.sigma_h = gui.lineEdit(label_box_1, self, "sigma_h_field", "", tooltip="Sigma", labelWidth=115, valueType=str, orientation="horizontal")
+
             if is_2d:
                 label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
 
                 self.label_v = QLabel("FWHM ")
                 self.label_v.setFixedWidth(115)
-                palette =  QPalette(self.label_h.palette())
+                palette =  QPalette(self.label_v.palette())
                 palette.setColor(QPalette.Foreground, QColor('red'))
                 self.label_v.setPalette(palette)
                 label_box_2.layout().addWidget(self.label_v)
                 self.fwhm_v = gui.lineEdit(label_box_2, self, "fwhm_v_field", "", tooltip="FWHM", labelWidth=115, valueType=str, orientation="horizontal")
+
+                label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+
+                self.label_s_v = QLabel("R.M.S. ")
+                self.label_s_v.setFixedWidth(115)
+                palette =  QPalette(self.label_s_v.palette())
+                palette.setColor(QPalette.Foreground, QColor('red'))
+                self.label_s_v.setPalette(palette)
+                label_box_2.layout().addWidget(self.label_s_v)
+                self.sigma_v = gui.lineEdit(label_box_2, self, "sigma_v_field", "", tooltip="Sigma", labelWidth=115, valueType=str, orientation="horizontal")
 
             self.intensity.setReadOnly(True)
             font = QFont(self.intensity.font())
@@ -350,6 +372,15 @@ class ShadowPlot:
             palette.setColor(QPalette.Base, QColor(243, 240, 160))
             self.fwhm_h.setPalette(palette)
 
+            self.sigma_h.setReadOnly(True)
+            font = QFont(self.intensity.font())
+            font.setBold(True)
+            self.sigma_h.setFont(font)
+            palette = QPalette(self.sigma_h.palette())
+            palette.setColor(QPalette.Text, QColor('dark blue'))
+            palette.setColor(QPalette.Base, QColor(243, 240, 160))
+            self.sigma_h.setPalette(palette)
+
             if is_2d:
                 self.fwhm_v.setReadOnly(True)
                 font = QFont(self.fwhm_v.font())
@@ -359,6 +390,15 @@ class ShadowPlot:
                 palette.setColor(QPalette.Text, QColor('dark blue'))
                 palette.setColor(QPalette.Base, QColor(243, 240, 160))
                 self.fwhm_v.setPalette(palette)
+
+                self.sigma_v.setReadOnly(True)
+                font = QFont(self.sigma_v.font())
+                font.setBold(True)
+                self.sigma_v.setFont(font)
+                palette = QPalette(self.sigma_v.palette())
+                palette.setColor(QPalette.Text, QColor('dark blue'))
+                palette.setColor(QPalette.Base, QColor(243, 240, 160))
+                self.sigma_v.setPalette(palette)
 
         def clear(self):
             self.intensity.setText("0.0")
@@ -459,6 +499,8 @@ class ShadowPlot:
             self.info_box.total_lost_rays.setText(str(ticket['nrays']-ticket['good_rays']))
             self.info_box.fwhm_h.setText("{:5.4f}".format(ticket['fwhm']*factor))
             self.info_box.label_h.setText("FWHM " + xum)
+            self.info_box.sigma_h.setText("{:5.4f}".format(get_sigma(ticket["histogram"], ticket['bin_center'])*factor))
+            self.info_box.label_s_h.setText("R.M.S. " + xum)
 
             if not ticket_to_add is None:
                 return ticket, last_ticket
@@ -634,6 +676,10 @@ class ShadowPlot:
             self.info_box.fwhm_v.setText("{:5.4f}".format(ticket['fwhm_v'] * factor2))
             self.info_box.label_h.setText("FWHM " + xum)
             self.info_box.label_v.setText("FWHM " + yum)
+            self.info_box.sigma_h.setText("{:5.4f}".format(get_sigma(ticket["histogram_h"], ticket['bin_h_center'])*factor1))
+            self.info_box.sigma_v.setText("{:5.4f}".format(get_sigma(ticket["histogram_v"], ticket['bin_v_center'])*factor2))
+            self.info_box.label_s_h.setText("R.M.S. " + xum)
+            self.info_box.label_s_v.setText("R.M.S. " + yum)
 
             if not ticket_to_add is None:
                 return ticket, last_ticket
@@ -1508,6 +1554,13 @@ class Properties(object):
         except KeyError:
             if hasattr(self._props,name):
                 return getattr(self._props, name)
+
+def get_sigma(histogram, bins):
+    total = numpy.sum(histogram)
+    average = numpy.sum(histogram*bins)/total
+
+    return numpy.sqrt(numpy.sum(histogram*((bins-average)**2))/total)
+
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
