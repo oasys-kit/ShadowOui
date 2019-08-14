@@ -366,7 +366,7 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
                                                                   shadow_coeff_1 = self.shadow_coeff_1,
                                                                   shadow_coeff_2 = self.shadow_coeff_2,
                                                                   shadow_coeff_3 = self.shadow_coeff_3,
-                                                                  d_source_to_mirror  = self.d_source_plane_to_mirror,
+                                                                  d_source_plane_to_mirror= self.d_source_plane_to_mirror,
                                                                   d_mirror_to_grating = self.d_mirror_to_grating,
                                                                   d_grating_to_exit_slits = self.r_b,
                                                                   alpha = self.raytracing_alpha,

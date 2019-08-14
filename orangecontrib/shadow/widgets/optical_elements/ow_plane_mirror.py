@@ -38,7 +38,7 @@ class PlaneMirror(ow_plane_element.PlaneElement):
 
     def setVlsPgmPreProcessorData(self, data):
         if data is not None:
-            self.source_plane_distance = data.d_source_to_mirror
+            self.source_plane_distance = data.d_source_plane_to_mirror
             self.image_plane_distance =  data.d_mirror_to_grating/2
             self.angles_respect_to = 0
             self.incidence_angle_deg  = (data.alpha + data.beta)/2

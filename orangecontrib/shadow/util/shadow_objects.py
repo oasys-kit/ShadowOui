@@ -35,7 +35,7 @@ class VlsPgmPreProcessorData:
                  shadow_coeff_1 = 0.0,
                  shadow_coeff_2 = 0.0,
                  shadow_coeff_3 = 0.0,
-                 d_source_to_mirror = 0.0,
+                 d_source_plane_to_mirror = 0.0,
                  d_mirror_to_grating = 0.0,
                  d_grating_to_exit_slits = 0.0,
                  alpha = 0.0,
@@ -44,7 +44,7 @@ class VlsPgmPreProcessorData:
         self.shadow_coeff_1 = shadow_coeff_1
         self.shadow_coeff_2 = shadow_coeff_2
         self.shadow_coeff_3 = shadow_coeff_3
-        self.d_source_to_mirror  = d_source_to_mirror
+        self.d_source_plane_to_mirror  = d_source_plane_to_mirror
         self.d_mirror_to_grating = d_mirror_to_grating
         self.d_grating_to_exit_slits = d_grating_to_exit_slits
         self.alpha=alpha
