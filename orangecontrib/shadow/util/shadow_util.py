@@ -298,16 +298,6 @@ class ShadowPlot:
             label_box_1.layout().addWidget(self.label_h)
             self.fwhm_h = gui.lineEdit(label_box_1, self, "fwhm_h_field", "", tooltip="FWHM", labelWidth=115, valueType=str, orientation="horizontal")
 
-            label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
-
-            self.label_s_h = QLabel("R.M.S. ")
-            self.label_s_h.setFixedWidth(115)
-            palette =  QPalette(self.label_s_h.palette())
-            palette.setColor(QPalette.Foreground, QColor('blue'))
-            self.label_s_h.setPalette(palette)
-            label_box_1.layout().addWidget(self.label_s_h)
-            self.sigma_h = gui.lineEdit(label_box_1, self, "sigma_h_field", "", tooltip="Sigma", labelWidth=115, valueType=str, orientation="horizontal")
-
             if is_2d:
                 label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
 
@@ -319,9 +309,20 @@ class ShadowPlot:
                 label_box_2.layout().addWidget(self.label_v)
                 self.fwhm_v = gui.lineEdit(label_box_2, self, "fwhm_v_field", "", tooltip="FWHM", labelWidth=115, valueType=str, orientation="horizontal")
 
+            label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+
+            self.label_s_h = QLabel("\u03c3 ")
+            self.label_s_h.setFixedWidth(115)
+            palette =  QPalette(self.label_s_h.palette())
+            palette.setColor(QPalette.Foreground, QColor('blue'))
+            self.label_s_h.setPalette(palette)
+            label_box_1.layout().addWidget(self.label_s_h)
+            self.sigma_h = gui.lineEdit(label_box_1, self, "sigma_h_field", "", tooltip="Sigma", labelWidth=115, valueType=str, orientation="horizontal")
+
+            if is_2d:
                 label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
 
-                self.label_s_v = QLabel("R.M.S. ")
+                self.label_s_v = QLabel("\u03c3 ")
                 self.label_s_v.setFixedWidth(115)
                 palette =  QPalette(self.label_s_v.palette())
                 palette.setColor(QPalette.Foreground, QColor('red'))
@@ -502,7 +503,7 @@ class ShadowPlot:
             self.info_box.fwhm_h.setText("{:5.4f}".format(ticket['fwhm']*factor))
             self.info_box.label_h.setText("FWHM " + xum)
             self.info_box.sigma_h.setText("{:5.4f}".format(get_sigma(ticket["histogram"], ticket['bin_center'])*factor))
-            self.info_box.label_s_h.setText("R.M.S. " + xum)
+            self.info_box.label_s_h.setText("\u03c3 " + xum)
 
             if not ticket_to_add is None:
                 return ticket, last_ticket
@@ -680,8 +681,8 @@ class ShadowPlot:
             self.info_box.label_v.setText("FWHM " + yum)
             self.info_box.sigma_h.setText("{:5.4f}".format(get_sigma(ticket["histogram_h"], ticket['bin_h_center'])*factor1))
             self.info_box.sigma_v.setText("{:5.4f}".format(get_sigma(ticket["histogram_v"], ticket['bin_v_center'])*factor2))
-            self.info_box.label_s_h.setText("R.M.S. " + xum)
-            self.info_box.label_s_v.setText("R.M.S. " + yum)
+            self.info_box.label_s_h.setText("\u03c3 " + xum)
+            self.info_box.label_s_v.setText("\u03c3 " + yum)
 
             if not ticket_to_add is None:
                 return ticket, last_ticket
