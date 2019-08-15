@@ -1,4 +1,4 @@
-import math
+import numpy
 import os
 import sys
 
@@ -162,6 +162,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     reflection_angle_deg = Setting(88.0)
     reflection_angle_mrad = Setting(0.0)
     mirror_orientation_angle = Setting(0)
+    mirror_orientation_angle_user_value = Setting(0.0)
 
     ##########################################
     # BASIC SETTING
@@ -644,9 +645,14 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 self.reflection_angle_rad_le.setEnabled(False)
 
             gui.comboBox(self.orientation_box, self, "mirror_orientation_angle", label="O.E. Orientation Angle [deg]", labelWidth=390,
-                         items=[0, 90, 180, 270],
+                         items=[0, 90, 180, 270, "Other value..."],
                          valueType=float,
-                         sendSelectedValue=False, orientation="horizontal")
+                         sendSelectedValue=False, orientation="horizontal",callback=self.mirror_orientation_angle_user,)
+            self.mirror_orientation_angle_user_value_le = oasysgui.widgetBox(self.orientation_box, "", addSpace=False, orientation="vertical")
+            oasysgui.lineEdit(self.mirror_orientation_angle_user_value_le, self, "mirror_orientation_angle_user_value",
+                                                             "O.E. Orientation Angle [deg]",
+                                                             labelWidth=220,
+                                                             valueType=float, orientation="horizontal")
 
             if not self.graphical_options.is_empty:
                 if self.graphical_options.is_crystal:
@@ -1336,6 +1342,9 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 gui.button(file_box, self, "...", callback=self.selectFilePolynomial)
 
                 self.set_ModifiedSurface()
+
+
+            self.mirror_orientation_angle_user()
 
 
     def after_change_workspace_units(self):
@@ -2076,9 +2085,9 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         digits = 7
 
         if self.angles_respect_to == 0:
-            self.incidence_angle_mrad = round(math.radians(90-self.incidence_angle_deg)*1000, digits)
+            self.incidence_angle_mrad = round(numpy.radians(90-self.incidence_angle_deg)*1000, digits)
         else:
-            self.incidence_angle_mrad = round(math.radians(self.incidence_angle_deg)*1000, digits)
+            self.incidence_angle_mrad = round(numpy.radians(self.incidence_angle_deg)*1000, digits)
 
         if self.graphical_options.is_curved and not self.graphical_options.is_conic_coefficients:
             if self.incidence_angle_respect_to_normal_type == 0:
@@ -2095,17 +2104,17 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         digits = 7
 
         if self.angles_respect_to == 0:
-            self.reflection_angle_mrad = round(math.radians(90 - self.reflection_angle_deg)*1000, digits)
+            self.reflection_angle_mrad = round(numpy.radians(90 - self.reflection_angle_deg)*1000, digits)
         else:
-            self.reflection_angle_mrad = round(math.radians(self.reflection_angle_deg)*1000, digits)
+            self.reflection_angle_mrad = round(numpy.radians(self.reflection_angle_deg)*1000, digits)
 
     def calculate_incidence_angle_deg(self):
         digits = 10
 
         if self.angles_respect_to == 0:
-            self.incidence_angle_deg = round(math.degrees(0.5 * math.pi - (self.incidence_angle_mrad / 1000)), digits)
+            self.incidence_angle_deg = round(numpy.degrees(0.5 * numpy.pi - (self.incidence_angle_mrad / 1000)), digits)
         else:
-            self.incidence_angle_deg = round(math.degrees(self.incidence_angle_mrad / 1000), digits)
+            self.incidence_angle_deg = round(numpy.degrees(self.incidence_angle_mrad / 1000), digits)
 
         if self.graphical_options.is_mirror:
             self.reflection_angle_deg = self.incidence_angle_deg
@@ -2122,9 +2131,9 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         digits = 10
 
         if self.angles_respect_to == 0:
-            self.reflection_angle_deg = round(math.degrees(0.5*math.pi-(self.reflection_angle_mrad/1000)), digits)
+            self.reflection_angle_deg = round(numpy.degrees(0.5*numpy.pi-(self.reflection_angle_mrad/1000)), digits)
         else:
-            self.reflection_angle_deg = round(math.degrees(self.reflection_angle_mrad/1000), digits)
+            self.reflection_angle_deg = round(numpy.degrees(self.reflection_angle_mrad/1000), digits)
 
     def grab_dcm_value_from_oe(self):
         self.twotheta_bragg = self.incidence_angle_deg
@@ -2198,7 +2207,10 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             shadow_oe._oe.T_IMAGE      = self.image_plane_distance
             shadow_oe._oe.T_INCIDENCE  = self.incidence_angle_deg
             shadow_oe._oe.T_REFLECTION = self.reflection_angle_deg
-            shadow_oe._oe.ALPHA        = 90*self.mirror_orientation_angle
+            if self.mirror_orientation_angle < 4:
+                shadow_oe._oe.ALPHA        = 90*self.mirror_orientation_angle
+            elif self.mirror_orientation_angle == 4:
+                shadow_oe._oe.ALPHA = self.mirror_orientation_angle_user_value
 
             if self.mirror_movement == 1:
                  shadow_oe._oe.F_MOVE=1
@@ -2234,8 +2246,10 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 shadow_oe._oe.T_INCIDENCE  = 90-self.incidence_angle_deg
                 shadow_oe._oe.T_REFLECTION = 90-self.reflection_angle_deg
 
-            shadow_oe._oe.ALPHA        = 90*self.mirror_orientation_angle
-
+            if self.mirror_orientation_angle < 4:
+                shadow_oe._oe.ALPHA        = 90*self.mirror_orientation_angle
+            else:
+                shadow_oe._oe.ALPHA = self.mirror_orientation_angle_user_value
             #####################################
             # BASIC SETTING
             #####################################
@@ -2712,6 +2726,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                self.dim_x_plus = congruence.checkPositiveNumber(self.dim_x_plus, "Dimensions: x plus")
                self.dim_x_minus = congruence.checkPositiveNumber(self.dim_x_minus, "Dimensions: x minus")
 
+            if self.mirror_orientation_angle == 4:
+                self.mirror_orientation_angle_user_value = congruence.checkNumber(self.mirror_orientation_angle_user_value, "O.E. Orientation Angle [deg]")
 
             #####################################
             # ADVANCED SETTING
@@ -2768,8 +2784,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 self.paraboloid_parameter = round(shadow_oe._oe.PARAM, 4)
 
         if self.diffraction_calculation == 0 and self.crystal_auto_setting == 1:
-            self.incidence_angle_mrad = round((math.pi*0.5-shadow_oe._oe.T_INCIDENCE)*1000, 2)
-            self.reflection_angle_mrad = round((math.pi*0.5-shadow_oe._oe.T_REFLECTION)*1000, 2)
+            self.incidence_angle_mrad = round((numpy.pi*0.5-shadow_oe._oe.T_INCIDENCE)*1000, 2)
+            self.reflection_angle_mrad = round((numpy.pi*0.5-shadow_oe._oe.T_REFLECTION)*1000, 2)
             self.calculate_incidence_angle_deg()
             self.calculate_reflection_angle_deg()
 
@@ -3321,7 +3337,11 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 self.image_plane_distance = float(shadow_file.getProperty("T_IMAGE"))
                 self.incidence_angle_deg = float(shadow_file.getProperty("T_INCIDENCE"))
                 self.reflection_angle_deg = float(shadow_file.getProperty("T_REFLECTION"))
-                self.mirror_orientation_angle = int(float(shadow_file.getProperty("ALPHA"))/90)
+                if float(shadow_file.getProperty("ALPHA")) in [0.0,90.0,180.0,270.0]:
+                    self.mirror_orientation_angle = int(float(shadow_file.getProperty("ALPHA"))/90)
+                else:
+                    self.mirror_orientation_angle = 4
+                    self.mirror_orientation_angle_user_value = float(shadow_file.getProperty("ALPHA"))
                 self.angles_respect_to = 0
 
                 if self.graphical_options.is_curved:
@@ -3707,7 +3727,11 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                         self.calculate_incidence_angle_deg()
                         self.calculate_reflection_angle_deg()
 
-                        self.mirror_orientation_angle = int(numpy.degrees(coordinates.angle_azimuthal())/90)
+                        if numpy.degrees(coordinates.angle_azimuthal()) in [0.90,180,270]:
+                            self.mirror_orientation_angle = int(numpy.degrees(coordinates.angle_azimuthal())/90)
+                        else:
+                            self.mirror_orientation_angle = 4
+                            self.mirror_orientation_angle_user_value = numpy.degrees(coordinates.angle_azimuthal())
 
                         if optical_element._boundary_shape is None:
                             self.is_infinite = 0
@@ -3871,6 +3895,13 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         zp, xp = OpticalElement.get_shadow_pole_coordinates_from_p_q(p, q, grazing_angle)
 
         self.angle_of_majax_and_pole = round(OpticalElement.get_shadow_angle_of_majax_and_pole(xp, zp), 4)
+
+    def mirror_orientation_angle_user(self):
+
+        if self.mirror_orientation_angle < 4:
+            self.mirror_orientation_angle_user_value_le.setVisible(False)
+        else:
+            self.mirror_orientation_angle_user_value_le.setVisible(True)
 
     @classmethod
     def get_shadow_pole_coordinates_from_p_q(cls, p=2.0, q=1.0, grazing_angle=0.003):
