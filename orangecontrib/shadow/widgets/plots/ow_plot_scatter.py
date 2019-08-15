@@ -1,5 +1,6 @@
 import sys
 import time
+import numpy
 
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
@@ -36,7 +37,8 @@ class PlotScatter(AutomaticElement):
     category = "Display Data Tools"
     keywords = ["data", "file", "load", "read"]
 
-    inputs = [("Input Beam", ShadowBeam, "setBeam")]
+    inputs = [("Input Beam", ShadowBeam, "setBeam"),
+              ("Input Beam (color)" , ShadowBeam, "setBeamForColor" )]
 
     IMAGE_WIDTH = 878
     IMAGE_HEIGHT = 635
@@ -44,6 +46,7 @@ class PlotScatter(AutomaticElement):
     want_main_area=1
     plot_canvas=None
     input_beam=None
+    input_beam_color = None
 
     image_plane=Setting(0)
     image_plane_new_position=Setting(10.0)
@@ -60,6 +63,7 @@ class PlotScatter(AutomaticElement):
     y_range_min=Setting(0.0)
     y_range_max=Setting(0.0)
 
+    color_source = Setting(0) # 0 = same beam , 1 = specific beam
     color_column = Setting(11)
     weight_transparency = Setting(0)
 
@@ -91,7 +95,7 @@ class PlotScatter(AutomaticElement):
         # graph tab
         tab_set = oasysgui.createTabPage(self.tabs_setting, "Plot Settings")
 
-        screen_box = oasysgui.widgetBox(tab_set, "Screen Position Settings", addSpace=True, orientation="vertical", height=120)
+        screen_box = oasysgui.widgetBox(tab_set, "Screen Position Settings", addSpace=True, orientation="vertical", height=130)
 
         self.image_plane_combo = gui.comboBox(screen_box, self, "image_plane", label="Position of the Image",
                                             items=["On Image Plane", "Retraced"], labelWidth=260,
@@ -107,7 +111,7 @@ class PlotScatter(AutomaticElement):
 
         self.set_ImagePlane()
 
-        general_box = oasysgui.widgetBox(tab_set, "Variables Settings", addSpace=True, orientation="vertical", height=350)
+        general_box = oasysgui.widgetBox(tab_set, "Variables Settings", addSpace=True, orientation="vertical", height=360)
 
         self.x_column = gui.comboBox(general_box, self, "x_column_index", label="X Column",labelWidth=70,
                                      items=["1: X",
@@ -212,6 +216,9 @@ class PlotScatter(AutomaticElement):
 
         self.set_YRange()
 
+        gui.comboBox(general_box, self, "color_source", label="Color source", labelWidth=100,
+                     items=["The same beam",
+                            "Specific beam"],sendSelectedValue=False, orientation="horizontal")
 
         gui.comboBox(general_box, self, "color_column", label="Color", labelWidth=70,
                                          items=["0: NONE",
@@ -332,7 +339,26 @@ class PlotScatter(AutomaticElement):
             self.plot_canvas = ScatterView(backend=use_backend)
 
         if self.color_column != 0:
-            color_array = beam.getshonecol(var_color, nolost=nolost)
+            if self.color_source == 0:
+                color_array = beam.getshonecol(var_color, nolost=nolost)
+            else:
+                if self.input_beam_color is None:
+                    raise Exception("Undefined specific beam for color")
+
+                color_array = self.input_beam_color._beam.getshonecol(var_color, nolost=False)
+                if nolost == 0:
+                    pass
+                elif nolost == 1:
+                    color_good_flags = beam.getshonecol(10, nolost=False)
+                    print(">>>>>> color_array before: ",color_array.shape)
+                    color_array = color_array[numpy.where(color_good_flags >=0 )]
+                    print(">>>>>> color_array before: ", color_array.shape)
+                elif nolost == 2:
+                    color_good_flags = beam.getshonecol(10, nolost=False)
+                    print(">>>>>> color_array before: ",color_array.shape)
+                    color_array = color_array[numpy.where(color_good_flags < 0 )]
+                    print(">>>>>> color_array before: ", color_array.shape)
+
         else:
             color_array = beam.getshonecol(1, nolost=nolost) * 0.0
 
@@ -561,6 +587,17 @@ class PlotScatter(AutomaticElement):
                                            "Data not displayable: No good rays, bad content, bad limits or axes",
                                            QtWidgets.QMessageBox.Ok)
 
+    def setBeamForColor(self, beam):
+        if ShadowCongruence.checkEmptyBeam(beam):
+            if ShadowCongruence.checkGoodBeam(beam):
+                self.input_beam_color = beam
+
+                if self.is_automatic_run:
+                    self.plot_results()
+            else:
+                QtWidgets.QMessageBox.critical(self, "Error",
+                                           "Data not displayable: No good rays, bad content, bad limits or axes",
+                                           QtWidgets.QMessageBox.Ok)
 
     def writeStdOut(self, text):
         cursor = self.shadow_output.textCursor()
@@ -599,7 +636,7 @@ if __name__ == "__main__":
     # load a Beam
     from orangecontrib.shadow.util.shadow_objects import ShadowOEHistoryItem
     beam_out = ShadowBeam()
-    beam_out.loadFromFile("/users/srio/Oasys/test_transparency.00")
+    beam_out.loadFromFile("/home/manuel/Oasys/mirr.02")
     beam_out.history.append(ShadowOEHistoryItem())  # fake Source
     beam_out._oe_number = 0
 
