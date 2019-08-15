@@ -1,5 +1,3 @@
-import os
-
 import numpy
 from oasys.widgets import widget
 from oasys.widgets import gui as oasysgui
@@ -7,18 +5,25 @@ from oasys.widgets import gui as oasysgui
 from orangewidget import gui
 from orangewidget.settings import Setting
 
-from PyQt5.QtCore import Qt
-from PyQt5 import QtGui, QtWidgets
-from PyQt5.QtGui import QColor
+from PIL import Image
+import requests
+from io import BytesIO
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
+
+from PyQt5.QtWidgets import QApplication, QMessageBox
+
+from srxraylib.util.inverse_method_sampler import Sampler2D
+
+from silx.gui.plot import Plot2D
+from silx.gui.colors import Colormap
 
 class ImageToBeamConverter(widget.OWWidget):
 
     name = "Image To Beam"
     description = "Utility: ImageToBeamConverter"
     icon = "icons/image_converter.png"
-    maintainer = "Luca Rebuffi"
+    maintainer = "Luca Rebuffi and Manuel Sanchez del Rio"
     maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 6
     category = "Utility"
@@ -35,81 +40,50 @@ class ImageToBeamConverter(widget.OWWidget):
     number_of_x_pixels = Setting(0)
     number_of_z_pixels = Setting(0)
 
-    image_file_name=Setting("")
+    image_file_name=Setting("https://www.lbl.gov/wp-content/uploads/2013/06/Lawrence-tb.jpg")
     pixel_size = Setting(14.0)
+    number_of_rays = Setting(50000)
     number_of_x_bins = Setting(10)
     number_of_z_bins = Setting(5)
-    flip_vertically = Setting(1)
-    flip_horizontally = Setting(0)
+
+    image_nparray = None
 
     def __init__(self):
-        self.setFixedWidth(590)
-        self.setFixedHeight(550)
+        self.setFixedWidth(700)
+        self.setFixedHeight(600)
+
 
         left_box_1 = oasysgui.widgetBox(self.controlArea, "CCD Image", addSpace=True, orientation="vertical")
 
-        gui.comboBox(left_box_1, self, "is_textual", label="Image Type", labelWidth=250, items=["JPEG/PNG", "Textual"], sendSelectedValue=False, orientation="horizontal", callback=self.setTextual)
+        ########################################  Image File
+        self.select_file_box_1 = oasysgui.widgetBox(left_box_1, orientation="horizontal") #"", addSpace=False, orientation="horizontal", height=50)
+        self.le_image_txt_file_name = oasysgui.lineEdit(self.select_file_box_1, self, "image_file_name", "Image File or URL",
+                                                        labelWidth=150, valueType=str, orientation="horizontal")
+        gui.button(self.select_file_box_1, self, "...", callback=self.selectFile)
+        gui.button(self.select_file_box_1, self, "Reload", callback=self.loadFileToNumpyArray)
 
-        ########################################
+        # ##################   Preview
+        select_file_box_2_figure = oasysgui.widgetBox(left_box_1, "", addSpace=True, orientation="vertical")
 
-        self.select_file_box_1 = oasysgui.widgetBox(left_box_1, "Textual Image Parameters", addSpace=False, orientation="horizontal", height=250)
-
-        self.le_image_txt_file_name = oasysgui.lineEdit(self.select_file_box_1, self, "image_file_name", "Image File Name", labelWidth=120, valueType=str, orientation="horizontal")
-        self.le_image_txt_file_name.setFixedWidth(300)
-
-        gui.button(self.select_file_box_1, self, "...", callback=self.selectTxtFile)
-
-
-        self.select_file_box_2 = oasysgui.widgetBox(left_box_1, "Image Parameters", addSpace=False, orientation="vertical", height=250)
-
-        select_file_box_2_int = oasysgui.widgetBox(self.select_file_box_2, "", addSpace=False, orientation="horizontal")
-
-        self.le_image_file_name = oasysgui.lineEdit(select_file_box_2_int, self, "image_file_name", "Image File Name", labelWidth=120, valueType=str, orientation="horizontal")
-        self.le_image_file_name.setFixedWidth(300)
-
-        gui.button(select_file_box_2_int, self, "...", callback=self.selectFile)
-
-        select_file_box_2_figure = oasysgui.widgetBox(self.select_file_box_2, "", addSpace=False, orientation="horizontal")
-
-        figure_box = oasysgui.widgetBox(select_file_box_2_figure, "Preview", addSpace=False, orientation="vertical", width=350, height=180)
-
-        self.preview_box = QtWidgets.QLabel("")
-        self.preview_box.setAlignment(Qt.AlignCenter)
-        self.preview_box.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        figure_box = oasysgui.widgetBox(select_file_box_2_figure, "Preview", addSpace=True, orientation="vertical", width=650, height=325)
+        self.preview_box = Plot2D()
 
         figure_box.layout().addWidget(self.preview_box)
 
-        data_box = oasysgui.widgetBox(select_file_box_2_figure, "Data", addSpace=False, orientation="vertical")
+        self.preview_box.setKeepDataAspectRatio(True)
 
-        le = oasysgui.lineEdit(data_box, self, "number_of_x_pixels", "Number of x Pixels", valueType=int, orientation="horizontal")
-        le.setReadOnly(True)
-        font = QtGui.QFont(le.font())
-        font.setBold(True)
-        le.setFont(font)
-        palette = QtGui.QPalette(le.palette()) # make a copy of the palette
-        palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
-        palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
-        le.setPalette(palette)
-        le = oasysgui.lineEdit(data_box, self, "number_of_z_pixels", "Number of z Pixels", valueType=int, orientation="horizontal")
-        le.setReadOnly(True)
-        font = QtGui.QFont(le.font())
-        font.setBold(True)
-        le.setFont(font)
-        palette = QtGui.QPalette(le.palette()) # make a copy of the palette
-        palette.setColor(QtGui.QPalette.Text, QtGui.QColor('dark blue'))
-        palette.setColor(QtGui.QPalette.Base, QtGui.QColor(243, 240, 160))
-        le.setPalette(palette)
+        #########################################  image operations
+        operations_box = oasysgui.widgetBox(left_box_1, "", addSpace=True, orientation="horizontal")
+        gui.button(operations_box, self, "Flip Vertically",callback=self.flip_v)
+        gui.button(operations_box, self, "Flip Horizontally",callback=self.flip_h)
+        gui.button(operations_box, self, "90 deg rotation (CCW)", callback=self.rot_ccw)
+        gui.button(operations_box, self, "90 deg rotation (CW)", callback=self.rot_cw)
 
-        ########################################
 
-        self.setTextual()
-        self.loadImage()
-
-        oasysgui.lineEdit(left_box_1, self, "pixel_size", "Pixel Size [um]", labelWidth=200, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(left_box_1, self, "number_of_x_bins", "Number of Bin per Pixel [x]", labelWidth=200, valueType=int, orientation="horizontal")
-        oasysgui.lineEdit(left_box_1, self, "number_of_z_bins", "Number of Bin per Pixel [z]", labelWidth=200, valueType=int, orientation="horizontal")
-        gui.checkBox(left_box_1, self, "flip_vertically", "Flip Vertically")
-        gui.checkBox(left_box_1, self, "flip_horizontally", "Flip Horizontally")
+        ################################# beam parameters
+        beam_parameters_box = oasysgui.widgetBox(left_box_1, "", addSpace=True, orientation="horizontal")
+        oasysgui.lineEdit(beam_parameters_box, self, "pixel_size", "Pixel Size [um]", labelWidth=200, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(beam_parameters_box, self, "number_of_rays", "Number of sampled rays", labelWidth=200, valueType=int, orientation="horizontal")
 
         gui.separator(self.controlArea)
 
@@ -118,190 +92,155 @@ class ImageToBeamConverter(widget.OWWidget):
 
         gui.rubber(self.controlArea)
 
-    def selectTxtFile(self):
-        self.le_image_txt_file_name.setText(oasysgui.selectFileFromDialog(self, self.image_txt_file_name, "Open Textual Image", file_extension_filter="Text Files (*.txt)"))
+        if self.image_file_name != "":
+            self.loadFileToNumpyArray()
+
 
     def selectFile(self):
-        self.le_image_file_name.setText(oasysgui.selectFileFromDialog(self, self.image_file_name, "Open Image", file_extension_filter="Image Files (*.png *.jpg)"))
-        self.loadImage()
+        self.image_file_name = oasysgui.selectFileFromDialog(self, self.image_file_name, "Open Image",
+                                file_extension_filter="(*.png *.jpg *.jpeg *csv)")
+        self.loadFileToNumpyArray()
 
-    def loadImage(self):
-        if self.is_textual == 0:
-            pixmap = QtGui.QPixmap(self.image_file_name)
-
-            self.preview_box.setPixmap(pixmap)
-            self.number_of_x_pixels = pixmap.width()
-            self.number_of_z_pixels = pixmap.height()
+    def preview(self):
+        self.preview_box.addImage(self.image_nparray.T,colormap=Colormap(name="reversed gray"))
 
     def setTextual(self):
         self.select_file_box_2.setVisible(self.is_textual==0)
         self.select_file_box_1.setVisible(self.is_textual==1)
 
+    def is_remote(self):
+        if self.image_file_name[0:4] == "http" or self.image_file_name[0:3] == "ftp":
+            return True
+        else:
+            return False
+
+    def loadFileToNumpyArray(self):
+
+        if self.is_remote():
+            try:
+                response = requests.get(self.image_file_name)
+                img = Image.open(BytesIO(response.content))
+                img = numpy.array(img).sum(2) * 1.0
+                img = numpy.rot90(img, axes=(1, 0))
+                self.image_nparray = img.max() - img
+            except:
+                QMessageBox.information(self, "QMessageBox.information()",
+                        "Impossible to load remote file:\n %s.\nUse jpg or png files"%self.image_file_name, QMessageBox.Ok)
+        else:
+            try:
+                img = Image.open(self.image_file_name)
+                img = numpy.array(img).sum(2) * 1.0
+                img = numpy.rot90(img, axes=(1, 0))
+                self.image_nparray = img.max() - img
+            except:
+                try:
+                    self.image_nparray = numpy.loadtxt(self.image_file_name,delimiter=",")
+                except:
+                    QMessageBox.information(self, "QMessageBox.information()",
+                            "Impossible to load file %s. Use jpg, png or csv file"%self.image_file_name,QMessageBox.Ok)
+
+        self.preview()
+
+    def flip_h(self):
+        self.image_nparray = numpy.flip(self.image_nparray,axis=1)
+        self.preview()
+
+    def flip_v(self):
+        self.image_nparray = numpy.flip(self.image_nparray,axis=0)
+        self.preview()
+
+    def rot_cw(self):
+        self.image_nparray = numpy.rot90(self.image_nparray,axes=(1,0))
+        self.preview()
+
+    def rot_ccw(self):
+        self.image_nparray = numpy.rot90(self.image_nparray,axes=(0,1))
+        self.preview()
+
+
+    def sample_points(self):
+        try:
+            x0 = numpy.arange(self.image_nparray.shape[0])
+            x1 = numpy.arange(self.image_nparray.shape[1])
+
+            s2d = Sampler2D(self.image_nparray, x0, x1)
+            x0s, x1s = s2d.get_n_sampled_points(self.number_of_rays)
+
+            return x0s, x1s
+
+        except:
+            QMessageBox.information(self, "QMessageBox.information()",
+                        "Cannot sample points from data type: %s"%type(self.image_nparray))
 
     def convertToBeam(self):
-        try:
-            self.progressBarInit()
-            self.progressBarSet(10)
 
-            #self.information(0, "Converting Image Map")
-            self.setStatusMessage("Converting Image Map")
+        x0s, x1s = self.sample_points()
 
-            text_image = self.image_file_name
+        self.progressBarInit()
+        self.progressBarSet(10)
+        self.setStatusMessage("Converting Image Map")
 
-            if not self.is_textual:
-                text_image = self.convertImagetoText()
+        self.progressBarSet(50)
 
-            map = self.convertTextImageToXYMap(text_image)
+        beam_out = self.convertMapToBeam(x0s,x1s)
 
-            self.progressBarSet(50)
+        self.setStatusMessage("Plotting Results")
 
-            beam_out = self.convertMapToBeam(map)
+        self.progressBarSet(80)
 
-            #self.information(0, "Plotting Results")
-            self.setStatusMessage("Plotting Results")
+        self.setStatusMessage("")
 
-            self.progressBarSet(80)
+        self.progressBarFinished()
 
-            #self.information()
-            self.setStatusMessage("")
+        self.send("Beam", beam_out)
 
-            self.progressBarFinished()
 
-            self.send("Beam", beam_out)
-        except Exception as exception:
-            QtWidgets.QMessageBox.critical(self, "Error",
-                                 str(exception),
-                                 QtWidgets.QMessageBox.Ok)
+    def convertMapToBeam(self, x0s, x1s):
 
-    def convertImagetoText(self):
-        if str(self.image_file_name).endswith("txt") or str(self.image_file_name).endswith("TXT"):
-          return self.image_file_name
-
-        else:
-            out_file_name = os.getcwd() + "/temp_image.txt"
-            out_file = open(out_file_name, "w")
-
-            separator = '	'
-
-            image = QtGui.QImage(self.image_file_name)
-
-            x_pixels = image.width()
-            z_pixels = image.height()
-
-            for z_index in range (0, z_pixels):
-
-                row = ""
-
-                for x_index in range (0, x_pixels):
-                    color = QColor(image.pixel(x_index, z_index))
-
-                    red = color.red()
-                    blue = color.blue()
-                    green = color.green()
-
-                    grey = (red*11+green*16+blue*5)/32
-
-                    if x_index == x_pixels - 1:
-                        row += str(int(grey))
-                    else:
-                        row += str(int(grey)) + separator
-
-                row += "\r"
-
-                out_file.write(row)
-
-            out_file.flush()
-            out_file.close()
-
-        return out_file_name
-
-    def convertTextImageToXYMap(self, text_image_file_name):
-        input_file = open(text_image_file_name, "r")
-
-        map = []
-        rows = input_file.readlines()
-
-        if (len(rows) > 0):
-            p0 = self.pixel_size*0.5*1e-4
-            p0_bin_z = p0/self.number_of_z_bins
-            p0_bin_x = p0/self.number_of_x_bins
-
-            number_of_x_pixels = len(rows[0].split('	'))
-            number_of_z_pixels = len(rows)
-
-            if (number_of_x_pixels*number_of_z_pixels*self.number_of_x_bins*self.number_of_z_bins) > 1000000: raise Exception("Number of Pixels too high (>1000000)")
-
-            x0 = -p0*number_of_x_pixels*0.5
-            z0 = -p0*number_of_z_pixels*0.5
-
-            print (z0)
-
-            for z_index in range (0, len(rows)):
-                values = rows[z_index].split('	')
-
-                for z_pixel_bin_index in range(0, self.number_of_z_bins):
-                    if (self.flip_vertically):
-                        z = z0 + (p0*z_index + p0_bin_z*z_pixel_bin_index)
-                    else:
-                        z = -z0 - (p0*z_index + p0_bin_z*z_pixel_bin_index)
-
-                    for x_index in range(0, len(values)):
-                        for x_pixel_bin_index in range(0, self.number_of_x_bins):
-                            if (self.flip_horizontally):
-                                x = -x0 - (p0*x_index + p0_bin_x*x_pixel_bin_index)
-                            else:
-                                x = x0 + (p0*x_index + p0_bin_x*x_pixel_bin_index)
-
-                            point = ImagePoint(x, 0, z, int(values[x_index]))
-                            map.append(point)
-
-        return map
-
-    def convertMapToBeam(self, map):
-
-        number_of_rays = len(map)
+        number_of_rays = x0s.size
 
         if number_of_rays == 0: return None
 
         beam_out = ShadowBeam(number_of_rays=number_of_rays)
 
+        x = x0s - self.image_nparray.shape[0] / 2
+        z = x1s - self.image_nparray.shape[1] / 2
+
+        x *= self.pixel_size*1e-6 / self.workspace_units_to_m
+        z *= self.pixel_size*1e-6 / self.workspace_units_to_m
+
         for index in range(0, number_of_rays):
-            point = map[index]
 
             ray = beam_out._beam.rays[index]
 
-            E_value = numpy.sqrt(point.value*0.5)
-
-            ray[0]  = point.x                       # X
-            ray[1]  = point.y                        # Y
-            ray[2]  = point.z                        # Z
-            ray[3]  = 0                             # director cos x
-            ray[4]  = 1                              # director cos y
-            ray[5]  = 0                             # director cos z
-            ray[6]  = 0  # Es_x
-            ray[7]  = E_value  # Es_y
-            ray[8]  = 0  # Es_z
-            ray[9]  = 1  # good/lost
-            ray[10] = 2*numpy.pi/1.5e-8
-            ray[11] = index # ray index
-            ray[12] = 1                                     # good only
-            ray[13] = numpy.pi*0.5 # Es_phi
-            ray[14] = numpy.pi*0.5 # Ep_phi
-            ray[15] = 0 # Ep_x
-            ray[16] = E_value # Ep_y
-            ray[17] = 0 # Ep_z
+            ray[0]  = x[index]                         # X
+            ray[1]  = 0.0                              # Y
+            ray[2]  = z[index]                         # Z
+            ray[3]  = 0                                # director cos x
+            ray[4]  = 1                                # director cos y
+            ray[5]  = 0                                # director cos z
+            ray[6]  = 1.0/numpy.sqrt(2)                # Es_x
+            ray[7]  = 0.0                              # Es_y
+            ray[8]  = 0.0                              # Es_z
+            ray[9]  = 1                                # good/lost
+            ray[10] = 2*numpy.pi/1e-8                  # wavenumber
+            ray[11] = index                            # ray index
+            ray[12] = 1                                # good only
+            ray[13] = 0.0                              # Es_phi
+            ray[14] = 0.0                              # Ep_phi
+            ray[15] = 0.0                              # Ep_x
+            ray[16] = 0.0                              # Ep_y
+            ray[17] = 1.0/numpy.sqrt(2)                # Ep_z
 
         return beam_out
 
-class ImagePoint:
 
-    x = 0.0
-    y = 0.0
-    z = 0.0
-    value = 0.0
-
-    def __init__(self, x=0.0, y=0.0, z=0.0, value=0.0):
-       self.x = x
-       self.y = y
-       self.z = z
-       self.value = value
+if __name__ == "__main__":
+    from PyQt5.QtWidgets import QApplication
+    import sys
+    app = QApplication(sys.argv)
+    w = ImageToBeamConverter()
+    w.workspace_units_to_m = 1.0
+    w.show()
+    app.exec()
+    w.saveSettings()
