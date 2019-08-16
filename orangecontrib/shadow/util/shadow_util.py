@@ -1557,6 +1557,9 @@ def get_sigma(histogram, bins):
 
     return numpy.sqrt(numpy.sum(histogram*((bins-average)**2))/total)
 
+def get_rms(histogram, bins):
+    return numpy.sqrt(numpy.sum((histogram*bins)**2)/numpy.sum(histogram))
+
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
