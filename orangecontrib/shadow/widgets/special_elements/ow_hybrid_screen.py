@@ -32,6 +32,7 @@ class AbstractHybridScreen(AutomaticElement):
 
     focal_length_calc = Setting(0)
     ghy_focallength = Setting(0.0)
+    ghy_focallength_calculated = 0.0
     distance_to_image_calc = Setting(0)
     ghy_distance = Setting(0.0)
 
@@ -45,6 +46,7 @@ class AbstractHybridScreen(AutomaticElement):
     file_to_write_out = Setting(0)
 
     ghy_automatic = Setting(1)
+    ghy_disable_ff = Setting(1)
 
     input_beam = None
     plotted_data = None
@@ -121,15 +123,6 @@ class AbstractHybridScreen(AutomaticElement):
         box_3 = oasysgui.widgetBox(tab_adv, "Propagation Parameters", addSpace=True, orientation="vertical", height=240)
 
 
-        self.cb_focal_length_calc = gui.comboBox(box_3, self, "focal_length_calc", label="Focal Length", labelWidth=180,
-                     items=["Use O.E. Focal Distance", "Specify Value"],
-                     callback=self.set_FocalLengthCalc,
-                     sendSelectedValue=False, orientation="horizontal")
-
-        self.le_focal_length = oasysgui.lineEdit(box_3, self, "ghy_focallength", "Focal Length value", labelWidth=260, valueType=float, orientation="horizontal")
-
-        gui.separator(box_3)
-
         self.cb_distance_to_image_calc = gui.comboBox(box_3, self, "distance_to_image_calc", label="Distance to image", labelWidth=150,
                      items=["Use O.E. Image Plane Distance", "Specify Value"],
                      callback=self.set_DistanceToImageCalc,
@@ -143,18 +136,39 @@ class AbstractHybridScreen(AutomaticElement):
                                              items=["No", "Yes"],
                                              sendSelectedValue=False, orientation="horizontal", callback=self.set_NF)
 
-        gui.separator(box_3)
+        self.cb_focal_length_calc = gui.comboBox(box_3, self, "focal_length_calc", label="Focal Length", labelWidth=180,
+                     items=["Use O.E. Focal Distance", "Specify Value"],
+                     callback=self.set_FocalLengthCalc,
+                     sendSelectedValue=False, orientation="horizontal")
 
-        gui.comboBox(box_3, self, "send_original_beam", label="Send Original Beam in case of failure", labelWidth=310,
-                                             items=["No", "Yes"],
-                                             sendSelectedValue=False, orientation="horizontal")
+        self.le_focal_length = oasysgui.lineEdit(box_3, self, "ghy_focallength", "Focal Length value", labelWidth=200, valueType=float, orientation="horizontal")
 
+        self.le_focal_length_calculated = oasysgui.lineEdit(box_3, self, "ghy_focallength_calculated", "Focal Length calculated", labelWidth=200, valueType=float, orientation="horizontal")
+        self.le_focal_length_calculated.setReadOnly(True)
+        font = QFont(self.le_focal_length_calculated.font())
+        font.setBold(True)
+        self.le_focal_length_calculated.setFont(font)
+        palette = QPalette(self.le_focal_length_calculated.palette()) # make a copy of the palette
+        palette.setColor(QPalette.Text, QColor('dark blue'))
+        palette.setColor(QPalette.Base, QColor(243, 240, 160))
+        self.le_focal_length_calculated.setPalette(palette)
 
-        box_4 = oasysgui.widgetBox(tab_adv, "Geometrical Parameters", addSpace=True, orientation="vertical", height=70)
+        box_4 = oasysgui.widgetBox(tab_adv, "Calculation Congruence Parameters", addSpace=True, orientation="vertical", height=200)
 
         gui.comboBox(box_4, self, "ghy_automatic", label="Analize geometry to avoid unuseful calculations", labelWidth=310,
                      items=["No", "Yes"],
                      sendSelectedValue=False, orientation="horizontal")
+
+
+        gui.comboBox(box_4, self, "ghy_disable_ff", label="Disable Far Field for Divergent Beam", labelWidth=310,
+                     items=["No", "Yes"],
+                     sendSelectedValue=False, orientation="horizontal")
+
+        gui.separator(box_4)
+
+        gui.comboBox(box_4, self, "send_original_beam", label="Send Original Beam in case of failure", labelWidth=310,
+                                             items=["No", "Yes"],
+                                             sendSelectedValue=False, orientation="horizontal")
 
         self.set_DiffPlane()
         self.set_DistanceToImageCalc()
@@ -434,13 +448,17 @@ class AbstractHybridScreen(AutomaticElement):
                     input_parameters.file_to_write_out = self.file_to_write_out
 
                     input_parameters.ghy_automatic = self.ghy_automatic
+                    input_parameters.ghy_disable_ff = self.ghy_disable_ff
 
                     self.add_input_parameters_aux(input_parameters)
 
                     try:
                         calculation_parameters = hybrid_control.hy_run(input_parameters)
 
-                        self.ghy_focallength = input_parameters.ghy_focallength
+                        if not (calculation_parameters.beam_divergent_in_x or calculation_parameters.beam_divergent_in_z):
+                            self.ghy_focallength            = input_parameters.ghy_focallength
+                            self.ghy_focallength_calculated = input_parameters.ghy_focallength
+
                         self.ghy_distance = input_parameters.ghy_distance
                         self.ghy_nbins_x = int(input_parameters.ghy_nbins_x)
                         self.ghy_nbins_z = int(input_parameters.ghy_nbins_z)
@@ -505,8 +523,12 @@ class AbstractHybridScreen(AutomaticElement):
         if self.ghy_diff_plane == 0:
             if do_plot_x:
                 if do_nf:
-                    self.plot_histo_hybrid(84, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp",
-                                           xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
+                    if calculation_parameters.do_ff_x:
+                        self.plot_histo_hybrid(84, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp",
+                                    xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
+                    else:
+                        self.plot_emtpy(84, 0)
+
                     self.plot_histo(calculation_parameters.ff_beam, 88, 1, plot_canvas_index=1, title="X",
                                     xtitle=r'X [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
                     self.plot_histo_hybrid(92, calculation_parameters.dif_x, 2, title=u"\u2206" + "X",
@@ -514,8 +536,12 @@ class AbstractHybridScreen(AutomaticElement):
                     self.plot_histo(calculation_parameters.nf_beam, 96, 1, plot_canvas_index=3, title="X",
                                     xtitle=r'X [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
                 else:
-                    self.plot_histo_hybrid(88, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp",
-                                           xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
+                    if calculation_parameters.do_ff_x:
+                        self.plot_histo_hybrid(88, calculation_parameters.dif_xp, 0, title=u"\u2206" + "Xp",
+                                               xtitle=r'$\Delta$Xp [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
+                    else:
+                        self.plot_emtpy(88, 0)
+
                     self.plot_histo(calculation_parameters.ff_beam, 96, 1, plot_canvas_index=1, title="X",
                                     xtitle=r'X [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
             else:
@@ -530,8 +556,12 @@ class AbstractHybridScreen(AutomaticElement):
         elif self.ghy_diff_plane == 1:
             if do_plot_z:
                 if do_nf:
-                    self.plot_histo_hybrid(84, calculation_parameters.dif_zp, 0, title=u"\u2206" + "Zp",
-                                           xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
+                    if calculation_parameters.do_ff_z:
+                        self.plot_histo_hybrid(84, calculation_parameters.dif_zp, 0, title=u"\u2206" + "Zp",
+                                               xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
+                    else:
+                        self.plot_emtpy(84, 0)
+
                     self.plot_histo(calculation_parameters.ff_beam, 84, 3, plot_canvas_index=1, title="Z",
                                     xtitle=r'Z [$\mu$m]', ytitle=r'Number of Rays', xum=("Z [" + u"\u03BC" + "m]"))
                     self.plot_histo_hybrid(88, calculation_parameters.dif_z, 2, title=u"\u2206" + "Z",
@@ -539,8 +569,12 @@ class AbstractHybridScreen(AutomaticElement):
                     self.plot_histo(calculation_parameters.nf_beam, 96, 3, plot_canvas_index=3, title="Z",
                                     xtitle=r'Z [$\mu$m]', ytitle=r'Number of Rays', xum=("Z [" + u"\u03BC" + "m]"))
                 else:
-                    self.plot_histo_hybrid(88, calculation_parameters.dif_zp, 0, title=u"\u2206" + "Zp",
-                                           xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
+                    if calculation_parameters.do_ff_z:
+                        self.plot_histo_hybrid(88, calculation_parameters.dif_zp, 0, title=u"\u2206" + "Zp",
+                                               xtitle=r'$\Delta$Zp [$\mu$rad]', ytitle=r'Arbitrary Units', var=6)
+                    else:
+                        self.plot_emtpy(88, 0)
+
                     self.plot_histo(calculation_parameters.ff_beam, 96, 3, plot_canvas_index=1, title="Z",
                                     xtitle=r'Z [$\mu$m]', ytitle=r'Number of Rays', xum=("Z [" + u"\u03BC" + "m]"))
             else:
@@ -555,24 +589,34 @@ class AbstractHybridScreen(AutomaticElement):
 
         elif self.ghy_diff_plane == 2:
             if do_plot_x and do_plot_z:
-                self.plot_xy_hybrid(88, calculation_parameters.dif_xpzp, plot_canvas_index=0, title="X',Z'",
-                                    xtitle="X' [$\mu$rad]", ytitle="Z' [$\mu$rad]", var1=4, var2=6)
+                if calculation_parameters.do_ff_x and calculation_parameters.do_ff_z:
+                    self.plot_xy_hybrid(88, calculation_parameters.dif_xpzp, plot_canvas_index=0, title="X',Z'",
+                                        xtitle="X' [$\mu$rad]", ytitle="Z' [$\mu$rad]", var1=4, var2=6)
+                else:
+                    self.plot_emtpy(88, 0)
+
                 self.plot_xy(calculation_parameters.ff_beam, 96, 1, 3, plot_canvas_index=1, title="X,Z",
                              xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"),
                              yum=("Z [" + u"\u03BC" + "m]"))
 
             else:
                 if do_plot_x:
-                    self.plot_histo_hybrid(88, calculation_parameters.dif_xp, plot_canvas_index=0,
-                                           title=u"\u2206" + "X'", xtitle="$\Delta$X' [$\mu$rad]",
-                                           ytitle=r'Arbitrary Units', var=4)
+                    if calculation_parameters.do_ff_x:
+                        self.plot_histo_hybrid(88, calculation_parameters.dif_xp, plot_canvas_index=0,
+                                               title=u"\u2206" + "X'", xtitle="$\Delta$X' [$\mu$rad]",
+                                               ytitle=r'Arbitrary Units', var=4)
+                    else:
+                        self.plot_emtpy(88, 0)
+
                     self.plot_histo(calculation_parameters.ff_beam, 96, 1, plot_canvas_index=1, title="X",
                                     xtitle=r'X [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
                 elif do_plot_z:
-                    print(type(calculation_parameters.dif_zp))
+                    if calculation_parameters.do_ff_z:
+                        self.plot_histo_hybrid(88, calculation_parameters.dif_zp, 0, title=u"\u2206" + "Z'",
+                                               xtitle="$\Delta$Z' [$\mu$rad]", ytitle=r'Arbitrary Units', var=6)
+                    else:
+                        self.plot_emtpy(88, 0)
 
-                    self.plot_histo_hybrid(88, calculation_parameters.dif_zp, 0, title=u"\u2206" + "Z'",
-                                           xtitle="$\Delta$Z' [$\mu$rad]", ytitle=r'Arbitrary Units', var=6)
                     self.plot_histo(calculation_parameters.ff_beam, 96, 3, plot_canvas_index=1, title="Z",
                                     xtitle=r'Z [$\mu$m]', ytitle=r'Number of Rays', xum=("Z [" + u"\u03BC" + "m]"))
                 else:
