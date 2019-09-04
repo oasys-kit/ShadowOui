@@ -367,7 +367,7 @@ class ShadowPlot:
             self.total_lost_rays.setPalette(palette)
 
             self.fwhm_h.setReadOnly(True)
-            font = QFont(self.intensity.font())
+            font = QFont(self.fwhm_h.font())
             font.setBold(True)
             self.fwhm_h.setFont(font)
             palette = QPalette(self.fwhm_h.palette())
@@ -376,7 +376,7 @@ class ShadowPlot:
             self.fwhm_h.setPalette(palette)
 
             self.sigma_h.setReadOnly(True)
-            font = QFont(self.intensity.font())
+            font = QFont(self.sigma_h.font())
             font.setBold(True)
             self.sigma_h.setFont(font)
             palette = QPalette(self.sigma_h.palette())
@@ -410,6 +410,8 @@ class ShadowPlot:
             self.total_lost_rays.setText("0")
             self.fwhm_h.setText("0.0000")
             if hasattr(self, "fwhm_v"):  self.fwhm_v.setText("0.0000")
+            self.sigma_h.setText("0.0000")
+            if hasattr(self, "sigma_v"):  self.sigma_v.setText("0.0000")
 
     class DetailedHistoWidget(QWidget):
 
