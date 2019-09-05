@@ -54,7 +54,6 @@ class HybridInputParameters(object):
     file_to_write_out = 0
 
     ghy_automatic = 1
-    ghy_disable_ff = 1
 
     crl_error_profiles = None
     crl_material = None
@@ -70,11 +69,6 @@ class HybridInputParameters(object):
 class HybridCalculationParameters(object):
     beam_not_cut_in_z = False
     beam_not_cut_in_x = False
-
-    beam_divergent_in_z = False
-    beam_divergent_in_x = False
-    nf_focus_position_x = 0.0
-    nf_focus_position_z = 0.0
 
     shadow_oe_end = None
 
@@ -443,26 +437,6 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
                                                 "O.E. does not cut the beam in the Tangential plane:\nCalculation is done in Sagittal plane only",
                                                 QMessageBox.Ok)
 
-        if input_parameters.ghy_calcType in [2, 3, 4]: # MIRRORS/GRATINGS
-            ticket = ST.focnew(input_parameters.shadow_beam._beam, mode=0, center=[0.0, 0.0])
-
-            focus_position_x = ticket['x_waist']
-            focus_position_z = ticket['z_waist']
-
-            history_entry =  input_parameters.shadow_beam.getOEHistory(input_parameters.shadow_beam._oe_number)
-            t_image = history_entry._shadow_oe_end._oe.T_IMAGE
-
-            calculation_parameters.nf_focus_position_x = focus_position_x + t_image
-            calculation_parameters.nf_focus_position_z = focus_position_z + t_image
-            calculation_parameters.beam_divergent_in_x = (calculation_parameters.nf_focus_position_x <=0)
-            calculation_parameters.beam_divergent_in_z = (calculation_parameters.nf_focus_position_z <=0)
-
-            if calculation_parameters.beam_divergent_in_x or calculation_parameters.beam_divergent_in_z:
-                input_parameters.widget.ghy_focallength_calculated = numpy.nan
-
-            calculation_parameters.do_ff_x  =  not (calculation_parameters.beam_divergent_in_x and input_parameters.ghy_disable_ff==1)
-            calculation_parameters.do_ff_z  =  not (calculation_parameters.beam_divergent_in_z and input_parameters.ghy_disable_ff==1)
-
 ##########################################################################
 
 def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameters=HybridCalculationParameters()):
@@ -773,23 +747,13 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
             input_parameters.widget.status_message("Focal length = " + str(input_parameters.ghy_focallength))
 
     if input_parameters.ghy_diff_plane == 1 or input_parameters.ghy_diff_plane == 3:
-
-        if calculation_parameters.beam_divergent_in_x:
-            calculation_parameters.xx_focal_ray = copy.deepcopy(calculation_parameters.xx_screen) + \
-                                                  calculation_parameters.nf_focus_position_x * numpy.tan(calculation_parameters.dx_ray)
-        else:
-            calculation_parameters.xx_focal_ray = copy.deepcopy(calculation_parameters.xx_screen) + \
-                                                  input_parameters.ghy_focallength * numpy.tan(calculation_parameters.dx_ray)
+        calculation_parameters.xx_focal_ray = copy.deepcopy(calculation_parameters.xx_screen) + \
+                                              input_parameters.ghy_focallength * numpy.tan(calculation_parameters.dx_ray)
 
 
     if input_parameters.ghy_diff_plane == 2 or input_parameters.ghy_diff_plane == 3:
-
-        if calculation_parameters.beam_divergent_in_z:
-            calculation_parameters.zz_focal_ray = copy.deepcopy(calculation_parameters.zz_screen) + \
-                                                     calculation_parameters.nf_focus_position_z * numpy.tan(calculation_parameters.dz_ray)
-        else:
-            calculation_parameters.zz_focal_ray = copy.deepcopy(calculation_parameters.zz_screen) + \
-                                                  input_parameters.ghy_focallength * numpy.tan(calculation_parameters.dz_ray)
+        calculation_parameters.zz_focal_ray = copy.deepcopy(calculation_parameters.zz_screen) + \
+                                              input_parameters.ghy_focallength * numpy.tan(calculation_parameters.dz_ray)
 
 
     t_image = calculation_parameters.shadow_oe_end._oe.T_IMAGE
@@ -1226,12 +1190,7 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
     # near field calculation
     # ------------------------------------------
     if input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1:  # near field calculation
-        if calculation_parameters.beam_divergent_in_x:
-            focallength_nf = calculation_parameters.nf_focus_position_x
-            input_parameters.widget.ghy_focallength_calculated = numpy.round(focallength_nf, 6)
-
-        else:
-            focallength_nf = input_parameters.ghy_focallength
+        focallength_nf = input_parameters.ghy_focallength
 
         fftsize = int(scale_factor * calculate_fft_size(calculation_parameters.ghy_x_min,
                                                         calculation_parameters.ghy_x_max,
@@ -1433,11 +1392,7 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
     # near field calculation
     # ------------------------------------------
     if input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1:
-        if calculation_parameters.beam_divergent_in_z:
-            focallength_nf = calculation_parameters.nf_focus_position_z
-            input_parameters.widget.ghy_focallength_calculated = numpy.round(focallength_nf, 6)
-        else:
-            focallength_nf = input_parameters.ghy_focallength
+        focallength_nf = input_parameters.ghy_focallength
 
         fftsize = int(scale_factor * calculate_fft_size(calculation_parameters.ghy_z_min,
                                                         calculation_parameters.ghy_z_max,

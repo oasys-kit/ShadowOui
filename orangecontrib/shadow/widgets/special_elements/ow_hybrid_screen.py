@@ -46,7 +46,6 @@ class AbstractHybridScreen(AutomaticElement):
     file_to_write_out = Setting(0)
 
     ghy_automatic = Setting(1)
-    ghy_disable_ff = Setting(1)
 
     input_beam = None
     plotted_data = None
@@ -159,12 +158,6 @@ class AbstractHybridScreen(AutomaticElement):
                      items=["No", "Yes"],
                      sendSelectedValue=False, orientation="horizontal")
 
-
-        gui.comboBox(box_4, self, "ghy_disable_ff", label="Disable Far Field for Divergent Beam", labelWidth=310,
-                     items=["No", "Yes"],
-                     sendSelectedValue=False, orientation="horizontal")
-
-        gui.separator(box_4)
 
         gui.comboBox(box_4, self, "send_original_beam", label="Send Original Beam in case of failure", labelWidth=310,
                                              items=["No", "Yes"],
@@ -448,16 +441,13 @@ class AbstractHybridScreen(AutomaticElement):
                     input_parameters.file_to_write_out = self.file_to_write_out
 
                     input_parameters.ghy_automatic = self.ghy_automatic
-                    input_parameters.ghy_disable_ff = self.ghy_disable_ff
 
                     self.add_input_parameters_aux(input_parameters)
 
                     try:
                         calculation_parameters = hybrid_control.hy_run(input_parameters)
 
-                        if not (calculation_parameters.beam_divergent_in_x or calculation_parameters.beam_divergent_in_z):
-                            self.ghy_focallength            = input_parameters.ghy_focallength
-                            self.ghy_focallength_calculated = input_parameters.ghy_focallength
+                        self.ghy_focallength_calculated = input_parameters.ghy_focallength
 
                         self.ghy_distance = input_parameters.ghy_distance
                         self.ghy_nbins_x = int(input_parameters.ghy_nbins_x)
