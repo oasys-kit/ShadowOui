@@ -311,7 +311,7 @@ class ShadowPlot:
 
             label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
 
-            self.label_s_h = QLabel("\u03c3 ")
+            self.label_s_h = QLabel("\u03c3 (s.d.)")
             self.label_s_h.setFixedWidth(115)
             palette =  QPalette(self.label_s_h.palette())
             palette.setColor(QPalette.Foreground, QColor('blue'))
@@ -322,7 +322,7 @@ class ShadowPlot:
             if is_2d:
                 label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
 
-                self.label_s_v = QLabel("\u03c3 ")
+                self.label_s_v = QLabel("\u03c3 (s.d.)")
                 self.label_s_v.setFixedWidth(115)
                 palette =  QPalette(self.label_s_v.palette())
                 palette.setColor(QPalette.Foreground, QColor('red'))
@@ -1554,13 +1554,15 @@ class Properties(object):
                 return getattr(self._props, name)
 
 def get_sigma(histogram, bins):
-    total = numpy.sum(histogram)
-    average = numpy.sum(histogram*bins)/total
+    frequency = histogram/numpy.sum(histogram)
+    average   = numpy.sum(frequency*bins)
 
-    return numpy.sqrt(numpy.sum(histogram*((bins-average)**2))/total)
+    return numpy.sqrt(numpy.sum(frequency*((bins-average)**2)))
 
 def get_rms(histogram, bins):
-    return numpy.sqrt(numpy.sum((histogram*bins)**2)/numpy.sum(histogram))
+    frequency = histogram/numpy.sum(histogram)
+
+    return numpy.sqrt(numpy.sum(frequency*(bins**2)))
 
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
