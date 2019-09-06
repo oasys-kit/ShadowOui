@@ -17,6 +17,7 @@ from scipy import optimize, asarray
 
 from oasys.widgets import gui
 from oasys.widgets import congruence
+from oasys.util.oasys_util import get_sigma, get_fwhm
 
 from silx.gui.plot.ImageView import ImageView
 
@@ -451,15 +452,8 @@ class ShadowPlot:
                 ticket['nrays'] += ticket_to_add['nrays']
                 ticket['good_rays'] += ticket_to_add['good_rays']
 
-                h = ticket['histogram']
-                bins = ticket['bins']
-                bin_center = ticket['bin_center']
-
-                tt = numpy.where(h>=max(h)*0.5)
-                if h[tt].size > 1:
-                    binSize = bins[1]-bins[0]
-                    ticket['fwhm'] = binSize*(tt[0][-1]-tt[0][0])
-                    ticket['fwhm_coordinates'] = (bin_center[tt[0][0]],bin_center[tt[0][-1]])
+            ticket['fwhm'], ticket['fwhm_quote'], ticket['fwhm_coordinates'] = get_fwhm(ticket['histogram'], ticket['bin_center'])
+            ticket['sigma'] = get_sigma(ticket['histogram'], ticket['bin_center'])
 
             factor=ShadowPlot.get_factor(col, conv)
 
@@ -484,7 +478,7 @@ class ShadowPlot:
             if not ticket['fwhm'] == 0.0:
                 x_fwhm_i, x_fwhm_f = ticket['fwhm_coordinates']
                 x_fwhm_i, x_fwhm_f = x_fwhm_i*factor, x_fwhm_f*factor
-                y_fwhm   = max(histogram)*0.5
+                y_fwhm             = ticket['fwhm_quote']
 
                 self.plot_canvas._backend.ax.add_patch(FancyArrowPatch([x_fwhm_i, y_fwhm],
                                                           [x_fwhm_f, y_fwhm],
@@ -504,7 +498,7 @@ class ShadowPlot:
             self.info_box.total_lost_rays.setText(str(ticket['nrays']-ticket['good_rays']))
             self.info_box.fwhm_h.setText("{:5.4f}".format(ticket['fwhm']*factor))
             self.info_box.label_h.setText("FWHM " + xum)
-            self.info_box.sigma_h.setText("{:5.4f}".format(get_sigma(ticket["histogram"], ticket['bin_center'])*factor))
+            self.info_box.sigma_h.setText("{:5.4f}".format(ticket['sigma']*factor))
             self.info_box.label_s_h.setText("\u03c3 " + xum)
 
             if not ticket_to_add is None:
@@ -559,23 +553,10 @@ class ShadowPlot:
                 ticket['nrays'] += ticket_to_add['nrays']
                 ticket['good_rays'] += ticket_to_add['good_rays']
 
-                h = ticket['histogram_h']
-                tt = numpy.where(h>=max(h)*0.5)
-                if h[tt].size > 1:
-                    binSize = ticket['bin_h_center'][1]-ticket['bin_h_center'][0]
-                    ticket['fwhm_h'] = binSize*(tt[0][-1]-tt[0][0])
-                    ticket['fwhm_coordinates_h'] = (ticket['bin_h_center'][tt[0][0]],ticket['bin_h_center'][tt[0][-1]])
-                else:
-                    ticket["fwhm_h"] = None
-
-                h = ticket['histogram_v']
-                tt = numpy.where(h>=max(h)*0.5)
-                if h[tt].size > 1:
-                    binSize = ticket['bin_v_center'][1]-ticket['bin_v_center'][0]
-                    ticket['fwhm_v'] = binSize*(tt[0][-1]-tt[0][0])
-                    ticket['fwhm_coordinates_v'] = (ticket['bin_v_center'][tt[0][0]],ticket['bin_v_center'][tt[0][-1]])
-                else:
-                    ticket["fwhm_v"] = None
+            ticket['fwhm_h'], ticket['fwhm_quote_h'], ticket['fwhm_coordinates_h'] = get_fwhm(ticket['histogram_h'], ticket['bin_h_center'])
+            ticket['fwhm_v'], ticket['fwhm_quote_v'], ticket['fwhm_coordinates_v'] = get_fwhm(ticket['histogram_v'], ticket['bin_v_center'])
+            ticket['sigma_h'] = get_sigma(ticket['histogram_h'], ticket['bin_h_center'])
+            ticket['sigma_v'] = get_sigma(ticket['histogram_v'], ticket['bin_v_center'])
 
             if is_footprint:
                 factor1 = 1.0
@@ -601,7 +582,6 @@ class ShadowPlot:
                     x_values.append(ticket['histogram'][x_index][y_index])
 
                 data_to_plot.append(x_values)
-
 
             self.plot_canvas.setColormap({"name":QSettings().value("output/shadow-default-colormap", "temperature", str),
                                           "normalization":"linear",
@@ -647,7 +627,7 @@ class ShadowPlot:
             if not ticket['fwhm_h'] == 0.0:
                 x_fwhm_i, x_fwhm_f = ticket['fwhm_coordinates_h']
                 x_fwhm_i, x_fwhm_f = x_fwhm_i*factor1, x_fwhm_f*factor1
-                y_fwhm = max(ticket['histogram_h']) * 0.5
+                y_fwhm = ticket['fwhm_quote_h']
 
                 self.plot_canvas._histoHPlot._backend.ax.add_patch(FancyArrowPatch([x_fwhm_i, y_fwhm],
                                                                      [x_fwhm_f, y_fwhm],
@@ -661,7 +641,7 @@ class ShadowPlot:
             if not ticket['fwhm_v'] == 0.0:
                 y_fwhm_i, y_fwhm_f = ticket['fwhm_coordinates_v']
                 y_fwhm_i, y_fwhm_f = y_fwhm_i*factor2, y_fwhm_f*factor2
-                x_fwhm = max(ticket['histogram_v']) * 0.5
+                x_fwhm = ticket['fwhm_quote_v']
 
                 self.plot_canvas._histoVPlot._backend.ax.add_patch(FancyArrowPatch([x_fwhm, y_fwhm_i],
                                                                      [x_fwhm, y_fwhm_f],
@@ -681,8 +661,8 @@ class ShadowPlot:
             self.info_box.fwhm_v.setText("{:5.4f}".format(ticket['fwhm_v'] * factor2))
             self.info_box.label_h.setText("FWHM " + xum)
             self.info_box.label_v.setText("FWHM " + yum)
-            self.info_box.sigma_h.setText("{:5.4f}".format(get_sigma(ticket["histogram_h"], ticket['bin_h_center'])*factor1))
-            self.info_box.sigma_v.setText("{:5.4f}".format(get_sigma(ticket["histogram_v"], ticket['bin_v_center'])*factor2))
+            self.info_box.sigma_h.setText("{:5.4f}".format(ticket['sigma_h'] * factor1))
+            self.info_box.sigma_v.setText("{:5.4f}".format(ticket['sigma_v'] * factor2))
             self.info_box.label_s_h.setText("\u03c3 " + xum)
             self.info_box.label_s_v.setText("\u03c3 " + yum)
 
@@ -1552,18 +1532,6 @@ class Properties(object):
         except KeyError:
             if hasattr(self._props,name):
                 return getattr(self._props, name)
-
-def get_sigma(histogram, bins):
-    frequency = histogram/numpy.sum(histogram)
-    average   = numpy.sum(frequency*bins)
-
-    return numpy.sqrt(numpy.sum(frequency*((bins-average)**2)))
-
-def get_rms(histogram, bins):
-    frequency = histogram/numpy.sum(histogram)
-
-    return numpy.sqrt(numpy.sum(frequency*(bins**2)))
-
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
