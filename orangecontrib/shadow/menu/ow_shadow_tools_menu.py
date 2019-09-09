@@ -50,8 +50,9 @@ class ShadowToolsMenu(OMenu):
         self.addSeparator()
         self.addSubMenu("Clear all the cumulated plots")
         self.closeContainer()
-        self.addSeparator()
         self.addSubMenu("Execute all the Preprocessor widgets")
+        self.addSeparator()
+        self.addSubMenu("Go to ShadowOui Tutorials Page")
 
     def fixWeirdShadowBug(self):
         if not self.is_weird_shadow_bug_fixed:
@@ -275,6 +276,16 @@ class ShadowToolsMenu(OMenu):
                         "DABAM Widget must be executed interactively",
                         QtWidgets.QMessageBox.Ok)
 
+        except Exception as exception:
+            QtWidgets.QMessageBox.critical(None, "Error",
+                exception.args[0],
+                QtWidgets.QMessageBox.Ok)
+
+
+    def executeAction_10(self, action):
+        try:
+            import webbrowser
+            webbrowser.open("https://github.com/srio/ShadowOui-Tutorial")
         except Exception as exception:
             QtWidgets.QMessageBox.critical(None, "Error",
                 exception.args[0],
