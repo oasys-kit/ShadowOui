@@ -1730,7 +1730,10 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         def __init__(self, parent=None, filename=""):
             QDialog.__init__(self, parent)
             self.setWindowTitle('Defect File - Surface Error Profile')
-            layout = QtWidgets.QVBoxLayout(self)
+
+            self.setFixedHeight(555)
+
+            layout = QtWidgets.QGridLayout(self)
 
             figure = Figure(figsize=(100, 100))
             figure.patch.set_facecolor('white')
@@ -1745,20 +1748,20 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             figure_canvas.setFixedWidth(500)
             figure_canvas.setFixedHeight(500)
 
-            x_coords, y_coords, z_values = ShadowPreProcessor.read_surface_error_file(filename)
+            self.x_coords, self.y_coords, self.z_values = ShadowPreProcessor.read_surface_error_file(filename)
 
-            x_to_plot, y_to_plot = numpy.meshgrid(x_coords, y_coords)
-            z_to_plot = z_values.T
+            x_to_plot, y_to_plot = numpy.meshgrid(self.x_coords, self.y_coords)
+            z_to_plot = self.z_values.T
 
             axis.plot_surface(x_to_plot, y_to_plot, (z_to_plot*parent.workspace_units_to_m*1e9),
                               rstride=1, cstride=1, cmap=cm.autumn, linewidth=0.5, antialiased=True)
 
-            sloperms = profiles_simulation.slopes(z_values, x_coords, y_coords, return_only_rms=1)
+            sloperms = profiles_simulation.slopes(self.z_values, self.x_coords, self.y_coords, return_only_rms=1)
 
             title = ' Slope error rms in X direction: %f $\mu$rad' % (sloperms[0]*1e6) + '\n' + \
                     ' Slope error rms in Y direction: %f $\mu$rad' % (sloperms[1]*1e6) + '\n' + \
-                    ' Figure error rms in X direction: %f nm' % (round(z_values[:, 0].std()*parent.workspace_units_to_m*1e9, 6)) + '\n' + \
-                    ' Figure error rms in Y direction: %f nm' % (round(z_values[0, :].std()*parent.workspace_units_to_m*1e9, 6))
+                    ' Figure error rms in X direction: %f nm' % (round(self.z_values[:, 0].std()*parent.workspace_units_to_m*1e9, 6)) + '\n' + \
+                    ' Figure error rms in Y direction: %f nm' % (round(self.z_values[0, :].std()*parent.workspace_units_to_m*1e9, 6))
 
             axis.set_title(title)
 
@@ -1766,11 +1769,39 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             axis.mouse_init()
 
-            bbox = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok)
+            widget = QWidget(parent=self)
 
-            bbox.accepted.connect(self.accept)
-            layout.addWidget(figure_canvas)
-            layout.addWidget(bbox)
+            container = oasysgui.widgetBox(widget, "", addSpace=False, orientation="horizontal", width=500)
+
+            gui.button(container, self, "Export Surface (.dat)", callback=self.save_shadow_surface)
+            gui.button(container, self, "Export Surface (.hdf5)", callback=self.save_oasys_surface)
+            gui.button(container, self, "Close", callback=self.accept)
+
+            layout.addWidget(figure_canvas, 0, 0)
+            layout.addWidget(widget, 1, 0)
+
+            self.setLayout(layout)
+
+        def save_shadow_surface(self):
+            try:
+                file_path = QFileDialog.getSaveFileName(self, "Save Surface in Shadow (dat) Format", ".", "Shadow format (*.dat)")[0]
+
+                if not file_path is None and not file_path.strip() == "":
+                    ST.write_shadow_surface(self.z_values.T, numpy.round(self.x_coords, 6), numpy.round(self.y_coords, 6), file_path)
+            except Exception as exception:
+                QtWidgets.QMessageBox.critical(self, "Error", str(exception), QtWidgets.QMessageBox.Ok)
+
+        def save_oasys_surface(self):
+            try:
+                file_path = QFileDialog.getSaveFileName(self, "Save Surface in Oasys (hdf5) Format", ".", "HDF5 format (*.hdf5)")[0]
+
+                if not file_path is None and not file_path.strip() == "":
+                    conv = self.parent().workspace_units_to_m
+
+                    OU.write_surface_file(self.z_values.T*conv, numpy.round(self.x_coords*conv, 8), numpy.round(self.y_coords*conv, 8), file_path)
+            except Exception as exception:
+                QtWidgets.QMessageBox.critical(self, "Error", str(exception), QtWidgets.QMessageBox.Ok)
+
 
     def viewDefectFileName(self):
         try:
