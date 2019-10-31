@@ -350,7 +350,7 @@ class PlotXY(AutomaticElement):
     def selectAutosaveFile(self):
         self.le_autosave_file_name.setText(oasysgui.selectFileFromDialog(self, self.autosave_file_name, "Select File", file_extension_filter="HDF5 Files (*.hdf5 *.h5 *.hdf)"))
 
-    def replace_fig(self, beam, var_x, var_y,  title, xtitle, ytitle, xrange, yrange, nbins, nolost, xum, yum):
+    def replace_fig(self, beam, var_x, var_y,  title, xtitle, ytitle, xrange, yrange, nbins, nolost, xum, yum, flux):
         if self.plot_canvas is None:
             self.plot_canvas = ShadowPlot.DetailedPlotWidget(y_scale_factor=1.14)
             self.image_box.layout().addWidget(self.plot_canvas)
@@ -364,7 +364,17 @@ class PlotXY(AutomaticElement):
                     self.autosave_file = ShadowPlot.PlotXYHdf5File(congruence.checkDir(self.autosave_file_name))
 
             if self.keep_result == 1:
-                self.cumulated_ticket, last_ticket = self.plot_canvas.plot_xy(beam, var_x, var_y, title, xtitle, ytitle, xrange=xrange, yrange=yrange, nbins=nbins, nolost=nolost, xum=xum, yum=yum, conv=self.workspace_units_to_cm, ref=self.weight_column_index, ticket_to_add=self.cumulated_ticket)
+                self.cumulated_ticket, last_ticket = self.plot_canvas.plot_xy(beam, var_x, var_y, title, xtitle, ytitle,
+                                                                              xrange=xrange,
+                                                                              yrange=yrange,
+                                                                              nbins=nbins,
+                                                                              nolost=nolost,
+                                                                              xum=xum,
+                                                                              yum=yum,
+                                                                              conv=self.workspace_units_to_cm,
+                                                                              ref=self.weight_column_index,
+                                                                              ticket_to_add=self.cumulated_ticket,
+                                                                              flux=flux)
 
                 self.plotted_ticket = self.cumulated_ticket
 
@@ -383,7 +393,16 @@ class PlotXY(AutomaticElement):
 
                     self.autosave_file.flush()
             else:
-                ticket, _ = self.plot_canvas.plot_xy(beam, var_x, var_y, title, xtitle, ytitle, xrange=xrange, yrange=yrange, nbins=nbins, nolost=nolost, xum=xum, yum=yum, conv=self.workspace_units_to_cm, ref=self.weight_column_index)
+                ticket, _ = self.plot_canvas.plot_xy(beam, var_x, var_y, title, xtitle, ytitle,
+                                                     xrange=xrange,
+                                                     yrange=yrange,
+                                                     nbins=nbins,
+                                                     nolost=nolost,
+                                                     xum=xum,
+                                                     yum=yum,
+                                                     conv=self.workspace_units_to_cm,
+                                                     ref=self.weight_column_index,
+                                                     flux=flux)
 
                 self.cumulated_ticket = None
                 self.plotted_ticket = ticket
@@ -402,6 +421,7 @@ class PlotXY(AutomaticElement):
 
     def plot_xy(self, var_x, var_y, title, xtitle, ytitle, xum, yum):
         beam_to_plot = self.input_beam._beam
+        flux         = self.input_beam.get_flux(nolost=self.rays)
 
         if self.image_plane == 1:
             new_shadow_beam = self.input_beam.duplicate(history=False)
@@ -430,7 +450,14 @@ class PlotXY(AutomaticElement):
 
         xrange, yrange = self.get_ranges(beam_to_plot, var_x, var_y)
 
-        self.replace_fig(beam_to_plot, var_x, var_y, title, xtitle, ytitle, xrange=xrange, yrange=yrange, nbins=int(self.number_of_bins), nolost=self.rays, xum=xum, yum=yum)
+        self.replace_fig(beam_to_plot, var_x, var_y, title, xtitle, ytitle,
+                         xrange=xrange,
+                         yrange=yrange,
+                         nbins=int(self.number_of_bins),
+                         nolost=self.rays,
+                         xum=xum,
+                         yum=yum,
+                         flux=flux)
 
     def get_ranges(self, beam_to_plot, var_x, var_y):
         xrange = None

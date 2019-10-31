@@ -276,7 +276,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
     def selectAutosaveFile(self):
         self.le_autosave_file_name.setText(oasysgui.selectFileFromDialog(self, self.autosave_file_name, "Select File", file_extension_filter="HDF5 Files (*.hdf5 *.h5 *.hdf)"))
 
-    def replace_fig(self, beam, var, xrange, title, xtitle, ytitle, xum):
+    def replace_fig(self, beam, var, xrange, title, xtitle, ytitle, xum, flux):
         if self.plot_canvas is None:
             self.plot_canvas = ShadowPlot.DetailedHistoWidget(y_scale_factor=1.14)
             self.image_box.layout().addWidget(self.plot_canvas)
@@ -290,7 +290,12 @@ class Histogram(ow_automatic_element.AutomaticElement):
                     self.autosave_file = ShadowPlot.HistogramHdf5File(congruence.checkDir(self.autosave_file_name))
 
             if self.keep_result == 1:
-                self.cumulated_ticket, last_ticket = self.plot_canvas.plot_histo(beam, var, self.rays, xrange, self.weight_column_index, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum, conv=self.workspace_units_to_cm, ticket_to_add=self.cumulated_ticket)
+                self.cumulated_ticket, last_ticket = self.plot_canvas.plot_histo(beam, var, self.rays, xrange, self.weight_column_index, title, xtitle, ytitle,
+                                                                                 nbins=self.number_of_bins,
+                                                                                 xum=xum,
+                                                                                 conv=self.workspace_units_to_cm,
+                                                                                 ticket_to_add=self.cumulated_ticket,
+                                                                                 flux=flux)
 
                 self.plotted_ticket = self.cumulated_ticket
 
@@ -309,7 +314,11 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
                     self.autosave_file.flush()
             else:
-                ticket, _ = self.plot_canvas.plot_histo(beam, var, self.rays, xrange, self.weight_column_index, title, xtitle, ytitle, nbins=self.number_of_bins, xum=xum, conv=self.workspace_units_to_cm)
+                ticket, _ = self.plot_canvas.plot_histo(beam, var, self.rays, xrange, self.weight_column_index, title, xtitle, ytitle,
+                                                        nbins=self.number_of_bins,
+                                                        xum=xum,
+                                                        conv=self.workspace_units_to_cm,
+                                                        flux=flux)
 
                 self.cumulated_ticket = None
                 self.plotted_ticket = ticket
@@ -328,6 +337,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
     def plot_histo(self, var_x, title, xtitle, ytitle, xum):
         beam_to_plot = self.input_beam._beam
+        flux         = self.input_beam.get_flux(nolost=self.rays)
 
         if self.image_plane == 1:
             new_shadow_beam = self.input_beam.duplicate(history=False)
@@ -357,7 +367,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
         xrange = self.get_range(beam_to_plot, var_x)
 
-        self.replace_fig(beam_to_plot, var_x, xrange, title, xtitle, ytitle, xum)
+        self.replace_fig(beam_to_plot, var_x, xrange, title, xtitle, ytitle, xum, flux)
 
     def get_range(self, beam_to_plot, var_x):
         if self.x_range == 0 :

@@ -159,11 +159,31 @@ class ShadowBeam:
 
         self.history = []
         self.scanned_variable_data = None
+        self.__initial_flux          = None
 
         return self
 
-    def get_number_of_rays(self):
-        return self._beam.rays.shape[0]
+    def set_initial_flux(self, initial_flux):
+        self.__initial_flux = initial_flux
+
+    def get_initial_flux(self):
+        return self.__initial_flux
+
+    def get_flux(self, nolost=1):
+        if not self._beam is None and not self.__initial_flux is None:
+            return (self._beam.intensity(nolost) / self.get_number_of_rays(0)) * self.get_initial_flux()
+        else:
+            return None
+
+    def get_number_of_rays(self, nolost=0):
+        if nolost==0:
+            return self._beam.rays.shape[0]
+        elif nolost==1:
+            return self._beam.rays[numpy.where(self._beam.rays[:, 9] > 0)].shape[0]
+        elif nolost == 2:
+            return self._beam.rays[numpy.where(self._beam.rays[:, 9] < 0)].shape[0]
+        else:
+            raise ValueError("nolost flag value not valid")
 
     def setBeam(self, beam):
         self._beam = beam
@@ -188,6 +208,7 @@ class ShadowBeam:
 
         new_shadow_beam = ShadowBeam(self._oe_number, beam)
         new_shadow_beam.setScanningData(self.scanned_variable_data)
+        new_shadow_beam.set_initial_flux(self.get_initial_flux())
 
         if history:
             for historyItem in self.history:

@@ -269,6 +269,7 @@ class ShadowPlot:
 
     class InfoBoxWidget(QWidget):
         intensity_field = ""
+        flux_field = ""
         total_rays_field = ""
         total_good_rays_field = ""
         total_lost_rays_field = ""
@@ -283,6 +284,10 @@ class ShadowPlot:
             info_box_inner=gui.widgetBox(self, "Info")
             info_box_inner.setFixedHeight(515*y_scale_factor)
             info_box_inner.setFixedWidth(230*x_scale_factor)
+
+            self.flux_box = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+            self.flux     = gui.lineEdit(self.flux_box, self, "flux_field", "\u03a6 [ph/s/0.1%BW]", tooltip="Flux", labelWidth=115, valueType=str, orientation="horizontal")
+            self.flux_box.setVisible(False)
 
             self.intensity = gui.lineEdit(info_box_inner, self, "intensity_field", "Intensity", tooltip="Intensity", labelWidth=115, valueType=str, orientation="horizontal")
             self.total_rays = gui.lineEdit(info_box_inner, self, "total_rays_field", "Total Rays", tooltip="Total Rays", labelWidth=115, valueType=str, orientation="horizontal")
@@ -339,6 +344,15 @@ class ShadowPlot:
             palette.setColor(QPalette.Text, QColor('dark blue'))
             palette.setColor(QPalette.Base, QColor(243, 240, 160))
             self.intensity.setPalette(palette)
+
+            self.flux.setReadOnly(True)
+            font = QFont(self.flux.font())
+            font.setBold(True)
+            self.flux.setFont(font)
+            palette = QPalette(self.flux.palette())
+            palette.setColor(QPalette.Text, QColor('dark blue'))
+            palette.setColor(QPalette.Base, QColor(243, 240, 160))
+            self.flux.setPalette(palette)
 
             self.total_rays.setReadOnly(True)
             font = QFont(self.total_rays.font())
@@ -404,8 +418,18 @@ class ShadowPlot:
                 palette.setColor(QPalette.Base, QColor(243, 240, 160))
                 self.sigma_v.setPalette(palette)
 
+        def set_flux(self, flux=None):
+            if flux is None:
+                self.flux.setText("0.0")
+                self.flux_box.setVisible(False)
+            else:
+                self.flux.setText('%.3E' % flux)
+                self.flux_box.setVisible(True)
+
         def clear(self):
             self.intensity.setText("0.0")
+            self.flux.setText("0.0")
+            self.flux_box.setVisible(False)
             self.total_rays.setText("0")
             self.total_good_rays.setText("0")
             self.total_lost_rays.setText("0")
@@ -437,7 +461,7 @@ class ShadowPlot:
 
             self.setLayout(layout)
 
-        def plot_histo(self, beam, col, nolost, xrange, ref, title, xtitle, ytitle, nbins = 100, xum="", conv=1.0, ticket_to_add=None):
+        def plot_histo(self, beam, col, nolost, xrange, ref, title, xtitle, ytitle, nbins = 100, xum="", conv=1.0, ticket_to_add=None, flux=None):
 
             ticket = beam.histo1(col, nbins=nbins, xrange=xrange, nolost=nolost, ref=ref)
 
@@ -493,6 +517,7 @@ class ShadowPlot:
             self.plot_canvas.replot()
 
             self.info_box.intensity.setText("{:4.3f}".format(ticket['intensity']))
+            self.info_box.set_flux(flux)
             self.info_box.total_rays.setText(str(ticket['nrays']))
             self.info_box.total_good_rays.setText(str(ticket['good_rays']))
             self.info_box.total_lost_rays.setText(str(ticket['nrays']-ticket['good_rays']))
@@ -535,7 +560,7 @@ class ShadowPlot:
 
             self.setLayout(layout)
 
-        def plot_xy(self, beam, var_x, var_y, title, xtitle, ytitle, xrange=None, yrange=None, nolost=1, nbins=100, xum="", yum="", conv=1.0, ref=23, is_footprint=False, ticket_to_add=None):
+        def plot_xy(self, beam, var_x, var_y, title, xtitle, ytitle, xrange=None, yrange=None, nolost=1, nbins=100, xum="", yum="", conv=1.0, ref=23, is_footprint=False, ticket_to_add=None, flux=None):
 
             matplotlib.rcParams['axes.formatter.useoffset']='False'
 
@@ -654,6 +679,7 @@ class ShadowPlot:
             self.plot_canvas.replot()
 
             self.info_box.intensity.setText("{:4.3f}".format(ticket['intensity']))
+            self.info_box.set_flux(flux)
             self.info_box.total_rays.setText(str(ticket['nrays']))
             self.info_box.total_good_rays.setText(str(ticket['good_rays']))
             self.info_box.total_lost_rays.setText(str(ticket['nrays']-ticket['good_rays']))
