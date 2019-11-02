@@ -63,7 +63,6 @@ class GenericElement(ow_automatic_element.AutomaticElement):
 
         for title in titles:
             self.tab.append(oasysgui.createTabPage(self.tabs, title))
-            self.plot_canvas.append(None)
 
         for tab in self.tab:
             tab.setFixedHeight(self.IMAGE_HEIGHT)
@@ -108,10 +107,6 @@ class GenericElement(ow_automatic_element.AutomaticElement):
                                            str(exception),
                     QtWidgets.QMessageBox.Ok)
 
-                # CORRELATED TO QScrollArea Bug - see class Orange.canvas.gui.toolbox._ToolBoxScrollArea
-                # self.error_id = self.error_id + 1
-                # self.error(self.error_id, "Exception occurred: " + str(exception))
-
                 if self.IS_DEVELOP: raise exception
 
         self.progressBarFinished()
@@ -120,6 +115,7 @@ class GenericElement(ow_automatic_element.AutomaticElement):
         if self.plot_canvas[plot_canvas_index] is None:
             self.plot_canvas[plot_canvas_index] = ShadowPlot.DetailedPlotWidget()
             self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+
         self.plot_canvas[plot_canvas_index].plot_xy(beam_out._beam, var_x, var_y, title, xtitle, ytitle, xum=xum, yum=yum, conv=self.workspace_units_to_cm, is_footprint=is_footprint, flux=beam_out.get_flux())
 
         self.progressBarSet(progressBarValue)
