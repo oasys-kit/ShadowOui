@@ -1,5 +1,6 @@
 import sys
 from orangewidget import gui
+from orangewidget.settings import Setting
 from PyQt5.QtWidgets import QApplication
 
 from orangecontrib.shadow.widgets.gui import ow_optical_element
@@ -21,6 +22,9 @@ class EmptyElement(ow_optical_element.OpticalElement):
         graphical_Options=ow_optical_element.GraphicalOptions(is_empty=True)
 
         super().__init__(graphical_Options)
+
+        self.file_to_write_out        = 3
+        self.write_out_inc_ref_angles = 0
 
         gui.rubber(self.controlArea)
 
