@@ -207,9 +207,9 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
                 if trigger.has_additional_parameter("seed_increment"):
                     self.seed += trigger.get_additional_parameter("seed_increment")
 
-                if trigger.has_additional_parameter("energy_value_central") and trigger.has_additional_parameter("energy_step"):
+                if trigger.has_additional_parameter("energy_value") and trigger.has_additional_parameter("energy_step"):
                     self.set_at_resonance = 0
-                    self.photon_energy = trigger.get_additional_parameter("energy_value_central")
+                    self.photon_energy = trigger.get_additional_parameter("energy_value")
                     self.delta_e = trigger.get_additional_parameter("energy_step")
                     self.power_step = trigger.get_additional_parameter("power_step")
 
@@ -620,7 +620,11 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
             if self.add_power:
                 additional_parameters = {}
 
-                additional_parameters["total_power"]        = self.power_step
+                pd, vx, vy = self.sourceundulator.get_power_density_interpolated_cartesian()
+
+                total_power = self.power_step if self.power_step > 0 else pd.sum()*(vx[1]-vx[0])*(vy[1]-vy[0])
+
+                additional_parameters["total_power"]        = total_power
                 additional_parameters["photon_energy_step"] = self.delta_e
 
                 beam_out.setScanningData(ShadowBeam.ScanningData("photon_energy",
@@ -628,6 +632,9 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
                                                                  "Energy for Power Calculation",
                                                                  "eV",
                                                                  additional_parameters))
+
+            if self.delta_e == 0.0:
+                beam_out.set_initial_flux(self.sourceundulator.get_flux()[0])
 
             self.progressBarSet(80)
             self.plot_results(beam_out)
