@@ -16,12 +16,6 @@ from oasys.widgets.widget import OWWidget
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
 from oasys.util.oasys_util import EmittingStream
-try:
-    from ..tools.xoppy_calc import xoppy_doc
-except ImportError:
-    pass
-except SystemError:
-    pass
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
 
@@ -53,6 +47,7 @@ class OWxsh_bragg(OWWidget):
     E_STEP = Setting(100.0)
     SHADOW_FILE = Setting("bragg.dat")
 
+
     crystals = [
         "Si",
         "Si_NIST",
@@ -65,33 +60,33 @@ class OWxsh_bragg(OWWidget):
         "InAs",
         "InP",
         "InSb",
-        "SiC",
-        "NaCl",
-        "CsF",
-        "LiF",
-        "KCl",
-        "CsCl",
-        "Be",
-        "Graphite",
-        "PET",
-        "Beryl",
-        "KAP",
-        "RbAP",
-        "TlAP",
-        "Muscovite",
-        "AlphaQuartz",
-        "Copper",
-        "LiNbO3",
-        "Platinum",
-        "Gold",
-        "Sapphire",
-        "LaB6",
-        "LaB6_NIST",
-        "KTP",
-        "AlphaAlumina",
-        "Aluminum",
-        "Iron",
-        "Titanium"
+        "SiC",   #11  Up to here they are ZincBlende structure, thus accepred by the preprocessor
+        # "NaCl",
+        # "CsF",
+        # "LiF",
+        # "KCl",
+        # "CsCl",
+        # "Be",
+        "Graphite",  # this one is accepted via ad-hoc patch (bragg_new)
+        # "PET",
+        # "Beryl",
+        # "KAP",
+        # "RbAP",
+        # "TlAP",
+        # "Muscovite",
+        # "AlphaQuartz",
+        # "Copper",
+        # "LiNbO3",
+        # "Platinum",
+        # "Gold",
+        # "Sapphire",
+        # "LaB6",
+        # "LaB6_NIST",
+        # "KTP",
+        # "AlphaAlumina",
+        # "Aluminum",
+        # "Iron",
+        # "Titanium"
     ]
 
     usage_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "bragg_usage.png")
@@ -233,8 +228,7 @@ class OWxsh_bragg(OWWidget):
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
             self.checkFields()
-
-            if not self.DESCRIPTOR == 18: # GRAPHITE
+            if self.DESCRIPTOR <= 11: # accepted crystals
                 tmp = bragg(interactive=False,
                             DESCRIPTOR=self.crystals[self.DESCRIPTOR],
                             H_MILLER_INDEX=self.H_MILLER_INDEX,
@@ -245,7 +239,7 @@ class OWxsh_bragg(OWWidget):
                             E_MAX=self.E_MAX,
                             E_STEP=self.E_STEP,
                             SHADOW_FILE=congruence.checkFileName(self.SHADOW_FILE))
-            else:
+            elif self.crystals[self.DESCRIPTOR] == "Graphite": # GRAPHITE
                 OWxsh_bragg.new_bragg(H_MILLER_INDEX=self.H_MILLER_INDEX,
                                       K_MILLER_INDEX=self.K_MILLER_INDEX,
                                       L_MILLER_INDEX=self.L_MILLER_INDEX,
@@ -254,8 +248,13 @@ class OWxsh_bragg(OWWidget):
                                       E_MAX=self.E_MAX,
                                       E_STEP=self.E_STEP,
                                       SHADOW_FILE=congruence.checkFileName(self.SHADOW_FILE))
+            else:
+                QMessageBox.critical(self, "Error.",
+                                     "Crystal %s is not implemented in shadow3"%self.crystals[self.DESCRIPTOR],
+                                     QMessageBox.Ok)
 
             self.send("PreProcessor_Data", ShadowPreProcessorData(bragg_data_file=self.SHADOW_FILE))
+
         except Exception as exception:
             QMessageBox.critical(self, "Error",
                                  str(exception),
@@ -324,8 +323,8 @@ class OWxsh_bragg(OWWidget):
             print ("  ")
 
         volume = volume*1e-8*1e-8*1e-8 # in cm^3
-        #flag ZincBlende
-        f.write( "%i " % 0)
+        #flag Graphite Struecture
+        f.write( "%i " % 5)
         #1/V*electronRadius
         f.write( "%e " % ((1e0/volume)*(codata_e2_mc2*1e2)) )
         #dspacing
@@ -335,24 +334,24 @@ class OWxsh_bragg(OWWidget):
         #Z's
         atom =  cryst['atom']
         f.write( "%i " % atom[0]["Zatom"] )
-        f.write( "%i " % atom[-1]["Zatom"] )
+        f.write( "%i " % -1 )
         f.write( "%e " % temper ) # temperature parameter
         f.write( "\n")
 
         ga = (1e0+0j) + cmath.exp(1j*cmath.pi*(hh+kk))  \
                                  + cmath.exp(1j*cmath.pi*(hh+ll))  \
                                  + cmath.exp(1j*cmath.pi*(kk+ll))
-        gb = ga * cmath.exp(1j*cmath.pi*0.5*(hh+kk+ll))
+        # gb = ga * cmath.exp(1j*cmath.pi*0.5*(hh+kk+ll))
         ga_bar = ga.conjugate()
-        gb_bar = gb.conjugate()
+        # gb_bar = gb.conjugate()
 
 
         f.write( "(%20.11e,%20.11e ) \n" % (ga.real, ga.imag) )
         f.write( "(%20.11e,%20.11e ) \n" % (ga_bar.real, ga_bar.imag) )
-        f.write( "(%20.11e,%20.11e ) \n" % (gb.real, gb.imag) )
-        f.write( "(%20.11e,%20.11e ) \n" % (gb_bar.real, gb_bar.imag) )
+        f.write( "(%20.11e,%20.11e ) \n" % (0.0, 0.0) )
+        f.write( "(%20.11e,%20.11e ) \n" % (0.0, 0.0) )
 
-        zetas = numpy.array([atom[0]["Zatom"],atom[-1]["Zatom"]])
+        zetas = [atom[0]["Zatom"]]
         for zeta in zetas:
             xx01 = 1e0/2e0/dspacing
             xx00 = xx01-0.1
@@ -370,6 +369,8 @@ class OWxsh_bragg(OWWidget):
             #print("fit-tuple: %e %e %e  \n" % (tuple(fit[::-1].tolist())) ) # reversed coeffs
             f.write("%e %e %e  \n" % (tuple(fit[::-1].tolist())) ) # reversed coeffs
 
+        f.write("%e %e %e  \n" % (0.0, 0.0, 0.0))  # reversed coeffs
+
 
         npoint  = int( (emax - emin)/estep + 1 )
         f.write( ("%i \n") % npoint)
@@ -377,9 +378,9 @@ class OWxsh_bragg(OWWidget):
             energy = (emin+estep*i)
             f1a = xraylib.Fi(int(zetas[0]),energy*1e-3)
             f2a = xraylib.Fii(int(zetas[0]),energy*1e-3)
-            f1b = xraylib.Fi(int(zetas[1]),energy*1e-3)
-            f2b = xraylib.Fii(int(zetas[1]),energy*1e-3)
-            out = numpy.array([energy,f1a,abs(f2a),f1b,abs(f2b)])
+            # f1b = xraylib.Fi(int(zetas[1]),energy*1e-3)
+            # f2b = xraylib.Fii(int(zetas[1]),energy*1e-3)
+            out = numpy.array([energy,f1a,abs(f2a),1.0, 0.0])
             f.write( ("%20.11e %20.11e %20.11e \n %20.11e %20.11e \n") % ( tuple(out.tolist()) ) )
 
         f.close()
@@ -409,11 +410,7 @@ class OWxsh_bragg(OWWidget):
          return
 
     def help1(self):
-        print("help pressed.")
-        try:
-            xoppy_doc('xsh_bragg')
-        except:
-            pass
+        print("help pressed. To be implemented.")
 
     def writeStdOut(self, text):
         cursor = self.shadow_output.textCursor()
