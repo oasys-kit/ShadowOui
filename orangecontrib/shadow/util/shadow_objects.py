@@ -217,7 +217,7 @@ class ShadowBeam:
         return new_shadow_beam
 
     @classmethod
-    def mergeBeams(cls, beam_1, beam_2):
+    def mergeBeams(cls, beam_1, beam_2, which_flux=1):
         if beam_1 and beam_2:
             rays_1 = None
             rays_2 = None
@@ -240,6 +240,11 @@ class ShadowBeam:
                 merged_beam._oe_number = beam_2._oe_number
 
             merged_beam._beam.rays[:, 11] = numpy.arange(1, len(merged_beam._beam.rays) + 1, 1) # ray_index
+
+            if which_flux==1:
+                merged_beam.set_initial_flux(beam_1.get_initial_flux())
+            elif which_flux==2:
+                merged_beam.set_initial_flux(beam_2.get_initial_flux())
 
             return merged_beam
 

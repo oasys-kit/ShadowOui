@@ -653,6 +653,7 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         image_beam.writeToFile("hybrid_beam_at_image_plane." + str_n_oe)
 
     calculation_parameters.image_plane_beam = image_beam
+    calculation_parameters.image_plane_beam.set_initial_flux(input_parameters.original_shadow_beam.get_initial_flux())
     calculation_parameters.image_plane_beam_lost = image_beam_lo
 
     # read shadow screen file
