@@ -801,7 +801,7 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
         input_parameters.ghy_nbins_x = max(input_parameters.ghy_nbins_x, 10)
 
         ticket = calculation_parameters.screen_plane_beam._beam.histo1(1,
-                                                                       nbins=input_parameters.ghy_nbins_x,
+                                                                       nbins=int(input_parameters.ghy_nbins_x),
                                                                        xrange=[numpy.min(calculation_parameters.xx_screen), numpy.max(calculation_parameters.xx_screen)],
                                                                        nolost=1,
                                                                        ref=23)
@@ -817,7 +817,7 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
         input_parameters.ghy_nbins_z = max(input_parameters.ghy_nbins_z, 10)
 
         ticket = calculation_parameters.screen_plane_beam._beam.histo1(3,
-                                                                       nbins=input_parameters.ghy_nbins_z,
+                                                                       nbins=int(input_parameters.ghy_nbins_z),
                                                                        xrange=[numpy.min(calculation_parameters.zz_screen), numpy.max(calculation_parameters.zz_screen)],
                                                                        nolost=1,
                                                                        ref=23)
@@ -840,8 +840,8 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
 
         ticket = calculation_parameters.screen_plane_beam._beam.histo2(col_h=1,
                                                                        col_v=3,
-                                                                       nbins_h=input_parameters.ghy_nbins_x,
-                                                                       nbins_v=input_parameters.ghy_nbins_z,
+                                                                       nbins_h=int(input_parameters.ghy_nbins_x),
+                                                                       nbins_v=int(input_parameters.ghy_nbins_z),
                                                                        xrange=[numpy.min(calculation_parameters.xx_screen), numpy.max(calculation_parameters.xx_screen)],
                                                                        yrange=[numpy.min(calculation_parameters.zz_screen), numpy.max(calculation_parameters.zz_screen)],
                                                                        nolost=1,
