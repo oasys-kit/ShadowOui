@@ -32,7 +32,7 @@ class ShadowToolsMenu(OMenu):
     default_dir = None
 
     def __init__(self):
-        super().__init__(name="Shadow Tools")
+        super().__init__(name="Shadow")
 
         self.openContainer()
         self.addContainer("Import")
