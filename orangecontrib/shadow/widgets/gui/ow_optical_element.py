@@ -2286,7 +2286,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             #####################################
 
             if self.graphical_options.is_curved:
-                if self.graphical_options.is_toroidal:
+                if self.graphical_options.is_toroidal or self.graphical_options.is_conic_coefficients:
                    shadow_oe._oe.FCYL = 0
                 elif self.is_cylinder==1:
                    shadow_oe._oe.FCYL = 1
