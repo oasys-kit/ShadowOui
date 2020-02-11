@@ -1,7 +1,10 @@
-import copy
+import os, copy
 
-from PyQt5 import QtGui, QtWidgets
-from PyQt5.QtCore import Qt, QRect
+from PyQt5.QtWidgets import QWidget, QLabel, QMessageBox, QSizePolicy, QVBoxLayout
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import Qt
+
+import orangecanvas.resources as resources
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -44,8 +47,22 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
 
     use_ccc = Setting([0, 0])
 
+    help_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "crl_help.png")
+
     def __init__(self):
         super().__init__()
+
+        tab_help = oasysgui.createTabPage(self.tabs_setting, "Help")
+        tab_help.setStyleSheet("background-color: white;")
+
+        help_box = oasysgui.widgetBox(tab_help, "", addSpace=True, orientation="horizontal", height=300)
+
+        label = QLabel("")
+        label.setAlignment(Qt.AlignCenter | Qt.AlignTop)
+        label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        label.setPixmap(QPixmap(self.help_path).scaledToWidth(self.CONTROL_AREA_WIDTH-20))
+
+        help_box.layout().addWidget(label)
 
         tabs_button_box = oasysgui.widgetBox(self.tab_bas, "", addSpace=False, orientation="horizontal")
 
@@ -168,9 +185,9 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
 
     def crl_remove(self):
         if self.tab_crls.count() <= 1:
-            QtWidgets.QMessageBox.critical(self, "Error",
+            QMessageBox.critical(self, "Error",
                                        "Remove not possible, transfocator needs at least 1 element",
-                                       QtWidgets.QMessageBox.Ok)
+                                       QMessageBox.Ok)
         else:
             current_index = self.tab_crls.currentIndex()
 
@@ -519,9 +536,7 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
 
                     box.set_ri_calculation_mode()
             else:
-                QtWidgets.QMessageBox.warning(self, "Warning",
-                          "Incompatible Preprocessor Data",
-                          QtWidgets.QMessageBox.Ok)
+                QMessageBox.warning(self, "Warning", "Incompatible Preprocessor Data", QMessageBox.Ok)
 
                 self.dump_prerefl_file()
 
@@ -530,7 +545,7 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
             box.setupUI()
 
 
-class CRLBox(QtWidgets.QWidget):
+class CRLBox(QWidget):
     nlenses = 30
     slots_empty = 0
     thickness = 625e-4
@@ -583,7 +598,7 @@ class CRLBox(QtWidgets.QWidget):
                  use_ccc=0):
         super().__init__(parent)
 
-        self.setLayout(QtWidgets.QVBoxLayout())
+        self.setLayout(QVBoxLayout())
         self.layout().setAlignment(Qt.AlignTop)
         self.setFixedWidth(470)
         self.setFixedHeight(700)

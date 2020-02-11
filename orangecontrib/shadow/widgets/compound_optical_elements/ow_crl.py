@@ -1,8 +1,14 @@
-from PyQt5 import QtWidgets
+import os
+
+from PyQt5.QtWidgets import QLabel, QMessageBox, QSizePolicy
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import Qt
+
+import orangecanvas.resources as resources
 from orangewidget import gui
+from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
 from oasys.widgets import congruence
-from orangewidget.settings import Setting
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
 from orangecontrib.shadow.widgets.gui import ow_compound_optical_element
@@ -38,12 +44,26 @@ class CRL(ow_compound_optical_element.CompoundOpticalElement):
 
     use_ccc = Setting(0)
 
+    help_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "crl_help.png")
+
     def __init__(self):
         super().__init__()
 
         tabs = oasysgui.tabWidget(self.tab_bas)
         tab_1 = oasysgui.createTabPage(tabs, "C.R.L. Input Parameters")
         tab_2 = oasysgui.createTabPage(tabs, "Single Lens Input Parameters")
+
+        tab_help = oasysgui.createTabPage(self.tabs_setting, "Help")
+        tab_help.setStyleSheet("background-color: white;")
+
+        help_box = oasysgui.widgetBox(tab_help, "", addSpace=True, orientation="horizontal", height=300)
+
+        label = QLabel("")
+        label.setAlignment(Qt.AlignCenter | Qt.AlignTop)
+        label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        label.setPixmap(QPixmap(self.help_path).scaledToWidth(self.CONTROL_AREA_WIDTH-20))
+
+        help_box.layout().addWidget(label)
 
         crl_box = oasysgui.widgetBox(tab_1, "C.R.L. Input Parameters", addSpace=False, orientation="vertical", height=120)
 
@@ -241,9 +261,7 @@ class CRL(ow_compound_optical_element.CompoundOpticalElement):
 
                 self.set_ri_calculation_mode()
             else:
-                QtWidgets.QMessageBox.warning(self, "Warning",
-                          "Incompatible Preprocessor Data",
-                          QtWidgets.QMessageBox.Ok)
+                QMessageBox.warning(self, "Warning", "Incompatible Preprocessor Data", QMessageBox.Ok)
 
 
     def setupUI(self):
