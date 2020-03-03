@@ -3197,7 +3197,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                               QtWidgets.QMessageBox.Ok)
 
             if data.error_profile_data_file != ShadowPreProcessorData.NONE:
-                if self.graphical_options.is_mirror or self.graphical_options.is_grating:
+                if self.graphical_options.is_mirror or self.graphical_options.is_grating or self.graphical_options.is_crystal:
                     self.ms_defect_file_name = data.error_profile_data_file
                     self.modified_surface = 1
                     self.ms_type_of_defect = 2
@@ -3247,7 +3247,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                     self.set_Dim_Parameters()
                 else:
                     QtWidgets.QMessageBox.warning(self, "Warning",
-                              "This O.E. is not a mirror or grating: surface error file will be ignored",
+                              "This O.E. is not a mirror, grating or crystal: surface error file will be ignored",
                               QtWidgets.QMessageBox.Ok)
 
 
