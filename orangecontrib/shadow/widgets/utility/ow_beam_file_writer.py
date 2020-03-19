@@ -1,6 +1,7 @@
 import os
 
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import QSettings
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui, congruence
@@ -24,7 +25,12 @@ class BeamFileWriter(OWWidget):
     beam_file_name = Setting("")
     is_automatic_run= Setting(1)
 
-    inputs = [("Input Beam" , ShadowBeam, "setBeam" ),]
+    send_footprint_beam = QSettings().value("output/send-footprint", 0, int) == 1
+
+    if send_footprint_beam:
+        inputs = [("Input Beam", object, "setBeam")]
+    else:
+        inputs = [("Input Beam", ShadowBeam, "setBeam")]
 
     outputs = [{"name": "Beam",
                 "type": ShadowBeam,
@@ -67,16 +73,17 @@ class BeamFileWriter(OWWidget):
         self.le_beam_file_name.setText(oasysgui.selectFileFromDialog(self, self.beam_file_name, "Open Shadow File"))
 
     def setBeam(self, beam):
-        if ShadowCongruence.checkEmptyBeam(beam):
-            if ShadowCongruence.checkGoodBeam(beam):
-                self.input_beam = beam
+        send_footprint_beam = QSettings().value("output/send-footprint", 0, int) == 1
 
-                if self.is_automatic_run:
-                    self.write_file()
-            else:
-                QtWidgets.QMessageBox.critical(self, "Error",
-                                           "No good rays or bad content",
-                                           QtWidgets.QMessageBox.Ok)
+        if send_footprint_beam and isinstance(beam, list):
+            self.input_beam = beam[1]
+        elif ShadowCongruence.checkEmptyBeam(beam) and ShadowCongruence.checkGoodBeam(beam):
+            self.input_beam = beam
+        else:
+            QtWidgets.QMessageBox.critical(self, "Error", "No good rays or bad content", QtWidgets.QMessageBox.Ok)
+            return
+
+        if self.is_automatic_run: self.write_file()
 
     def write_file(self):
         self.setStatusMessage("")
@@ -93,9 +100,7 @@ class BeamFileWriter(OWWidget):
 
                         self.send("Beam", self.input_beam)
                 else:
-                    QtWidgets.QMessageBox.critical(self, "Error",
-                                               "No good rays or bad content",
-                                               QtWidgets.QMessageBox.Ok)
+                    QtWidgets.QMessageBox.critical(self, "Error", "No good rays or bad content", QtWidgets.QMessageBox.Ok)
         except Exception as exception:
             QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception), QtWidgets.QMessageBox.Ok)
