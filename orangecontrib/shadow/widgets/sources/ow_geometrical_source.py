@@ -97,6 +97,7 @@ class GeometricalSource(ow_source.Source):
     user_defined_file = Setting("energy_spectrum.dat")
     user_defined_minimum = Setting(0.0)
     user_defined_maximum = Setting(0.0)
+    user_defined_spectrum_binning = Setting(10000)
 
     polarization = Setting(1)
     coherent_beam = Setting(0)
@@ -299,6 +300,7 @@ class GeometricalSource(ow_source.Source):
 
         oasysgui.lineEdit(self.ewp_box_7, self, "user_defined_minimum", "Minimum Energy/Wavelength", labelWidth=260, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.ewp_box_7, self, "user_defined_maximum", "Maximum Energy/Wavelength", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_7, self, "user_defined_spectrum_binning", "Minimum Nr. of Bins of Input Spectrum", labelWidth=260, valueType=int, orientation="horizontal")
 
         self.set_PhotonEnergyDistribution()
 
@@ -560,7 +562,7 @@ class GeometricalSource(ow_source.Source):
     def generate_user_defined_spectrum(self, beam_out):
         spectrum = self.extract_spectrum_from_file(congruence.checkFileName(self.user_defined_file))
 
-        sampled_spectrum = self.sample_from_spectrum(spectrum, len(beam_out._beam.rays))
+        sampled_spectrum = self.sample_from_spectrum(spectrum, len(beam_out._beam.rays), self.user_defined_spectrum_binning)
 
         for index in range(0, len(beam_out._beam.rays)):
             if self.units == 0:
@@ -598,7 +600,7 @@ class GeometricalSource(ow_source.Source):
 
         return numpy.array(spectrum)
 
-    def sample_from_spectrum(self, spectrum, npoints):
+    def sample_from_spectrum(self, spectrum, npoints, nbins=10000):
         if spectrum[0, 0] == 0:
             y_values = spectrum[1:, 1]
             x_values = spectrum[1:, 0]
@@ -606,8 +608,8 @@ class GeometricalSource(ow_source.Source):
             y_values = spectrum[:, 1]
             x_values = spectrum[:, 0]
 
-        if len(x_values) < 10000:
-            x_values, y_values = self.resample_spectrum(x_values, y_values, 10000)
+        if len(x_values) < nbins:
+            x_values, y_values = self.resample_spectrum(x_values, y_values, nbins)
 
         # normalize distribution function
         y_values /= numpy.max(y_values)

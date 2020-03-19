@@ -560,11 +560,14 @@ class ShadowPlot:
 
             self.setLayout(layout)
 
-        def plot_xy(self, beam, var_x, var_y, title, xtitle, ytitle, xrange=None, yrange=None, nolost=1, nbins=100, xum="", yum="", conv=1.0, ref=23, is_footprint=False, ticket_to_add=None, flux=None):
+        def plot_xy(self, beam, var_x, var_y, title, xtitle, ytitle, xrange=None, yrange=None, nolost=1, nbins=100, nbins_h=None, nbins_v=None, xum="", yum="", conv=1.0, ref=23, is_footprint=False, ticket_to_add=None, flux=None):
 
             matplotlib.rcParams['axes.formatter.useoffset']='False'
 
-            ticket = beam.histo2(var_x, var_y, nbins=nbins, xrange=xrange, yrange=yrange, nolost=nolost, ref=ref)
+            if nbins_h == None: nbins_h = nbins
+            if nbins_v == None: nbins_v = nbins
+
+            ticket = beam.histo2(var_x, var_y, nbins=nbins, nbins_h=nbins_h, nbins_v=nbins_v, xrange=xrange, yrange=yrange, nolost=nolost, ref=ref)
 
             # TODO: check congruence between tickets
             if not ticket_to_add is None:
@@ -597,16 +600,7 @@ class ShadowPlot:
             ymin, ymax = yy.min(), yy.max()
 
             origin = (xmin*factor1, ymin*factor2)
-            scale = (abs((xmax-xmin)/nbins)*factor1, abs((ymax-ymin)/nbins)*factor2)
-
-            # PyMCA inverts axis!!!! histogram must be calculated reversed
-            data_to_plot = []
-            for y_index in range(0, nbins):
-                x_values = []
-                for x_index in range(0, nbins):
-                    x_values.append(ticket['histogram'][x_index][y_index])
-
-                data_to_plot.append(x_values)
+            scale = (abs((xmax-xmin)/nbins_h)*factor1, abs((ymax-ymin)/nbins_v)*factor2)
 
             self.plot_canvas.setColormap({"name":QSettings().value("output/shadow-default-colormap", "temperature", str),
                                           "normalization":"linear",
@@ -615,7 +609,8 @@ class ShadowPlot:
                                           "vmax":0,
                                           "colors":256})
 
-            self.plot_canvas.setImage(numpy.array(data_to_plot), origin=origin, scale=scale)
+            # PyMCA inverts axis!!!! histogram must be calculated reversed
+            self.plot_canvas.setImage(ticket['histogram'].T, origin=origin, scale=scale)
 
             if xtitle is None: xtitle=ShadowPlot.get_shadow_label(var_x)
             if ytitle is None: ytitle=ShadowPlot.get_shadow_label(var_y)

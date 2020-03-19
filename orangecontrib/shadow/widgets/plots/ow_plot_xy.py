@@ -63,7 +63,8 @@ class PlotXY(AutomaticElement):
     rays=Setting(1)
     cartesian_axis=Setting(1)
 
-    number_of_bins=Setting(100)
+    number_of_bins=Setting(100) # for retrocompatibility: I don't change the name
+    number_of_bins_v=Setting(100)
 
     title=Setting("X,Z")
 
@@ -115,7 +116,7 @@ class PlotXY(AutomaticElement):
 
         general_box = oasysgui.widgetBox(tab_set, "Variables Settings", addSpace=True, orientation="vertical", height=350)
 
-        self.x_column = gui.comboBox(general_box, self, "x_column_index", label="X Column",labelWidth=70,
+        self.x_column = gui.comboBox(general_box, self, "x_column_index", label="H Column",labelWidth=70,
                                      items=["1: X",
                                             "2: Y",
                                             "3: Z",
@@ -153,7 +154,7 @@ class PlotXY(AutomaticElement):
                                      ],
                                      sendSelectedValue=False, orientation="horizontal")
 
-        gui.comboBox(general_box, self, "x_range", label="X Range", labelWidth=250,
+        gui.comboBox(general_box, self, "x_range", label="H Range", labelWidth=250,
                                      items=["<Default>",
                                             "Set.."],
                                      callback=self.set_XRange, sendSelectedValue=False, orientation="horizontal")
@@ -161,12 +162,12 @@ class PlotXY(AutomaticElement):
         self.xrange_box = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", height=100)
         self.xrange_box_empty = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", height=100)
 
-        oasysgui.lineEdit(self.xrange_box, self, "x_range_min", "X min", labelWidth=220, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.xrange_box, self, "x_range_max", "X max", labelWidth=220, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.xrange_box, self, "x_range_min", "H min", labelWidth=220, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.xrange_box, self, "x_range_max", "H max", labelWidth=220, valueType=float, orientation="horizontal")
 
         self.set_XRange()
 
-        self.y_column = gui.comboBox(general_box, self, "y_column_index", label="Y Column",labelWidth=70,
+        self.y_column = gui.comboBox(general_box, self, "y_column_index", label="V Column",labelWidth=70,
                                      items=["1: X",
                                             "2: Y",
                                             "3: Z",
@@ -205,7 +206,7 @@ class PlotXY(AutomaticElement):
 
                                      sendSelectedValue=False, orientation="horizontal")
 
-        gui.comboBox(general_box, self, "y_range", label="Y Range",labelWidth=250,
+        gui.comboBox(general_box, self, "y_range", label="V Range",labelWidth=250,
                                      items=["<Default>",
                                             "Set.."],
                                      callback=self.set_YRange, sendSelectedValue=False, orientation="horizontal")
@@ -213,8 +214,8 @@ class PlotXY(AutomaticElement):
         self.yrange_box = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", height=100)
         self.yrange_box_empty = oasysgui.widgetBox(general_box, "", addSpace=True, orientation="vertical", height=100)
 
-        oasysgui.lineEdit(self.yrange_box, self, "y_range_min", "Y min", labelWidth=220, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.yrange_box, self, "y_range_max", "Y max", labelWidth=220, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.yrange_box, self, "y_range_min", "V min", labelWidth=220, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.yrange_box, self, "y_range_max", "V max", labelWidth=220, valueType=float, orientation="horizontal")
 
         self.set_YRange()
 
@@ -291,9 +292,10 @@ class PlotXY(AutomaticElement):
 
         gui.button(incremental_box, self, "Clear", callback=self.clearResults)
 
-        histograms_box = oasysgui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=90)
+        histograms_box = oasysgui.widgetBox(tab_gen, "Histograms settings", addSpace=True, orientation="vertical", height=120)
 
-        oasysgui.lineEdit(histograms_box, self, "number_of_bins", "Number of Bins", labelWidth=250, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(histograms_box, self, "number_of_bins", "Number of Bins H", labelWidth=250, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(histograms_box, self, "number_of_bins_v", "Number of Bins V", labelWidth=250, valueType=int, orientation="horizontal")
         gui.comboBox(histograms_box, self, "is_conversion_active", label="Is U.M. conversion active", labelWidth=250,
                                          items=["No", "Yes"],
                                          sendSelectedValue=False, orientation="horizontal")
@@ -350,7 +352,7 @@ class PlotXY(AutomaticElement):
     def selectAutosaveFile(self):
         self.le_autosave_file_name.setText(oasysgui.selectFileFromDialog(self, self.autosave_file_name, "Select File", file_extension_filter="HDF5 Files (*.hdf5 *.h5 *.hdf)"))
 
-    def replace_fig(self, beam, var_x, var_y,  title, xtitle, ytitle, xrange, yrange, nbins, nolost, xum, yum, flux):
+    def replace_fig(self, beam, var_x, var_y,  title, xtitle, ytitle, xrange, yrange, nbins=100, nbins_h=None, nbins_v=None, nolost=0, xum="", yum="", flux=None):
         if self.plot_canvas is None:
             self.plot_canvas = ShadowPlot.DetailedPlotWidget(y_scale_factor=1.14)
             self.image_box.layout().addWidget(self.plot_canvas)
@@ -363,11 +365,15 @@ class PlotXY(AutomaticElement):
                     self.autosave_file.close()
                     self.autosave_file = ShadowPlot.PlotXYHdf5File(congruence.checkDir(self.autosave_file_name))
 
+            if nbins_h is None: nbins_h=nbins
+            if nbins_v is None: nbins_v=nbins
+
             if self.keep_result == 1:
                 self.cumulated_ticket, last_ticket = self.plot_canvas.plot_xy(beam, var_x, var_y, title, xtitle, ytitle,
                                                                               xrange=xrange,
                                                                               yrange=yrange,
-                                                                              nbins=nbins,
+                                                                              nbins_h=nbins_h,
+                                                                              nbins_v=nbins_v,
                                                                               nolost=nolost,
                                                                               xum=xum,
                                                                               yum=yum,
@@ -396,7 +402,8 @@ class PlotXY(AutomaticElement):
                 ticket, _ = self.plot_canvas.plot_xy(beam, var_x, var_y, title, xtitle, ytitle,
                                                      xrange=xrange,
                                                      yrange=yrange,
-                                                     nbins=nbins,
+                                                     nbins_h=nbins_h,
+                                                     nbins_v=nbins_v,
                                                      nolost=nolost,
                                                      xum=xum,
                                                      yum=yum,
@@ -453,7 +460,8 @@ class PlotXY(AutomaticElement):
         self.replace_fig(beam_to_plot, var_x, var_y, title, xtitle, ytitle,
                          xrange=xrange,
                          yrange=yrange,
-                         nbins=int(self.number_of_bins),
+                         nbins_h=int(self.number_of_bins),
+                         nbins_v=int(self.number_of_bins_v),
                          nolost=self.rays,
                          xum=xum,
                          yum=yum,
