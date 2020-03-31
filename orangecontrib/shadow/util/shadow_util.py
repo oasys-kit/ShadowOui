@@ -17,7 +17,7 @@ from scipy import optimize, asarray
 
 from oasys.widgets import gui
 from oasys.widgets import congruence
-from oasys.util.oasys_util import get_sigma, get_fwhm
+from oasys.util.oasys_util import get_sigma, get_fwhm, get_average
 
 from silx.gui.plot.ImageView import ImageView
 
@@ -277,6 +277,8 @@ class ShadowPlot:
         fwhm_v_field = ""
         sigma_h_field = ""
         sigma_v_field = ""
+        centroid_h_field = ""
+        centroid_v_field = ""
 
         def __init__(self, x_scale_factor = 1.0, y_scale_factor = 1.0, is_2d=True):
             super(ShadowPlot.InfoBoxWidget, self).__init__()
@@ -335,6 +337,27 @@ class ShadowPlot:
                 self.label_s_v.setPalette(palette)
                 label_box_2.layout().addWidget(self.label_s_v)
                 self.sigma_v = gui.lineEdit(label_box_2, self, "sigma_v_field", "", tooltip="Sigma", labelWidth=115, valueType=str, orientation="horizontal")
+
+            label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+
+            self.label_c_h = QLabel("centroid ")
+            self.label_c_h.setFixedWidth(115)
+            palette =  QPalette(self.label_c_h.palette())
+            palette.setColor(QPalette.Foreground, QColor('blue'))
+            self.label_c_h.setPalette(palette)
+            label_box_1.layout().addWidget(self.label_c_h)
+            self.centroid_h = gui.lineEdit(label_box_1, self, "centroid_h_field", "", tooltip="Centroid", labelWidth=115, valueType=str, orientation="horizontal")
+
+            if is_2d:
+                label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+
+                self.label_c_v = QLabel("centroid ")
+                self.label_c_v.setFixedWidth(115)
+                palette =  QPalette(self.label_c_v.palette())
+                palette.setColor(QPalette.Foreground, QColor('red'))
+                self.label_c_v.setPalette(palette)
+                label_box_2.layout().addWidget(self.label_c_v)
+                self.centroid_v = gui.lineEdit(label_box_2, self, "centroid_v_field", "", tooltip="Sigma", labelWidth=115, valueType=str, orientation="horizontal")
 
             self.intensity.setReadOnly(True)
             font = QFont(self.intensity.font())
@@ -399,6 +422,15 @@ class ShadowPlot:
             palette.setColor(QPalette.Base, QColor(243, 240, 160))
             self.sigma_h.setPalette(palette)
 
+            self.centroid_h.setReadOnly(True)
+            font = QFont(self.centroid_h.font())
+            font.setBold(True)
+            self.centroid_h.setFont(font)
+            palette = QPalette(self.centroid_h.palette())
+            palette.setColor(QPalette.Text, QColor('dark blue'))
+            palette.setColor(QPalette.Base, QColor(243, 240, 160))
+            self.centroid_h.setPalette(palette)
+
             if is_2d:
                 self.fwhm_v.setReadOnly(True)
                 font = QFont(self.fwhm_v.font())
@@ -418,6 +450,16 @@ class ShadowPlot:
                 palette.setColor(QPalette.Base, QColor(243, 240, 160))
                 self.sigma_v.setPalette(palette)
 
+                self.centroid_v.setReadOnly(True)
+                font = QFont(self.centroid_v.font())
+                font.setBold(True)
+                self.centroid_v.setFont(font)
+                palette = QPalette(self.centroid_v.palette())
+                palette.setColor(QPalette.Text, QColor('dark blue'))
+                palette.setColor(QPalette.Base, QColor(243, 240, 160))
+                self.centroid_v.setPalette(palette)
+
+
         def set_flux(self, flux=None):
             if flux is None:
                 self.flux.setText("0.0")
@@ -436,6 +478,8 @@ class ShadowPlot:
             self.fwhm_h.setText("0.0000")
             if hasattr(self, "fwhm_v"):  self.fwhm_v.setText("0.0000")
             self.sigma_h.setText("0.0000")
+            if hasattr(self, "sigma_v"):  self.sigma_v.setText("0.0000")
+            self.centroid_h.setText("0.0000")
             if hasattr(self, "sigma_v"):  self.sigma_v.setText("0.0000")
 
     class DetailedHistoWidget(QWidget):
@@ -477,7 +521,8 @@ class ShadowPlot:
                 ticket['good_rays'] += ticket_to_add['good_rays']
 
             ticket['fwhm'], ticket['fwhm_quote'], ticket['fwhm_coordinates'] = get_fwhm(ticket['histogram'], ticket['bin_center'])
-            ticket['sigma'] = get_sigma(ticket['histogram'], ticket['bin_center'])
+            ticket['sigma']    = get_sigma(ticket['histogram'], ticket['bin_center'])
+            ticket['centroid'] = get_average(ticket['histogram'], ticket['bin_center'])
 
             factor=ShadowPlot.get_factor(col, conv)
 
@@ -525,6 +570,8 @@ class ShadowPlot:
             self.info_box.label_h.setText("FWHM " + xum)
             self.info_box.sigma_h.setText("{:5.4f}".format(ticket['sigma']*factor))
             self.info_box.label_s_h.setText("\u03c3 " + xum)
+            self.info_box.centroid_h.setText("{:5.4f}".format(ticket['centroid']*factor))
+            self.info_box.label_c_h.setText("centroid " + xum)
 
             if not ticket_to_add is None:
                 return ticket, last_ticket
@@ -583,8 +630,10 @@ class ShadowPlot:
 
             ticket['fwhm_h'], ticket['fwhm_quote_h'], ticket['fwhm_coordinates_h'] = get_fwhm(ticket['histogram_h'], ticket['bin_h_center'])
             ticket['fwhm_v'], ticket['fwhm_quote_v'], ticket['fwhm_coordinates_v'] = get_fwhm(ticket['histogram_v'], ticket['bin_v_center'])
-            ticket['sigma_h'] = get_sigma(ticket['histogram_h'], ticket['bin_h_center'])
-            ticket['sigma_v'] = get_sigma(ticket['histogram_v'], ticket['bin_v_center'])
+            ticket['sigma_h']    = get_sigma(ticket['histogram_h'], ticket['bin_h_center'])
+            ticket['sigma_v']    = get_sigma(ticket['histogram_v'], ticket['bin_v_center'])
+            ticket['centroid_h'] = get_average(ticket['histogram_h'], ticket['bin_h_center'])
+            ticket['centroid_v'] = get_average(ticket['histogram_v'], ticket['bin_v_center'])
 
             if is_footprint:
                 factor1 = 1.0
@@ -686,6 +735,10 @@ class ShadowPlot:
             self.info_box.sigma_v.setText("{:5.4f}".format(ticket['sigma_v'] * factor2))
             self.info_box.label_s_h.setText("\u03c3 " + xum)
             self.info_box.label_s_v.setText("\u03c3 " + yum)
+            self.info_box.centroid_h.setText("{:5.4f}".format(ticket['centroid_h'] * factor1))
+            self.info_box.centroid_v.setText("{:5.4f}".format(ticket['centroid_v'] * factor2))
+            self.info_box.label_c_h.setText("centroid " + xum)
+            self.info_box.label_c_v.setText("centroid " + yum)
 
             if not ticket_to_add is None:
                 return ticket, last_ticket
