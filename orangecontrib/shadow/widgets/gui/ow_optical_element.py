@@ -15,6 +15,8 @@ try:
 except:
     pass
 
+import xraylib
+
 from orangewidget import gui, widget
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
@@ -24,12 +26,9 @@ from oasys.util.oasys_util import EmittingStream, TTYGrabber, TriggerIn, Trigger
 import oasys.util.oasys_util as OU
 import orangecanvas.resources as resources
 
-from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, \
-    ShadowOpticalElement, ShadowBeam, ShadowFile
+from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, ShadowOpticalElement, ShadowBeam, ShadowFile
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics, ShadowPreProcessor
 from orangecontrib.shadow.widgets.gui import ow_generic_element
-from orangecontrib.shadow.widgets.preprocessor.xsh_bragg import OWxsh_bragg
-import xraylib
 from srxraylib.metrology import profiles_simulation
 
 from syned.widget.widget_decorator import WidgetDecorator
@@ -226,8 +225,10 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     diffraction_calculation = Setting(0)
     file_diffraction_profile = Setting("diffraction_profile.dat")
 
+    CRYSTALS = xraylib.Crystal_GetCrystalsList()
+
     user_defined_bragg_angle = Setting(14.223)
-    user_defined_crystal = Setting(0)
+    user_defined_crystal = Setting(32)
     user_defined_h = Setting(1)
     user_defined_k = Setting(1)
     user_defined_l = Setting(1)
@@ -977,7 +978,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                     #oasysgui.lineEdit(self.crystal_box_2, self, "user_defined_crystal", "Crystal", labelWidth=260, valueType=str, orientation="horizontal")
 
-                    gui.comboBox(self.crystal_box_2, self, "user_defined_crystal", label="Crystal", addSpace=True, items=OWxsh_bragg.crystals, sendSelectedValue=False, orientation="horizontal", labelWidth=260)
+                    gui.comboBox(self.crystal_box_2, self, "user_defined_crystal", label="Crystal", addSpace=True, items=self.CRYSTALS, sendSelectedValue=False, orientation="horizontal", labelWidth=260)
 
                     box_miller = oasysgui.widgetBox(self.crystal_box_2, "", orientation="horizontal", width=350)
                     oasysgui.lineEdit(box_miller, self, "user_defined_h", label="Miller Indices [h k l]", addSpace=True, valueType=int, labelWidth=200, orientation="horizontal")
@@ -2947,7 +2948,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
         _get_bragg_angle = numpy.vectorize(get_bragg_angle)
 
-        bragg_angles = 90.0 - (_get_bragg_angle(xraylib.Crystal_GetCrystal(OWxsh_bragg.crystals[self.user_defined_crystal]),
+        bragg_angles = 90.0 - (_get_bragg_angle(xraylib.Crystal_GetCrystal(self.CRYSTALS[self.user_defined_crystal]),
                                                 beam_energies, self.user_defined_h, self.user_defined_k, self.user_defined_l)
                                - self.user_defined_asymmetry_angle)
 
