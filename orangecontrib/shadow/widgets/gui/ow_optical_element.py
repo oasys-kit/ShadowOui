@@ -983,10 +983,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                     oasysgui.lineEdit(box_miller, self, "user_defined_l", addSpace=True, valueType=int, orientation="horizontal")
 
                     oasysgui.lineEdit(self.crystal_box_2, self, "user_defined_bragg_angle", "Bragg Angle respect to the surface [deg]", labelWidth=260, valueType=float, orientation="horizontal", callback=self.set_UserDefinedBraggAngle)
-
-                    self.set_UserDefinedBraggAngle()
-
-                    oasysgui.lineEdit(self.crystal_box_2, self, "user_defined_asymmetry_angle", "Asymmetry angle [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+                    oasysgui.lineEdit(self.crystal_box_2, self, "user_defined_asymmetry_angle", "Asymmetry angle [deg]", labelWidth=260, valueType=float, orientation="horizontal", callback=self.set_UserDefinedBraggAngle)
 
                     bragg_user_defined_box = oasysgui.widgetBox(self.crystal_box_2, "", addSpace=True, orientation="horizontal")
 
@@ -997,6 +994,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                     bragg_user_defined_box.layout().addWidget(label)
 
+                    self.set_UserDefinedBraggAngle()
                     self.set_DiffractionCalculation()
 
                     mosaic_box = oasysgui.widgetBox(self.tab_cryst_2, "Geometric Parameters", addSpace=False,
@@ -1516,8 +1514,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     ############################################################
 
     def set_UserDefinedBraggAngle(self):
-        self.incidence_angle_deg = 90.0 - self.user_defined_bragg_angle
-        self.reflection_angle_deg = 90.0 - self.user_defined_bragg_angle
+        self.incidence_angle_deg  = 90.0 - (self.user_defined_bragg_angle - self.user_defined_asymmetry_angle)
+        self.reflection_angle_deg = 90.0 - (self.user_defined_bragg_angle + self.user_defined_asymmetry_angle)
 
         self.calculate_incidence_angle_mrad()
         self.calculate_reflection_angle_mrad()
@@ -2940,24 +2938,19 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                                                ("0" + str(input_beam._oe_number) if (input_beam._oe_number < 10) else
                                                 str(input_beam._oe_number))))
 
-        self.user_defined_crystal = "Si"
-        self.user_defined_h = 1
-        self.user_defined_k = 1
-        self.user_defined_l = 1
-
         beam_incident_angles = values[:, 1]
-        beam_energies = ShadowPhysics.getEnergyFromShadowK(input_beam._beam.rays[:, 10])
+        beam_energies        = ShadowPhysics.getEnergyFromShadowK(input_beam._beam.rays[:, 10])
 
         crystal = xraylib.Crystal_GetCrystal(self.user_defined_crystal)
 
         def get_bragg_angle(crystal, energy, h, k, l):
-            return 90-numpy.degrees(xraylib.Bragg_angle(crystal, energy*1e-3, h,  k,  l))
+            return numpy.degrees(xraylib.Bragg_angle(crystal, energy*1e-3, h,  k,  l))
 
         _get_bragg_angle = numpy.vectorize(get_bragg_angle)
 
-        bragg_angles =  _get_bragg_angle(crystal, beam_energies, self.user_defined_h,  self.user_defined_k,  self.user_defined_l)
+        bragg_angles = 90.0 - (_get_bragg_angle(crystal, beam_energies, self.user_defined_h,  self.user_defined_k,  self.user_defined_l) - self.user_defined_asymmetry_angle)
 
-        delta_thetas = beam_incident_angles - (bragg_angles + self.user_defined_asymmetry_angle)
+        delta_thetas = beam_incident_angles - bragg_angles
 
         values = numpy.loadtxt(os.path.abspath(self.file_diffraction_profile) if self.file_diffraction_profile.startswith('/') else
                                os.path.abspath(os.path.curdir + "/" + self.file_diffraction_profile))
@@ -3018,7 +3011,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         return output_beam
 
     def apply_user_grating_efficiency(self, input_beam):
-        energies = ShadowPhysics.getEnergyFromShadowK(input_beam._beam.rays[:, 10])
+        beam_energies = ShadowPhysics.getEnergyFromShadowK(input_beam._beam.rays[:, 10])
 
         values = numpy.loadtxt(os.path.abspath(self.grating_file_efficiency if self.grating_file_efficiency.startswith('/') else
                                                os.path.abspath(os.path.curdir + "/" + self.grating_file_efficiency)))
@@ -3026,7 +3019,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         grating_energies     = values[:, 0]
         grating_efficiencies = values[:, 1]
 
-        interpolated_weight = numpy.sqrt(numpy.interp(energies,
+        interpolated_weight = numpy.sqrt(numpy.interp(beam_energies,
                                                       grating_energies,
                                                       grating_efficiencies,
                                                       left=grating_efficiencies[0],
