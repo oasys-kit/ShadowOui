@@ -2710,10 +2710,10 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 if self.diffraction_calculation == 1:
                     ShadowCongruence.check2ColumnFormatFile(congruence.checkFile(self.file_diffraction_profile), "Diffraction profile")
                     congruence.checkStrictlyPositiveAngle(self.user_defined_bragg_angle, "Bragg Angle")
-                    congruence.checkEmptyString(self.user_defined_crystal)
-                    congruence.checkNumber(self.user_defined_h)
-                    congruence.checkNumber(self.user_defined_k)
-                    congruence.checkNumber(self.user_defined_l)
+                    congruence.checkEmptyString(self.user_defined_crystal, "User Defined Crystal")
+                    congruence.checkNumber(self.user_defined_h, "User Defined Milled Index h")
+                    congruence.checkNumber(self.user_defined_k, "User Defined Milled Index k")
+                    congruence.checkNumber(self.user_defined_l, "User Defined Milled Index l")
                 else:
                     ShadowCongruence.checkBraggFile(congruence.checkFile(self.file_crystal_parameters))
 
