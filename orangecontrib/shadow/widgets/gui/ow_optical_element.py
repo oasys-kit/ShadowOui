@@ -28,7 +28,7 @@ from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, \
     ShadowOpticalElement, ShadowBeam, ShadowFile
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics, ShadowPreProcessor
 from orangecontrib.shadow.widgets.gui import ow_generic_element
-
+from orangecontrib.shadow.widgets.preprocessor.xsh_bragg import OWxsh_bragg
 import xraylib
 from srxraylib.metrology import profiles_simulation
 
@@ -227,7 +227,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     file_diffraction_profile = Setting("diffraction_profile.dat")
 
     user_defined_bragg_angle = Setting(14.223)
-    user_defined_crystal = Setting("Si")
+    user_defined_crystal = Setting(0)
     user_defined_h = Setting(1)
     user_defined_k = Setting(1)
     user_defined_l = Setting(1)
@@ -975,7 +975,9 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                     gui.button(crystal_box_2_1, self, "...", callback=self.selectFileDiffractionProfile)
 
-                    oasysgui.lineEdit(self.crystal_box_2, self, "user_defined_crystal", "Crystal", labelWidth=260, valueType=str, orientation="horizontal")
+                    #oasysgui.lineEdit(self.crystal_box_2, self, "user_defined_crystal", "Crystal", labelWidth=260, valueType=str, orientation="horizontal")
+
+                    gui.comboBox(self.crystal_box_2, self, "user_defined_crystal", label="Crystal", addSpace=True, items=OWxsh_bragg.crystals, sendSelectedValue=False, orientation="horizontal", labelWidth=260)
 
                     box_miller = oasysgui.widgetBox(self.crystal_box_2, "", orientation="horizontal", width=350)
                     oasysgui.lineEdit(box_miller, self, "user_defined_h", label="Miller Indices [h k l]", addSpace=True, valueType=int, labelWidth=200, orientation="horizontal")
@@ -2708,7 +2710,6 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 if self.diffraction_calculation == 1:
                     ShadowCongruence.check2ColumnFormatFile(congruence.checkFile(self.file_diffraction_profile), "Diffraction profile")
                     congruence.checkStrictlyPositiveAngle(self.user_defined_bragg_angle, "Bragg Angle")
-                    congruence.checkEmptyString(self.user_defined_crystal, "User Defined Crystal")
                     congruence.checkNumber(self.user_defined_h, "User Defined Milled Index h")
                     congruence.checkNumber(self.user_defined_k, "User Defined Milled Index k")
                     congruence.checkNumber(self.user_defined_l, "User Defined Milled Index l")
@@ -2941,14 +2942,14 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         beam_incident_angles = values[:, 1]
         beam_energies        = ShadowPhysics.getEnergyFromShadowK(input_beam._beam.rays[:, 10])
 
-        crystal = xraylib.Crystal_GetCrystal(self.user_defined_crystal)
-
         def get_bragg_angle(crystal, energy, h, k, l):
             return numpy.degrees(xraylib.Bragg_angle(crystal, energy*1e-3, h,  k,  l))
 
         _get_bragg_angle = numpy.vectorize(get_bragg_angle)
 
-        bragg_angles = 90.0 - (_get_bragg_angle(crystal, beam_energies, self.user_defined_h,  self.user_defined_k,  self.user_defined_l) - self.user_defined_asymmetry_angle)
+        bragg_angles = 90.0 - (_get_bragg_angle(xraylib.Crystal_GetCrystal(OWxsh_bragg.crystals[self.user_defined_crystal]),
+                                                beam_energies, self.user_defined_h, self.user_defined_k, self.user_defined_l)
+                               - self.user_defined_asymmetry_angle)
 
         delta_thetas = beam_incident_angles - bragg_angles
 
