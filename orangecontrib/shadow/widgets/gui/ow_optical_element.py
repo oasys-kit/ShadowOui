@@ -29,6 +29,7 @@ from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData, \
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPhysics, ShadowPreProcessor
 from orangecontrib.shadow.widgets.gui import ow_generic_element
 
+import xraylib
 from srxraylib.metrology import profiles_simulation
 
 from syned.widget.widget_decorator import WidgetDecorator
@@ -224,7 +225,12 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     diffraction_geometry = Setting(0)
     diffraction_calculation = Setting(0)
     file_diffraction_profile = Setting("diffraction_profile.dat")
+
     user_defined_bragg_angle = Setting(14.223)
+    user_defined_crystal = Setting("Si")
+    user_defined_h = Setting(1)
+    user_defined_k = Setting(1)
+    user_defined_l = Setting(1)
     user_defined_asymmetry_angle = Setting(0.0)
     file_crystal_parameters = Setting("bragg.dat")
     crystal_auto_setting = Setting(0)
@@ -959,8 +965,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                     oasysgui.lineEdit(self.autosetting_box_units_2, self, "photon_wavelength", "Set wavelength [Å]", labelWidth=260, valueType=float, orientation="horizontal")
 
 
-                    self.crystal_box_2 = oasysgui.widgetBox(crystal_box, "", addSpace=False, orientation="vertical",
-                                                             height=340)
+                    self.crystal_box_2 = oasysgui.widgetBox(crystal_box, "", addSpace=False, orientation="vertical", height=340)
 
                     crystal_box_2_1 = oasysgui.widgetBox(self.crystal_box_2, "", addSpace=False, orientation="horizontal")
 
@@ -970,7 +975,17 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                     gui.button(crystal_box_2_1, self, "...", callback=self.selectFileDiffractionProfile)
 
-                    oasysgui.lineEdit(self.crystal_box_2, self, "user_defined_bragg_angle", "Bragg Angle respect to the surface [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+                    oasysgui.lineEdit(self.crystal_box_2, self, "user_defined_crystal", "Crystal", labelWidth=260, valueType=str, orientation="horizontal")
+
+                    box_miller = oasysgui.widgetBox(self.crystal_box_2, "", orientation="horizontal", width=350)
+                    oasysgui.lineEdit(box_miller, self, "user_defined_h", label="Miller Indices [h k l]", addSpace=True, valueType=int, labelWidth=200, orientation="horizontal")
+                    oasysgui.lineEdit(box_miller, self, "user_defined_k", addSpace=True, valueType=int, orientation="horizontal")
+                    oasysgui.lineEdit(box_miller, self, "user_defined_l", addSpace=True, valueType=int, orientation="horizontal")
+
+                    oasysgui.lineEdit(self.crystal_box_2, self, "user_defined_bragg_angle", "Bragg Angle respect to the surface [deg]", labelWidth=260, valueType=float, orientation="horizontal", callback=self.set_UserDefinedBraggAngle)
+
+                    self.set_UserDefinedBraggAngle()
+
                     oasysgui.lineEdit(self.crystal_box_2, self, "user_defined_asymmetry_angle", "Asymmetry angle [deg]", labelWidth=260, valueType=float, orientation="horizontal")
 
                     bragg_user_defined_box = oasysgui.widgetBox(self.crystal_box_2, "", addSpace=True, orientation="horizontal")
@@ -981,8 +996,6 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                     label.setPixmap(QPixmap(self.bragg_user_defined_path))
 
                     bragg_user_defined_box.layout().addWidget(label)
-
-
 
                     self.set_DiffractionCalculation()
 
@@ -1501,6 +1514,13 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     # GRAPHIC USER INTERFACE MANAGEMENT
     #
     ############################################################
+
+    def set_UserDefinedBraggAngle(self):
+        self.incidence_angle_deg = 90.0 - self.user_defined_bragg_angle
+        self.reflection_angle_deg = 90.0 - self.user_defined_bragg_angle
+
+        self.calculate_incidence_angle_mrad()
+        self.calculate_reflection_angle_mrad()
 
     def set_AnglesRespectTo(self):
         label_1 = self.incidence_angle_deg_le.parent().layout().itemAt(0).widget()
@@ -2690,6 +2710,10 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 if self.diffraction_calculation == 1:
                     ShadowCongruence.check2ColumnFormatFile(congruence.checkFile(self.file_diffraction_profile), "Diffraction profile")
                     congruence.checkStrictlyPositiveAngle(self.user_defined_bragg_angle, "Bragg Angle")
+                    congruence.checkEmptyString(self.user_defined_crystal)
+                    congruence.checkNumber(self.user_defined_h)
+                    congruence.checkNumber(self.user_defined_k)
+                    congruence.checkNumber(self.user_defined_l)
                 else:
                     ShadowCongruence.checkBraggFile(congruence.checkFile(self.file_crystal_parameters))
 
@@ -2868,7 +2892,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             if self.graphical_options.is_crystal and self.diffraction_calculation == 1:
                 beam_out = self.apply_user_diffraction_profile(beam_out)
             elif self.graphical_options.is_mirror and self.reflectivity_type > 0 and self.source_of_reflectivity == 3:
-                beam_out = self.apply_user_reflectvity(beam_out)
+                beam_out = self.apply_user_reflectivity(beam_out)
             elif self.graphical_options.is_grating and self.grating_use_efficiency == 1:
                 beam_out = self.apply_user_grating_efficiency(beam_out)
 
@@ -2912,69 +2936,61 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         return write_start_file, write_end_file
 
     def apply_user_diffraction_profile(self, input_beam):
-        str_oe_number = str(input_beam._oe_number)
+        values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/angle." +
+                                               ("0" + str(input_beam._oe_number) if (input_beam._oe_number < 10) else
+                                                str(input_beam._oe_number))))
 
-        if (input_beam._oe_number < 10): str_oe_number = "0" + str_oe_number
-
-        values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/angle." + str_oe_number))
+        self.user_defined_crystal = "Si"
+        self.user_defined_h = 1
+        self.user_defined_k = 1
+        self.user_defined_l = 1
 
         beam_incident_angles = values[:, 1]
+        beam_energies = ShadowPhysics.getEnergyFromShadowK(input_beam._beam.rays[:, 10])
 
-        delta_thetas = beam_incident_angles - (90 - self.user_defined_bragg_angle + self.user_defined_asymmetry_angle)
+        crystal = xraylib.Crystal_GetCrystal(self.user_defined_crystal)
 
-        if self.file_diffraction_profile.startswith('/'):
-            values = numpy.loadtxt(os.path.abspath(self.file_diffraction_profile))
-        else:
-            values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/" + self.file_diffraction_profile))
+        def get_bragg_angle(crystal, energy, h, k, l):
+            return 90-numpy.degrees(xraylib.Bragg_angle(crystal, energy*1e-3, h,  k,  l))
 
-        crystal_incident_angles = values[:, 0]
+        _get_bragg_angle = numpy.vectorize(get_bragg_angle)
+
+        bragg_angles =  _get_bragg_angle(crystal, beam_energies, self.user_defined_h,  self.user_defined_k,  self.user_defined_l)
+
+        delta_thetas = beam_incident_angles - (bragg_angles + self.user_defined_asymmetry_angle)
+
+        values = numpy.loadtxt(os.path.abspath(self.file_diffraction_profile) if self.file_diffraction_profile.startswith('/') else
+                               os.path.abspath(os.path.curdir + "/" + self.file_diffraction_profile))
+
+        crystal_delta_thetas   = values[:, 0]
         crystal_reflectivities = values[:, 1]
 
-        interpolated_weight = []
-
-        for index in range(0, len(delta_thetas)):
-            values_up = crystal_incident_angles[numpy.where(crystal_incident_angles >= delta_thetas[index])]
-            values_down = crystal_incident_angles[numpy.where(crystal_incident_angles < delta_thetas[index])]
-
-            if len(values_up) == 0:
-                refl_up = []
-                refl_up.append(crystal_reflectivities[0])
-            else:
-                refl_up = crystal_reflectivities[numpy.where(crystal_incident_angles == values_up[0])]
-
-            if len(values_down) == 0:
-                refl_down = []
-                refl_down.append(crystal_reflectivities[-1])
-            else:
-                refl_down = crystal_reflectivities[numpy.where(crystal_incident_angles == values_down[-1])]
-
-            interpolated_weight.append(numpy.sqrt((refl_up[0] + refl_down[-1]) / 2))
+        interpolated_weight = numpy.sqrt(numpy.interp(delta_thetas,
+                                                      crystal_delta_thetas,
+                                                      crystal_reflectivities,
+                                                      left=crystal_reflectivities[0],
+                                                      right=crystal_reflectivities[-1]))
 
         output_beam = input_beam.duplicate()
 
-        for index in range(0, len(output_beam._beam.rays)):
-            output_beam._beam.rays[index, 6] = output_beam._beam.rays[index, 6] * interpolated_weight[index]
-            output_beam._beam.rays[index, 7] = output_beam._beam.rays[index, 7] * interpolated_weight[index]
-            output_beam._beam.rays[index, 8] = output_beam._beam.rays[index, 8] * interpolated_weight[index]
-            output_beam._beam.rays[index, 15] = output_beam._beam.rays[index, 15] * interpolated_weight[index]
-            output_beam._beam.rays[index, 16] = output_beam._beam.rays[index, 16] * interpolated_weight[index]
-            output_beam._beam.rays[index, 17] = output_beam._beam.rays[index, 17] * interpolated_weight[index]
+        output_beam._beam.rays[:, 6]  = output_beam._beam.rays[:, 6]  * interpolated_weight
+        output_beam._beam.rays[:, 7]  = output_beam._beam.rays[:, 7]  * interpolated_weight
+        output_beam._beam.rays[:, 8]  = output_beam._beam.rays[:, 8]  * interpolated_weight
+        output_beam._beam.rays[:, 15] = output_beam._beam.rays[:, 15] * interpolated_weight
+        output_beam._beam.rays[:, 16] = output_beam._beam.rays[:, 16] * interpolated_weight
+        output_beam._beam.rays[:, 17] = output_beam._beam.rays[:, 17] * interpolated_weight
 
         return output_beam
 
-    def apply_user_reflectvity(self, input_beam):
-        str_oe_number = str(input_beam._oe_number)
-
-        if (input_beam._oe_number < 10): str_oe_number = "0" + str_oe_number
-
-        values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/angle." + str_oe_number))
+    def apply_user_reflectivity(self, input_beam):
+        values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/angle." +
+                                               ("0" + str(input_beam._oe_number) if (input_beam._oe_number < 10) else
+                                                str(input_beam._oe_number))))
 
         beam_incident_angles = 90.0 - values[:, 1]
 
-        if self.file_reflectivity.startswith('/'):
-            values = numpy.loadtxt(os.path.abspath(self.file_reflectivity))
-        else:
-            values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/" + self.file_reflectivity))
+        values = numpy.loadtxt(os.path.abspath(self.file_reflectivity) if self.file_reflectivity.startswith('/') else
+                               os.path.abspath(os.path.curdir + "/" + self.file_reflectivity))
 
         mirror_grazing_angles = values[:, 0]
         mirror_reflectivities = values[:, 1]
@@ -2983,82 +2999,49 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             mirror_grazing_angles = values[:, 0][::-1]
             mirror_reflectivities = values[:, 1][::-1]
 
-        interpolated_weight = []
+        interpolated_weight = numpy.sqrt(numpy.interp(beam_incident_angles,
+                                                      mirror_grazing_angles,
+                                                      mirror_reflectivities,
+                                                      left=mirror_reflectivities[0],
+                                                      right=mirror_reflectivities[-1]))
 
-        for index in range(0, len(beam_incident_angles)):
-            values_up = mirror_grazing_angles[numpy.where(mirror_grazing_angles >= beam_incident_angles[index])]
-            values_down = mirror_grazing_angles[numpy.where(mirror_grazing_angles < beam_incident_angles[index])]
-
-            if len(values_up) == 0:
-                refl_up = []
-                refl_up.append(mirror_reflectivities[0])
-            else:
-                refl_up = mirror_reflectivities[numpy.where(mirror_grazing_angles == values_up[0])]
-
-            if len(values_down) == 0:
-                refl_down = []
-                refl_down.append(mirror_reflectivities[-1])
-            else:
-                refl_down = mirror_reflectivities[numpy.where(mirror_grazing_angles == values_down[-1])]
-
-            interpolated_weight.append(numpy.sqrt((refl_up[0] + refl_down[-1]) / 2))
 
         output_beam = input_beam.duplicate()
 
-        for index in range(0, len(output_beam._beam.rays)):
-            output_beam._beam.rays[index, 6] = output_beam._beam.rays[index, 6] * interpolated_weight[index]
-            output_beam._beam.rays[index, 7] = output_beam._beam.rays[index, 7] * interpolated_weight[index]
-            output_beam._beam.rays[index, 8] = output_beam._beam.rays[index, 8] * interpolated_weight[index]
-            output_beam._beam.rays[index, 15] = output_beam._beam.rays[index, 15] * interpolated_weight[index]
-            output_beam._beam.rays[index, 16] = output_beam._beam.rays[index, 16] * interpolated_weight[index]
-            output_beam._beam.rays[index, 17] = output_beam._beam.rays[index, 17] * interpolated_weight[index]
+        output_beam._beam.rays[:, 6]  = output_beam._beam.rays[:, 6]  * interpolated_weight
+        output_beam._beam.rays[:, 7]  = output_beam._beam.rays[:, 7]  * interpolated_weight
+        output_beam._beam.rays[:, 8]  = output_beam._beam.rays[:, 8]  * interpolated_weight
+        output_beam._beam.rays[:, 15] = output_beam._beam.rays[:, 15] * interpolated_weight
+        output_beam._beam.rays[:, 16] = output_beam._beam.rays[:, 16] * interpolated_weight
+        output_beam._beam.rays[:, 17] = output_beam._beam.rays[:, 17] * interpolated_weight
 
         return output_beam
 
     def apply_user_grating_efficiency(self, input_beam):
+        energies = ShadowPhysics.getEnergyFromShadowK(input_beam._beam.rays[:, 10])
 
-        ray_k_mods = input_beam._beam.rays[:, 10]
+        values = numpy.loadtxt(os.path.abspath(self.grating_file_efficiency if self.grating_file_efficiency.startswith('/') else
+                                               os.path.abspath(os.path.curdir + "/" + self.grating_file_efficiency)))
 
-        if self.grating_file_efficiency.startswith('/'):
-            values = numpy.loadtxt(os.path.abspath(self.grating_file_efficiency))
-        else:
-            values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/" + self.grating_file_efficiency))
-
-        grating_energies = values[:, 0]
+        grating_energies     = values[:, 0]
         grating_efficiencies = values[:, 1]
 
-        interpolated_weight = []
-
-        for index in range(0, len(ray_k_mods)):
-            values_up = grating_energies[numpy.where(grating_energies >= ShadowPhysics.getEnergyFromShadowK(ray_k_mods[index]))]
-            values_down = grating_energies[numpy.where(grating_energies < ShadowPhysics.getEnergyFromShadowK(ray_k_mods[index]))]
-
-            if len(values_up) == 0:
-                refl_up = []
-                refl_up.append(grating_efficiencies[0])
-            else:
-                refl_up = grating_efficiencies[numpy.where(grating_energies == values_up[0])]
-
-            if len(values_down) == 0:
-                refl_down = []
-                refl_down.append(grating_efficiencies[-1])
-            else:
-                refl_down = grating_efficiencies[numpy.where(grating_energies == values_down[-1])]
-
-            interpolated_weight.append(numpy.sqrt((refl_up[0] + refl_down[-1]) / 2))
+        interpolated_weight = numpy.sqrt(numpy.interp(energies,
+                                                      grating_energies,
+                                                      grating_efficiencies,
+                                                      left=grating_efficiencies[0],
+                                                      right=grating_efficiencies[-1]))
 
         output_beam = input_beam.duplicate()
 
-        for index in range(0, len(output_beam._beam.rays)):
-            output_beam._beam.rays[index, 6] = output_beam._beam.rays[index, 6] * interpolated_weight[index]
-            output_beam._beam.rays[index, 7] = output_beam._beam.rays[index, 7] * interpolated_weight[index]
-            output_beam._beam.rays[index, 8] = output_beam._beam.rays[index, 8] * interpolated_weight[index]
-            output_beam._beam.rays[index, 15] = output_beam._beam.rays[index, 15] * interpolated_weight[index]
-            output_beam._beam.rays[index, 16] = output_beam._beam.rays[index, 16] * interpolated_weight[index]
-            output_beam._beam.rays[index, 17] = output_beam._beam.rays[index, 17] * interpolated_weight[index]
+        output_beam._beam.rays[:, 6] = output_beam._beam.rays[:, 6] * interpolated_weight
+        output_beam._beam.rays[:, 7] = output_beam._beam.rays[:, 7] * interpolated_weight
+        output_beam._beam.rays[:, 8] = output_beam._beam.rays[:, 8] * interpolated_weight
+        output_beam._beam.rays[:, 15] = output_beam._beam.rays[:, 15] * interpolated_weight
+        output_beam._beam.rays[:, 16] = output_beam._beam.rays[:, 16] * interpolated_weight
+        output_beam._beam.rays[:, 17] = output_beam._beam.rays[:, 17] * interpolated_weight
 
         return output_beam
-
 
     def traceOpticalElement(self):
         try:
@@ -3262,6 +3245,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                                 self.user_defined_bragg_angle = round(exchangeData.get_content("bragg_angle"), 4)
                                 self.user_defined_asymmetry_angle  = round(exchangeData.get_content("asymmetry_angle"), 4)
 
+                                self.set_UserDefinedBraggAngle()
+
                                 x_index = exchangeData.get_content("plot_x_col")
                                 y_index = exchangeData.get_content("plot_y_col")
                             else:
@@ -3269,7 +3254,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                         elif exchangeData.get_widget_name() == "XINPRO" :
                             self.file_diffraction_profile = "xoppy_xinpro_" + str(id(self)) + ".dat"
-                            self.user_defined_bragg_angle = 0.0
+                            self.user_defined_bragg_angle     = 0.0
                             self.user_defined_asymmetry_angle = 0.0
                             x_index = 0
                             y_index = 1
@@ -3307,11 +3292,12 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                     else:
                         raise Exception("Xoppy data not recognized")
 
-
                 elif exchangeData.get_program_name() == "XRAYSERVER":
                     if exchangeData.get_widget_name() == "X0H" or exchangeData.get_widget_name() == "GID_SL":
                         if exchangeData.get_widget_name() == "X0H" :
-                            self.file_diffraction_profile = "xrayserver_x0h_" + str(id(self)) + ".dat"
+                            self.file_diffraction_profile     = "xrayserver_x0h_" + str(id(self)) + ".dat"
+                            self.user_defined_bragg_angle     = 0.0
+                            self.user_defined_asymmetry_angle = 0.0
 
                             diffraction_profile = exchangeData.get_content("x-ray_diffraction_profile_sigma")
                             conversion_factor = exchangeData.get_content("x-ray_diffraction_profile_sigma_units_to_degrees")
@@ -3319,7 +3305,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                             self.file_diffraction_profile = "xrayserver_gid_sl_" + str(id(self)) + ".dat"
 
                             diffraction_profile = exchangeData.get_content("x-ray_diffraction_profile")
-                            conversion_factor = exchangeData.get_content("x-ray_diffraction_profile_units_to_degrees")
+                            conversion_factor   = exchangeData.get_content("x-ray_diffraction_profile_units_to_degrees")
 
                         file = open(self.file_diffraction_profile, "w")
 
@@ -3333,7 +3319,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                     elif exchangeData.get_widget_name() == "TER_SL":
                         self.file_reflectivity = "xrayserver_ter_sl_" + str(id(self)) + ".dat"
 
-                        reflectivity = exchangeData.get_content("ter_sl_result")
+                        reflectivity      = exchangeData.get_content("ter_sl_result")
                         conversion_factor = exchangeData.get_content("ter_sl_result_units_to_degrees")
 
                         file = open(self.file_reflectivity, "w")
