@@ -2941,18 +2941,13 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                                                 str(input_beam._oe_number))))
 
         beam_incident_angles = values[:, 1]
-        beam_energies        = ShadowPhysics.getEnergyFromShadowK(input_beam._beam.rays[:, 10])
+        beam_wavelengths     = ShadowPhysics.getWavelengthFromShadowK(input_beam._beam.rays[:, 10])
+        d_spacing            = xraylib.Crystal_dSpacing(xraylib.Crystal_GetCrystal(self.CRYSTALS[self.user_defined_crystal]),
+                                                        self.user_defined_h, self.user_defined_k, self.user_defined_l)
+        bragg_angles         = numpy.degrees(numpy.arcsin(0.5*beam_wavelengths/d_spacing))
+        diffraction_angles   = 90 - (bragg_angles - self.user_defined_asymmetry_angle)
 
-        def get_bragg_angle(crystal, energy, h, k, l):
-            return numpy.degrees(xraylib.Bragg_angle(crystal, energy*1e-3, h,  k,  l))
-
-        _get_bragg_angle = numpy.vectorize(get_bragg_angle)
-
-        bragg_angles = 90.0 - (_get_bragg_angle(xraylib.Crystal_GetCrystal(self.CRYSTALS[self.user_defined_crystal]),
-                                                beam_energies, self.user_defined_h, self.user_defined_k, self.user_defined_l)
-                               - self.user_defined_asymmetry_angle)
-
-        delta_thetas = beam_incident_angles - bragg_angles
+        delta_thetas = beam_incident_angles - diffraction_angles
 
         values = numpy.loadtxt(os.path.abspath(self.file_diffraction_profile) if self.file_diffraction_profile.startswith('/') else
                                os.path.abspath(os.path.curdir + "/" + self.file_diffraction_profile))

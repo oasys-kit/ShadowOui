@@ -1302,13 +1302,10 @@ class ShadowPhysics:
 
         theta_bragg = -1
 
-        argument = (wavelength*numpy.sqrt(h**2+k**2+l**2))/(2*a)
-
-        if argument <=1:
+        argument = wavelength*numpy.sqrt(h**2+k**2+l**2)/(2*a)
+        if argument <= 1:
             result = numpy.arcsin(argument)
-
-            if result > 0:
-                theta_bragg = result
+            if result > 0: theta_bragg = result
 
         return theta_bragg
 
