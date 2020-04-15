@@ -98,6 +98,7 @@ class GeometricalSource(ow_source.Source):
     user_defined_minimum = Setting(0.0)
     user_defined_maximum = Setting(0.0)
     user_defined_spectrum_binning = Setting(10000)
+    user_defined_refining_factor  = Setting(5)
 
     polarization = Setting(1)
     coherent_beam = Setting(0)
@@ -301,6 +302,7 @@ class GeometricalSource(ow_source.Source):
         oasysgui.lineEdit(self.ewp_box_7, self, "user_defined_minimum", "Minimum Energy/Wavelength", labelWidth=260, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.ewp_box_7, self, "user_defined_maximum", "Maximum Energy/Wavelength", labelWidth=260, valueType=float, orientation="horizontal")
         oasysgui.lineEdit(self.ewp_box_7, self, "user_defined_spectrum_binning", "Minimum Nr. of Bins of Input Spectrum", labelWidth=260, valueType=int, orientation="horizontal")
+        oasysgui.lineEdit(self.ewp_box_7, self, "user_defined_refining_factor", "Refining Factor", labelWidth=260, valueType=int, orientation="horizontal")
 
         self.set_PhotonEnergyDistribution()
 
@@ -467,7 +469,6 @@ class GeometricalSource(ow_source.Source):
         self.le_optimize_file_name.setText(oasysgui.selectFileFromDialog(self, self.optimize_file_name, "Open Optimize Source Parameters File"))
 
     def runShadowSource(self):
-        #self.error(self.error_id)
         self.setStatusMessage("")
         self.progressBarInit()
 
@@ -551,71 +552,30 @@ class GeometricalSource(ow_source.Source):
         distribution = stats.truncnorm(a, b, loc=self.gaussian_central_value, scale=self.gaussian_sigma)
         sampled_spectrum = distribution.rvs(len(beam_out._beam.rays))
 
-        for index in range(0, len(beam_out._beam.rays)):
-            if self.units == 0:
-                beam_out._beam.rays[index, 10] = ShadowPhysics.getShadowKFromEnergy(energy=sampled_spectrum[index])
-            else:
-                beam_out._beam.rays[index, 10] = ShadowPhysics.getShadowKFromWavelength(wavelength=sampled_spectrum[index])
+        beam_out._beam.rays[:, 10] = ShadowPhysics.getShadowKFromEnergy(energy=sampled_spectrum[:]) if self.units == 0 else \
+                                     ShadowPhysics.getShadowKFromWavelength(wavelength=sampled_spectrum[:])
 
     #########################################################################################
 
     def generate_user_defined_spectrum(self, beam_out):
-        spectrum = self.extract_spectrum_from_file(congruence.checkFileName(self.user_defined_file))
+        sampled_spectrum = self.sample_from_spectrum(numpy.loadtxt(self.user_defined_file),
+                                                     len(beam_out._beam.rays),
+                                                     self.user_defined_spectrum_binning)
 
-        sampled_spectrum = self.sample_from_spectrum(spectrum, len(beam_out._beam.rays), self.user_defined_spectrum_binning)
-
-        for index in range(0, len(beam_out._beam.rays)):
-            if self.units == 0:
-                beam_out._beam.rays[index, 10] = ShadowPhysics.getShadowKFromEnergy(energy=sampled_spectrum[index])
-            else:
-                beam_out._beam.rays[index, 10] = ShadowPhysics.getShadowKFromWavelength(wavelength=sampled_spectrum[index])
-
-    def extract_spectrum_from_file(self, spectrum_file_name):
-        spectrum = []
-
-        try:
-            spectrum_file = open(spectrum_file_name, "r")
-
-            rows = spectrum_file.readlines()
-
-            step = 0.0
-            for index in range(0, len(rows)):
-                row = rows[index]
-
-                if not row.strip() == "":
-                    values = row.split()
-
-                    if not len(values) == 2: raise Exception("Malformed file, must be: <energy> <spaces> <intensity>")
-
-                    energy = float(values[0].strip())
-                    intensity = float(values[1].strip())
-
-                    if energy >= self.user_defined_minimum and energy <= self.user_defined_maximum:
-                        spectrum.append([energy, intensity])
-
-        except Exception as err:
-            raise Exception("Problems reading spectrum file: {0}".format(err))
-        except:
-            raise Exception("Unexpected error reading spectrum file: ", sys.exc_info()[0])
-
-        return numpy.array(spectrum)
+        beam_out._beam.rays[:, 10] = ShadowPhysics.getShadowKFromEnergy(energy=sampled_spectrum[:]) if self.units == 0 else \
+                                     ShadowPhysics.getShadowKFromWavelength(wavelength=sampled_spectrum[:])
 
     def sample_from_spectrum(self, spectrum, npoints, nbins=10000):
-        if spectrum[0, 0] == 0:
-            y_values = spectrum[1:, 1]
-            x_values = spectrum[1:, 0]
-        else:
-            y_values = spectrum[:, 1]
-            x_values = spectrum[:, 0]
+        y_values = spectrum[1 if spectrum[0, 0] == 0 else 0:, 1]
+        x_values = spectrum[1 if spectrum[0, 0] == 0 else 0:, 0]
 
-        if len(x_values) < nbins:
-            x_values, y_values = self.resample_spectrum(x_values, y_values, nbins)
+        if len(x_values) < nbins: x_values, y_values = self.resample_spectrum(x_values, y_values, nbins)
 
         # normalize distribution function
         y_values /= numpy.max(y_values)
         y_values /= y_values.sum()
 
-        refining_factor = 1e7
+        refining_factor = 10**(self.user_defined_refining_factor)
 
         if self.seed != 0: numpy.random.seed(seed=self.seed)
         random_generator = stats.rv_discrete(name='user_defined_distribution', values=(x_values*refining_factor, y_values))
@@ -624,9 +584,9 @@ class GeometricalSource(ow_source.Source):
 
     def resample_spectrum(self, x_values, y_values, new_dim):
         e_min = x_values[0]
-        e_max = x_values[len(x_values)-1]
+        e_max = x_values[-1]
 
-        new_x_values = e_min + numpy.arange(0, new_dim+1) * (e_max-e_min)/new_dim
+        new_x_values = e_min + numpy.arange(0, new_dim + 1) * (e_max - e_min) / new_dim
 
         return new_x_values, numpy.interp(new_x_values, x_values, y_values)
 
@@ -639,10 +599,6 @@ class GeometricalSource(ow_source.Source):
                 beam_out._beam.rays[index, 15] = 0
                 beam_out._beam.rays[index, 16] = 0
                 beam_out._beam.rays[index, 17] = 0
-
-    #def sendNewBeam(self, trigger):
-    #    if trigger and trigger.new_object == True:
-    #        self.runShadowSource()
 
     def acceptExchangeData(self, exchangeData):
         try:
@@ -713,7 +669,6 @@ class GeometricalSource(ow_source.Source):
 
             if self.IS_DEVELOP: raise exception
 
-
     def setupUI(self):
         self.set_OptimizeSource()
         self.set_SpatialType()
@@ -723,7 +678,6 @@ class GeometricalSource(ow_source.Source):
         self.set_Polarization()
 
     def checkFields(self):
-
         self.number_of_rays = congruence.checkPositiveNumber(self.number_of_rays, "Number of Random rays")
         self.seed = congruence.checkPositiveNumber(self.seed, "Seed")
 
@@ -835,10 +789,11 @@ class GeometricalSource(ow_source.Source):
             self.user_defined_maximum = congruence.checkStrictlyPositiveNumber(self.user_defined_maximum, "Maximum Energy/Wavelength")
 
             congruence.checkLessThan(self.user_defined_minimum, self.user_defined_maximum, "Minimum Energy/Wavelength", "Maximum Energy/Wavelength")
+            congruence.checkStrictlyPositiveNumber(self.user_defined_spectrum_binning, "Spectrum Binning")
+            congruence.checkPositiveNumber(self.user_defined_refining_factor, "Refining Factor")
 
         if self.optimize_source > 0:
-            self.max_number_of_rejected_rays = congruence.checkPositiveNumber(self.max_number_of_rejected_rays,
-                                                                             "Max number of rejected rays")
+            self.max_number_of_rejected_rays = congruence.checkPositiveNumber(self.max_number_of_rejected_rays, "Max number of rejected rays")
             congruence.checkFile(self.optimize_file_name)
 
     def populateFields(self, shadow_src):
