@@ -541,7 +541,7 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
             su = Undulator.initialize_as_vertical_undulator(
                 K=self.K,
                 period_length=self.period_length,
-                periods_number=self.periods_number)
+                periods_number=int(self.periods_number))
 
 
             ebeam = ElectronBeam(
@@ -577,7 +577,6 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
                 ng_j=self.ng_j,
                 code_undul_phot=selected_code)
 
-
             if self.set_at_resonance == 0:
                 if self.delta_e == 0:
                     self.sourceundulator.set_energy_box(self.photon_energy,self.photon_energy,1)
@@ -589,8 +588,6 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
                 if self.delta_e > 0.0:
                     e0,e1,ne = self.sourceundulator.get_energy_box()
                     self.sourceundulator.set_energy_box(e0-0.5*self.delta_e,e0+0.5*self.delta_e,self.ng_e)
-
-
 
             rays = self.sourceundulator.calculate_rays(
                 user_unit_to_m=self.workspace_units_to_m,
@@ -638,7 +635,6 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
 
             self.progressBarSet(80)
             self.plot_results(beam_out)
-
 
             #
             # create python script for creating the shadow3 beam and display the script in the standard output
@@ -818,7 +814,7 @@ Shadow.ShadowTools.plotxy(beam,1,3,nbins=101,nolost=1,title="Real space")
                         self.sigma_divergence_z = yp
 
                         self.period_length = light_source.get_magnetic_structure().period_length()
-                        self.periods_number = light_source.get_magnetic_structure().number_of_periods() # in meter
+                        self.periods_number = int(light_source.get_magnetic_structure().number_of_periods()) # in meter
                         self.K = light_source.get_magnetic_structure().K_vertical()
                     else:
                         raise ValueError("Syned light source not congruent")
