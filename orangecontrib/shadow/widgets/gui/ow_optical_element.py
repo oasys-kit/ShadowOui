@@ -665,7 +665,9 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 if self.graphical_options.is_crystal:
                     tab_dcm = oasysgui.createTabPage(tabs_setting, "D.C.M. Utility")
 
-                tabs_basic_setting = oasysgui.tabWidget(tab_bas)
+                self.tabs_basic_setting = oasysgui.tabWidget(tab_bas)
+
+                tabs_basic_setting = self.tabs_basic_setting
 
                 if self.graphical_options.is_curved: tab_bas_shape = oasysgui.createTabPage(tabs_basic_setting, "Surface Shape")
                 if self.graphical_options.is_mirror: tab_bas_refl = oasysgui.createTabPage(tabs_basic_setting, "Reflectivity")
@@ -1283,7 +1285,6 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                 gui.comboBox(self.faceted_surface_box, self, "ms_intercept_to_use", label="Intercept to use", labelWidth=260,
                              items=["2nd first", "2nd closest", "closest", "farthest"], sendSelectedValue=False, orientation="horizontal")
-
 
                 oasysgui.lineEdit(self.faceted_surface_box, self, "ms_facet_width_x", "Facet width (in X)", labelWidth=260, valueType=float, orientation="horizontal")
                 oasysgui.lineEdit(self.faceted_surface_box, self, "ms_facet_phase_x", "Facet phase in X (0-360)", labelWidth=260, valueType=float, orientation="horizontal")
