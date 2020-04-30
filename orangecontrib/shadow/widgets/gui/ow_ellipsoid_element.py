@@ -104,7 +104,7 @@ class EllipsoidElement(ow_curved_element.CurvedElement):
             self.auto_slit_center_xaxis = round((self.dim_x_plus-self.dim_x_minus)/2, 3)
             self.auto_slit_center_zaxis = round((self.dim_y_plus-self.dim_y_minus)/2, 3)
 
-    def completeOperations(self, shadow_oe):
+    def manage_acceptance_slits(self, shadow_oe):
         if self.add_acceptance_slits==1:
             congruence.checkStrictlyPositiveNumber(self.auto_slit_width_xaxis, "Slit width/x-axis")
             congruence.checkStrictlyPositiveNumber(self.auto_slit_height_zaxis, "Slit height/z-axis")
@@ -146,6 +146,9 @@ class EllipsoidElement(ow_curved_element.CurvedElement):
                                      cx_slit,
                                      cz_slit,
                                      numpy.array(file_scr_ext))
+
+    def completeOperations(self, shadow_oe):
+        self.manage_acceptance_slits(shadow_oe)
 
         super(EllipsoidElement, self).completeOperations(shadow_oe)
 
