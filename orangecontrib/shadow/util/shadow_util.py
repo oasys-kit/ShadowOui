@@ -1330,10 +1330,15 @@ class ShadowPhysics:
         try:
             compoundData = xraylib.CompoundParser(material_name)
 
-            if compoundData["nElements"] == 1:
+            n_elements = compoundData["nElements"]
+            if n_elements == 1:
                 return xraylib.ElementDensity(compoundData["Elements"][0])
             else:
-                return 0.0
+                density = 0.0
+                mass_fractions = compoundData["massFractions"]
+                elements = compoundData["Elements"]
+                for i in range(n_elements): density += xraylib.ElementDensity(elements[i]) * mass_fractions[i]
+                return density
         except:
             return 0.0
 
