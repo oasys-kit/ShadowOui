@@ -222,7 +222,7 @@ class AbstractHybridScreen(AutomaticElement):
     def initializeTabs(self):
         self.tabs.clear()
 
-        if self.ghy_diff_plane < 2:
+        if self.ghy_diff_plane < 3:
             if self.ghy_nf == 1:
                 self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field"),
                             gui.createTabPage(self.tabs, "Distribution of Position at Image Plane"),
@@ -233,10 +233,10 @@ class AbstractHybridScreen(AutomaticElement):
                 self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field"),
                             gui.createTabPage(self.tabs, "Distribution of Position at Image Plane")
                             ]
-        elif self.ghy_diff_plane == 2:
-             self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field"),
-                        gui.createTabPage(self.tabs, "Distribution of Position at Image Plane")
-                        ]
+        #elif self.ghy_diff_plane == 2:
+        #     self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field"),
+        #                gui.createTabPage(self.tabs, "Distribution of Position at Image Plane")
+        #                ]
         elif self.ghy_diff_plane == 3:
             if self.ghy_nf == 1:
                 self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field (S)"),
@@ -360,7 +360,7 @@ class AbstractHybridScreen(AutomaticElement):
         self.le_nbins_x.setEnabled(self.ghy_diff_plane == 0 or self.ghy_diff_plane == 2)
         self.le_nbins_z.setEnabled(self.ghy_diff_plane == 1 or self.ghy_diff_plane == 2)
 
-        if self.ghy_calcType > 0 and self.ghy_calcType < 4 and self.ghy_diff_plane != 2:
+        if self.ghy_calcType in [1, 2, 3, 5, 6]:# and self.ghy_diff_plane != 2:
             self.cb_nf.setEnabled(True)
         else:
             self.cb_nf.setEnabled(False)
@@ -369,7 +369,7 @@ class AbstractHybridScreen(AutomaticElement):
         self.set_NF()
 
     def set_CalculationType(self):
-        if self.ghy_calcType > 0 and self.ghy_calcType < 4 and self.ghy_diff_plane != 2:
+        if self.ghy_calcType in [1, 2, 3, 5, 6]:# and self.ghy_diff_plane != 2:
             self.cb_nf.setEnabled(True)
         else:
             self.cb_nf.setEnabled(False)
@@ -495,7 +495,7 @@ class AbstractHybridScreen(AutomaticElement):
         pass
 
     def plot_results(self, calculation_parameters, input_parameters):
-        if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
+        if input_parameters.ghy_calcType in [3, 4, 6, 7]:
             do_plot_x = True
             do_plot_z = True
         else:
@@ -579,15 +579,31 @@ class AbstractHybridScreen(AutomaticElement):
 
         elif self.ghy_diff_plane == 2:
             if do_plot_x and do_plot_z:
-                if calculation_parameters.do_ff_x and calculation_parameters.do_ff_z:
-                    self.plot_xy_hybrid(88, calculation_parameters.dif_xpzp, plot_canvas_index=0, title="X',Z'",
-                                        xtitle="X' [$\mu$rad]", ytitle="Z' [$\mu$rad]", var1=4, var2=6)
-                else:
-                    self.plot_emtpy(88, 0)
+                if do_nf:
+                    if calculation_parameters.do_ff_x and calculation_parameters.do_ff_z:
+                        self.plot_xy_hybrid(84, calculation_parameters.dif_xpzp, plot_canvas_index=0, title="X',Z'",
+                                            xtitle="X' [$\mu$rad]", ytitle="Z' [$\mu$rad]", var1=4, var2=6)
+                    else:
+                        self.plot_emtpy(84, 0)
 
-                self.plot_xy(calculation_parameters.ff_beam, 96, 1, 3, plot_canvas_index=1, title="X,Z",
-                             xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"),
-                             yum=("Z [" + u"\u03BC" + "m]"))
+                    self.plot_xy(calculation_parameters.ff_beam, 88, 1, 3, plot_canvas_index=1, title="X,Z",
+                                 xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"),
+                                 yum=("Z [" + u"\u03BC" + "m]"))
+                    self.plot_xy_hybrid(92, calculation_parameters.dif_xz, plot_canvas_index=2, title="X,Z",
+                                        xtitle="X [$\mu$m]", ytitle="Z [$\mu$m]", var1=0, var2=2)
+                    self.plot_xy(calculation_parameters.nf_beam, 96, 1, 3, plot_canvas_index=3, title="X,Z",
+                                 xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"),
+                                 yum=("Z [" + u"\u03BC" + "m]"))
+                else:
+                    if calculation_parameters.do_ff_x and calculation_parameters.do_ff_z:
+                        self.plot_xy_hybrid(88, calculation_parameters.dif_xpzp, plot_canvas_index=0, title="X',Z'",
+                                            xtitle="X' [$\mu$rad]", ytitle="Z' [$\mu$rad]", var1=4, var2=6)
+                    else:
+                        self.plot_emtpy(88, 0)
+
+                    self.plot_xy(calculation_parameters.ff_beam, 96, 1, 3, plot_canvas_index=1, title="X,Z",
+                                 xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"),
+                                 yum=("Z [" + u"\u03BC" + "m]"))
 
             else:
                 if do_plot_x:
@@ -745,7 +761,8 @@ class HybridScreen(AbstractHybridScreen):
             if not thickness_error_profile_data_files is None:
                 self.convert_thickness_error_files(thickness_error_profile_data_files)
 
-                if self.ghy_calcType==5: self.refresh_files_text_area()
+                if self.ghy_calcType == 6 and len(thickness_error_profile_data_files) > 1: raise ValueError("Only 1 Thickness Error Profile is necessary")
+                if self.ghy_calcType in [5, 6]: self.refresh_files_text_area()
         except Exception as exception:
             QMessageBox.critical(self, "Error",
                                  exception.args[0],
@@ -777,7 +794,8 @@ class HybridScreen(AbstractHybridScreen):
                 "Diffraction by Mirror Size + Figure Errors",
                 "Diffraction by Grating Size + Figure Errors",
                 "Diffraction by Lens/C.R.L./Transf. Size",
-                "Diffraction by Lens/C.R.L./Transf. Size + Thickness Errors"]
+                "Diffraction by Lens/C.R.L./Transf. Size + Thickness Errors",
+                "Window + Thickness Error"]
 
     def refresh_files_text_area(self):
         text = ""
@@ -793,7 +811,7 @@ class HybridScreen(AbstractHybridScreen):
         if self.tabs_setting.count()==3:
             self.tabs_setting.removeTab(2)
 
-        if self.ghy_calcType == 5:
+        if self.ghy_calcType in [5, 6]:
             self.createTabThickness()
             self.ghy_diff_plane = 2
             self.set_DiffPlane()
@@ -830,19 +848,19 @@ class HybridScreen(AbstractHybridScreen):
         self.input_box_2.setVisible(self.crl_material_data==1)
 
     def add_input_parameters_aux(self, input_parameters):
-        input_parameters.crl_material = None
-        input_parameters.crl_delta = None
-        input_parameters.crl_error_profiles = None
+        input_parameters.absorber_material = None
+        input_parameters.absorber_delta = None
+        input_parameters.absorber_error_profiles = None
 
-        if self.ghy_calcType==5:
+        if self.ghy_calcType in [5, 6]:
             self.check_fields_aux()
 
             input_parameters.absorber_error_profiles = self.crl_error_profiles
 
-            if self.crl_material_data==0: input_parameters.crl_material = self.crl_material
-            else: input_parameters.crl_delta = self.crl_delta
+            if self.crl_material_data==0: input_parameters.absorber_material = self.crl_material
+            else: input_parameters.absorber_delta = self.crl_delta
 
-            input_parameters.crl_scaling_factor = self.crl_scaling_factor
+            input_parameters.absorber_scaling_factor = self.crl_scaling_factor
 
     def check_fields_aux(self):
         if len(self.crl_error_profiles) == 0: raise ValueError("No Thickness error profile specified")

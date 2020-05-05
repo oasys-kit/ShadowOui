@@ -55,10 +55,10 @@ class HybridInputParameters(object):
 
     ghy_automatic = 1
 
-    crl_error_profiles = None
-    crl_material = None
-    crl_delta = None
-    crl_scaling_factor = 1.0
+    absorber_error_profiles = None
+    absorber_material = None
+    absorber_delta = None
+    absorber_scaling_factor = 1.0
 
     def __init__(self):
         super().__init__()
@@ -147,7 +147,7 @@ class HybridCalculationParameters(object):
     xx_image_nf = None
     zz_image_nf = None
 
-    crl_delta = None
+    absorber_delta = None
 
 ##########################################################################
 
@@ -262,18 +262,26 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
         if not ("Lens" in widget_class_name or "CRL" in widget_class_name or "Transfocator"):
             raise Exception("CRL calculation runs for Lens, CRLs or Transfocators widgets only")
 
-    if input_parameters.ghy_n_oe < 0:
-        beam_before = history_entry._input_beam.duplicate()
+    if input_parameters.ghy_calcType == 7:
+        if not ("ScreenSlits" in widget_class_name):
+            raise Exception("Windows calculation runs for Screen-Slits widgets only")
         oe_before = history_entry._shadow_oe_start.duplicate()
 
-        number_of_good_rays_before =  len(beam_before._beam.rays[numpy.where(beam_before._beam.rays[:, 9] == 1)])
-        number_of_good_rays_after = len(beam_after._beam.rays[numpy.where(beam_after._beam.rays[:, 9] == 1)])
+        if not (oe_before._oe.I_ABS[0] == 1 and oe_before._oe.I_SLIT[0] == 0):
+            raise Exception("Windows calculation runs for Screen-Slits with no Aperturing and with Absorption")
+
+    if input_parameters.ghy_n_oe < 0:
+        beam_before = history_entry._input_beam.duplicate()
+        oe_before   = history_entry._shadow_oe_start.duplicate()
+
+        number_of_good_rays_before = len(beam_before._beam.rays[numpy.where(beam_before._beam.rays[:, 9] == 1)])
+        number_of_good_rays_after  = len(beam_after._beam.rays[numpy.where(beam_after._beam.rays[:, 9] == 1)])
 
         if number_of_good_rays_before == number_of_good_rays_after:
             calculation_parameters.beam_not_cut_in_x = True
             calculation_parameters.beam_not_cut_in_z = True
 
-            if (not input_parameters.ghy_calcType in [3, 4, 6]) and input_parameters.ghy_automatic == 1:
+            if (not input_parameters.ghy_calcType in [3, 4, 6, 7]) and input_parameters.ghy_automatic == 1:
                 calculation_parameters.ff_beam = input_parameters.shadow_beam
 
                 raise HybridNotNecessaryWarning("O.E. contains the whole beam, diffraction effects are not expected:\nCalculation aborted, beam remains unaltered")
@@ -320,7 +328,8 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
 
                     ticket_tangential = beam_at_the_slit._beam.histo1(3, nbins=500, nolost=1, ref=23)
                     ticket_sagittal = beam_at_the_slit._beam.histo1(1, nbins=500, nolost=1, ref=23)
-
+            elif input_parameters.ghy_calcType == 7: # Windows
+                is_infinite = True
             elif input_parameters.ghy_calcType in [2, 3, 4]: # MIRRORS/GRATINGS
                 if oe_before._oe.FHIT_C == 0: #infinite
                     is_infinite = True
@@ -400,7 +409,7 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
 
             # REQUEST FILTERING OR REFUSING
 
-            if  not input_parameters.ghy_calcType in [3, 4, 6]: # no figure/thickness errors
+            if not input_parameters.ghy_calcType in [3, 4, 6, 7]: # no figure/thickness errors
                 if input_parameters.ghy_automatic == 1:
                     if input_parameters.ghy_diff_plane == 1 and calculation_parameters.beam_not_cut_in_x :
                         calculation_parameters.ff_beam = input_parameters.original_shadow_beam
@@ -510,8 +519,8 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
 
         n_screen     = shadow_oe._oe.N_SCREEN + 1
         i_screen     = shadow_oe._oe.I_SCREEN
-        sl_dis       = shadow_oe._oe.I_ABS
-        i_abs        = shadow_oe._oe.SL_DIS
+        sl_dis       = shadow_oe._oe.SL_DIS
+        i_abs        = shadow_oe._oe.I_ABS
         i_slit       = shadow_oe._oe.I_SLIT
         i_stop       = shadow_oe._oe.I_STOP      
         k_slit       = shadow_oe._oe.K_SLIT      
@@ -552,36 +561,37 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         cx_slit = numpy.zeros(10)
         cz_slit = numpy.zeros(10)
         
-        index = 0
+        #index = 0
 
     fileShadowScreen = "screen." + str_n_oe + ("0" + str(n_screen)) if n_screen < 10 else "10"
 
-    if input_parameters.ghy_calcType in [1, 5, 6]: # simple aperture or CRLs
-        if (shadow_oe._oe.FMIRR == 5 and \
+    if input_parameters.ghy_calcType in [1, 5, 6, 7]: # simple aperture or CRLs
+        if not (shadow_oe._oe.FMIRR == 5 and \
             shadow_oe._oe.F_CRYSTAL == 0 and \
             shadow_oe._oe.F_REFRAC == 2 and \
-            shadow_oe._oe.F_SCREEN==1 and \
-            shadow_oe._oe.N_SCREEN==1):
+            shadow_oe._oe.F_SCREEN == 1 and \
+            shadow_oe._oe.N_SCREEN == 1):
+            '''
+            i_abs[1] = shadow_oe._oe.I_ABS[0]
+            i_slit[1] = shadow_oe._oe.I_SLIT[0]
 
-            i_abs[index] = shadow_oe._oe.I_ABS[index]
-            i_slit[index] = shadow_oe._oe.I_SLIT[index]
+            if shadow_oe._oe.I_SLIT[index-1] == 1:
+                i_stop[1] = shadow_oe._oe.I_STOP[0]
+                k_slit[1] = shadow_oe._oe.K_SLIT[0]
 
-            if shadow_oe._oe.I_SLIT[index] == 1:
-                i_stop[index] = shadow_oe._oe.I_STOP[index]
-                k_slit[index] = shadow_oe._oe.K_SLIT[index]
-
-                if shadow_oe._oe.K_SLIT[index] == 2:
-                    file_scr_ext[index] = shadow_oe._oe.FILE_SCR_EXT[index]
+                if shadow_oe._oe.K_SLIT[0] == 2:
+                    file_scr_ext[index] = shadow_oe._oe.FILE_SCR_EXT[0]
                 else:
-                    rx_slit[index] = shadow_oe._oe.RX_SLIT[index]
-                    rz_slit[index] = shadow_oe._oe.RZ_SLIT[index]
-                    cx_slit[index] = shadow_oe._oe.CX_SLIT[index]
-                    cz_slit[index] = shadow_oe._oe.CZ_SLIT[index]
+                    rx_slit[1] = shadow_oe._oe.RX_SLIT[0]
+                    rz_slit[1] = shadow_oe._oe.RZ_SLIT[0]
+                    cx_slit[1] = shadow_oe._oe.CX_SLIT[0]
+                    cz_slit[1] = shadow_oe._oe.CZ_SLIT[0]
 
-            if shadow_oe._oe.I_ABS[index] == 1:
-                thick[index] = shadow_oe._oe.THICK[index]
-                file_abs[index] = shadow_oe._oe.FILE_ABS[index]
+            if shadow_oe._oe.I_ABS[0] == 1:
+                thick[1] = shadow_oe._oe.THICK[0]
+                file_abs[1] = shadow_oe._oe.FILE_ABS[0]
         else:
+            '''
             raise Exception("Connected O.E. is not a Screen-Slit or CRL widget!")
     elif input_parameters.ghy_calcType == 2: # ADDED BY XIANBO SHI
         shadow_oe._oe.F_RIPPLE = 0
@@ -720,8 +730,8 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
             calculation_parameters.wangle_z     = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.angle_inc, hy_npoly_angle))
             calculation_parameters.wl_z         = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.yy_mirr, hy_npoly_l))
             if input_parameters.ghy_calcType == 4: calculation_parameters.wangle_ref_z = numpy.poly1d(numpy.polyfit(calculation_parameters.zz_screen, calculation_parameters.angle_ref, hy_npoly_angle))
-    elif input_parameters.ghy_calcType == 6:
-        calculation_parameters.w_mirr_2D_values = [h5_readsurface(thickness_error_file) for thickness_error_file in input_parameters.crl_error_profiles]
+    elif input_parameters.ghy_calcType in [6, 7]:
+        calculation_parameters.w_mirr_2D_values = [h5_readsurface(thickness_error_file) for thickness_error_file in input_parameters.absorber_error_profiles]
 
 ##########################################################################
 
@@ -862,18 +872,18 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
 
     calculation_parameters.gknum = 2.0*numpy.pi/calculation_parameters.gwavelength #in [user-unit]^-1, wavenumber
 
-    if input_parameters.ghy_calcType == 6:
-        if input_parameters.crl_delta is None:
-            calculation_parameters.crl_delta = get_delta(input_parameters, calculation_parameters)
+    if input_parameters.ghy_calcType in [6, 7]:
+        if input_parameters.absorber_delta is None:
+            calculation_parameters.absorber_delta = get_delta(input_parameters, calculation_parameters)
         else:
-            calculation_parameters.crl_delta = input_parameters.crl_delta
+            calculation_parameters.absorber_delta = input_parameters.absorber_delta
 
 ##########################################################################
 
 def hy_prop(input_parameters=HybridInputParameters(), calculation_parameters=HybridCalculationParameters()):
 
     # set distance and focal length for the aperture propagation.
-    if input_parameters.ghy_calcType in [1, 5, 6]: # simple aperture
+    if input_parameters.ghy_calcType in [1, 5, 6, 7]: # simple aperture
         if input_parameters.ghy_diff_plane == 1: # X
             calculation_parameters.ghy_focallength = (calculation_parameters.ghy_x_max-calculation_parameters.ghy_x_min)**2/calculation_parameters.gwavelength/input_parameters.ghy_npeak
         elif input_parameters.ghy_diff_plane == 2: # Z
@@ -958,6 +968,17 @@ def hy_conv(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
 
             calculation_parameters.zz_image_ff = calculation_parameters.zz_screen + input_parameters.ghy_distance*numpy.tan(dz_conv) # ray tracing to the image plane
             calculation_parameters.dz_conv = dz_conv
+
+        if input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1:
+            s2d = Sampler2D(calculation_parameters.dif_xz.z_values,
+                            calculation_parameters.dif_xz.x_coord,
+                            calculation_parameters.dif_xz.y_coord)
+
+            pos_dif_x, pos_dif_z = s2d.get_n_sampled_points(len(calculation_parameters.zp_screen))
+
+            calculation_parameters.xx_image_nf = pos_dif_x + calculation_parameters.xx_focal_ray
+            calculation_parameters.zz_image_nf = pos_dif_z + calculation_parameters.zz_focal_ray
+
     elif input_parameters.ghy_diff_plane == 4: #2D - x then Z
         pass
 #########################################################################
@@ -1025,6 +1046,10 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
             calculation_parameters.ff_beam = ShadowBeam.mergeBeams(calculation_parameters.ff_beam, calculation_parameters.image_plane_beam_lost)
         else:
             calculation_parameters.ff_beam = input_parameters.original_shadow_beam
+
+        if do_nf:
+            calculation_parameters.nf_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)
+            calculation_parameters.nf_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)
 
     if do_nf: calculation_parameters.nf_beam = ShadowBeam.mergeBeams(calculation_parameters.nf_beam, calculation_parameters.image_plane_beam_lost)
 
@@ -1457,12 +1482,27 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
 
         input_parameters.widget.set_progress_bar(80)
 
-
 ##########################################################################
 # 2D PROPAGATION ALGORITHM
 ##########################################################################
 
+def getTransmittance(thickness, alpha, input_parameters):
+    return numpy.exp(-alpha * thickness * input_parameters.widget.workspace_units_to_m * 100)
+
+def getLinearAbsorptionCoefficient(chemical_formula, wavelength):
+    mu = xraylib.CS_Total_CP(chemical_formula, ShadowPhysics.getEnergyFromWavelength(wavelength)/1000) # energy in KeV
+    rho = ShadowPhysics.getMaterialDensity(chemical_formula)
+
+    return mu*rho
+
+#TODO: Implement 2D NF calculation
+
 def propagate_2D(calculation_parameters, input_parameters):
+    do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
+
+    scale_factor_x = 1.0
+    scale_factor_z = 1.0
+
     shadow_oe = calculation_parameters.shadow_oe_end
 
     if calculation_parameters.do_ff_z and calculation_parameters.do_ff_x:
@@ -1488,6 +1528,23 @@ def propagate_2D(calculation_parameters, input_parameters):
 
             input_parameters.widget.status_message("Using RMS slope = " + str(rms_slope))
 
+            average_incident_angle = numpy.radians(90 - calculation_parameters.shadow_oe_end._oe.T_INCIDENCE) * 1e3
+            average_reflection_angle = numpy.radians(90 - calculation_parameters.shadow_oe_end._oe.T_REFLECTION) * 1e3
+
+            if calculation_parameters.beam_not_cut_in_x:
+                dp_image = numpy.std(calculation_parameters.xx_focal_ray) / input_parameters.ghy_focallength
+                dp_se = 2 * rms_slope * numpy.sin(average_incident_angle / 1e3)  # different in x and z
+                dp_error = calculation_parameters.gwavelength / 2 / (calculation_parameters.ghy_x_max - calculation_parameters.ghy_x_min)
+
+                scale_factor_x = max(1, 5 * min(dp_error / dp_image, dp_error / dp_se))
+
+            if calculation_parameters.beam_not_cut_in_z:
+                dp_image = numpy.std(calculation_parameters.zz_focal_ray) / input_parameters.ghy_focallength
+                dp_se = 2 * rms_slope  # different in x and z
+                dp_error = calculation_parameters.gwavelength / 2 / (calculation_parameters.ghy_z_max - calculation_parameters.ghy_z_min)
+
+                scale_factor_z = max(1, 5 * min(dp_error / dp_image, dp_error / dp_se))
+
         # ------------------------------------------
         # far field calculation
         # ------------------------------------------
@@ -1505,35 +1562,48 @@ def propagate_2D(calculation_parameters, input_parameters):
 
         input_parameters.widget.status_message("FF: calculated focal length: " + str(focallength_ff))
 
-        fftsize_x = int(calculate_fft_size(calculation_parameters.ghy_x_min,
-                                           calculation_parameters.ghy_x_max,
-                                           calculation_parameters.gwavelength,
-                                           focallength_ff,
-                                           input_parameters.ghy_fftnpts,
-                                           factor=20))
+        fftsize_x = int(scale_factor_x*calculate_fft_size(calculation_parameters.ghy_x_min,
+                                                          calculation_parameters.ghy_x_max,
+                                                          calculation_parameters.gwavelength,
+                                                          focallength_ff,
+                                                          input_parameters.ghy_fftnpts,
+                                                          factor=20))
 
-        fftsize_z = int(calculate_fft_size(calculation_parameters.ghy_z_min,
-                                        calculation_parameters.ghy_z_max,
-                                        calculation_parameters.gwavelength,
-                                        focallength_ff,
-                                        input_parameters.ghy_fftnpts,
-                                        factor=20))
+        fftsize_z = int(scale_factor_z*calculate_fft_size(calculation_parameters.ghy_z_min,
+                                                          calculation_parameters.ghy_z_max,
+                                                          calculation_parameters.gwavelength,
+                                                          focallength_ff,
+                                                          input_parameters.ghy_fftnpts,
+                                                          factor=20))
 
-        input_parameters.widget.set_progress_bar(30)
+        if do_nf: input_parameters.widget.set_progress_bar(27)
+        else: input_parameters.widget.set_progress_bar(30)
         input_parameters.widget.status_message("FF: creating plane wave begin, fftsize_x = " +  str(fftsize_x) + ", fftsize_z = " +  str(fftsize_z))
 
         wavefront = Wavefront2D.initialize_wavefront_from_range(wavelength=calculation_parameters.gwavelength,
                                                                 number_of_points=(fftsize_x, fftsize_z),
-                                                                x_min=calculation_parameters.ghy_x_min,
-                                                                x_max=calculation_parameters.ghy_x_max,
-                                                                y_min=calculation_parameters.ghy_z_min,
-                                                                y_max=calculation_parameters.ghy_z_max)
+                                                                x_min=scale_factor_x * calculation_parameters.ghy_x_min,
+                                                                x_max=scale_factor_x * calculation_parameters.ghy_x_max,
+                                                                y_min=scale_factor_z * calculation_parameters.ghy_z_min,
+                                                                y_max=scale_factor_z * calculation_parameters.ghy_z_max)
+
+        if input_parameters.ghy_calcType in [6, 7]:
+            alpha = getLinearAbsorptionCoefficient(input_parameters.absorber_material, calculation_parameters.gwavelength)
 
         try:
             for i in range(0, len(wavefront.electric_field_array.x_coord)):
                 for j in range(0, len(wavefront.electric_field_array.y_coord)):
                     interpolated = calculation_parameters.wIray_2d.interpolate_value(wavefront.electric_field_array.x_coord[i],
                                                                                      wavefront.electric_field_array.y_coord[j])
+
+                    if input_parameters.ghy_calcType in [6, 7]:
+                        for w_mirr_2D_values in calculation_parameters.w_mirr_2D_values:
+                            transmittance = getTransmittance(w_mirr_2D_values.interpolate_value(wavefront.electric_field_array.x_coord[i],
+                                                                                                wavefront.electric_field_array.y_coord[j]),
+                                                             alpha,
+                                                             input_parameters)
+                            interpolated *= transmittance
+
                     wavefront.electric_field_array.set_z_value(i, j, numpy.sqrt(0.0 if interpolated < 0 else interpolated))
         except IndexError:
             raise Exception("Unexpected Error during interpolation: try reduce Number of bins for I(Tangential) histogram")
@@ -1580,22 +1650,24 @@ def propagate_2D(calculation_parameters, input_parameters):
                                                                  calculation_parameters.wl_z,
                                                                  global_phase_shift_profile_z)
             wavefront.add_phase_shifts(phase_shifts)
-        elif input_parameters.ghy_calcType == 6:
+        elif input_parameters.ghy_calcType in [6, 7]:
             for w_mirr_2D_values in calculation_parameters.w_mirr_2D_values:
-                phase_shift = get_crl_phase_shift(w_mirr_2D_values,
-                                                  input_parameters,
-                                                  calculation_parameters,
-                                                  [wavefront.get_coordinate_x(), wavefront.get_coordinate_y()])
+                phase_shift = get_absorber_phase_shift(w_mirr_2D_values,
+                                                       input_parameters,
+                                                       calculation_parameters,
+                                                       [wavefront.get_coordinate_x(), wavefront.get_coordinate_y()])
 
                 wavefront.add_phase_shift(phase_shift)
 
-        input_parameters.widget.set_progress_bar(50)
+        if do_nf: input_parameters.widget.set_progress_bar(35)
+        else: input_parameters.widget.set_progress_bar(50)
         input_parameters.widget.status_message("calculated plane wave: begin FF propagation (distance = " +  str(focallength_ff) + ")")
 
         propagated_wavefront = propagator2D.propagate_2D_fresnel(wavefront, focallength_ff)
 
-        input_parameters.widget.set_progress_bar(70)
-        input_parameters.widget.status_message("dif_zp: begin calculation")
+        if do_nf: input_parameters.widget.set_progress_bar(50)
+        else: input_parameters.widget.set_progress_bar(70)
+        input_parameters.widget.status_message("dif_xpzp: begin calculation")
 
         imagesize_x = min(abs(calculation_parameters.ghy_x_max), abs(calculation_parameters.ghy_x_min)) * 2
         imagesize_x = min(imagesize_x,
@@ -1642,7 +1714,161 @@ def propagate_2D(calculation_parameters, input_parameters):
 
         calculation_parameters.dif_xpzp = dif_xpzp
 
-    input_parameters.widget.set_progress_bar(80)
+    if not do_nf: input_parameters.widget.set_progress_bar(80)
+
+    # ------------------------------------------
+    # near field calculation
+    # ------------------------------------------
+    if input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1:
+        focallength_nf = input_parameters.ghy_focallength
+
+        fftsize_x = int(scale_factor_x * calculate_fft_size(calculation_parameters.ghy_x_min,
+                                                            calculation_parameters.ghy_x_max,
+                                                            calculation_parameters.gwavelength,
+                                                            numpy.abs(focallength_nf),
+                                                            input_parameters.ghy_fftnpts))
+
+        fftsize_z = int(scale_factor_z * calculate_fft_size(calculation_parameters.ghy_z_min,
+                                                            calculation_parameters.ghy_z_max,
+                                                            calculation_parameters.gwavelength,
+                                                            numpy.abs(focallength_nf),
+                                                            input_parameters.ghy_fftnpts))
+
+        input_parameters.widget.status_message("NF: creating plane wave begin, fftsize_x = " + str(fftsize_x) + ", fftsize_z = " +  str(fftsize_z))
+        input_parameters.widget.set_progress_bar(55)
+
+        wavefront = Wavefront2D.initialize_wavefront_from_range(wavelength=calculation_parameters.gwavelength,
+                                                                number_of_points=(fftsize_x, fftsize_z),
+                                                                x_min=scale_factor_x * calculation_parameters.ghy_x_min,
+                                                                x_max=scale_factor_x * calculation_parameters.ghy_x_max,
+                                                                y_min=scale_factor_z * calculation_parameters.ghy_z_min,
+                                                                y_max=scale_factor_z * calculation_parameters.ghy_z_max)
+
+        if input_parameters.ghy_calcType in [6, 7]:
+            alpha = getLinearAbsorptionCoefficient(input_parameters.absorber_material, calculation_parameters.gwavelength)
+
+        try:
+            for i in range(0, len(wavefront.electric_field_array.x_coord)):
+                for j in range(0, len(wavefront.electric_field_array.y_coord)):
+                    interpolated = calculation_parameters.wIray_2d.interpolate_value(wavefront.electric_field_array.x_coord[i],
+                                                                                     wavefront.electric_field_array.y_coord[j])
+
+                    if input_parameters.ghy_calcType in [6, 7]:
+                        for w_mirr_2D_values in calculation_parameters.w_mirr_2D_values:
+                            transmittance = getTransmittance(w_mirr_2D_values.interpolate_value(wavefront.electric_field_array.x_coord[i],
+                                                                                                wavefront.electric_field_array.y_coord[j]),
+                                                             alpha,
+                                                             input_parameters)
+                            interpolated *= transmittance
+
+                    wavefront.electric_field_array.set_z_value(i, j, numpy.sqrt(0.0 if interpolated < 0 else interpolated))
+        except IndexError:
+            raise Exception("Unexpected Error during interpolation: try reduce Number of bins for I(Tangential) histogram")
+
+        wavefront.apply_ideal_lens(focallength_nf, focallength_nf)
+
+        if input_parameters.ghy_calcType == 3 or \
+                (input_parameters.ghy_calcType == 2 and not global_phase_shift_profile is None):
+            input_parameters.widget.status_message("NF: calculating phase shift due to Height Error Profile")
+
+            phase_shifts = numpy.zeros(wavefront.size())
+
+            for index in range(0, phase_shifts.shape[0]):
+                np_array = numpy.zeros(global_phase_shift_profile.shape()[1])
+                for j in range(0, len(np_array)):
+                    np_array[j] = global_phase_shift_profile.interpolate_value(wavefront.get_coordinate_x()[index], calculation_parameters.w_mirr_2D_values.get_y_value(j))
+
+                global_phase_shift_profile_z = ScaledArray.initialize_from_steps(np_array,
+                                                                                 global_phase_shift_profile.y_coord[0],
+                                                                                 global_phase_shift_profile.y_coord[1] - global_phase_shift_profile.y_coord[0])
+
+                phase_shifts[index, :] = get_mirror_phase_shift(wavefront.get_coordinate_y(),
+                                                                calculation_parameters.gwavelength,
+                                                                calculation_parameters.wangle_z,
+                                                                calculation_parameters.wl_z,
+                                                                global_phase_shift_profile_z)
+            wavefront.add_phase_shifts(phase_shifts)
+        elif input_parameters.ghy_calcType == 4:
+            input_parameters.widget.status_message("NF: calculating phase shift due to Height Error Profile")
+
+            phase_shifts = numpy.zeros(wavefront.size())
+
+            for index in range(0, phase_shifts.shape[0]):
+                global_phase_shift_profile_z = ScaledArray.initialize_from_steps(global_phase_shift_profile.z_values[index, :],
+                                                                                 global_phase_shift_profile.y_coord[0],
+                                                                                 global_phase_shift_profile.y_coord[1] - global_phase_shift_profile.y_coord[0])
+
+                phase_shifts[index, :] = get_grating_phase_shift(wavefront.get_coordinate_y(),
+                                                                 calculation_parameters.gwavelength,
+                                                                 calculation_parameters.wangle_z,
+                                                                 calculation_parameters.wangle_ref_z,
+                                                                 calculation_parameters.wl_z,
+                                                                 global_phase_shift_profile_z)
+            wavefront.add_phase_shifts(phase_shifts)
+        elif input_parameters.ghy_calcType in [6, 7]:
+            for w_mirr_2D_values in calculation_parameters.w_mirr_2D_values:
+                phase_shift = get_absorber_phase_shift(w_mirr_2D_values,
+                                                       input_parameters,
+                                                       calculation_parameters,
+                                                       [wavefront.get_coordinate_x(), wavefront.get_coordinate_y()])
+
+                wavefront.add_phase_shift(phase_shift)
+
+        input_parameters.widget.status_message("calculated plane wave: begin NF propagation (distance = " +  str(focallength_nf) + ")")
+
+        propagated_wavefront = propagator2D.propagate_2D_fresnel(wavefront, focallength_nf)
+
+        if do_nf: input_parameters.widget.set_progress_bar(50)
+        else: input_parameters.widget.set_progress_bar(70)
+
+        # ghy_npeak in the wavefront propagation image
+        delta_x = propagated_wavefront.delta()[0]
+        imagesize_x = (input_parameters.ghy_npeak * 2 * 0.88 * calculation_parameters.gwavelength * numpy.abs(focallength_nf) / abs(calculation_parameters.ghy_x_max - calculation_parameters.ghy_x_min))
+        imagesize_x= max(imagesize_x,
+                        2 * abs((calculation_parameters.ghy_x_max - calculation_parameters.ghy_x_min) * (input_parameters.ghy_distance - numpy.abs(focallength_nf))) / numpy.abs(focallength_nf))
+
+        if input_parameters.ghy_calcType == 3:
+            imagesize_x = max(imagesize_x,
+                            16 * rms_slope * numpy.abs(focallength_nf) * numpy.sin(average_incident_angle / 1e3))
+        elif input_parameters.ghy_calcType == 4:
+            imagesize_x = max(imagesize_x,
+                            8 * rms_slope * numpy.abs(focallength_nf) * (numpy.sin(average_incident_angle / 1e3) + numpy.sin(average_reflection_angle / 1e3)))
+
+        # TODO: this is a patch: to be rewritten
+        if shadow_oe._oe.F_MOVE==1 and not shadow_oe._oe.Y_ROT==0:
+            imagesize_x = max(imagesize_x, 8*(input_parameters.ghy_distance*numpy.tan(numpy.radians(numpy.abs(shadow_oe._oe.Y_ROT))) + numpy.abs(shadow_oe._oe.OFFX)))
+
+        imagenpts_x = int(round(imagesize_x / delta_x / 2) * 2 + 1)
+
+        delta_z = propagated_wavefront.delta()[1]
+        imagesize_z = (input_parameters.ghy_npeak * 2 * 0.88 * calculation_parameters.gwavelength * numpy.abs(focallength_nf) / abs(calculation_parameters.ghy_z_max - calculation_parameters.ghy_z_min))
+        imagesize_z = max(imagesize_z,
+                        2 * abs((calculation_parameters.ghy_z_max - calculation_parameters.ghy_z_min) * (input_parameters.ghy_distance - numpy.abs(focallength_nf))) / numpy.abs(focallength_nf))
+
+        if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
+            imagesize_z = max(imagesize_z, 16 * rms_slope * numpy.abs(focallength_nf))
+
+        # TODO: this is a patch: to be rewritten
+        if shadow_oe._oe.F_MOVE==1 and not shadow_oe._oe.X_ROT==0:
+            imagesize_z = max(imagesize_z, 8*(input_parameters.ghy_distance*numpy.tan(numpy.radians(numpy.abs(shadow_oe._oe.X_ROT))) + numpy.abs(shadow_oe._oe.OFFZ)))
+
+        imagenpts_z = int(round(imagesize_z / delta_z / 2) * 2 + 1)
+
+        input_parameters.widget.status_message("dif_xz: begin calculation")
+
+        dif_xz = ScaledMatrix.initialize_from_range(numpy.ones((imagenpts_x, imagenpts_z)),
+                                                    min_scale_value_x = -(imagenpts_x - 1) / 2 * delta_x,
+                                                    max_scale_value_x =(imagenpts_x - 1) / 2 * delta_x,
+                                                    min_scale_value_y = -(imagenpts_z - 1) / 2 * delta_z,
+                                                    max_scale_value_y =(imagenpts_z - 1) / 2 * delta_z)
+
+        for i in range(0, dif_xz.shape()[0]):
+            for j in range(0, dif_xz.shape()[1]):
+                dif_xz.set_z_value(i, j, numpy.absolute(propagated_wavefront.get_interpolated_complex_amplitude(dif_xz.x_coord[i], dif_xz.y_coord[j]))**2)
+
+        calculation_parameters.dif_xz = dif_xz
+
+        input_parameters.widget.set_progress_bar(80)
 
 #########################################################
 #
@@ -1655,10 +1881,10 @@ def sh_read_gfile(gfilename):
 
 
 def get_delta(input_parameters, calculation_parameters):
-    density = xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(input_parameters.crl_material))
+    density = xraylib.ElementDensity(xraylib.SymbolToAtomicNumber(input_parameters.absorber_material))
 
     energy_in_KeV = ShadowPhysics.getEnergyFromWavelength(calculation_parameters.gwavelength*input_parameters.widget.workspace_units_to_m*1e10)/1000
-    delta = 1-xraylib.Refractive_Index_Re(input_parameters.crl_material, energy_in_KeV, density)
+    delta = 1-xraylib.Refractive_Index_Re(input_parameters.absorber_material, energy_in_KeV, density)
 
     return delta
 
@@ -1790,7 +2016,7 @@ def get_grating_phase_shift(abscissas,
     return (-1.0) * 2 * numpy.pi / wavelength * (numpy.sin(w_angle_function(abscissas)/1e3) + numpy.sin(w_angle_ref_function(abscissas)/1e3)) * grating_profile.interpolate_values(w_l_function(abscissas))
 
 
-def get_crl_phase_shift(thickness_error_profile, input_parameters, calculation_parameters, coordinates):
+def get_absorber_phase_shift(thickness_error_profile, input_parameters, calculation_parameters, coordinates):
     coord_x = thickness_error_profile.x_coord
     coord_y = thickness_error_profile.y_coord
     thickness_error = thickness_error_profile.z_values
@@ -1802,9 +2028,9 @@ def get_crl_phase_shift(thickness_error_profile, input_parameters, calculation_p
 
     thickness_error = interpolator(wavefront_coord_x, wavefront_coord_y)
     thickness_error[numpy.where(thickness_error==numpy.nan)] = 0.0
-    thickness_error *= input_parameters.crl_scaling_factor
+    thickness_error *= input_parameters.absorber_scaling_factor
 
-    return -2*numpy.pi*calculation_parameters.crl_delta*thickness_error/calculation_parameters.gwavelength
+    return -2 * numpy.pi * calculation_parameters.absorber_delta * thickness_error / calculation_parameters.gwavelength
 
 
 def showConfirmMessage(title, message):
