@@ -488,12 +488,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         if not self.graphical_options.is_ideal_lens:
             tabs_advanced_setting = oasysgui.tabWidget(tab_adv)
 
-            if not (self.graphical_options.is_empty or graphical_options.is_screen_slit):
+            if not (self.graphical_options.is_empty or self.graphical_options.is_screen_slit):
                 tab_adv_mod_surf = oasysgui.createTabPage(tabs_advanced_setting, "Modified Surface")
-            tab_adv_mir_mov = oasysgui.createTabPage(tabs_advanced_setting, "O.E. Movement")
-            tab_adv_sou_mov = oasysgui.createTabPage(tabs_advanced_setting, "Source Movement")
-            tab_adv_misc = oasysgui.createTabPage(tabs_advanced_setting, "Output Files")
-
 
             ##########################################
             #
@@ -501,24 +497,27 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             #
             ##########################################
 
-            mir_mov_box = oasysgui.widgetBox(tab_adv_mir_mov, "O.E. Movement Parameters", addSpace=False, orientation="vertical", height=230)
+            if not (self.graphical_options.is_empty or self.graphical_options.is_screen_slit):
+                tab_adv_mir_mov = oasysgui.createTabPage(tabs_advanced_setting, "O.E. Movement")
 
-            gui.comboBox(mir_mov_box, self, "mirror_movement", label="O.E. Movement", labelWidth=350,
-                         items=["No", "Yes"],
-                         callback=self.set_MirrorMovement, sendSelectedValue=False, orientation="horizontal")
+                mir_mov_box = oasysgui.widgetBox(tab_adv_mir_mov, "O.E. Movement Parameters", addSpace=False, orientation="vertical", height=230)
 
-            gui.separator(mir_mov_box, height=10)
+                gui.comboBox(mir_mov_box, self, "mirror_movement", label="O.E. Movement", labelWidth=350,
+                             items=["No", "Yes"],
+                             callback=self.set_MirrorMovement, sendSelectedValue=False, orientation="horizontal")
 
-            self.mir_mov_box_1 = oasysgui.widgetBox(mir_mov_box, "", addSpace=False, orientation="vertical")
+                gui.separator(mir_mov_box, height=10)
 
-            self.le_mm_mirror_offset_x = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_x", "O.E. Offset X", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_x", "O.E. Rotation X [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
-            self.le_mm_mirror_offset_y = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_y", "O.E. Offset Y", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_y", "O.E. Rotation Y [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
-            self.le_mm_mirror_offset_z = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_z", "O.E. Offset Z", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_z", "O.E. Rotation Z [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
+                self.mir_mov_box_1 = oasysgui.widgetBox(mir_mov_box, "", addSpace=False, orientation="vertical")
 
-            self.set_MirrorMovement()
+                self.le_mm_mirror_offset_x = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_x", "O.E. Offset X", labelWidth=260, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_x", "O.E. Rotation X [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
+                self.le_mm_mirror_offset_y = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_y", "O.E. Offset Y", labelWidth=260, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_y", "O.E. Rotation Y [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
+                self.le_mm_mirror_offset_z = oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_offset_z", "O.E. Offset Z", labelWidth=260, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.mir_mov_box_1, self, "mm_mirror_rotation_z", "O.E. Rotation Z [CCW, deg]", labelWidth=260, valueType=float, orientation="horizontal")
+
+                self.set_MirrorMovement()
 
            ##########################################
             #
@@ -526,36 +525,40 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             #
             ##########################################
 
-            sou_mov_box = oasysgui.widgetBox(tab_adv_sou_mov, "Source Movement Parameters", addSpace=False, orientation="vertical", height=400)
+            if not (self.graphical_options.is_empty or self.graphical_options.is_screen_slit):
+                tab_adv_sou_mov = oasysgui.createTabPage(tabs_advanced_setting, "Source Movement")
 
-            gui.comboBox(sou_mov_box, self, "source_movement", label="Source Movement", labelWidth=350,
-                         items=["No", "Yes"],
-                         callback=self.set_SourceMovement, sendSelectedValue=False, orientation="horizontal")
+                sou_mov_box = oasysgui.widgetBox(tab_adv_sou_mov, "Source Movement Parameters", addSpace=False, orientation="vertical", height=400)
 
-            gui.separator(sou_mov_box, height=10)
+                gui.comboBox(sou_mov_box, self, "source_movement", label="Source Movement", labelWidth=350,
+                             items=["No", "Yes"],
+                             callback=self.set_SourceMovement, sendSelectedValue=False, orientation="horizontal")
 
-            self.sou_mov_box_1 = oasysgui.widgetBox(sou_mov_box, "", addSpace=False, orientation="vertical")
+                gui.separator(sou_mov_box, height=10)
 
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_angle_of_incidence", "Angle of Incidence [deg]", labelWidth=260, valueType=float, orientation="horizontal")
-            self.le_sm_distance_from_mirror = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_distance_from_mirror", "Distance from O.E.", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_z_rotation", "Z-rotation [deg]", labelWidth=260, valueType=float, orientation="horizontal")
-            self.le_sm_offset_x_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
-            self.le_sm_offset_y_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
-            self.le_sm_offset_z_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
-            self.le_sm_offset_x_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
-            self.le_sm_offset_y_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
-            self.le_sm_offset_z_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_x", "rotation [CCW, deg] around X", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_y", "rotation [CCW, deg] around Y", labelWidth=260, valueType=float, orientation="horizontal")
-            oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_z", "rotation [CCW, deg] around Z", labelWidth=260, valueType=float, orientation="horizontal")
+                self.sou_mov_box_1 = oasysgui.widgetBox(sou_mov_box, "", addSpace=False, orientation="vertical")
 
-            self.set_SourceMovement()
+                oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_angle_of_incidence", "Angle of Incidence [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+                self.le_sm_distance_from_mirror = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_distance_from_mirror", "Distance from O.E.", labelWidth=260, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_z_rotation", "Z-rotation [deg]", labelWidth=260, valueType=float, orientation="horizontal")
+                self.le_sm_offset_x_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+                self.le_sm_offset_y_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+                self.le_sm_offset_z_mirr_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_mirr_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+                self.le_sm_offset_x_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_x_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+                self.le_sm_offset_y_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_y_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+                self.le_sm_offset_z_source_ref_frame = oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_offset_z_source_ref_frame", "--", labelWidth=260, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_x", "rotation [CCW, deg] around X", labelWidth=260, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_y", "rotation [CCW, deg] around Y", labelWidth=260, valueType=float, orientation="horizontal")
+                oasysgui.lineEdit(self.sou_mov_box_1, self, "sm_rotation_around_z", "rotation [CCW, deg] around Z", labelWidth=260, valueType=float, orientation="horizontal")
+
+                self.set_SourceMovement()
 
             ##########################################
             #
             # TAB 2.4 - Other
             #
             ##########################################
+            tab_adv_misc = oasysgui.createTabPage(tabs_advanced_setting, "Output Files")
 
             adv_other_box = oasysgui.widgetBox(tab_adv_misc, "Optional file output", addSpace=False, orientation="vertical")
 
@@ -1475,7 +1478,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 label = self.le_dim_y_minus.parent().layout().itemAt(0).widget()
                 label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
-        if not self.graphical_options.is_ideal_lens:
+        if not (self.graphical_options.is_ideal_lens or self.graphical_options.is_empty or self.graphical_options.is_screen_slit):
             # ADVANCED SETTINGS
             # MIRROR MOVEMENTS
             label = self.le_mm_mirror_offset_x.parent().layout().itemAt(0).widget()
@@ -2220,78 +2223,22 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         else:
             shadow_oe._oe.DUMMY = self.workspace_units_to_cm # Issue #3 : Global User's Unit
 
+        shadow_oe._oe.T_SOURCE = self.source_plane_distance
+        shadow_oe._oe.T_IMAGE = self.image_plane_distance
+
         if self.graphical_options.is_screen_slit:
-            shadow_oe._oe.T_SOURCE     = self.source_plane_distance
-            shadow_oe._oe.T_IMAGE      = self.image_plane_distance
             shadow_oe._oe.T_INCIDENCE  = 0.0
             shadow_oe._oe.T_REFLECTION = 180.0
             shadow_oe._oe.ALPHA        = 0.0
-
-            if self.mirror_movement == 1:
-                 shadow_oe._oe.F_MOVE=1
-                 shadow_oe._oe.OFFX=self.mm_mirror_offset_x
-                 shadow_oe._oe.OFFY=self.mm_mirror_offset_y
-                 shadow_oe._oe.OFFZ=self.mm_mirror_offset_z
-                 shadow_oe._oe.X_ROT=self.mm_mirror_rotation_x
-                 shadow_oe._oe.Y_ROT=self.mm_mirror_rotation_y
-                 shadow_oe._oe.Z_ROT=self.mm_mirror_rotation_z
-
-            if self.source_movement == 1:
-                 shadow_oe._oe.FSTAT=1
-                 shadow_oe._oe.RTHETA=self.sm_angle_of_incidence
-                 shadow_oe._oe.RDSOUR=self.sm_distance_from_mirror
-                 shadow_oe._oe.ALPHA_S=self.sm_z_rotation
-                 shadow_oe._oe.OFF_SOUX=self.sm_offset_x_mirr_ref_frame
-                 shadow_oe._oe.OFF_SOUY=self.sm_offset_y_mirr_ref_frame
-                 shadow_oe._oe.OFF_SOUZ=self.sm_offset_z_mirr_ref_frame
-                 shadow_oe._oe.X_SOUR=self.sm_offset_x_source_ref_frame
-                 shadow_oe._oe.Y_SOUR=self.sm_offset_y_source_ref_frame
-                 shadow_oe._oe.Z_SOUR=self.sm_offset_z_source_ref_frame
-                 shadow_oe._oe.X_SOUR_ROT=self.sm_rotation_around_x
-                 shadow_oe._oe.Y_SOUR_ROT=self.sm_rotation_around_y
-                 shadow_oe._oe.Z_SOUR_ROT=self.sm_rotation_around_z
         elif self.graphical_options.is_ideal_lens:
-            shadow_oe._oe.T_SOURCE = self.source_plane_distance
-            shadow_oe._oe.T_IMAGE = self.image_plane_distance
-            shadow_oe._oe.focal_x  = self.focal_x
-            shadow_oe._oe.focal_z = self.focal_z
+            shadow_oe._oe.focal_x      = self.focal_x
+            shadow_oe._oe.focal_z      = self.focal_z
         elif self.graphical_options.is_empty:
-            shadow_oe._oe.T_SOURCE     = self.source_plane_distance
-            shadow_oe._oe.T_IMAGE      = self.image_plane_distance
             shadow_oe._oe.T_INCIDENCE  = self.incidence_angle_deg
             shadow_oe._oe.T_REFLECTION = self.reflection_angle_deg
-            if self.mirror_orientation_angle < 4:
-                shadow_oe._oe.ALPHA        = 90*self.mirror_orientation_angle
-            elif self.mirror_orientation_angle == 4:
-                shadow_oe._oe.ALPHA = self.mirror_orientation_angle_user_value
-
-            if self.mirror_movement == 1:
-                 shadow_oe._oe.F_MOVE=1
-                 shadow_oe._oe.OFFX=self.mm_mirror_offset_x
-                 shadow_oe._oe.OFFY=self.mm_mirror_offset_y
-                 shadow_oe._oe.OFFZ=self.mm_mirror_offset_z
-                 shadow_oe._oe.X_ROT=self.mm_mirror_rotation_x
-                 shadow_oe._oe.Y_ROT=self.mm_mirror_rotation_y
-                 shadow_oe._oe.Z_ROT=self.mm_mirror_rotation_z
-
-            if self.source_movement == 1:
-                 shadow_oe._oe.FSTAT=1
-                 shadow_oe._oe.RTHETA=self.sm_angle_of_incidence
-                 shadow_oe._oe.RDSOUR=self.sm_distance_from_mirror
-                 shadow_oe._oe.ALPHA_S=self.sm_z_rotation
-                 shadow_oe._oe.OFF_SOUX=self.sm_offset_x_mirr_ref_frame
-                 shadow_oe._oe.OFF_SOUY=self.sm_offset_y_mirr_ref_frame
-                 shadow_oe._oe.OFF_SOUZ=self.sm_offset_z_mirr_ref_frame
-                 shadow_oe._oe.X_SOUR=self.sm_offset_x_source_ref_frame
-                 shadow_oe._oe.Y_SOUR=self.sm_offset_y_source_ref_frame
-                 shadow_oe._oe.Z_SOUR=self.sm_offset_z_source_ref_frame
-                 shadow_oe._oe.X_SOUR_ROT=self.sm_rotation_around_x
-                 shadow_oe._oe.Y_SOUR_ROT=self.sm_rotation_around_y
-                 shadow_oe._oe.Z_SOUR_ROT=self.sm_rotation_around_z
+            if self.mirror_orientation_angle < 4:    shadow_oe._oe.ALPHA = 90*self.mirror_orientation_angle
+            elif self.mirror_orientation_angle == 4: shadow_oe._oe.ALPHA = self.mirror_orientation_angle_user_value
         else:
-            shadow_oe._oe.T_SOURCE     = self.source_plane_distance
-            shadow_oe._oe.T_IMAGE      = self.image_plane_distance
-
             if self.angles_respect_to == 0:
                 shadow_oe._oe.T_INCIDENCE  = self.incidence_angle_deg
                 shadow_oe._oe.T_REFLECTION = self.reflection_angle_deg
@@ -2672,9 +2619,6 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         elif self.graphical_options.is_empty:
             self.source_plane_distance = congruence.checkNumber(self.source_plane_distance, "Source plane distance")
             self.image_plane_distance = congruence.checkNumber(self.image_plane_distance, "Image plane distance")
-
-            if self.source_movement == 1:
-                self.sm_distance_from_mirror = congruence.checkPositiveNumber(self.sm_distance_from_mirror, "Source Movement: Distance from O.E.")
         else:
             self.source_plane_distance = congruence.checkNumber(self.source_plane_distance, "Source plane distance")
             self.image_plane_distance = congruence.checkNumber(self.image_plane_distance, "Image plane distance")
@@ -2789,41 +2733,42 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             # ADVANCED SETTING
             #####################################
 
-            if self.modified_surface == 1:
-                 if self.ms_type_of_defect == 0:
-                     self.ms_ripple_ampli_x = congruence.checkPositiveNumber(self.ms_ripple_ampli_x , "Modified Surface: Ripple Amplitude x")
-                     self.ms_ripple_wavel_x = congruence.checkPositiveNumber(self.ms_ripple_wavel_x , "Modified Surface: Ripple Wavelength x")
-                     self.ms_ripple_ampli_y = congruence.checkPositiveNumber(self.ms_ripple_ampli_y , "Modified Surface: Ripple Amplitude y")
-                     self.ms_ripple_wavel_y = congruence.checkPositiveNumber(self.ms_ripple_wavel_y , "Modified Surface: Ripple Wavelength y")
-                 else:
-                     ShadowCongruence.checkErrorProfileFile(congruence.checkFile(self.ms_defect_file_name))
-            elif self.modified_surface == 2:
-                congruence.checkFile(self.ms_file_facet_descr)
-                self.ms_facet_width_x = congruence.checkPositiveNumber(self.ms_facet_width_x, "Modified Surface: Facet width x")
-                self.ms_facet_phase_x = congruence.checkPositiveAngle(self.ms_facet_phase_x, "Modified Surface: Facet phase x")
-                self.ms_dead_width_x_minus = congruence.checkPositiveNumber(self.ms_dead_width_x_minus, "Modified Surface: Dead width x minus")
-                self.ms_dead_width_x_plus = congruence.checkPositiveNumber(self.ms_dead_width_x_plus, "Modified Surface: Dead width x plus")
-                self.ms_facet_width_y = congruence.checkPositiveNumber(self.ms_facet_width_y, "Modified Surface: Facet width y")
-                self.ms_facet_phase_y = congruence.checkPositiveAngle(self.ms_facet_phase_y, "Modified Surface: Facet phase y")
-                self.ms_dead_width_y_minus = congruence.checkPositiveNumber(self.ms_dead_width_y_minus, "Modified Surface: Dead width y minus")
-                self.ms_dead_width_y_plus = congruence.checkPositiveNumber(self.ms_dead_width_y_plus, "Modified Surface: Dead width y plus")
-            elif self.modified_surface == 3:
-                congruence.checkFile(self.ms_file_surf_roughness)
-                self.ms_roughness_rms_x = congruence.checkPositiveNumber(self.ms_roughness_rms_x, "Modified Surface: Roughness rms x")
-                self.ms_roughness_rms_y = congruence.checkPositiveNumber(self.ms_roughness_rms_y, "Modified Surface: Roughness rms y")
-            elif self.modified_surface == 4:
-                if self.ms_specify_rz2==0: congruence.checkFile(self.ms_file_with_parameters_rz)
-                if self.ms_specify_rz2==0: congruence.checkFile(self.ms_file_with_parameters_rz2)
-            elif self.modified_surface == 5:
-                congruence.checkFile(self.ms_file_orientations)
-                congruence.checkFile(self.ms_file_polynomial)
-                self.ms_number_of_segments_x = congruence.checkPositiveNumber(self.ms_number_of_segments_x, "Modified Surface: Number of segments x")
-                self.ms_number_of_segments_y = congruence.checkPositiveNumber(self.ms_number_of_segments_y, "Modified Surface: Number of segments y")
-                self.ms_length_of_segments_x = congruence.checkPositiveNumber(self.ms_length_of_segments_x, "Modified Surface: Length of segments x")
-                self.ms_length_of_segments_y = congruence.checkPositiveNumber(self.ms_length_of_segments_y, "Modified Surface: Length of segments y")
+            if not (self.graphical_options.is_empty or self.graphical_options.is_screen_slit):
+                if self.modified_surface == 1:
+                     if self.ms_type_of_defect == 0:
+                         self.ms_ripple_ampli_x = congruence.checkPositiveNumber(self.ms_ripple_ampli_x , "Modified Surface: Ripple Amplitude x")
+                         self.ms_ripple_wavel_x = congruence.checkPositiveNumber(self.ms_ripple_wavel_x , "Modified Surface: Ripple Wavelength x")
+                         self.ms_ripple_ampli_y = congruence.checkPositiveNumber(self.ms_ripple_ampli_y , "Modified Surface: Ripple Amplitude y")
+                         self.ms_ripple_wavel_y = congruence.checkPositiveNumber(self.ms_ripple_wavel_y , "Modified Surface: Ripple Wavelength y")
+                     else:
+                         ShadowCongruence.checkErrorProfileFile(congruence.checkFile(self.ms_defect_file_name))
+                elif self.modified_surface == 2:
+                    congruence.checkFile(self.ms_file_facet_descr)
+                    self.ms_facet_width_x = congruence.checkPositiveNumber(self.ms_facet_width_x, "Modified Surface: Facet width x")
+                    self.ms_facet_phase_x = congruence.checkPositiveAngle(self.ms_facet_phase_x, "Modified Surface: Facet phase x")
+                    self.ms_dead_width_x_minus = congruence.checkPositiveNumber(self.ms_dead_width_x_minus, "Modified Surface: Dead width x minus")
+                    self.ms_dead_width_x_plus = congruence.checkPositiveNumber(self.ms_dead_width_x_plus, "Modified Surface: Dead width x plus")
+                    self.ms_facet_width_y = congruence.checkPositiveNumber(self.ms_facet_width_y, "Modified Surface: Facet width y")
+                    self.ms_facet_phase_y = congruence.checkPositiveAngle(self.ms_facet_phase_y, "Modified Surface: Facet phase y")
+                    self.ms_dead_width_y_minus = congruence.checkPositiveNumber(self.ms_dead_width_y_minus, "Modified Surface: Dead width y minus")
+                    self.ms_dead_width_y_plus = congruence.checkPositiveNumber(self.ms_dead_width_y_plus, "Modified Surface: Dead width y plus")
+                elif self.modified_surface == 3:
+                    congruence.checkFile(self.ms_file_surf_roughness)
+                    self.ms_roughness_rms_x = congruence.checkPositiveNumber(self.ms_roughness_rms_x, "Modified Surface: Roughness rms x")
+                    self.ms_roughness_rms_y = congruence.checkPositiveNumber(self.ms_roughness_rms_y, "Modified Surface: Roughness rms y")
+                elif self.modified_surface == 4:
+                    if self.ms_specify_rz2==0: congruence.checkFile(self.ms_file_with_parameters_rz)
+                    if self.ms_specify_rz2==0: congruence.checkFile(self.ms_file_with_parameters_rz2)
+                elif self.modified_surface == 5:
+                    congruence.checkFile(self.ms_file_orientations)
+                    congruence.checkFile(self.ms_file_polynomial)
+                    self.ms_number_of_segments_x = congruence.checkPositiveNumber(self.ms_number_of_segments_x, "Modified Surface: Number of segments x")
+                    self.ms_number_of_segments_y = congruence.checkPositiveNumber(self.ms_number_of_segments_y, "Modified Surface: Number of segments y")
+                    self.ms_length_of_segments_x = congruence.checkPositiveNumber(self.ms_length_of_segments_x, "Modified Surface: Length of segments x")
+                    self.ms_length_of_segments_y = congruence.checkPositiveNumber(self.ms_length_of_segments_y, "Modified Surface: Length of segments y")
 
-            if self.source_movement == 1:
-                if self.sm_distance_from_mirror < 0: raise Exception("Source Movement: Distance from O.E.")
+                if self.source_movement == 1:
+                    if self.sm_distance_from_mirror < 0: raise Exception("Source Movement: Distance from O.E.")
 
     def writeCalculatedFields(self, shadow_oe):
         if self.surface_shape_parameters == 0:
@@ -3655,10 +3600,9 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             self.set_Dim_Parameters()
             self.set_ModifiedSurface()
-
-        self.set_MirrorMovement()
-        self.set_SourceMovement()
-        self.set_Footprint()
+            self.set_MirrorMovement()
+            self.set_SourceMovement()
+            self.set_Footprint()
 
 
     def receive_syned_data(self, data):
