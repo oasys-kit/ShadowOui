@@ -53,6 +53,8 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
     new_units_in_use = Setting(0)
     new_photon_wavelength = Setting(25.0)
     new_photon_energy = Setting(500.0)
+    new_c_value = Setting(1.2222)
+    new_c_flag = Setting(0)
 
     image_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "vls_pgm_layout.png")
     usage_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "vls_pgm_usage.png")
@@ -161,6 +163,18 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
 
         self.set_UnitsInUse2()
 
+
+        gui.comboBox(box_3, self, "new_c_flag", label="C factor for angles calculation", labelWidth=260,
+                     items=["the same as for line density", "new one"],
+                     callback=self.set_CfactorNew, sendSelectedValue=False, orientation="horizontal")
+
+        self.c_box_new = oasysgui.widgetBox(box_3, "", addSpace=False, orientation="vertical")
+
+        oasysgui.lineEdit(self.c_box_new, self, "new_c_value", "new C for angles calculation", labelWidth=260, valueType=float, orientation="horizontal")
+
+        self.set_CfactorNew()
+
+
         tabs_out = oasysgui.tabWidget(self.mainArea)
 
         tab_out_1 = oasysgui.createTabPage(tabs_out, "Calculation Results")
@@ -233,6 +247,9 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
     def set_UnitsInUse2(self):
         self.autosetting_box_units_3.setVisible(self.new_units_in_use == 0)
         self.autosetting_box_units_4.setVisible(self.new_units_in_use == 1)
+
+    def set_CfactorNew(self):
+        self.c_box_new.setVisible(self.new_c_flag == 1)
 
 
     def compute(self):
@@ -326,6 +343,9 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
 
             new_c = numpy.sqrt(new_c_num/new_c_den)
 
+            if self.new_c_flag == 1:
+                new_c = self.new_c_value
+
             new_sin_alpha = (-m*self.k*newwavelength/(new_c**2 - 1)) + \
                         numpy.sqrt(1 + (m*m*new_c*new_c*self.k*self.k*newwavelength*newwavelength)/((new_c**2 - 1)**2))
 
@@ -403,6 +423,8 @@ class OWVlsPgmCoefficientsCalculator(OWWidget):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     w = OWVlsPgmCoefficientsCalculator()
+    w.workspace_units_to_m = 1.0
+    w.workspace_units_label = "m"
     w.show()
     app.exec()
     w.saveSettings()
