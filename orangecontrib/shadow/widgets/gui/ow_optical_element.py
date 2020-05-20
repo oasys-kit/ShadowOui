@@ -727,8 +727,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                         self.surface_box_int_2 = oasysgui.widgetBox(self.surface_box_int, "", addSpace=False, orientation="vertical", width=self.INNER_BOX_WIDTH_L1-5)
                         self.surface_box_int_2_empty = oasysgui.widgetBox(self.surface_box_int, "", addSpace=False, orientation="vertical", width=self.INNER_BOX_WIDTH_L1-5)
 
-                        self.w_object_side_focal_distance = oasysgui.lineEdit(self.surface_box_int_2, self, "object_side_focal_distance", "Object Side_Focal Distance", labelWidth=260, valueType=float, orientation="horizontal")
-                        self.w_image_side_focal_distance = oasysgui.lineEdit(self.surface_box_int_2, self, "image_side_focal_distance", "Image Side_Focal Distance", labelWidth=260, valueType=float, orientation="horizontal")
+                        self.w_object_side_focal_distance = oasysgui.lineEdit(self.surface_box_int_2, self, "object_side_focal_distance", "Object Side Focal Distance", labelWidth=260, valueType=float, orientation="horizontal")
+                        self.w_image_side_focal_distance = oasysgui.lineEdit(self.surface_box_int_2, self, "image_side_focal_distance", "Image Side Focal Distance", labelWidth=260, valueType=float, orientation="horizontal")
 
                         gui.comboBox(self.surface_box_int_2, self, "incidence_angle_respect_to_normal_type", label="Incidence Angle", labelWidth=260,
                                          items=["Copied from position",
