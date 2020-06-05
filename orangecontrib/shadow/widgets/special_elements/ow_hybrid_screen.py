@@ -837,7 +837,7 @@ class HybridScreen(AbstractHybridScreen):
         if self.ghy_calcType==5:
             self.check_fields_aux()
 
-            input_parameters.absorber_error_profiles = self.crl_error_profiles
+            input_parameters.crl_error_profiles = self.crl_error_profiles
 
             if self.crl_material_data==0: input_parameters.crl_material = self.crl_material
             else: input_parameters.crl_delta = self.crl_delta
