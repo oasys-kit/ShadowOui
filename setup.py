@@ -111,4 +111,4 @@ if __name__ == '__main__':
               zip_safe = False,
               )
 
-    if is_beta: raise NotImplementedError("This version of ShadowOui doesn't work with Oasys1 beta.\nPlease install OASYS1 final release: http://www.elettra.eu/oasys.html")
+    if is_beta: raise NotImplementedError("This version of ShadowOui doesn't work with Oasys1 beta.\nPlease install OASYS1 final release: https://www.aps.anl.gov/Science/Scientific-Software/OASYS")
