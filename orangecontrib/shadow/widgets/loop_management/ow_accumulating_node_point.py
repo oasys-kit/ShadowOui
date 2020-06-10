@@ -21,7 +21,7 @@ class AccumulatingLoopPoint(AutomaticElement):
     icon = "icons/beam_accumulating.png"
     maintainer = "Luca Rebuffi"
     maintainer_email = "lrebuffi(@at@)anl.gov"
-    priority = 3
+    priority = 1
     category = "User Defined"
     keywords = ["data", "file", "load", "read"]
 
