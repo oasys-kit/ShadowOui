@@ -8,7 +8,7 @@ except AttributeError:
     from setuptools import find_packages, setup
 
 NAME = 'OASYS1-ShadowOui'
-VERSION = '1.5.66'
+VERSION = '1.5.67'
 ISRELEASED = True
 
 DESCRIPTION = 'Shadow, Ray-tracing simulation software'
@@ -66,7 +66,7 @@ ENTRY_POINTS = {
     'oasys.addons' : ("shadow = orangecontrib.shadow", ),
     'oasys.widgets' : (
         "Shadow Experiments = orangecontrib.shadow.widgets.experimental_elements",
-        "Shadow Loop Management = orangecontrib.shadow.widgets.loop_management",
+        "Shadow Basic Loops = orangecontrib.shadow.widgets.loop_management",
         "Shadow Optical Elements = orangecontrib.shadow.widgets.optical_elements",
         "Shadow Compound Optical Elements = orangecontrib.shadow.widgets.compound_optical_elements",
         "Shadow Special Elements = orangecontrib.shadow.widgets.special_elements",

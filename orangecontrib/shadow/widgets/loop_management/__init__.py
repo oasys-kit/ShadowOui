@@ -9,9 +9,9 @@ Widgets for association rules.
 
 # Category description for the widget registry
 
-NAME = "Loop Management"
+NAME = "Basic Loops"
 
-DESCRIPTION = "Widgets for Shadow - Loop Management."
+DESCRIPTION = "Widgets for Shadow - Basic Loops"
 
 #BACKGROUND = "#f0d3f3"
 BACKGROUND = "#A9D0F5"
