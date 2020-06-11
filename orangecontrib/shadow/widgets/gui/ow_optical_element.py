@@ -1520,11 +1520,16 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     ############################################################
 
     def set_UserDefinedBraggAngle(self):
-        self.incidence_angle_deg  = 90.0 - (self.user_defined_bragg_angle - self.user_defined_asymmetry_angle)
-        self.reflection_angle_deg = 90.0 - (self.user_defined_bragg_angle + self.user_defined_asymmetry_angle)
+        if self.diffraction_calculation == 1:
+            if self.angles_respect_to == 0:
+                self.incidence_angle_deg  = 90.0 - (self.user_defined_bragg_angle - self.user_defined_asymmetry_angle)
+                self.reflection_angle_deg = 90.0 - (self.user_defined_bragg_angle + self.user_defined_asymmetry_angle)
+            else:
+                self.incidence_angle_deg  = self.user_defined_bragg_angle - self.user_defined_asymmetry_angle
+                self.reflection_angle_deg = self.user_defined_bragg_angle + self.user_defined_asymmetry_angle
 
-        self.calculate_incidence_angle_mrad()
-        self.calculate_reflection_angle_mrad()
+            self.calculate_incidence_angle_mrad()
+            self.calculate_reflection_angle_mrad()
 
     def set_AnglesRespectTo(self):
         label_1 = self.incidence_angle_deg_le.parent().layout().itemAt(0).widget()
@@ -1652,15 +1657,12 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         self.ruling_box_3.setVisible(self.grating_ruling_type == 3)
         self.ruling_box_4.setVisible(self.grating_ruling_type == 4)
 
-        if (self.grating_ruling_type == 0 or self.grating_ruling_type == 1):
-            self.ruling_density_label.setText("Ruling Density at origin")
-        elif (self.grating_ruling_type == 3):
-            self.ruling_density_label.setText("Ruling Density at center")
-        elif (self.grating_ruling_type == 4):
-            self.ruling_density_label.setText("Polyn. Line Density coeff.: 0th")
+        if (self.grating_ruling_type == 0 or \
+                self.grating_ruling_type == 1): self.ruling_density_label.setText("Ruling Density at origin")
+        elif (self.grating_ruling_type == 3):   self.ruling_density_label.setText("Ruling Density at center")
+        elif (self.grating_ruling_type == 4):   self.ruling_density_label.setText("Polyn. Line Density coeff.: 0th")
 
-        if hasattr(self, "workspace_units_label"):
-            self.ruling_density_label.setText(self.ruling_density_label.text() + "  [Lines/" + self.workspace_units_label + "]")
+        if hasattr(self, "workspace_units_label"): self.ruling_density_label.setText(self.ruling_density_label.text() + "  [Lines/" + self.workspace_units_label + "]")
 
     def set_GratingMountType(self):
         self.grating_mount_box_1.setVisible(self.grating_mount_type == 4)
@@ -2139,37 +2141,29 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     def calculate_incidence_angle_mrad(self):
         digits = 7
 
-        if self.angles_respect_to == 0:
-            self.incidence_angle_mrad = round(numpy.radians(90-self.incidence_angle_deg)*1000, digits)
-        else:
-            self.incidence_angle_mrad = round(numpy.radians(self.incidence_angle_deg)*1000, digits)
+        if self.angles_respect_to == 0: self.incidence_angle_mrad = round(numpy.radians(90-self.incidence_angle_deg)*1000, digits)
+        else:                           self.incidence_angle_mrad = round(numpy.radians(self.incidence_angle_deg)*1000, digits)
 
         if self.graphical_options.is_curved and not self.graphical_options.is_conic_coefficients:
             if self.incidence_angle_respect_to_normal_type == 0:
-                if self.angles_respect_to == 0:
-                    self.incidence_angle_respect_to_normal = self.incidence_angle_deg
-                else:
-                    self.incidence_angle_respect_to_normal = round(90 - self.incidence_angle_deg, 10)
+                if self.angles_respect_to == 0: self.incidence_angle_respect_to_normal = self.incidence_angle_deg
+                else:                           self.incidence_angle_respect_to_normal = round(90 - self.incidence_angle_deg, 10)
 
         if self.graphical_options.is_mirror:
-            self.reflection_angle_deg = self.incidence_angle_deg
+            self.reflection_angle_deg  = self.incidence_angle_deg
             self.reflection_angle_mrad = self.incidence_angle_mrad
 
     def calculate_reflection_angle_mrad(self):
         digits = 7
 
-        if self.angles_respect_to == 0:
-            self.reflection_angle_mrad = round(numpy.radians(90 - self.reflection_angle_deg)*1000, digits)
-        else:
-            self.reflection_angle_mrad = round(numpy.radians(self.reflection_angle_deg)*1000, digits)
+        if self.angles_respect_to == 0: self.reflection_angle_mrad = round(numpy.radians(90 - self.reflection_angle_deg)*1000, digits)
+        else:                           self.reflection_angle_mrad = round(numpy.radians(self.reflection_angle_deg)*1000, digits)
 
     def calculate_incidence_angle_deg(self):
         digits = 10
 
-        if self.angles_respect_to == 0:
-            self.incidence_angle_deg = round(numpy.degrees(0.5 * numpy.pi - (self.incidence_angle_mrad / 1000)), digits)
-        else:
-            self.incidence_angle_deg = round(numpy.degrees(self.incidence_angle_mrad / 1000), digits)
+        if self.angles_respect_to == 0: self.incidence_angle_deg = round(numpy.degrees(0.5 * numpy.pi - (self.incidence_angle_mrad / 1000)), digits)
+        else:                           self.incidence_angle_deg = round(numpy.degrees(self.incidence_angle_mrad / 1000), digits)
 
         if self.graphical_options.is_mirror:
             self.reflection_angle_deg = self.incidence_angle_deg
@@ -2177,18 +2171,14 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
         if self.graphical_options.is_curved and not self.graphical_options.is_conic_coefficients:
             if self.incidence_angle_respect_to_normal_type == 0:
-                if self.angles_respect_to == 0:
-                    self.incidence_angle_respect_to_normal = self.incidence_angle_deg
-                else:
-                    self.incidence_angle_respect_to_normal = round(90 - self.incidence_angle_deg, digits)
+                if self.angles_respect_to == 0: self.incidence_angle_respect_to_normal = self.incidence_angle_deg
+                else:                           self.incidence_angle_respect_to_normal = round(90 - self.incidence_angle_deg, digits)
 
     def calculate_reflection_angle_deg(self):
         digits = 10
 
-        if self.angles_respect_to == 0:
-            self.reflection_angle_deg = round(numpy.degrees(0.5*numpy.pi-(self.reflection_angle_mrad/1000)), digits)
-        else:
-            self.reflection_angle_deg = round(numpy.degrees(self.reflection_angle_mrad/1000), digits)
+        if self.angles_respect_to == 0: self.reflection_angle_deg = round(numpy.degrees(0.5*numpy.pi-(self.reflection_angle_mrad/1000)), digits)
+        else:                           self.reflection_angle_deg = round(numpy.degrees(self.reflection_angle_mrad/1000), digits)
 
     def grab_dcm_value_from_oe(self):
         self.twotheta_bragg = self.incidence_angle_deg
