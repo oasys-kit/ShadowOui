@@ -86,7 +86,7 @@ class ScanVariableLoopPoint(AbstractScanVariableLoopPoint):
     category = "User Defined"
     keywords = ["data", "file", "load", "read"]
 
-    variable_name_id = Setting(0)
+    variable_name_id = Setting(10)
 
     def __init__(self):
         super(ScanVariableLoopPoint, self).__init__()

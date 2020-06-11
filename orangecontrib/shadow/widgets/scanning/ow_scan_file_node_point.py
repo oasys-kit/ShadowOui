@@ -74,7 +74,7 @@ class ScanFileLoopPoint(AbstractScanFileLoopPoint):
     category = "User Defined"
     keywords = ["data", "file", "load", "read"]
 
-    variable_name_id = Setting(10)
+    variable_name_id = Setting(0)
 
     def __init__(self):
         super(ScanFileLoopPoint, self).__init__()
