@@ -94,7 +94,7 @@ class ScanVariableLoopPoint(AbstractScanVariableLoopPoint):
     def has_variable_list(self): return True
 
     def create_variable_list_box(self, box):
-        gui.comboBox(box, self, "variable_name_id", label="Variable Name", labelWidth=250,
+        gui.comboBox(box, self, "variable_name_id", label="Variable Name", labelWidth=120,
                      items=VARIABLES[:, 1],
                      callback=self.set_VariableName, sendSelectedValue=False, orientation="horizontal")
 
