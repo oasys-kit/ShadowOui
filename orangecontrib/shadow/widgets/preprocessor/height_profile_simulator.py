@@ -1,9 +1,8 @@
-import os, sys
-from PyQt5.QtWidgets import QApplication
+import os
 
 import orangecanvas.resources as resources
 
-from oasys.widgets.error_profile.ow_abstract_height_profile_simulator import OWAbstractHeightErrorProfileSimulator
+from oasys.widgets.abstract.error_profile.abstract_height_profile_simulator import OWAbstractHeightErrorProfileSimulator
 
 from Shadow import ShadowTools as ST
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
