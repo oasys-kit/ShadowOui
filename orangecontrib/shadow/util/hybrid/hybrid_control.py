@@ -20,7 +20,6 @@ import oasys.util.oasys_util as OU
 from scipy.interpolate import RectBivariateSpline
 
 import xraylib
-from Shadow import ShadowTools as ST
 
 class HybridNotNecessaryWarning(Exception):
     def __init__(self, *args, **kwargs):
