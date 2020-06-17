@@ -46,12 +46,7 @@ class ShadowCongruence():
 
     @classmethod
     def checkGoodBeam(cls, input_beam):
-        go = numpy.where(input_beam._beam.rays[:, 9] == 1)
-
-        if len(input_beam._beam.rays[go]) == 0:
-            return False
-        else:
-            return True
+        return len(input_beam._beam.rays[numpy.where(input_beam._beam.rays[:, 9] == 1)]) > 0
 
     @classmethod
     def checkBraggFile(cls, file_name):
