@@ -1,6 +1,7 @@
 import numpy
 import os
 import sys
+from scipy.interpolate import RectBivariateSpline
 
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt, QSettings
@@ -212,7 +213,9 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     file_prerefl_m = Setting("reflec.dat")
     m_layer_tickness = Setting(0.0)
 
-    file_reflectivity = Setting("reflectivity.dat")
+    file_reflectivity      = Setting("reflectivity.dat")
+    user_defined_file_type = Setting(0)
+    user_defined_angle_units = Setting(0)
 
     is_infinite = Setting(0)
     mirror_shape = Setting(0)
@@ -847,7 +850,14 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                     self.refl_box_pol_4 = gui.widgetBox(self.refl_box_pol, "", addSpace=False, orientation="vertical")
 
-                    file_box = oasysgui.widgetBox(self.refl_box_pol_4, "", addSpace=False, orientation="horizontal", height=25)
+                    file_box = oasysgui.widgetBox(self.refl_box_pol_4, "", addSpace=False, orientation="horizontal", height=85)
+
+                    gui.comboBox(self.refl_box_pol_4, self, "user_defined_file_type", label="Distribution", labelWidth=100,
+                                 items=["1D - Angle vs. Reflectivity", "1D - Energy vs. Reflectivity", "2D - Energy vs. Angle vs Reflectivity"],
+                                 sendSelectedValue=False, orientation="horizontal", callback=self.set_UserDefinedFileType)
+
+                    self.cb_angle_units = gui.comboBox(self.refl_box_pol_4, self, "user_defined_angle_units", label="Angle Units", labelWidth=350,
+                                 items=["mrad", "deg"], sendSelectedValue=False, orientation="horizontal")
 
                     self.le_file_reflectivity = oasysgui.lineEdit(file_box, self, "file_reflectivity", "File Name", labelWidth=100, valueType=str, orientation="horizontal")
 
@@ -1575,6 +1585,10 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         self.refl_box_pol_2.setVisible(self.source_of_reflectivity == 1)
         self.refl_box_pol_3.setVisible(self.source_of_reflectivity == 2)
         self.refl_box_pol_4.setVisible(self.source_of_reflectivity == 3)
+        if self.source_of_reflectivity == 3: self.set_UserDefinedFileType()
+
+    def set_UserDefinedFileType(self):
+        self.cb_angle_units.setEnabled(self.user_defined_file_type in [0, 2])
 
     def set_Autosetting(self):
         self.autosetting_box_empty.setVisible(self.crystal_auto_setting == 0)
@@ -2040,7 +2054,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                                              + numpy.sqrt(self.torus_minor_radius**2-X**2))**2
                                             - Y**2)
                                 - self.torus_major_radius - self.torus_minor_radius)
-                z_values[z_values==numpy.nan] = 0
+                z_values[numpy.where(numpy.isnan(z_values))] = 0.0
             else:
                 self.c1 = round(parent.conic_coefficient_0, 10)
                 self.c2 = round(parent.conic_coefficient_1, 10)
@@ -2905,34 +2919,81 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         return output_beam
 
     def apply_user_reflectivity(self, input_beam):
-        values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/angle." +
-                                               ("0" + str(input_beam._oe_number) if (input_beam._oe_number < 10) else
-                                                str(input_beam._oe_number))))
+        if self.user_defined_file_type == 0: # angle vs refl.
+            values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/angle." +
+                                                   ("0" + str(input_beam._oe_number) if (input_beam._oe_number < 10) else
+                                                    str(input_beam._oe_number))))
 
-        beam_incident_angles = 90.0 - values[:, 1]
+            beam_incident_angles = 90.0 - values[:, 1]
 
-        values = numpy.loadtxt(os.path.abspath(self.file_reflectivity) if self.file_reflectivity.startswith('/') else
-                               os.path.abspath(os.path.curdir + "/" + self.file_reflectivity))
+            values = numpy.loadtxt(os.path.abspath(self.file_reflectivity) if self.file_reflectivity.startswith('/') else
+                                   os.path.abspath(os.path.curdir + "/" + self.file_reflectivity))
 
-        mirror_grazing_angles = values[:, 0]
-        mirror_reflectivities = values[:, 1]
+            mirror_grazing_angles = values[:, 0]
+            mirror_reflectivities = values[:, 1]
 
-        if mirror_grazing_angles[-1] < mirror_grazing_angles[0]: # XOPPY MLayer gives angles in descendent order
-            mirror_grazing_angles = values[:, 0][::-1]
-            mirror_reflectivities = values[:, 1][::-1]
+            if mirror_grazing_angles[-1] < mirror_grazing_angles[0]: # XOPPY MLayer gives angles in descendent order
+                mirror_grazing_angles = values[:, 0][::-1]
+                mirror_reflectivities = values[:, 1][::-1]
 
-        interpolated_weight = numpy.sqrt(numpy.interp(beam_incident_angles,
-                                                      mirror_grazing_angles,
-                                                      mirror_reflectivities,
-                                                      left=mirror_reflectivities[0],
-                                                      right=mirror_reflectivities[-1]))
+            if self.user_defined_angle_units == 0: mirror_grazing_angles = numpy.degrees(1e-3*mirror_grazing_angles)
 
+            interpolated_weight = numpy.sqrt(numpy.interp(beam_incident_angles,
+                                                          mirror_grazing_angles,
+                                                          mirror_reflectivities,
+                                                          left=mirror_reflectivities[0],
+                                                          right=mirror_reflectivities[-1]))
+        elif self.user_defined_file_type == 1: # Energy vs Refl.
+            beam_energies = ShadowPhysics.getEnergyFromShadowK(input_beam._beam.rays[:, 10])
+
+            values = numpy.loadtxt(os.path.abspath(os.path.abspath(self.file_reflectivity)  if self.file_reflectivity.startswith('/') else
+                                                   os.path.abspath(os.path.curdir + "/" + self.file_reflectivity)))
+
+            mirror_energies = values[:, 0]
+            mirror_reflectivities = values[:, 1]
+
+            interpolated_weight = numpy.sqrt(numpy.interp(beam_energies,
+                                                          mirror_energies,
+                                                          mirror_reflectivities,
+                                                          left=mirror_reflectivities[0],
+                                                          right=mirror_reflectivities[-1]))
+
+        elif self.user_defined_file_type == 2: # 2D Energy vs Angle vs Reflectivity
+            values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/angle." +
+                                                   ("0" + str(input_beam._oe_number) if (input_beam._oe_number < 10) else
+                                                    str(input_beam._oe_number))))
+
+            beam_incident_angles = 90.0 - values[:, 1]
+
+            beam_energies = ShadowPhysics.getEnergyFromShadowK(input_beam._beam.rays[:, 10])
+
+            values = numpy.loadtxt(os.path.abspath(os.path.abspath(self.file_reflectivity)  if self.file_reflectivity.startswith('/') else
+                                                   os.path.abspath(os.path.curdir + "/" + self.file_reflectivity)))
+
+            mirror_energies       = values[:, 0]
+            mirror_grazing_angles = values[:, 1]
+            mirror_reflectivities = values[:, 2]
+
+            mirror_energies         = numpy.unique(mirror_energies)
+            mirror_grazing_angles   = numpy.unique(mirror_grazing_angles)
+            if self.user_defined_angle_units == 0: mirror_grazing_angles = numpy.degrees(1e-3*mirror_grazing_angles)
+
+            mirror_reflectivities = numpy.reshape(mirror_reflectivities, (mirror_energies.shape[0], mirror_grazing_angles.shape[0]))
+
+            interpolator = RectBivariateSpline(mirror_energies, mirror_grazing_angles, mirror_reflectivities, kx=2, ky=2)
+
+            interpolated_weight = numpy.zeros(beam_energies.shape[0])
+
+            for energy, angle, i in zip(beam_energies, beam_incident_angles, range(interpolated_weight.shape[0])):
+                interpolated_weight[i] = numpy.sqrt(interpolator(energy, angle))
+
+            interpolated_weight[numpy.where(numpy.isnan(interpolated_weight))] = 0.0
 
         output_beam = input_beam.duplicate()
 
-        output_beam._beam.rays[:, 6]  = output_beam._beam.rays[:, 6]  * interpolated_weight
-        output_beam._beam.rays[:, 7]  = output_beam._beam.rays[:, 7]  * interpolated_weight
-        output_beam._beam.rays[:, 8]  = output_beam._beam.rays[:, 8]  * interpolated_weight
+        output_beam._beam.rays[:, 6] = output_beam._beam.rays[:, 6] * interpolated_weight
+        output_beam._beam.rays[:, 7] = output_beam._beam.rays[:, 7] * interpolated_weight
+        output_beam._beam.rays[:, 8] = output_beam._beam.rays[:, 8] * interpolated_weight
         output_beam._beam.rays[:, 15] = output_beam._beam.rays[:, 15] * interpolated_weight
         output_beam._beam.rays[:, 16] = output_beam._beam.rays[:, 16] * interpolated_weight
         output_beam._beam.rays[:, 17] = output_beam._beam.rays[:, 17] * interpolated_weight
@@ -2942,7 +3003,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     def apply_user_grating_efficiency(self, input_beam):
         beam_energies = ShadowPhysics.getEnergyFromShadowK(input_beam._beam.rays[:, 10])
 
-        values = numpy.loadtxt(os.path.abspath(self.grating_file_efficiency if self.grating_file_efficiency.startswith('/') else
+        values = numpy.loadtxt(os.path.abspath(os.path.abspath(self.grating_file_efficiency) if self.grating_file_efficiency.startswith('/') else
                                                os.path.abspath(os.path.curdir + "/" + self.grating_file_efficiency)))
 
         grating_energies     = values[:, 0]
@@ -3193,21 +3254,72 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                         self.diffraction_calculation = 1
                         self.set_DiffractionCalculation()
-                    elif exchangeData.get_widget_name() == "MLAYER":
+                    elif exchangeData.get_widget_name() == "MULTILAYER":
                         self.file_reflectivity = "xoppy_mlayer_" + str(id(self)) + ".dat"
-                        x_index = exchangeData.get_content("plot_x_col")
-                        y_index = exchangeData.get_content("plot_y_col")
 
-                        reflectivity = exchangeData.get_content("xoppy_data")
+                        if exchangeData.has_content_key("data2D_rs"):
+                            data2D = numpy.sqrt(exchangeData.get_content("data2D_rs")**2 + exchangeData.get_content("data2D_rp")**2)
+                            data2D[numpy.where(numpy.isnan(data2D))] = 0
 
-                        file = open(self.file_reflectivity, "w")
+                            energy = exchangeData.get_content("dataX")
+                            angle  = exchangeData.get_content("dataY")
 
-                        for index in range(0, reflectivity.shape[0]):
-                            file.write(str(reflectivity[index, x_index]) + " " + str(reflectivity[index, y_index]) + "\n")
+                            file = open(self.file_reflectivity, "w")
 
-                        file.close()
+                            for i in range(energy.shape[0]):
+                                for j in range(angle.shape[0]):
+                                    file.write(str(energy[i]) + " " + str(angle[j]) + " " + str(data2D[i, j]) + "\n")
+
+                            file.close()
+                        else:
+                            x_index = exchangeData.get_content("plot_x_col")
+                            y_index = exchangeData.get_content("plot_y_col")
+
+                            reflectivity = exchangeData.get_content("xoppy_data")
+                            reflectivity[numpy.where(numpy.isnan(reflectivity))] = 0
+
+                            file = open(self.file_reflectivity, "w")
+
+                            for index in range(0, reflectivity.shape[0]):
+                                file.write(str(reflectivity[index, x_index]) + " " + str(reflectivity[index, y_index]) + "\n")
+
+                            file.close()
 
                         self.reflectivity_type = 1 # full polarization
+                        self.source_of_reflectivity = 3
+
+                        self.set_Refl_Parameters()
+                    elif exchangeData.get_widget_name() == "XF1F2":
+                        self.file_reflectivity = "xoppy_f1f2_" + str(id(self)) + ".dat"
+
+                        if exchangeData.has_content_key("data2D"):
+                            data2D = exchangeData.get_content("data2D")
+                            data2D[numpy.where(numpy.isnan(data2D))] = 0
+                            energy = exchangeData.get_content("dataX")
+                            angle = exchangeData.get_content("dataY")
+
+                            file = open(self.file_reflectivity, "w")
+
+                            for i in range(energy.shape[0]):
+                                for j in range(angle.shape[0]):
+                                    file.write(str(energy[i]) + " " + str(angle[j]) + " " + str(data2D[i, j]) + "\n")
+
+                            file.close()
+                        else:
+                            x_index = exchangeData.get_content("plot_x_col")
+                            y_index = exchangeData.get_content("plot_y_col")
+
+                            reflectivity = exchangeData.get_content("xoppy_data")
+                            reflectivity[numpy.where(numpy.isnan(reflectivity))]
+
+                            file = open(self.file_reflectivity, "w")
+
+                            for index in range(0, reflectivity.shape[0]):
+                                file.write(str(reflectivity[index, x_index]) + " " + str(reflectivity[index, y_index]) + "\n")
+
+                            file.close()
+
+                        self.reflectivity_type = 1  # full polarization
                         self.source_of_reflectivity = 3
 
                         self.set_Refl_Parameters()

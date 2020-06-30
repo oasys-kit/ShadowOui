@@ -2027,7 +2027,7 @@ def get_absorber_phase_shift(thickness_error_profile, input_parameters, calculat
     wavefront_coord_y = coordinates[1]
 
     thickness_error = interpolator(wavefront_coord_x, wavefront_coord_y)
-    thickness_error[numpy.where(thickness_error==numpy.nan)] = 0.0
+    thickness_error[numpy.where(numpy.isnan(thickness_error))] = 0.0
     thickness_error *= input_parameters.absorber_scaling_factor
 
     return -2 * numpy.pi * calculation_parameters.absorber_delta * thickness_error / calculation_parameters.gwavelength
