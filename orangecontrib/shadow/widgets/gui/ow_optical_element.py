@@ -3271,6 +3271,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                                     file.write(str(energy[i]) + " " + str(angle[j]) + " " + str(data2D[i, j]) + "\n")
 
                             file.close()
+
+                            self.user_defined_file_type = 2 # 2D
                         else:
                             x_index = exchangeData.get_content("plot_x_col")
                             y_index = exchangeData.get_content("plot_y_col")
@@ -3305,6 +3307,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                                     file.write(str(energy[i]) + " " + str(angle[j]) + " " + str(data2D[i, j]) + "\n")
 
                             file.close()
+
+                            self.user_defined_file_type = 2 # 2D
                         else:
                             x_index = exchangeData.get_content("plot_x_col")
                             y_index = exchangeData.get_content("plot_y_col")
