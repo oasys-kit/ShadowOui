@@ -216,6 +216,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
     file_reflectivity      = Setting("reflectivity.dat")
     user_defined_file_type = Setting(0)
     user_defined_angle_units = Setting(0)
+    user_defined_energy_units = Setting(0)
 
     is_infinite = Setting(0)
     mirror_shape = Setting(0)
@@ -806,7 +807,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 ##########################################
 
                 if self.graphical_options.is_mirror:
-                    refl_box = oasysgui.widgetBox(tab_bas_refl, "Reflectivity Parameter", addSpace=False, orientation="vertical", height=190)
+                    refl_box = oasysgui.widgetBox(tab_bas_refl, "Reflectivity Parameter", addSpace=False, orientation="vertical", height=230)
 
                     gui.comboBox(refl_box, self, "reflectivity_type", label="Reflectivity", labelWidth=150,
                                  items=["Not considered", "Full Polarization dependence", "No Polarization dependence (scalar)"],
@@ -850,14 +851,21 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                     self.refl_box_pol_4 = gui.widgetBox(self.refl_box_pol, "", addSpace=False, orientation="vertical")
 
-                    file_box = oasysgui.widgetBox(self.refl_box_pol_4, "", addSpace=False, orientation="horizontal", height=85)
+                    file_box = oasysgui.widgetBox(self.refl_box_pol_4, "", addSpace=False, orientation="horizontal", height=115)
 
                     gui.comboBox(self.refl_box_pol_4, self, "user_defined_file_type", label="Distribution", labelWidth=100,
                                  items=["1D - Angle vs. Reflectivity", "1D - Energy vs. Reflectivity", "2D - Energy vs. Angle vs Reflectivity"],
                                  sendSelectedValue=False, orientation="horizontal", callback=self.set_UserDefinedFileType)
 
-                    self.cb_angle_units = gui.comboBox(self.refl_box_pol_4, self, "user_defined_angle_units", label="Angle Units", labelWidth=350,
+                    self.cb_energy_units_box = oasysgui.widgetBox(self.refl_box_pol_4, "", addSpace=False, orientation="horizontal")
+                    self.cb_angle_units_box = oasysgui.widgetBox(self.refl_box_pol_4, "", addSpace=False, orientation="horizontal")
+                    self.cb_empty_units_box = oasysgui.widgetBox(self.refl_box_pol_4, "", addSpace=False, orientation="horizontal", height=25)
+
+                    gui.comboBox(self.cb_angle_units_box, self, "user_defined_angle_units", label="Angle Units", labelWidth=350,
                                  items=["mrad", "deg"], sendSelectedValue=False, orientation="horizontal")
+
+                    gui.comboBox(self.cb_energy_units_box, self, "user_defined_energy_units", label="Energy Units", labelWidth=350,
+                                 items=["eV", "KeV"], sendSelectedValue=False, orientation="horizontal")
 
                     self.le_file_reflectivity = oasysgui.lineEdit(file_box, self, "file_reflectivity", "File Name", labelWidth=100, valueType=str, orientation="horizontal")
 
@@ -1588,7 +1596,9 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         if self.source_of_reflectivity == 3: self.set_UserDefinedFileType()
 
     def set_UserDefinedFileType(self):
-        self.cb_angle_units.setEnabled(self.user_defined_file_type in [0, 2])
+        self.cb_empty_units_box.setVisible(self.user_defined_file_type in [0, 1])
+        self.cb_angle_units_box.setVisible(self.user_defined_file_type in [0, 2])
+        self.cb_energy_units_box.setVisible(self.user_defined_file_type in [1, 2])
 
     def set_Autosetting(self):
         self.autosetting_box_empty.setVisible(self.crystal_auto_setting == 0)
@@ -2936,7 +2946,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 mirror_grazing_angles = values[:, 0][::-1]
                 mirror_reflectivities = values[:, 1][::-1]
 
-            if self.user_defined_angle_units == 0: mirror_grazing_angles = numpy.degrees(1e-3*mirror_grazing_angles)
+            if self.user_defined_angle_units == 0: mirror_grazing_angles = numpy.degrees(1e-3*mirror_grazing_angles) # mrad to deg
 
             interpolated_weight = numpy.sqrt(numpy.interp(beam_incident_angles,
                                                           mirror_grazing_angles,
@@ -2951,6 +2961,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             mirror_energies = values[:, 0]
             mirror_reflectivities = values[:, 1]
+
+            if self.user_defined_energy_units == 1: mirror_energies *= 1e3 # KeV to eV
 
             interpolated_weight = numpy.sqrt(numpy.interp(beam_energies,
                                                           mirror_energies,
@@ -2976,7 +2988,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             mirror_energies         = numpy.unique(mirror_energies)
             mirror_grazing_angles   = numpy.unique(mirror_grazing_angles)
-            if self.user_defined_angle_units == 0: mirror_grazing_angles = numpy.degrees(1e-3*mirror_grazing_angles)
+            if self.user_defined_angle_units  == 0: mirror_grazing_angles = numpy.degrees(1e-3*mirror_grazing_angles)
+            if self.user_defined_energy_units == 1: mirror_energies *= 1e3 # KeV to eV
 
             mirror_reflectivities = numpy.reshape(mirror_reflectivities, (mirror_energies.shape[0], mirror_grazing_angles.shape[0]))
 
