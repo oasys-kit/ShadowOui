@@ -2948,11 +2948,13 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             if self.user_defined_angle_units == 0: mirror_grazing_angles = numpy.degrees(1e-3*mirror_grazing_angles) # mrad to deg
 
-            interpolated_weight = numpy.sqrt(numpy.interp(beam_incident_angles,
-                                                          mirror_grazing_angles,
-                                                          mirror_reflectivities,
-                                                          left=mirror_reflectivities[0],
-                                                          right=mirror_reflectivities[-1]))
+            interpolated_weight_s = numpy.sqrt(numpy.interp(beam_incident_angles,
+                                                            mirror_grazing_angles,
+                                                            mirror_reflectivities,
+                                                            left=mirror_reflectivities[0],
+                                                            right=mirror_reflectivities[-1]))
+            interpolated_weight_p = interpolated_weight_s
+
         elif self.user_defined_file_type == 1: # Energy vs Refl.
             beam_energies = ShadowPhysics.getEnergyFromShadowK(input_beam._beam.rays[:, 10])
 
@@ -2964,11 +2966,12 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             if self.user_defined_energy_units == 1: mirror_energies *= 1e3 # KeV to eV
 
-            interpolated_weight = numpy.sqrt(numpy.interp(beam_energies,
-                                                          mirror_energies,
-                                                          mirror_reflectivities,
-                                                          left=mirror_reflectivities[0],
-                                                          right=mirror_reflectivities[-1]))
+            interpolated_weight_s = numpy.sqrt(numpy.interp(beam_energies,
+                                                            mirror_energies,
+                                                            mirror_reflectivities,
+                                                            left=mirror_reflectivities[0],
+                                                            right=mirror_reflectivities[-1]))
+            interpolated_weight_p = interpolated_weight_s
 
         elif self.user_defined_file_type == 2: # 2D Energy vs Angle vs Reflectivity
             values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/angle." +
@@ -2984,32 +2987,43 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             mirror_energies       = values[:, 0]
             mirror_grazing_angles = values[:, 1]
-            mirror_reflectivities = values[:, 2]
-
             mirror_energies         = numpy.unique(mirror_energies)
             mirror_grazing_angles   = numpy.unique(mirror_grazing_angles)
             if self.user_defined_angle_units  == 0: mirror_grazing_angles = numpy.degrees(1e-3*mirror_grazing_angles)
             if self.user_defined_energy_units == 1: mirror_energies *= 1e3 # KeV to eV
 
-            mirror_reflectivities = numpy.reshape(mirror_reflectivities, (mirror_energies.shape[0], mirror_grazing_angles.shape[0]))
+            def get_interpolator_weight_2D(mirror_energies, mirror_grazing_angles, mirror_reflectivities):
+                mirror_reflectivities = numpy.reshape(mirror_reflectivities, (mirror_energies.shape[0], mirror_grazing_angles.shape[0]))
 
-            interpolator = RectBivariateSpline(mirror_energies, mirror_grazing_angles, mirror_reflectivities, kx=2, ky=2)
+                interpolator = RectBivariateSpline(mirror_energies, mirror_grazing_angles, mirror_reflectivities, kx=2, ky=2)
 
-            interpolated_weight = numpy.zeros(beam_energies.shape[0])
+                interpolated_weight = numpy.zeros(beam_energies.shape[0])
+                for energy, angle, i in zip(beam_energies, beam_incident_angles, range(interpolated_weight.shape[0])):
+                    interpolated_weight[i] = numpy.sqrt(interpolator(energy, angle))
+                interpolated_weight[numpy.where(numpy.isnan(interpolated_weight))] = 0.0
 
-            for energy, angle, i in zip(beam_energies, beam_incident_angles, range(interpolated_weight.shape[0])):
-                interpolated_weight[i] = numpy.sqrt(interpolator(energy, angle))
+                return interpolated_weight
 
-            interpolated_weight[numpy.where(numpy.isnan(interpolated_weight))] = 0.0
+            if values.shape[1] == 3:
+                mirror_reflectivities = values[:, 2]
+
+                interpolated_weight_s = get_interpolator_weight_2D(mirror_energies, mirror_grazing_angles, mirror_reflectivities)
+                interpolated_weight_p = interpolated_weight_s
+            elif values.shape[1] == 4:
+                mirror_reflectivities_s = values[:, 2]
+                mirror_reflectivities_p = values[:, 3]
+
+                interpolated_weight_s = get_interpolator_weight_2D(mirror_energies, mirror_grazing_angles, mirror_reflectivities_s)
+                interpolated_weight_p = get_interpolator_weight_2D(mirror_energies, mirror_grazing_angles, mirror_reflectivities_p)
 
         output_beam = input_beam.duplicate()
 
-        output_beam._beam.rays[:, 6] = output_beam._beam.rays[:, 6] * interpolated_weight
-        output_beam._beam.rays[:, 7] = output_beam._beam.rays[:, 7] * interpolated_weight
-        output_beam._beam.rays[:, 8] = output_beam._beam.rays[:, 8] * interpolated_weight
-        output_beam._beam.rays[:, 15] = output_beam._beam.rays[:, 15] * interpolated_weight
-        output_beam._beam.rays[:, 16] = output_beam._beam.rays[:, 16] * interpolated_weight
-        output_beam._beam.rays[:, 17] = output_beam._beam.rays[:, 17] * interpolated_weight
+        output_beam._beam.rays[:, 6] = output_beam._beam.rays[:, 6] * interpolated_weight_s
+        output_beam._beam.rays[:, 7] = output_beam._beam.rays[:, 7] * interpolated_weight_s
+        output_beam._beam.rays[:, 8] = output_beam._beam.rays[:, 8] * interpolated_weight_s
+        output_beam._beam.rays[:, 15] = output_beam._beam.rays[:, 15] * interpolated_weight_p
+        output_beam._beam.rays[:, 16] = output_beam._beam.rays[:, 16] * interpolated_weight_p
+        output_beam._beam.rays[:, 17] = output_beam._beam.rays[:, 17] * interpolated_weight_p
 
         return output_beam
 
@@ -3271,8 +3285,11 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                         self.file_reflectivity = "xoppy_mlayer_" + str(id(self)) + ".dat"
 
                         if exchangeData.has_content_key("data2D_rs"):
-                            data2D = numpy.sqrt(exchangeData.get_content("data2D_rs")**2 + exchangeData.get_content("data2D_rp")**2)
-                            data2D[numpy.where(numpy.isnan(data2D))] = 0
+                            data2D_s = exchangeData.get_content("data2D_rs")
+                            data2D_s[numpy.where(numpy.isnan(data2D_s))] = 0
+
+                            data2D_p = exchangeData.get_content("data2D_rp")
+                            data2D_p[numpy.where(numpy.isnan(data2D_p))] = 0
 
                             energy = exchangeData.get_content("dataX")
                             angle  = exchangeData.get_content("dataY")
@@ -3281,7 +3298,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                             for i in range(energy.shape[0]):
                                 for j in range(angle.shape[0]):
-                                    file.write(str(energy[i]) + " " + str(angle[j]) + " " + str(data2D[i, j]) + "\n")
+                                    file.write(str(energy[i]) + " " + str(angle[j]) + " " + str(data2D_s[i, j]) + " " + str(data2D_p[i, j]) + "\n")
 
                             file.close()
 
