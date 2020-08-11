@@ -63,11 +63,11 @@ from scipy.special import jv as besselj
 # R is the maximum radius in Q space
 # c are the zeros of the bessel functions
 
-def Hankel_Transform_MGS(h, R, c, Nzero=0):
+def Hankel_Transform_MGS(h, R, c, Nzeros=0):
     N = len(h)
 
-    H = numpy.full(N, None)
-    if Nzero <= 0: Nzero = N
+    if Nzeros <= 0: Nzeros = N
+    H = numpy.full(N, 0j)
 
     V = c[N]/(2*numpy.pi*R)
 
@@ -78,12 +78,12 @@ def Hankel_Transform_MGS(h, R, c, Nzero=0):
 
     F = numpy.divide(h, m1)
 
-    Bessel_Jn = numpy.abs(besselj(1, c[0:Nzero])) / (2 / c[N])
+    Bessel_Jn = numpy.abs(besselj(1, c[0:Nzeros])) / (2 / c[N])
     Bessel_Jm = numpy.abs(besselj(1, c))
 
     for jj in range(0, N):
-        C = besselj(0, c[0:Nzero] * c[jj] / c[N]) / (Bessel_Jn * Bessel_Jm[jj])
-        H[jj] = numpy.multiply(C[0:Nzero], F[0:Nzero])
+        C = besselj(0, c[0:Nzeros] * c[jj] / c[N]) / (Bessel_Jn * Bessel_Jm[jj])
+        H[jj] = numpy.dot(C[0:Nzeros], F[0:Nzeros])
 
     H = H.conjugate().T
     H = numpy.multiply(H, m2)

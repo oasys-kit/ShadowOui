@@ -61,10 +61,10 @@
 #%
 #%% ------------------------------------------------------------------------
 
-import numpy, xraylib
-from orangecontrib.shadow.util.shadow_util import ShadowPhysics
+import numpy
 from orangecontrib.shadow.util.zone_plates import bessel_zeros
 from orangecontrib.shadow.util.zone_plates.hankel_transform_MGS import Hankel_Transform_MGS
+from orangecontrib.shadow.util.zone_plates.refractive_index import RefractiveIndex
 ## FZP, CS, OSA and simulation parameters
 #--------------------------------------------------------------------------
   
@@ -100,8 +100,6 @@ energy = 8                         # photon energy [keV]
 wavelength = 12.398/energy*1e-10   # wavelength [m]
 k = 2*numpy.pi/wavelength          # wavevector [m-1]
 height = 20000e-9              # zone thickness or height [m]
-height_2 = 750e-9              # zone thickness or height [m] of second zone plate
-height_3 = 400e-9              # zone thickness or height [m] of third zone plate
 diam = 50e-6                   # FZP diameter [m]
 bmin = 50e-9                   # outermost zone width [m] / outermost period for ZD [m]
 f = diam*bmin/wavelength             # focal distance [m]
@@ -116,8 +114,7 @@ OSA_position = 0.03          # distance FZP-OSA [m]
 OSA_diam = 30e-6              # OSA diameter [m]
 
 N = 5000                      # Number of sampling point in radial direction 
-#R = 2*diam                     # Radius of the simulation    
-R = diam                     # Radius of the simulation    
+R = diam                     # Radius of the simulation
 step = R/N
 Nzero = numpy.floor(1.25*diam/2/R*N) # Parameter to speed up the Hankel Transform
                                      # when the function has zeros for N > Nzero
@@ -132,14 +129,8 @@ ii = 0 + 1j
 FZP_Material = 'Au'
 Template_Material = 'SiO2'
 
-density_FZP      = ShadowPhysics.getMaterialDensity(FZP_Material)
-density_Template = ShadowPhysics.getMaterialDensity(Template_Material)
-
-delta_FZP = (1 - xraylib.Refractive_Index_Re(FZP_Material, energy, density_FZP))  # Coefficients for FZP material
-beta_FZP  = xraylib.Refractive_Index_Im(FZP_Material, energy, density_FZP)
-
-delta_template = (1 - xraylib.Refractive_Index_Re(Template_Material, energy, density_Template)) # Coefficienct for template material
-beta_template =  xraylib.Refractive_Index_Im(Template_Material, energy, density_Template)
+delta_FZP, beta_FZP = RefractiveIndex(energy, FZP_Material)
+delta_template, beta_template =  RefractiveIndex(energy, Template_Material)
 
 if (with_MultiSlicing==1): NSlices = 100 # Number of slices of the element
 else: NSlices = 1
@@ -156,7 +147,7 @@ height2 = (4/3)*1000e-9
 ## Contruction of the FZP profile
 #--------------------------------------------------------------------------
 
-Nzones=int(numpy.floor(1.0/4.0*(diam/bmin)))
+Nzones = int(numpy.floor(1.0/4.0*(diam/bmin)))
 
 radia = numpy.sqrt(numpy.arange(0, Nzones+1)*wavelength*f + ((numpy.arange(0, Nzones+1)*wavelength)**2)/4)
 profile = numpy.full(N, 1 + 0j)
@@ -167,9 +158,15 @@ if (FZP_TYPE==0):
     for i in range (1, Nzones, 2):
        position_i = int(numpy.floor(radia[i]/step))
        position_f = int(numpy.floor(radia[i+1]/step))
-       profile[position_i:position_f] = numpy.exp(-ii*(-2*numpy.pi*delta_FZP/wavelength*height-ii*2*numpy.pi*beta_FZP/wavelength*height))
+       profile[position_i:position_f] = numpy.exp(-1j*(-2*numpy.pi*delta_FZP/wavelength*height-1j*2*numpy.pi*beta_FZP/wavelength*height))
 
     Membrane_Transmission = 1
+
+# Inserting the CS
+# --------------------------------------------------------------------------
+CS_pix = numpy.floor(CS_diam / step)
+
+if (with_CS == 1): profile[0: int(numpy.floor(CS_pix / 2))] = 0
 
 #% Propagation of the wavefield
 # The routine performing the 0th order Hankel tranform is based in a
@@ -197,12 +194,10 @@ q = c[0:N]/(2*numpy.pi*R) # Frequency vector
 # The output intensity profiles will be defined in r coordinates.
 #--------------------------------------------------------------------------
 
-r0 = numpy.arange(0, R, R/N)
-profile_h = numpy.full(N, 0 + 0j)
-
-for i in range(0, N-1):
-    profile_h[i] = profile[i]+(profile[i+1]-profile[i])/(r0[i+1]-r0[i])*(r[i]-r0[i])
-profile_h[N-1]=profile[N-1]
+r0 = numpy.arange(0, R, step)
+profile_h = numpy.full(N, 0j)
+for i in range(0, N-1): profile_h[i] = profile[i]+(profile[i+1]-profile[i])/(r0[i+1]-r0[i])*(r[i]-r0[i])
+profile_h[N-1] = profile[N-1]
 
 ## Calculatio of the first angular spectrum 
 #--------------------------------------------------------------------------
@@ -215,15 +210,10 @@ if (with_Complex==1): map_complex = numpy.zeros((NSlices+Nz, N))
 # the function needs as a input the angular specturm 'fun', the maximum
 # frequency Q and the zeros of the Bessel function.
 
-
 field0 = profile_h*Membrane_Transmission
-map_int[0, :] = numpy.dot(numpy.abs(field0), numpy.abs(field0))
-if (with_Complex==1): map_complex[0, :] = field0
+map_int[0, :] = numpy.multiply(numpy.abs(field0), numpy.abs(field0))
+if (with_Complex==1): map_complex[0, :] = field0[0:N]
 
 four0 = Hankel_Transform_MGS(field0, R, c)
-#time = etime(clock,time_i)
-#disp(['Estimated time for one point ' num2str(floor(time/3600)) 'h ' num2str(floor(rem(time,3600)/60)) 'min ' num2str(floor(rem(rem(time,3600),60))) 's'])
-
 field0 = profile_h
 
-#plot(field0)

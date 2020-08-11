@@ -3523,11 +3523,11 @@ RefractiveData = {
 def RefractiveIndex(Energy, Material, xraylib_only = False):
   if Material in RefractiveData.keys() and not xraylib_only:
     data = RefractiveData[Material]
-    delta = numpy.interp([Energy], data[:, 0], data[:, 1])
-    beta  = numpy.interp([Energy], data[:, 0], data[:, 2])
+    delta = numpy.interp([Energy*1000], data[:, 0], data[:, 1])[0]
+    beta  = numpy.interp([Energy*1000], data[:, 0], data[:, 2])[0]
   else:
     density = ShadowPhysics.getMaterialDensity(Material)
-    delta = (1 - xraylib.Refractive_Index_Re(Material, Energy, density))  # Coefficients for FZP material
-    beta  = xraylib.Refractive_Index_Im(Material, Energy, density)
+    delta = (1 - xraylib.Refractive_Index_Re(Material, Energy*1000, density))  # Coefficients for FZP material
+    beta  = xraylib.Refractive_Index_Im(Material, Energy*1000, density)
 
   return delta, beta
