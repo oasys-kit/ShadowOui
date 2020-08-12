@@ -196,7 +196,8 @@ q = c[0:N]/(2*numpy.pi*R) # Frequency vector
 
 r0 = numpy.arange(0, R, step)
 profile_h = numpy.full(N, 0j)
-for i in range(0, N-1): profile_h[i] = profile[i]+(profile[i+1]-profile[i])/(r0[i+1]-r0[i])*(r[i]-r0[i])
+for i in range(0, N-1):
+    profile_h[i] = profile[i]+(profile[i+1]-profile[i])/(r0[i+1]-r0[i])*(r[i]-r0[i])
 profile_h[N-1] = profile[N-1]
 
 ## Calculatio of the first angular spectrum 
