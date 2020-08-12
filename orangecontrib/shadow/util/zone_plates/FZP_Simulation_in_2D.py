@@ -88,38 +88,33 @@ with_Range = 1  # equal to 0 --> plot to focal length
                
 with_MultiSlicing = 0 # equal to 1 --> apply multisilcing of the element 
                        # equal to 0 --> no multislicing
-                     
-with_Stacking = 0    # equal to 1 --> Two FZP are stacked
-                     # equal to 0 --> Single FZP
-                     # equal to 2 --> Three FZP are stacked
-                     
+
 with_Complex = 0  # equal to 0 --> Complex Wavefront is not stored
                   # equal to 1 --> Complex Wavefront is storedk
  
 energy = 8                         # photon energy [keV]
 wavelength = 12.398/energy*1e-10   # wavelength [m]
 k = 2*numpy.pi/wavelength          # wavevector [m-1]
-height = 20000e-9              # zone thickness or height [m]
-diam = 50e-6                   # FZP diameter [m]
-bmin = 50e-9                   # outermost zone width [m] / outermost period for ZD [m]
-f = diam*bmin/wavelength             # focal distance [m]
-Distance_Stacking = 0e-6          # Separation distance between stacked zone plates
-Misalign = 0e-9                   # Misalignment of chosen zone plate in radial direction
+height = 20000e-9                  # zone thickness or height [m]
+diam = 50e-6                       # FZP diameter [m]
+bmin = 50e-9                       # outermost zone width [m] / outermost period for ZD [m]
+f = diam*bmin/wavelength           # focal distance [m]
+Misalign = 0e-9                    # Misalignment of chosen zone plate in radial direction
 
-Range_i = (f-Distance_Stacking)-2e-6 # distance to FZP
-Range_f = (f-Distance_Stacking)+2e-6 # distance to FZP
+Range_i = f-2e-6 # distance to FZP
+Range_f = f+2e-6 # distance to FZP
 
-CS_diam = 10e-6                # beamstop diameter [m]
+CS_diam = 10e-6              # beamstop diameter [m]
 OSA_position = 0.03          # distance FZP-OSA [m]
-OSA_diam = 30e-6              # OSA diameter [m]
+OSA_diam = 30e-6             # OSA diameter [m]
 
-N = 5000                      # Number of sampling point in radial direction 
+N = 5000                     # Number of sampling point in radial direction
 R = diam                     # Radius of the simulation
 step = R/N
-Nzero = numpy.floor(1.25*diam/2/R*N) # Parameter to speed up the Hankel Transform
-                                     # when the function has zeros for N > Nzero
-Nz = 3                         # Number of sampling points along the z axis
-factor_z = 1.6                 # Z axis range up to factor_z*f 
+Nzeros = numpy.floor(1.25*diam/2/R*N) # Parameter to speed up the Hankel Transform
+                                      # when the function has zeros for N > Nzero
+Nz = 3                                # Number of sampling points along the z axis
+factor_z = 1.6                        # Z axis range up to factor_z*f
 
 ii = 0 + 1j
 
@@ -157,10 +152,77 @@ profile[int(numpy.floor(radia[Nzones]/step)):N] = 0
 if (FZP_TYPE==0):
     for i in range (1, Nzones, 2):
        position_i = int(numpy.floor(radia[i]/step))
-       position_f = int(numpy.floor(radia[i+1]/step))
+       position_f = int(numpy.floor(radia[i+1]/step)) # N.B. the index is excluded
        profile[position_i:position_f] = numpy.exp(-1j*(-2*numpy.pi*delta_FZP/wavelength*height-1j*2*numpy.pi*beta_FZP/wavelength*height))
 
     Membrane_Transmission = 1
+
+# Zone-doubled FZP
+if (FZP_TYPE==1):
+    for i in range (1, Nzones, 2):
+       position_i = int(numpy.floor((radia[i]+bmin/4)/step))
+       position_f = int(numpy.floor((radia[i+1]-bmin/4)/step))
+       profile[position_i:position_f] = numpy.exp(-1j*(-2*numpy.pi*delta_template/wavelength*height-1j*2*numpy.pi*beta_template/wavelength*height))
+       
+       position_i = int(numpy.floor((radia[i]-width_coating/2)/step))
+       position_f = int(numpy.floor((radia[i]+width_coating/2)/step))
+       profile[position_i:position_f] = numpy.exp(-1j*(-2*numpy.pi*delta_FZP/wavelength*height-1j*2*numpy.pi*beta_FZP/wavelength*height))
+       
+       position_i = int(numpy.floor((radia[i+1]-width_coating/2)/step))
+       position_f = int(numpy.floor((radia[i+1]+width_coating/2)/step))
+       profile[position_i:position_f] = numpy.exp(-1j*(-2*numpy.pi*delta_FZP/wavelength*height-1j*2*numpy.pi*beta_FZP/wavelength*height))
+
+    #including absorption of coating material 
+    Membrane_Transmission = numpy.exp(-1j*(-1j*2*numpy.pi*beta_FZP/wavelength*width_coating/2))
+
+# Zone-filled FZP
+if (FZP_TYPE==2):
+    for i in range (1, Nzones, 2):
+        
+       position_i = int(numpy.floor(radia[i]/step))
+       position_f = int(numpy.floor(radia[i+1]/step))
+       
+       width = numpy.abs(int(numpy.floor((radia[i+1]-radia[i])/step)))
+       width_coating_step = numpy.abs(int(numpy.floor(width_coating/step/2)))
+       
+       if((width_coating<width)):
+            profile[position_i:position_f] = numpy.exp(-1j*(-2*numpy.pi*delta_template/wavelength*height-1j*2*numpy.pi*beta_template/wavelength*height))
+            
+            position_i = int(numpy.floor((radia[i]-width_coating)/step))
+            position_f = int(numpy.floor(radia[i]/step))
+            profile[position_i:position_f] =  numpy.exp(-1j*(-2*numpy.pi*delta_FZP/wavelength*height-1j*2*numpy.pi*beta_FZP/wavelength*height))
+            
+            position_i = int(numpy.floor(radia[i+1]/step))
+            position_f = int(numpy.floor((radia[i+1]+width_coating)/step))  
+            profile[position_i:position_f] = numpy.exp(-1j*(-2*numpy.pi*delta_FZP/wavelength*height-1j*2*numpy.pi*beta_FZP/wavelength*height))
+       else:
+            profile[position_i:position_f] = numpy.exp(-1j*(-2*numpy.pi*delta_template/wavelength*height-1j*2*numpy.pi*beta_template/wavelength*height))
+            
+            position_i = int(numpy.floor((radia[i]-width_coating)/step))
+            position_f = int(numpy.floor(radia[i]/step))
+            profile[position_i:position_f] = numpy.exp(-1j*(-2*numpy.pi*delta_FZP/wavelength*height-1j*2*numpy.pi*beta_FZP/wavelength*height))
+            
+            position_i = int(numpy.floor(radia[i+1]/step))
+            position_f = int(numpy.floor((radia[i+1]-width_coating)/step))
+            profile[position_i:position_f] =  numpy.exp(-1j*(-2*numpy.pi*delta_FZP/wavelength*height-1j*2*numpy.pi*beta_FZP/wavelength*height))
+
+    #including absorption of coating material 
+    Membrane_Transmission = numpy.exp(-1j*(-1j*2*numpy.pi*beta_FZP/wavelength*width_coating))
+
+
+# Two-Level FZP - stop here refactoring
+if (FZP_TYPE==3):
+    for i in range (1, Nzones, 2):
+        position_i = int(numpy.floor((2*radia[i-1]/3+radia[i+1]/3)/step))
+        position_f = int(numpy.floor((radia[i-1]/3+2*radia[i+1]/3)/step))
+        profile[position_i:position_f] = numpy.exp(-1j*(-2*numpy.pi*delta_FZP/wavelength*height1-1j*2*numpy.pi*beta_FZP/wavelength*height1))
+        
+        position_i = int(numpy.floor((radia[i-1]/3+2*radia[i+1]/3)/step))
+        position_f = int(numpy.floor((radia[i+1])/step))
+        profile[position_i:position_f] = numpy.exp(-1j*(-2*numpy.pi*delta_FZP/wavelength*height2-1j*2*numpy.pi*beta_FZP/wavelength*height2))
+   
+    Membrane_Transmission = 1
+
 
 # Inserting the CS
 # --------------------------------------------------------------------------

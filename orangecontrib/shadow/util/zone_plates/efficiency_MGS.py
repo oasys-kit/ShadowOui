@@ -81,30 +81,3 @@ def efficiency_MGS(F_POS, map_d, profile_h, r, N, N_points=0):
     I = 2*numpy.pi*numpy.trapz(r[0:N_points+1], numpy.multiply(r[0:N_points+1], map_d[N-1:(N+N_points), F_POS]))
 
     return numpy.divide(I, I_0)
-'''
-if nargin < 5 || isempty(N_points)
-   N_points = N;
-end
-
-% Calculation of the incoming intensity
-% -------------------------------------------------------------------------
-
-I_dens_0 (1:N) = 0;
-
-I_dens_0 (profile_h ~=0) = 1.0;
-
-I_0 = 2*pi*trapz(r,r.*I_dens_0);
-%I_0 = 5000;
-
-% Calculation of the intensity in focus
-% -------------------------------------------------------------------------
-
-%I = 2*pi*trapz(r(1:N_points),r(1:N_points).*transpose(map_d(N+1:(N+N_points),F_POS)));
-I = 2*pi*trapz(r(1:N_points+1),r(1:N_points+1).*transpose(map_d(N:(N+N_points),F_POS)));
-
-%I = 2*pi*trapz(r(1:N_points+1),r(1:N_points+1).*transpose(map_d(N+1:(N+1+N_points),F_POS)));
-
-DE = I/I_0;
-
-%I=map(2*N+1:2*N+N_points,F_POS).*(1:N_points)'
-'''
