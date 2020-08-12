@@ -82,7 +82,7 @@ def Hankel_Transform_MGS(h, R, c, Nzeros=0):
     Bessel_Jm = numpy.abs(besselj(1, c))
 
     for jj in range(0, N):
-        C = besselj(0, c[0:Nzeros] * c[jj] / c[N]) / (Bessel_Jn * Bessel_Jm[jj])
+        C     = besselj(0, c[0:Nzeros] * c[jj] / c[N]) / (Bessel_Jn * Bessel_Jm[jj])
         H[jj] = numpy.dot(C[0:Nzeros], F[0:Nzeros])
 
     H = H.conjugate().T

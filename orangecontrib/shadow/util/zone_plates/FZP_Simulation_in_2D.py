@@ -71,10 +71,10 @@ from orangecontrib.shadow.util.zone_plates.refractive_index import RefractiveInd
 with_CS = 1     # equal to 0 --> without CS - CENTRAL STOP
                 # equal to 1 --> with CS
                
-with_OSA = 0    # equal to 0 --> without OSA - ORDER SORTING APERTURE
+with_OSA = 1    # equal to 0 --> without OSA - ORDER SORTING APERTURE
                 # equal to 1 --> with OSA
                
-FZP_TYPE = 0    # equal to 0 --> Ordinary FZP
+FZP_TYPE = 1    # equal to 0 --> Ordinary FZP
                 # equal to 1 --> Zone-Doubled FZP
                 # equal to 2 --> Zone-Filled FZP
                 # equal to 3 --> Two-Level FZP
@@ -99,24 +99,21 @@ height = 20000e-9                  # zone thickness or height [m]
 diam = 50e-6                       # FZP diameter [m]
 bmin = 50e-9                       # outermost zone width [m] / outermost period for ZD [m]
 f = diam*bmin/wavelength           # focal distance [m]
-Misalign = 0e-9                    # Misalignment of chosen zone plate in radial direction
 
 Range_i = f-2e-6 # distance to FZP
 Range_f = f+2e-6 # distance to FZP
 
 CS_diam = 10e-6              # beamstop diameter [m]
-OSA_position = 0.03          # distance FZP-OSA [m]
+OSA_position = 0.01          # distance FZP-OSA [m]
 OSA_diam = 30e-6             # OSA diameter [m]
 
 N = 5000                     # Number of sampling point in radial direction
-R = diam                     # Radius of the simulation
+R = diam                      # Radius of the simulation
 step = R/N
 Nzeros = numpy.floor(1.25*diam/2/R*N) # Parameter to speed up the Hankel Transform
                                       # when the function has zeros for N > Nzero
 Nz = 3                                # Number of sampling points along the z axis
 factor_z = 1.6                        # Z axis range up to factor_z*f
-
-ii = 0 + 1j
 
 #% FZP Material
 #--------------------------------------------------------------------------
@@ -127,7 +124,7 @@ Template_Material = 'SiO2'
 delta_FZP, beta_FZP = RefractiveIndex(energy, FZP_Material)
 delta_template, beta_template =  RefractiveIndex(energy, Template_Material)
 
-if (with_MultiSlicing==1): NSlices = 100 # Number of slices of the element
+if with_MultiSlicing == 1: NSlices = 100 # Number of slices of the element
 else: NSlices = 1
 
 width_coating = 20e-9                  # Width of the coated material for 
@@ -149,7 +146,7 @@ profile = numpy.full(N, 1 + 0j)
 profile[int(numpy.floor(radia[Nzones]/step)):N] = 0
 
 # Ordinary FZP
-if (FZP_TYPE==0):
+if FZP_TYPE == 0:
     for i in range (1, Nzones, 2):
        position_i = int(numpy.floor(radia[i]/step))
        position_f = int(numpy.floor(radia[i+1]/step)) # N.B. the index is excluded
@@ -158,7 +155,7 @@ if (FZP_TYPE==0):
     Membrane_Transmission = 1
 
 # Zone-doubled FZP
-if (FZP_TYPE==1):
+if FZP_TYPE == 1:
     for i in range (1, Nzones, 2):
        position_i = int(numpy.floor((radia[i]+bmin/4)/step))
        position_f = int(numpy.floor((radia[i+1]-bmin/4)/step))
@@ -176,7 +173,7 @@ if (FZP_TYPE==1):
     Membrane_Transmission = numpy.exp(-1j*(-1j*2*numpy.pi*beta_FZP/wavelength*width_coating/2))
 
 # Zone-filled FZP
-if (FZP_TYPE==2):
+if FZP_TYPE == 2:
     for i in range (1, Nzones, 2):
         
        position_i = int(numpy.floor(radia[i]/step))
@@ -185,7 +182,7 @@ if (FZP_TYPE==2):
        width = numpy.abs(int(numpy.floor((radia[i+1]-radia[i])/step)))
        width_coating_step = numpy.abs(int(numpy.floor(width_coating/step/2)))
        
-       if((width_coating<width)):
+       if width_coating < width:
             profile[position_i:position_f] = numpy.exp(-1j*(-2*numpy.pi*delta_template/wavelength*height-1j*2*numpy.pi*beta_template/wavelength*height))
             
             position_i = int(numpy.floor((radia[i]-width_coating)/step))
@@ -211,7 +208,7 @@ if (FZP_TYPE==2):
 
 
 # Two-Level FZP - stop here refactoring
-if (FZP_TYPE==3):
+if FZP_TYPE == 3:
     for i in range (1, Nzones, 2):
         position_i = int(numpy.floor((2*radia[i-1]/3+radia[i+1]/3)/step))
         position_f = int(numpy.floor((radia[i-1]/3+2*radia[i+1]/3)/step))
@@ -228,7 +225,7 @@ if (FZP_TYPE==3):
 # --------------------------------------------------------------------------
 CS_pix = numpy.floor(CS_diam / step)
 
-if (with_CS == 1): profile[0: int(numpy.floor(CS_pix / 2))] = 0
+if with_CS == 1: profile[0: int(numpy.floor(CS_pix / 2))] = 0
 
 #% Propagation of the wavefield
 # The routine performing the 0th order Hankel tranform is based in a
@@ -262,10 +259,10 @@ for i in range(0, N-1):
     profile_h[i] = profile[i]+(profile[i+1]-profile[i])/(r0[i+1]-r0[i])*(r[i]-r0[i])
 profile_h[N-1] = profile[N-1]
 
-## Calculatio of the first angular spectrum 
+## Calculation of the first angular spectrum
 #--------------------------------------------------------------------------
 map_int=numpy.zeros((NSlices+Nz, N))
-if (with_Complex==1): map_complex = numpy.zeros((NSlices+Nz, N))
+if with_Complex == 1: map_complex = numpy.zeros((NSlices+Nz, N))
 
 # The function 'Hankel_Transform_MGS' needs as input the field 'field0', 
 # the maximum radius R and the zeros of the 0th Bessel function. In case of
@@ -275,8 +272,188 @@ if (with_Complex==1): map_complex = numpy.zeros((NSlices+Nz, N))
 
 field0 = profile_h*Membrane_Transmission
 map_int[0, :] = numpy.multiply(numpy.abs(field0), numpy.abs(field0))
-if (with_Complex==1): map_complex[0, :] = field0[0:N]
+if with_Complex == 1: map_complex[0, :] = field0[0:N]
 
 four0 = Hankel_Transform_MGS(field0, R, c)
 field0 = profile_h
 
+## Multi-Slicing of the FZP
+#--------------------------------------------------------------------------
+# Propagation of the wavefield inside the FZP is performed by slicing the
+# element in pieces and considering free propagation between them. The
+# volume effects in this way are considered.  
+#
+
+if with_MultiSlicing == 1:
+    Step_Slice = height
+
+    for n in range(NSlices-1):
+        proj = numpy.exp(-1j*Step_Slice*((2*numpy.pi*q)**2)/(2*k))
+        fun = numpy.multiply(proj, four0)
+        field = Hankel_Transform_MGS(fun, Q, c)
+
+        fun = numpy.multiply(field0, field)
+        map_int[1+n, :] = numpy.multiply(numpy.abs(fun), numpy.abs(fun))
+        if with_Complex == 1: map_complex[1+n, :] = fun
+
+        four0 = Hankel_Transform_MGS(fun, R, c, Nzeros)
+
+# Calculation from the FZP position to full z range
+if with_Range == 0:
+    stepz = factor_z*f/Nz
+    z = numpy.arange(1, Nz+1)*stepz
+
+    if with_OSA == 0:
+        for o in range(Nz):
+            print("Z position nr. ", o + 1, ": ",  z[o])
+            proj = numpy.exp(-1j*z[o]*((2*numpy.pi*q)**2)/(2*k))
+            fun = numpy.multiply(proj, four0)
+            four11 = Hankel_Transform_MGS(fun, Q, c)
+            map_int[o + NSlices, :] = numpy.multiply(numpy.abs(four11), numpy.abs(four11))
+            if with_Complex == 1: map_complex[o + NSlices, :] = four11
+
+    elif with_OSA == 1:
+        OSA_pos = int(numpy.floor(OSA_position/stepz) - 1)
+
+        for o in range(OSA_pos-1):
+            print("(OSA) Z position nr. ", o + 1, ": ", z[o])
+            proj = numpy.exp(-1j * z[o] * ((2 * numpy.pi * q)**2) / (2 * k))
+            fun = numpy.multiply(proj, four0)
+            four11 = Hankel_Transform_MGS(fun, Q, c)
+            map_int[o + NSlices, :] = numpy.multiply(numpy.abs(four11), numpy.abs(four11))
+            if with_Complex == 1: map_complex[o + NSlices, :] = four11
+
+        # Propagation at the OSA position
+        #--------------------------------------------------------------------------
+
+        proj_OSA = numpy.exp(-1j * z[OSA_pos] * ((2 * numpy.pi * q)**2) / (2 * k))
+        fun = numpy.multiply(proj_OSA, four0)
+        field_OSA = Hankel_Transform_MGS(fun, Q, c)
+
+        # Inserting OSA
+        #--------------------------------------------------------------------------
+
+        OSA_pix = int(numpy.floor(OSA_diam/step) - 1)
+        field_OSA[OSA_pix/2+1:N] = 0
+
+        map_int[OSA_pos+NSlices,:] = numpy.multiply(numpy.abs(field_OSA), numpy.abs(field_OSA))
+        four_OSA =  Hankel_Transform_MGS(field_OSA,R,c)
+        if with_Complex == 1: map_complex[OSA_pos+NSlices,:] = field_OSA
+
+        # Continue the propagation from OSA to focus
+        #--------------------------------------------------------------------------
+        for o in range(OSA_pos+1, Nz):
+            print("(OSA) Z position nr. ", o + 1, ": ", z[o] - z[OSA_pos])
+            proj = numpy.exp(-1j * (z[o] - z[OSA_pos]) * ((2 * numpy.pi * q)**2) / (2 * k))
+            fun = numpy.multiply(proj, four_OSA)
+            four11 = Hankel_Transform_MGS(fun, Q, c)
+            map_int[o + NSlices, :] = numpy.multiply(numpy.abs(four11), numpy.abs(four11))
+            if with_Complex == 1: map_complex[o + NSlices, :] = four11
+
+elif with_Range == 1:
+    stepz = (Range_f-Range_i)/Nz
+    z = (Range_i + numpy.arange(Nz+1)*stepz)
+
+    if (with_OSA == 0) or (OSA_position > Range_f):
+        for o in range(Nz):
+            print("Z position nr. ", o+1, ": ",  z[o])
+            proj = numpy.exp(-1j*z[o]*((2*numpy.pi*q)**2)/(2*k))
+            fun = numpy.multiply(proj, four0)
+            four11 = Hankel_Transform_MGS(fun, Q, c)
+            map_int[o + NSlices, :] = numpy.multiply(numpy.abs(four11), numpy.abs(four11))
+            if with_Complex == 1: map_complex[o + NSlices, :] = four11
+    elif with_OSA == 1:
+        if OSA_position < Range_i:
+            proj_OSA = numpy.exp(-1j*OSA_position*((2*numpy.pi*q)**2)/(2*k))
+            fun = numpy.multiply(proj_OSA, four0)
+            field_OSA = Hankel_Transform_MGS(fun, Q, c)
+    
+            # Inserting OSA
+            #--------------------------------------------------------------------------
+    
+            OSA_pix = int(numpy.floor(OSA_diam/step) - 1)
+            field_OSA[int(OSA_pix/2)+1:N] = 0
+            four_OSA =  Hankel_Transform_MGS(field_OSA,R,c)
+    
+            for o in range(Nz):
+                print("(OSA) Z position nr. ", o+1, ": ",  z[o] - OSA_position)
+                proj = numpy.exp(-1j*(z[o] - OSA_position)*((2*numpy.pi*q)**2)/(2*k))
+                fun = numpy.multiply(proj, four0)
+                four11 = Hankel_Transform_MGS(fun, Q, c)
+                map_int[o + NSlices, :] = numpy.multiply(numpy.abs(four11), numpy.abs(four11))
+                if with_Complex == 1: map_complex[o + NSlices, :] = four11
+        else:
+            # Propagation from Range_i to OSA
+            #------------------------------------------------------------------
+            OSA_pos =  int(numpy.floor((OSA_position-Range_i)/stepz) - 1)
+    
+            for o in range(OSA_pos-1):
+                print("(OSA) Z position nr. ", o+1, ": ",  z[o])
+                proj = numpy.exp(-1j*z[o]*((2*numpy.pi*q)**2)/(2*k))
+                fun = numpy.multiply(proj, four0)
+                four11 = Hankel_Transform_MGS(fun, Q, c)
+                map_int[o + NSlices, :] = numpy.multiply(numpy.abs(four11), numpy.abs(four11))
+                if with_Complex == 1: map_complex[o + NSlices, :] = four11
+    
+            proj_OSA = numpy.exp(-1j * z[OSA_pos] * ((2 * numpy.pi * q)**2) / (2 * k))
+            fun = numpy.multiply(proj_OSA, four0)
+            field_OSA = Hankel_Transform_MGS(fun, Q, c)
+    
+            # Propagation at the OSA position
+            #--------------------------------------------------------------------------
+    
+            proj_OSA = numpy.exp(-1j * z[OSA_pos] * ((2 * numpy.pi * q)**2) / (2 * k))
+            fun = numpy.multiply(proj_OSA, four0)
+            field_OSA = Hankel_Transform_MGS(fun, Q, c)
+    
+            # Inserting OSA
+            #--------------------------------------------------------------------------
+    
+            OSA_pix = int(numpy.floor(OSA_diam/step) - 1)
+            field_OSA[int(OSA_pix/2)+1:N] = 0
+    
+            map_int[OSA_pos+NSlices,:] = numpy.multiply(numpy.abs(field_OSA), numpy.abs(field_OSA))
+            four_OSA = Hankel_Transform_MGS(field_OSA,R,c)
+            if with_Complex == 1: map_complex[OSA_pos+NSlices, :] = field_OSA
+    
+            # Continue the propagation from OSA to focus
+            #--------------------------------------------------------------------------
+            for o in range(OSA_pos+1, Nz):
+                print("(OSA) Z position nr. ", o + 1, ": ", z[o] - z[OSA_pos])
+                proj = numpy.exp(-1j * (z[o] - z[OSA_pos]) * ((2 * numpy.pi * q)**2) / (2 * k))
+                fun = numpy.multiply(proj, four_OSA)
+                four11 = Hankel_Transform_MGS(fun, Q, c)
+                map_int[o + NSlices, :] = numpy.multiply(numpy.abs(four11), numpy.abs(four11))
+                if with_Complex == 1: map_complex[o + NSlices, :] = four11
+
+###################################################
+#
+# Plotting
+#
+###################################################
+from scipy import interpolate
+
+def rotate(r, profile):
+    interpol_index = interpolate.interp1d(r, profile, bounds_error=False, fill_value=0.0)
+
+    xv = numpy.arange(-r[-1], r[-1], r[1] - r[0])  # adjust your matrix values here
+    X, Y = numpy.meshgrid(xv, xv)
+    profilegrid = numpy.zeros(X.shape, float)
+    for i, x in enumerate(X[0, :]):
+        for k, y in enumerate(Y[:, 0]):
+            current_radius = numpy.sqrt(x ** 2 + y ** 2)
+            profilegrid[i, k] = interpol_index(current_radius)
+
+    return profilegrid
+
+
+from matplotlib import pyplot as plt
+
+print("Shape:", map_int.shape)
+
+for i in range(1, map_int.shape[0]):
+    plt.plot(r0[:50], map_int[i, :50])
+plt.show()
+
+plt.imshow(rotate(r0[:50], map_int[1, :50]))
+plt.show()
