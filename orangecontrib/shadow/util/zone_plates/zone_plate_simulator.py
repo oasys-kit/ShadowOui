@@ -62,7 +62,16 @@
 # %% ------------------------------------------------------------------------
 
 import numpy
-import matplotlib
+
+from matplotlib import cm, rcParams
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from matplotlib.figure import Figure
+
+try:
+    from mpl_toolkits.mplot3d import Axes3D  # to load plot 3D
+except:
+    pass
+
 from scipy import interpolate
 
 from oasys.widgets import gui as oasysgui
@@ -268,7 +277,7 @@ class ZonePlateSimulator(object):
 
         return map_int, map_complex, efficiency
 
-    def plot_1D(self, plot_canvas, profile_1D, last_index=-1, show=False, replace=True, control=False, color='blue'):
+    def plot_1D(self, plot_canvas, profile_1D, last_index=-1, show=False, replace=True, profile_name="z pos #1", control=False, color='blue'):
         if plot_canvas is None:
             plot_canvas = oasysgui.plotWindow(parent=None,
                                               backend=None,
@@ -288,37 +297,40 @@ class ZonePlateSimulator(object):
                                               roi=False,
                                               mask=False,
                                               fit=True)
+
             plot_canvas.setDefaultPlotLines(True)
             plot_canvas.setActiveCurveColor(color="#00008B")
 
-            title  = "Radial Intensity Profile"
-            xtitle = "Radius [m]"
-            ytitle = "Intensity [A.U.]"
+        title  = "Radial Intensity Profile"
+        xtitle = "Radius [m]"
+        ytitle = "Intensity [A.U.]"
 
-            plot_canvas.setGraphTitle(title)
-            plot_canvas.setGraphXLabel(xtitle)
-            plot_canvas.setGraphYLabel(ytitle)
+        plot_canvas.setGraphTitle(title)
+        plot_canvas.setGraphXLabel(xtitle)
+        plot_canvas.setGraphYLabel(ytitle)
 
-            matplotlib.rcParams['axes.formatter.useoffset']='False'
+        rcParams['axes.formatter.useoffset']='False'
 
-            radius = numpy.arange(0, self.max_radius, self.step)
+        radius = numpy.arange(0, self.max_radius, self.step)
 
-            plot_canvas.addCurve(radius[:last_index], profile_1D[:last_index], title + "#1", symbol='', color='blue', xlabel=xtitle, ylabel=ytitle, replace=replace) #'+', '^', ','
+        plot_canvas.addCurve(radius[:last_index], profile_1D[:last_index], profile_name, symbol='', color=color, xlabel=xtitle, ylabel=ytitle, replace=replace) #'+', '^', ','
 
-            plot_canvas.setInteractiveMode('zoom', color='orange')
-            plot_canvas.resetZoom()
-            plot_canvas.replot()
+        plot_canvas.setInteractiveMode('zoom', color='orange')
+        plot_canvas.resetZoom()
+        plot_canvas.replot()
 
-            plot_canvas.setActiveCurve("Radial Intensity Profile")
+        plot_canvas.setActiveCurve("Radial Intensity Profile")
 
-            if show: plot_canvas.show()
+        if show: plot_canvas.show()
 
-            return plot_canvas
+        return plot_canvas
 
     def plot_2D(self, plot_canvas, profile_1D, last_index=-1, show=False):
         radius = numpy.arange(0, self.max_radius, self.step)
 
-        dataX, dataY, data2D = ZonePlateSimulator.__rotate(radius[:last_index], profile_1D[:last_index])
+        X, Y, data2D = ZonePlateSimulator.create_2D_profile(radius[:last_index], profile_1D[:last_index])
+        dataX = X[0, :]
+        dataY = Y[:, 0]
 
         origin = (dataX[0], dataY[0])
         scale = (dataX[1] - dataX[0], dataY[1] - dataY[0])
@@ -355,18 +367,43 @@ class ZonePlateSimulator(object):
         plot_canvas.setActiveImage("rotated")
         plot_canvas.setGraphXLabel("X [m]")
         plot_canvas.setGraphYLabel("Y [m]")
-        plot_canvas.setGraphTitle("Radial Intensity Profile")
+        plot_canvas.setGraphTitle("2D Intensity Profile")
 
         if show: plot_canvas.show()
 
         return plot_canvas
 
-    def plot_3D(self, plot_canvas, map, last_index=-1, show=False):
-        pass
+    def plot_3D(self, figure_canvas, profile_1D, last_index=-1, show=False):
+        radius = numpy.arange(0, self.max_radius, self.step)
+
+        X, Y, data2D = ZonePlateSimulator.create_2D_profile(radius[:last_index], profile_1D[:last_index])
+
+        if figure_canvas is None:
+            figure = Figure(figsize=(600, 600))
+            figure.patch.set_facecolor('white')
+
+            ax = figure.add_subplot(111, projection='3d')
+            figure_canvas = FigureCanvasQTAgg(figure)
+        else:
+            ax = figure_canvas.figure.axes[0]
+
+        ax.clear()
+
+        figure.suptitle("3D Intensity Profile")
+        ax.plot_surface(X, Y, data2D, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0.5, antialiased=True)
+
+        ax.set_xlabel("X [m]")
+        ax.set_ylabel("Y [m]")
+        ax.set_zlabel("Intensity [A.U.]")
+        ax.mouse_init()
+
+        if show: figure_canvas.show()
+
+        return figure_canvas
 
     @classmethod
-    def __rotate(cls, r, profile):
-        interpol_index = interpolate.interp1d(r, profile, bounds_error=False, fill_value=0.0)
+    def create_2D_profile(cls, r, profile_1D):
+        interpol_index = interpolate.interp1d(r, profile_1D, bounds_error=False, fill_value=0.0)
 
         xv = numpy.arange(-r[-1], r[-1], r[1] - r[0])  # adjust your matrix values here
         X, Y = numpy.meshgrid(xv, xv)
@@ -376,7 +413,7 @@ class ZonePlateSimulator(object):
                 current_radius = numpy.sqrt(x ** 2 + y ** 2)
                 profilegrid[i, k] = interpol_index(current_radius)
 
-        return xv, xv, profilegrid
+        return X, Y, profilegrid
 
     ###################################################
     #
@@ -531,10 +568,9 @@ class ZonePlateSimulator(object):
     ###################################################
     #
     def __propagate_on_range(self, map_int, map_complex, four0, Q, q, c):
-        at = self.__attributes
         op = self.__options
 
-        stepz = (op.range_f - op.range_i) / op.n_z
+        stepz = (op.range_f - op.range_i) / (op.n_z - 1)
         z = (op.range_i + numpy.arange(op.n_z) * stepz)
 
         if not op.with_order_sorting_aperture:
@@ -572,9 +608,11 @@ class ZonePlateSimulator(object):
     #
     def __propagate_to_distance(self, map_int, map_complex, z, four0, Q, q, c, index=0):
         print("Propagation to distance: ", z, " m")
+
         proj = numpy.exp(-1j * z * ((2 * numpy.pi * q) ** 2) / (2 * self.k))
         fun = numpy.multiply(proj, four0)
         four11 = hankel_transform(fun, Q, c)
+
         map_int[index + self.n_slices, :] = numpy.multiply(numpy.abs(four11), numpy.abs(four11))
         map_complex[index + self.n_slices, :] = four11
 
@@ -616,25 +654,38 @@ class ZonePlateSimulator(object):
 
         return numpy.divide(I, I_0)
 
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout
 
 if __name__ == "__main__":
     app = QApplication([])
 
-    zs = ZonePlateSimulator(options=ZonePlateSimulatorOptions(), attributes=ZonePlateAttributes())
+    n_z = 5
+    zs = ZonePlateSimulator(options=ZonePlateSimulatorOptions(with_range=True,
+                                                              range_i=0.0160,
+                                                              range_f=0.0162,
+                                                              n_z=n_z),
+                            attributes=ZonePlateAttributes())
+
     zs.initialize(energy_in_KeV=8.0, n_points=5000)
 
     map_int, _, efficiency = zs.simulate()
 
     print("Efficiency:", efficiency)
 
-    ###################################################
-    #
-    # Plotting
-    #
-    ###################################################
+    container = QWidget()
+    container.setFixedWidth(1500)
 
-    zs.plot_1D(None, map_int[1, :], 50, True)
-    zs.plot_2D(None, map_int[1, :], 50, True)
+    layout = QHBoxLayout()
+
+    figure = None
+    for i in range(n_z):
+        figure = zs.plot_1D(figure, map_int[1+i, :], 50, replace=i==0, profile_name="z pos #" + str(i+1))
+
+    layout.addWidget(figure)
+    layout.addWidget(zs.plot_2D(None, map_int[4, :], 50))
+    layout.addWidget(zs.plot_3D(None, map_int[2, :], 50))
+
+    container.setLayout(layout)
+    container.show()
 
     app.exec_()
