@@ -336,7 +336,7 @@ if with_Range == 0:
         #--------------------------------------------------------------------------
 
         OSA_pix = int(numpy.floor(OSA_diam/step) - 1)
-        field_OSA[OSA_pix/2+1:N] = 0
+        field_OSA[int(OSA_pix/2)+1:N] = 0
 
         map_int[OSA_pos+NSlices,:] = numpy.multiply(numpy.abs(field_OSA), numpy.abs(field_OSA))
         four_OSA =  Hankel_Transform_MGS(field_OSA,R,c)

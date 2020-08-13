@@ -3574,7 +3574,7 @@ def RefractiveIndex(Energy, Material, xraylib_only = False):
     beta  = numpy.interp([Energy*1000], data[:, 0], data[:, 2])[0]
   else:
     density = ShadowPhysics.getMaterialDensity(Material)
-    delta = (1 - xraylib.Refractive_Index_Re(Material, Energy*1000, density))  # Coefficients for FZP material
-    beta  = xraylib.Refractive_Index_Im(Material, Energy*1000, density)
+    delta = (1 - xraylib.Refractive_Index_Re(Material, Energy, density))  # Coefficients for FZP material
+    beta  = xraylib.Refractive_Index_Im(Material, Energy, density)
 
   return delta, beta

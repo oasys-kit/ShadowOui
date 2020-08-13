@@ -3570,8 +3570,8 @@ REFRACTIVE_DATA = {
 def get_delta_beta(energy_in_KeV, material, xraylib_only=True):
     if xraylib_only:
         density = ShadowPhysics.getMaterialDensity(material)
-        delta = (1 - xraylib.Refractive_Index_Re(material, energy_in_KeV * 1000, density))
-        beta  = xraylib.Refractive_Index_Im(material, energy_in_KeV * 1000, density)
+        delta = (1 - xraylib.Refractive_Index_Re(material, energy_in_KeV, density))
+        beta  = xraylib.Refractive_Index_Im(material, energy_in_KeV, density)
     elif material in REFRACTIVE_DATA.keys():
         data = REFRACTIVE_DATA[material]
         delta = numpy.interp([energy_in_KeV * 1000], data[:, 0], data[:, 1])[0]

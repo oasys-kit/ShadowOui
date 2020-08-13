@@ -67,9 +67,6 @@ from orangecontrib.shadow.util.zone_plates.hankel_transform import hankel_transf
 from orangecontrib.shadow.util.zone_plates.refractive_index import get_delta_beta
 
 
-
-
-
 class ZonePlateSimulatorOptions:
     with_central_stop = True
     cs_diameter = 10e-6  # beamstop diameter [m]
@@ -155,8 +152,8 @@ class ZonePlateSimulator(object):
 
         if op.with_multi_slicing: four0 = self.__propagate_multislicing(map_int, map_complex, field0, four0, Q, q, c)
 
-        if op.with_range: self.__propagate_on_range(map_int, map_complex, four0, Q, q, c)
-        else:             self.__propagate_to_focus(map_int, map_complex, four0, Q, q, c)
+        if op.with_range: self.__propagate_on_range(map_int, map_complex, four0, Q, q, c, n_points)
+        else:             self.__propagate_to_focus(map_int, map_complex, four0, Q, q, c, n_points)
 
         map_index = self.n_slices
 
@@ -164,6 +161,8 @@ class ZonePlateSimulator(object):
 
         return map_int, map_complex, efficiency
 
+    ###################################################
+    #
     def __initialize(self, energy_in_KeV, n_points):
         at = self.__attributes
         op = self.__options
@@ -188,6 +187,10 @@ class ZonePlateSimulator(object):
         if op.with_range: self.n_z = op.n_z
         else:             self.n_z = 1
 
+        if op.with_order_sorting_aperture: self.n_z += 1
+
+    ###################################################
+    #
     def __build_zone_plate_profile(self, n_points):
         at = self.__attributes
         op = self.__options
@@ -284,6 +287,8 @@ class ZonePlateSimulator(object):
 
         return profile, membrane_transmission
 
+    ###################################################
+    #
     def __get_profile_h(self, profile, r, n_points):
         # Recalculation of the position where the initial profile is defined.
         # Originally the profile is defined in position r0, that are linear for all
@@ -299,6 +304,8 @@ class ZonePlateSimulator(object):
 
         return profile_h
 
+    ###################################################
+    #
     def __propagate_multislicing(self, map_int, map_complex, field0, four0, Q, q, c):
         step_slice = self.__attributes.height
 
@@ -316,20 +323,43 @@ class ZonePlateSimulator(object):
 
         return four0
 
-    def __propagate_to_focus(self, map_int, map_complex, four0, Q, q, c):
+    ###################################################
+    #
+    def __propagate_to_focus(self, map_int, map_complex, four0, Q, q, c, n_points):
         at = self.__attributes
         op = self.__options
 
         if not op.with_order_sorting_aperture:
             self.__propagate_to_distance(map_int, map_complex, self.focal_distance, four0, Q, q, c)
         else:
-            pass
+            # Propagation at the OSA position
+            # --------------------------------------------------------------------------
+            if op.osa_position >= self.focal_distance: raise ValueError("OSA position not valid")
 
-    def __propagate_on_range(self, map_int, map_complex, four0, Q, q, c):
+            proj_OSA = numpy.exp(-1j * op.osa_position * ((2 * numpy.pi * q) ** 2) / (2 * self.k))
+            fun = numpy.multiply(proj_OSA, four0)
+            field_OSA = hankel_transform(fun, Q, c)
+
+            # Inserting OSA
+            # --------------------------------------------------------------------------
+            OSA_pix = int(numpy.floor(op.osa_diameter / self.step) - 1)
+            field_OSA[int(OSA_pix / 2) + 1:n_points] = 0
+
+            four_OSA = hankel_transform(field_OSA, self.max_radius, c)
+            map_int[self.n_slices, :] = numpy.multiply(numpy.abs(field_OSA), numpy.abs(field_OSA))
+            map_complex[self.n_slices, :] = field_OSA
+
+            self.__propagate_to_distance(map_int, map_complex, self.focal_distance-op.osa_position, four_OSA, Q, q, c, 1)
+
+    ###################################################
+    #
+    def __propagate_on_range(self, map_int, map_complex, four0, Q, q, c, n_points):
         at = self.__attributes
         op = self.__options
 
 
+    ###################################################
+    #
     def __propagate_to_distance(self, map_int, map_complex, z, four0, Q, q, c, index=0):
         print("Propagation to distance: ", z, " m")
         proj = numpy.exp(-1j * z * ((2 * numpy.pi * q) ** 2) / (2 * self.k))
@@ -338,6 +368,8 @@ class ZonePlateSimulator(object):
         map_int[index + self.n_slices, :] = numpy.multiply(numpy.abs(four11), numpy.abs(four11))
         map_complex[index + self.n_slices, :] = four11
 
+    ###################################################
+    #
     def __calculate_efficiency(self, map_index, map_out, profile_h, r, n_points, n_integration_points=0):
         shape = map_out.shape
 
@@ -385,8 +417,6 @@ if __name__=="__main__":
     r0 = numpy.arange(0, zs.max_radius, zs.step)
 
     from matplotlib import pyplot as plt
-
-    print("Shape:", map_int.shape)
 
     for i in range(1, map_int.shape[0]):
         plt.plot(r0[:50], map_int[i, :50])
