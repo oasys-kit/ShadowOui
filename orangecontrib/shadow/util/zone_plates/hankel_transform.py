@@ -42,42 +42,41 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         #
 # POSSIBILITY OF SUCH DAMAGE.                                             #
 # #########################################################################
-#% Calculates the Diffraction Efficiency of FZP
-#% -------------------------------------------------------------------------
-#% by Joan Vila, July 2010
 #
-#% Data from FZP simulations in 2D has to be loaded in memory.
-#%
-#% F_POS --> The position of the focus in units of Nz step has to be given.
-#% N_points --> Number of points considered around the focal spot to
-#%              integrate the intensity. (default = N)
-#%
-#% The code computes the incoming intensity by taking 1 for every pixel of
-#% the structure. The intensity in focus is integrate considering the
-#% profile that is obtained during the simulation.
-#%
-#% 27.11.2011 -- The formula for I had was taking the wrong range for map_d
-#%               by one point. This has been corrected.
-#%
-#% 10.11.2010 -- The code was adapted to the output ot the codes that use
-#%               Hankel Transform based on Manuel's code.
-#%
-#% 24.10.2010 -- The previous version was very roughly calculating the area
-#%               under the intensity distribution with rough rectangle
-#%               approximation. The new version is using a trapezoidal
-#%               integration of MATLAB.
-#% 01.09.2010 -- Version 1.0
-#%
-#% -------------------------------------------------------------------------
+# This is a translation from the matlab code:
+#
+# %% Function to perform the 0th Order Hankel Transform
+# % Implemented by Joan Vila-Comamala from a routine based on the paper:
+# %
+# % M. Guizar-Sicairos and J. C. Gutierrez-Vega, Computation of quasi-discrete
+# % Hankel transforms of integer order for propagating optical wave fields,
+# % J. Opt. Soc. Am. A 21, 53-58 (2004).
+# %
+# % November 2010
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 import numpy
+from scipy.special import jv as besselj
 
-def efficiency_MGS(F_POS, map_d, profile_h, r, N, N_points=0):
-    if N_points <= 0: N_points = N
+def hankel_transform(wavefield, max_radius, bessel_zeros, n_zeros=0):
+    n = len(wavefield)
+    if n_zeros <= 0: n_zeros = n
 
-    I_dens_0 = numpy.zeros(N)
-    I_dens_0[numpy.where(profile_h != 0)] = 1.0
-    I_0 = numpy.trapz(r, numpy.multiply(r, I_dens_0))
-    I   = 2*numpy.pi*numpy.trapz(r[0:N_points+1], numpy.multiply(r[0:N_points+1], map_d[N-1:(N+N_points), F_POS]))
+    wavefield = wavefield.conjugate().T
+    m1 = (numpy.abs(besselj(1, bessel_zeros[:n])) / max_radius).conjugate().T
+    max_frequency = bessel_zeros[n] / (2 * numpy.pi * max_radius)
+    m2 = m1 * max_radius / max_frequency
+    f = numpy.divide(wavefield, m1)
+    bessel_jn = numpy.abs(besselj(1, bessel_zeros[:n_zeros])) / (2 / bessel_zeros[n])
+    bessel_jm = numpy.abs(besselj(1, bessel_zeros))
 
-    return numpy.divide(I, I_0)
+    result = numpy.full(n, 0j)
+    for jj in range(0, n):
+        c = besselj(0, bessel_zeros[:n_zeros] * bessel_zeros[jj] / bessel_zeros[n]) / (bessel_jn * bessel_jm[jj])
+        result[jj] = numpy.dot(c[:n_zeros], f[:n_zeros])
+
+    result = result.conjugate().T
+    result = numpy.multiply(result, m2)
+    result = result.conjugate().T
+
+    return result

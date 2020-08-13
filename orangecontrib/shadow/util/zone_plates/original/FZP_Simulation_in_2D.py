@@ -62,19 +62,21 @@
 #%% ------------------------------------------------------------------------
 
 import numpy
-from orangecontrib.shadow.util.zone_plates import bessel_zeros
-from orangecontrib.shadow.util.zone_plates.hankel_transform_MGS import Hankel_Transform_MGS
-from orangecontrib.shadow.util.zone_plates.refractive_index import RefractiveIndex
+from orangecontrib.shadow.util.zone_plates.original import bessel_zeros
+from orangecontrib.shadow.util.zone_plates.original.hankel_transform_MGS import Hankel_Transform_MGS
+from orangecontrib.shadow.util.zone_plates.original.refractive_index import RefractiveIndex
+from orangecontrib.shadow.util.zone_plates.original.efficiency_MGS import Efficiency_MGS
+
 ## FZP, CS, OSA and simulation parameters
 #--------------------------------------------------------------------------
   
 with_CS = 1     # equal to 0 --> without CS - CENTRAL STOP
                 # equal to 1 --> with CS
                
-with_OSA = 1    # equal to 0 --> without OSA - ORDER SORTING APERTURE
+with_OSA = 0    # equal to 0 --> without OSA - ORDER SORTING APERTURE
                 # equal to 1 --> with OSA
                
-FZP_TYPE = 1    # equal to 0 --> Ordinary FZP
+FZP_TYPE = 0    # equal to 0 --> Ordinary FZP
                 # equal to 1 --> Zone-Doubled FZP
                 # equal to 2 --> Zone-Filled FZP
                 # equal to 3 --> Two-Level FZP
@@ -352,7 +354,7 @@ if with_Range == 0:
 
 elif with_Range == 1:
     stepz = (Range_f-Range_i)/Nz
-    z = (Range_i + numpy.arange(Nz+1)*stepz)
+    z = (Range_i + numpy.arange(Nz)*stepz)
 
     if (with_OSA == 0) or (OSA_position > Range_f):
         for o in range(Nz):
@@ -425,6 +427,22 @@ elif with_Range == 1:
                 four11 = Hankel_Transform_MGS(fun, Q, c)
                 map_int[o + NSlices, :] = numpy.multiply(numpy.abs(four11), numpy.abs(four11))
                 if with_Complex == 1: map_complex[o + NSlices, :] = four11
+
+shape = map_int.shape
+
+map = numpy.full((2*shape[1], shape[0]), None)
+
+if with_Complex == 1:
+    map[0:N,:]   = numpy.flipud(map_complex[:, 0:N].T)
+    map[N:2*N,:] = map_complex[:, 0:N].T
+else:
+    map[0:N,:]   = numpy.flipud(map_int[:, 0:N].T)
+    map[N:2*N,:] = map_int[:, 0:N].T
+
+
+DE=Efficiency_MGS(3, map, profile_h, r, N, int(numpy.floor(10*bmin/step)))
+
+print("Efficiency:", DE)
 
 ###################################################
 #
