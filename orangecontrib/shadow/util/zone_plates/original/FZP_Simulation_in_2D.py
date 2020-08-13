@@ -380,7 +380,7 @@ elif with_Range == 1:
             for o in range(Nz):
                 print("(OSA) Z position nr. ", o+1, ": ",  z[o] - OSA_position)
                 proj = numpy.exp(-1j*(z[o] - OSA_position)*((2*numpy.pi*q)**2)/(2*k))
-                fun = numpy.multiply(proj, four0)
+                fun = numpy.multiply(proj, four_OSA)
                 four11 = Hankel_Transform_MGS(fun, Q, c)
                 map_int[o + NSlices, :] = numpy.multiply(numpy.abs(four11), numpy.abs(four11))
                 if with_Complex == 1: map_complex[o + NSlices, :] = four11
@@ -396,11 +396,7 @@ elif with_Range == 1:
                 four11 = Hankel_Transform_MGS(fun, Q, c)
                 map_int[o + NSlices, :] = numpy.multiply(numpy.abs(four11), numpy.abs(four11))
                 if with_Complex == 1: map_complex[o + NSlices, :] = four11
-    
-            proj_OSA = numpy.exp(-1j * z[OSA_pos] * ((2 * numpy.pi * q)**2) / (2 * k))
-            fun = numpy.multiply(proj_OSA, four0)
-            field_OSA = Hankel_Transform_MGS(fun, Q, c)
-    
+
             # Propagation at the OSA position
             #--------------------------------------------------------------------------
     
