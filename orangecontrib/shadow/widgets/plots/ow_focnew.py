@@ -82,7 +82,7 @@ class FocNew(ow_automatic_element.AutomaticElement):
 
         self.le_y_range_min = oasysgui.lineEdit(self.yrange_box, self, "y_range_min", "Y min", labelWidth=260, valueType=float, orientation="horizontal")
         self.le_y_range_max = oasysgui.lineEdit(self.yrange_box, self, "y_range_max", "Y max", labelWidth=260, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(self.yrange_box, self, "y_npoints", "Points", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.yrange_box, self, "y_npoints", "Points", labelWidth=260, valueType=int, orientation="horizontal")
 
         self.set_YRange()
 
@@ -229,7 +229,7 @@ class FocNew(ow_automatic_element.AutomaticElement):
                 if self.y_range == 0:
                     y = numpy.linspace(-10.0, 10.0, 1001)
                 else:
-                    y = numpy.linspace(self.y_range_min, self.y_range_max, self.y_npoints)
+                    y = numpy.linspace(self.y_range_min, self.y_range_max, int(self.y_npoints))
 
                 pos = [0.25, 0.15, 0.7, 0.75]
 
