@@ -2285,6 +2285,18 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                     shadow_oe._oe.F_EXT = 1
                     shadow_oe._oe.CCC[:] = conic_coefficients[:]
+                elif self.graphical_options.is_hyperboloid and \
+                        self.surface_shape_parameters == 0 and \
+                        self.focii_and_continuation_plane == 1 \
+                        and self.object_side_focal_distance < 0:
+                    conic_coefficients = self.set_hyperboloid_from_focal_distances()
+
+                    if self.is_cylinder == 1: self.set_hyperboloid_cylindrical(conic_coefficients)
+
+                    shadow_oe._oe.FMIRR = 10 # conic coefficients
+                    shadow_oe._oe.F_EXT = 1
+                    shadow_oe._oe.FCYL  = 0
+                    shadow_oe._oe.CCC[:] = conic_coefficients[:]
                 else:
                     if self.surface_shape_parameters == 0:
                        if (self.is_cylinder==1 and self.cylinder_orientation==1 and self.graphical_options.is_spheric):
@@ -2603,6 +2615,98 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             shadow_oe._oe.F_ANGLE = 1
         else:
             shadow_oe._oe.F_ANGLE = self.write_out_inc_ref_angles
+
+    import numpy
+
+    def set_hyperboloid_from_focal_distances(self):
+        ccc = numpy.zeros(10)
+
+        theta = numpy.radians(self.incidence_angle_respect_to_normal)
+        SSOUR = self.object_side_focal_distance
+        SIMAG = self.image_side_focal_distance
+
+        AXMAJ = -(SSOUR + SIMAG) / 2
+        # ;C
+        # ;C If AXMAJ > 0, then we are on the left branch of the hyp. Else we
+        # ;C are onto the right one. We have to discriminate between the two cases
+        # ;C In particular, if AXMAJ.LT.0 then the hiperb. will be convex.
+        # ;C
+        AFOCI = 0.5 * numpy.sqrt(SSOUR ** 2 + SIMAG ** 2 - 2 * SSOUR * SIMAG * numpy.cos(2 * theta))
+        AXMIN = numpy.sqrt(AFOCI ** 2 - AXMAJ ** 2)
+
+        ECCENT = AFOCI / AXMAJ
+
+        # ;C
+        # ;C Computes the center coordinates in the hiperbola RF.
+        # ;C
+        YCEN = (SSOUR + AXMAJ) / ECCENT
+
+        ZCEN_ARG = numpy.abs(YCEN ** 2 / AXMAJ ** 2 - 1.0)
+        ZCEN     = AXMIN * numpy.sqrt(ZCEN_ARG)  # < 0
+
+        # ;C
+        # ;C Computes now the normal in the same RF. The signs are forced to
+        # ;C suit our RF.
+        # ;C
+
+        RNCEN = numpy.zeros(3)
+        RNCEN[1 - 1] = 0.0
+        RNCEN[2 - 1] = YCEN / AXMAJ ** 2  # < 0
+        RNCEN[3 - 1] = ZCEN / AXMIN ** 2  # > 0
+
+        RNCEN = RNCEN / numpy.sqrt((RNCEN ** 2).sum())
+        # ;C
+        # ;C Computes the tangent in the same RF
+        # ;C
+        # ;C
+        # ;C Coefficients of the canonical form
+        # ;C
+        A = 1 / AXMIN ** 2
+        B = - 1 / AXMAJ ** 2
+        C = A
+        # ;C
+        # ;C Rotate now in the mirror RF. The equations are the same as for the
+        # ;C ellipse case.
+        # ;C
+        ccc[0] = A
+        ccc[1] = B * RNCEN[3 - 1] ** 2 + C * RNCEN[2 - 1] ** 2
+        ccc[2] = B * RNCEN[2 - 1] ** 2 + C * RNCEN[3 - 1] ** 2
+        ccc[3] = 0.0
+        ccc[4] = 2 * (B * RNCEN[2 - 1] * RNCEN[3 - 1] - C * RNCEN[3 - 1] * RNCEN[2 - 1])
+        ccc[5] = 0.0
+        ccc[6] = 0.0
+        ccc[7] = 0.0
+        ccc[8] = -2 * (B * YCEN * RNCEN[2 - 1] + C * ZCEN * RNCEN[3 - 1])
+        ccc[9] = 0.0
+
+        return ccc
+
+    def set_hyperboloid_cylindrical(self, ccc):
+        CIL_ANG = self.cylinder_orientation * 0.5 * numpy.pi
+        COS_CIL = numpy.cos(CIL_ANG)
+        SIN_CIL = numpy.sin(CIL_ANG)
+
+        A_1 =  ccc[0]
+        A_2 =  ccc[1]
+        A_3 =  ccc[2]
+        A_4 =  ccc[3]
+        A_5 =  ccc[4]
+        A_6 =  ccc[5]
+        A_7 =  ccc[6]
+        A_8 =  ccc[7]
+        A_9 =  ccc[8]
+        A_10 = ccc[9]
+
+        ccc[0] = A_1 * SIN_CIL ** 4 + A_2 * COS_CIL ** 2 * SIN_CIL ** 2 - A_4 * COS_CIL * SIN_CIL ** 3
+        ccc[1] = A_2 * COS_CIL ** 4 + A_1 * COS_CIL ** 2 * SIN_CIL ** 2 - A_4 * COS_CIL ** 3 * SIN_CIL
+        ccc[2] = A_3  # Z^2
+        ccc[3] = - 2 * A_1 * COS_CIL * SIN_CIL ** 3 - 2 * A_2 * COS_CIL ** 3 * SIN_CIL + 2 * A_4 * COS_CIL ** 2 * SIN_CIL ** 2  # X Y
+        ccc[4] = A_5 * COS_CIL ** 2 - A_6 * COS_CIL * SIN_CIL  # Y Z
+        ccc[5] = A_6 * SIN_CIL ** 2 - A_5 * COS_CIL * SIN_CIL  # X Z
+        ccc[6] = A_7 * SIN_CIL ** 2 - A_8 * COS_CIL * SIN_CIL  # X
+        ccc[7] = A_8 * COS_CIL ** 2 - A_7 * COS_CIL * SIN_CIL  # Y
+        ccc[8] = A_9  # Z
+        ccc[9] = A_10
 
     def doSpecificSetting(self, shadow_oe):
         pass
@@ -3243,7 +3347,6 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                               "This O.E. is not a mirror, grating or crystal: surface error file will be ignored",
                               QtWidgets.QMessageBox.Ok)
 
-
     def acceptExchangeData(self, exchangeData):
         try:
             if not exchangeData is None:
@@ -3741,7 +3844,6 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             self.set_MirrorMovement()
             self.set_SourceMovement()
             self.set_Footprint()
-
 
     def receive_syned_data(self, data):
         if not data is None:
