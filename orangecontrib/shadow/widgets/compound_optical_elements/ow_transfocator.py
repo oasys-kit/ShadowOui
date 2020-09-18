@@ -701,7 +701,7 @@ class CRLBox(QWidget):
 
         oasysgui.lineEdit(self.calculation_mode_1, self, "refraction_index", "Refraction index", labelWidth=260, valueType=float, orientation="horizontal",
                            callback=self.transfocator.dump_refraction_index)
-        self.le_attenuation_coefficient = oasysgui.lineEdit(self.calculation_mode_1, self, "attenuation_coefficient", "Attenuation coefficient", labelWidth=260, valueType=float,
+        oasysgui.lineEdit(self.calculation_mode_1, self, "attenuation_coefficient", "Attenuation coefficient [cm-1]", labelWidth=260, valueType=float,
                            orientation="horizontal", callback=self.transfocator.dump_attenuation_coefficient)
 
         self.calculation_mode_2 = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical")
@@ -730,8 +730,6 @@ class CRLBox(QWidget):
         label.setText(label.text() + " [" + self.transfocator.workspace_units_label + "]")
         label = self.le_interthickness.parent().layout().itemAt(0).widget()
         label.setText(label.text() + " [" + self.transfocator.workspace_units_label + "]")
-        label = self.le_attenuation_coefficient.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + " [" + self.transfocator.workspace_units_label + "-1]")
 
     ############################################################
     #

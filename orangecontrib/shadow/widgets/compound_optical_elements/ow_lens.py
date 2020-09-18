@@ -114,7 +114,7 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
 
         self.calculation_mode_1 = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical")
         oasysgui.lineEdit(self.calculation_mode_1, self, "refraction_index", "Refraction index", labelWidth=260, valueType=float, orientation="horizontal")
-        self.le_attenuation_coefficient = oasysgui.lineEdit(self.calculation_mode_1, self, "attenuation_coefficient", "Attenuation coefficient", labelWidth=260, valueType=float, orientation="horizontal")
+        oasysgui.lineEdit(self.calculation_mode_1, self, "attenuation_coefficient", "Attenuation coefficient [cm-1]", labelWidth=260, valueType=float, orientation="horizontal")
 
         self.calculation_mode_2 = oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical")
 
@@ -143,8 +143,6 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_interthickness.parent().layout().itemAt(0).widget()
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
-        label = self.le_attenuation_coefficient.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + " [" + self.workspace_units_label + "-1]")
 
     def selectFilePrerefl(self):
         self.le_file_prerefl.setText(oasysgui.selectFileFromDialog(self, self.prerefl_file, "Select File Prerefl", file_extension_filter="Data Files (*.dat)"))
