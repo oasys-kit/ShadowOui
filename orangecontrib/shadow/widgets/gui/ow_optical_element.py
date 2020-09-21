@@ -1658,7 +1658,12 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         self.grating_autosetting_box.setVisible(self.grating_auto_setting == 1)
         self.grating_mount_box.setVisible(self.grating_auto_setting == 1)
 
-        if self.grating_auto_setting == 1:
+        if self.grating_auto_setting == 0:
+            self.reflection_angle_deg_le.setEnabled(True)
+            self.reflection_angle_rad_le.setEnabled(True)
+        else:
+            self.reflection_angle_deg_le.setEnabled(False)
+            self.reflection_angle_rad_le.setEnabled(False)
             self.set_GratingUnitsInUse()
             self.set_GratingMountType()
 
@@ -2904,6 +2909,9 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             self.incidence_angle_mrad = round((numpy.pi*0.5-shadow_oe._oe.T_INCIDENCE)*1000, 2)
             self.reflection_angle_mrad = round((numpy.pi*0.5-shadow_oe._oe.T_REFLECTION)*1000, 2)
             self.calculate_incidence_angle_deg()
+            self.calculate_reflection_angle_deg()
+        elif self.grating_auto_setting == 1:
+            self.reflection_angle_mrad = round((numpy.pi*0.5-shadow_oe._oe.T_REFLECTION)*1000, 2)
             self.calculate_reflection_angle_deg()
 
         self.conic_coefficient_0 = shadow_oe._oe.CCC[0]
