@@ -1099,7 +1099,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                     self.grating_mount_box = oasysgui.widgetBox(grating_box, "", addSpace=False, orientation="vertical")
 
-                    gui.comboBox(self.grating_mount_box, self, "grating_mount_type", label="Mount Type", labelWidth=250,
+                    gui.comboBox(self.grating_mount_box, self, "grating_mount_type", label="Mount Type", labelWidth=155,
                                  items=["TGM/Seya", "ERG", "Constant Incidence Angle", "Costant Diffraction Angle", "Hunter"],
                                  callback=self.set_GratingMountType, sendSelectedValue=False, orientation="horizontal")
 
