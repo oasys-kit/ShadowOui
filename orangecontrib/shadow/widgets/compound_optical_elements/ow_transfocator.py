@@ -22,19 +22,19 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
 
     NONE_SPECIFIED = "NONE SPECIFIED"
 
-    nlenses = Setting([4, 8])
+    nlenses = Setting([4, 2])
     slots_empty = Setting([0, 0])
-    thickness = Setting([625e-4, 625e-4])
+    thickness = Setting([2.5, 2.5])
 
     p = Setting([0.0, 0.0])
     q = Setting([0.0, 0.0])
     surface_shape = Setting([1, 1])
-    convex_to_the_beam = Setting([1, 1])
+    convex_to_the_beam = Setting([0, 0])
 
     has_finite_diameter = Setting([0, 0])
-    diameter = Setting([0.0, 0.0])
+    diameter = Setting([0.632, 0.894])
 
-    is_cylinder = Setting([1, 1])
+    is_cylinder = Setting([0, 0])
     cylinder_angle = Setting([0.0, 0.0])
 
     ri_calculation_mode = Setting([0, 0])
@@ -42,8 +42,8 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
     refraction_index = Setting([1.0, 1.0])
     attenuation_coefficient = Setting([0.0, 0.0])
 
-    radius = Setting([500e-2, 500e-2])
-    interthickness = Setting([0.001, 0.001])
+    radius = Setting([0.1, 0.2])
+    interthickness = Setting([0.03, 0.03])
 
     use_ccc = Setting([0, 0])
 
@@ -650,7 +650,7 @@ class CRLBox(QWidget):
         self.diameter_box = oasysgui.widgetBox(diameter_box_outer, "", addSpace=False, orientation="vertical")
         self.diameter_box_empty = oasysgui.widgetBox(diameter_box_outer, "", addSpace=False, orientation="vertical", height=20)
 
-        self.le_diameter = oasysgui.lineEdit(self.diameter_box, self, "diameter", " Value", labelWidth=110, #labelWidth=260,
+        self.le_diameter = oasysgui.lineEdit(self.diameter_box, self, "diameter", " Value", labelWidth=80, #labelWidth=260,
                                              valueType=float, orientation="horizontal", callback=self.transfocator.dump_diameter)
 
         self.set_diameter()
@@ -663,7 +663,7 @@ class CRLBox(QWidget):
         self.surface_shape_box = oasysgui.widgetBox(surface_shape_box_outer, "", addSpace=False, orientation="vertical")
         self.surface_shape_box_empty = oasysgui.widgetBox(surface_shape_box_outer, "", addSpace=False, orientation="vertical")
 
-        self.le_radius = oasysgui.lineEdit(self.surface_shape_box, self, "radius", " Curv. Radius", labelWidth=110, #labelWidth=260,
+        self.le_radius = oasysgui.lineEdit(self.surface_shape_box, self, "radius", " Radius", labelWidth=80, #labelWidth=260,
                                            valueType=float, orientation="horizontal", callback=self.transfocator.dump_radius)
 
         self.set_surface_shape()
@@ -675,7 +675,7 @@ class CRLBox(QWidget):
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.transfocator.dump_use_ccc)
 
         gui.comboBox(oasysgui.widgetBox(lens_box, "", addSpace=False, orientation="vertical", height=40),
-                     self, "convex_to_the_beam", label="Convexity of the 1st interface exposed to the\nbeam (the 2nd interface has opposite convexity)",
+                     self, "convex_to_the_beam", label="Convexity of 1st interface exposed to the\nbeam (2nd interface has opposite convexity)",
                             labelWidth=310,
                      items=["No", "Yes"], sendSelectedValue=False, orientation="horizontal", callback=self.transfocator.dump_convex_to_the_beam)
 

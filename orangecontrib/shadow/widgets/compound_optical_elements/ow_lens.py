@@ -24,12 +24,12 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
     p = Setting(0.0)
     q = Setting(0.0)
     surface_shape = Setting(1)
-    convex_to_the_beam = Setting(1)
+    convex_to_the_beam = Setting(0)
 
     has_finite_diameter = Setting(0)
-    diameter = Setting(0.0)
+    diameter = Setting(0.632)
 
-    is_cylinder = Setting(1)
+    is_cylinder = Setting(0)
     cylinder_angle = Setting(0.0)
 
     ri_calculation_mode = Setting(0)
@@ -37,8 +37,8 @@ class Lens(ow_compound_optical_element.CompoundOpticalElement):
     refraction_index = Setting(1.0)
     attenuation_coefficient = Setting(0.0)
 
-    radius = Setting(500e-2)
-    interthickness = Setting(0.001)
+    radius = Setting(0.1)
+    interthickness = Setting(0.03)
 
     use_ccc = Setting(0)
 

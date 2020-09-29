@@ -39,6 +39,8 @@ class CompoundOpticalElement(ow_generic_element.GenericElement):
 
     file_to_write_out = Setting(3)
 
+    not_interactive = False
+
     want_main_area = 1
 
     def __init__(self, show_automatic_box=True):
@@ -114,9 +116,11 @@ class CompoundOpticalElement(ow_generic_element.GenericElement):
 
                     self.completeOperations(shadow_oe)
                 else:
-                    raise Exception("Input Beam with no good rays")
+                    if self.not_interactive: self.sendEmptyBeam()
+                    else: raise Exception("Input Beam with no good rays")
             else:
-                raise Exception("Empty Input Beam")
+                if self.not_interactive: self.sendEmptyBeam()
+                else: raise Exception("Empty Input Beam")
 
         except Exception as exception:
             QtWidgets.QMessageBox.critical(self, "Error",
@@ -176,6 +180,8 @@ class CompoundOpticalElement(ow_generic_element.GenericElement):
         self.send("Trigger", TriggerIn(new_object=True))
 
     def setBeam(self, beam):
+        self.not_interactive = self.check_not_interactive_conditions(beam)
+
         self.onReceivingInput()
 
         if ShadowCongruence.checkEmptyBeam(beam):

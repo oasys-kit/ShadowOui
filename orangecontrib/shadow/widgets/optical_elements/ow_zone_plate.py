@@ -133,6 +133,8 @@ class ZonePlate(GenericElement):
     file_to_write_out = Setting(3) # Mirror: users found difficoult to activate the "Footprint" option.
     write_out_inc_ref_angles = Setting(0)
 
+    not_interactive = False
+
     def __init__(self):
         super(ZonePlate, self).__init__()
 
@@ -531,9 +533,11 @@ class ZonePlate(GenericElement):
                     self.send("Beam", beam_out)
                     self.send("Trigger", TriggerIn(new_object=True))
                 else:
-                    raise Exception("Input Beam with no good rays")
+                    if self.not_interactive: self.sendEmptyBeam()
+                    else: raise Exception("Input Beam with no good rays")
             else:
-                raise Exception("Empty Input Beam")
+                if self.not_interactive: self.sendEmptyBeam()
+                else: raise Exception("Empty Input Beam")
 
         except Exception as exception:
             QMessageBox.critical(self, "Error",
@@ -603,6 +607,8 @@ class ZonePlate(GenericElement):
             if not self.plot_canvas[6] is None: self.plot_canvas[6].clear()
 
     def setBeam(self, beam):
+        self.not_interactive = self.check_not_interactive_conditions(beam)
+
         if ShadowCongruence.checkEmptyBeam(beam):
             self.input_beam = beam
 

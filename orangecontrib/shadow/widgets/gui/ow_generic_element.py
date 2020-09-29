@@ -1,10 +1,12 @@
 import sys
+import numpy
 
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication
 from orangewidget import gui
 from orangewidget.settings import Setting
 from oasys.widgets import gui as oasysgui
+from oasys.util.oasys_util import TriggerIn
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 from orangecontrib.shadow.util.shadow_util import ShadowPlot, ShadowCongruence
@@ -71,6 +73,23 @@ class GenericElement(ow_automatic_element.AutomaticElement):
         self.enableFootprint(enabled)
 
         self.tabs.setCurrentIndex(current_tab)
+
+    def check_not_interactive_conditions(self, input_beam):
+        not_interactive = False
+
+        if not input_beam is None:
+            if not input_beam.scanned_variable_data is None:
+                not_interactive = input_beam.scanned_variable_data.has_additional_parameter("total_power")
+
+        return not_interactive
+
+    def sendEmptyBeam(self):
+        empty_beam = self.input_beam.duplicate()
+        empty_beam._beam.rays = numpy.array([])
+        empty_beam._oe_number += 1
+
+        self.send("Beam", empty_beam)
+        self.send("Trigger", TriggerIn(new_object=True))
 
     def isFootprintEnabled(self):
         return self.tabs.count() == 6

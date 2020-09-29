@@ -1,4 +1,4 @@
-import numpy
+
 import os
 import sys
 from scipy.interpolate import RectBivariateSpline
@@ -3196,15 +3196,6 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
         self.progressBarFinished()
 
-
-    def sendEmptyBeam(self):
-        empty_beam = self.input_beam.duplicate()
-        empty_beam._beam.rays = numpy.array([])
-        empty_beam._oe_number += 1
-
-        self.send("Beam", empty_beam)
-        self.send("Trigger", TriggerIn(new_object=True))
-
     def sendNewBeam(self, trigger):
         try:
             if ShadowCongruence.checkEmptyBeam(self.input_beam):
@@ -3248,15 +3239,6 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             if self.is_automatic_run:
                 self.traceOpticalElement()
-
-    def check_not_interactive_conditions(self, input_beam):
-        not_interactive = False
-
-        if not input_beam is None:
-            if not input_beam.scanned_variable_data is None:
-                not_interactive = input_beam.scanned_variable_data.has_additional_parameter("total_power")
-
-        return not_interactive
 
     def setPreProcessorData(self, data):
         if data is not None:
