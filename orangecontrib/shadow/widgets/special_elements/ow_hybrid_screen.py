@@ -495,7 +495,7 @@ class AbstractHybridScreen(AutomaticElement):
         pass
 
     def plot_results(self, calculation_parameters, input_parameters):
-        if input_parameters.ghy_calcType == 3 or input_parameters.ghy_calcType == 4:
+        if input_parameters.ghy_calcType in [3, 4, 6]: # with error profiles
             do_plot_x = True
             do_plot_z = True
         else:

@@ -505,21 +505,22 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
             cylinder_angle_out.append(box.get_cylinder_angle())
             prerefl_file_out.append(box.get_prerefl_file())
 
-        shadow_oe._oe.append_transfocator(p0=self.p,
-                                         q0=self.q,
-                                         nlenses=self.nlenses,
-                                         slots_empty=self.slots_empty,
-                                         thickness=self.thickness,
-                                         surface_shape=surface_shape_out,
-                                         convex_to_the_beam=self.convex_to_the_beam,
-                                         diameter=diameter_out,
-                                         cylinder_angle=cylinder_angle_out,
-                                         prerefl_file=prerefl_file_out,
-                                         refraction_index=self.refraction_index,
-                                         attenuation_coefficient=self.attenuation_coefficient,
-                                         radius=self.radius,
-                                         interthickness=self.interthickness,
-                                         use_ccc=self.use_ccc)
+        if self.nlenses > 0:
+            shadow_oe._oe.append_transfocator(p0=self.p,
+                                             q0=self.q,
+                                             nlenses=self.nlenses,
+                                             slots_empty=self.slots_empty,
+                                             thickness=self.thickness,
+                                             surface_shape=surface_shape_out,
+                                             convex_to_the_beam=self.convex_to_the_beam,
+                                             diameter=diameter_out,
+                                             cylinder_angle=cylinder_angle_out,
+                                             prerefl_file=prerefl_file_out,
+                                             refraction_index=self.refraction_index,
+                                             attenuation_coefficient=self.attenuation_coefficient,
+                                             radius=self.radius,
+                                             interthickness=self.interthickness,
+                                             use_ccc=self.use_ccc)
 
     def checkFields(self):
         for box in self.crl_box_array:

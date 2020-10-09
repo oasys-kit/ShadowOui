@@ -449,10 +449,11 @@ def hy_readfiles(input_parameters=HybridInputParameters(), calculation_parameter
         history_entry =  input_parameters.shadow_beam.getOEHistory(input_parameters.shadow_beam._oe_number)
         compound_oe = history_entry._shadow_oe_end
 
-        last_oe = compound_oe._oe.list[-1]
+        for oe in compound_oe._oe.list:
+            if oe.FHIT_C == 0: #infinite
+                raise Exception("Calculation not possible: at least one lens have infinite diameter")
 
-        if last_oe.FHIT_C == 0: #infinite
-            raise Exception("Calculation not possible: lenses have infinite extension")
+        last_oe = compound_oe._oe.list[-1]
 
         image_plane_distance = last_oe.T_IMAGE
 

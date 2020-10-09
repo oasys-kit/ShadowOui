@@ -214,21 +214,22 @@ class CRL(ow_compound_optical_element.CompoundOpticalElement):
     ############################################################
 
     def populateFields(self, shadow_oe):
-        shadow_oe._oe.append_crl(p0=self.p,
-                                 q0=self.q,
-                                 nlenses=self.nlenses,
-                                 slots_empty=self.slots_empty,
-                                 thickness=self.thickness,
-                                 surface_shape=self.get_surface_shape(),
-                                 convex_to_the_beam=self.convex_to_the_beam,
-                                 diameter=self.get_diameter(),
-                                 cylinder_angle=self.get_cylinder_angle(),
-                                 prerefl_file=self.get_prerefl_file(),
-                                 refraction_index=self.refraction_index,
-                                 attenuation_coefficient=self.attenuation_coefficient,
-                                 radius=self.radius,
-                                 interthickness=self.interthickness,
-                                 use_ccc=self.use_ccc)
+        if self.nlenses > 0:
+            shadow_oe._oe.append_crl(p0=self.p,
+                                     q0=self.q,
+                                     nlenses=self.nlenses,
+                                     slots_empty=self.slots_empty,
+                                     thickness=self.thickness,
+                                     surface_shape=self.get_surface_shape(),
+                                     convex_to_the_beam=self.convex_to_the_beam,
+                                     diameter=self.get_diameter(),
+                                     cylinder_angle=self.get_cylinder_angle(),
+                                     prerefl_file=self.get_prerefl_file(),
+                                     refraction_index=self.refraction_index,
+                                     attenuation_coefficient=self.attenuation_coefficient,
+                                     radius=self.radius,
+                                     interthickness=self.interthickness,
+                                     use_ccc=self.use_ccc)
 
     def checkFields(self):
         congruence.checkPositiveNumber(self.nlenses, "Number of lenses")
