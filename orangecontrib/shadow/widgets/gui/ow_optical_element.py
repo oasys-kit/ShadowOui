@@ -3127,6 +3127,8 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                 interpolated_weight_s = get_interpolator_weight_2D(mirror_energies, mirror_grazing_angles, mirror_reflectivities_s)
                 interpolated_weight_p = get_interpolator_weight_2D(mirror_energies, mirror_grazing_angles, mirror_reflectivities_p)
+            else:
+                raise ValueError("User input is inconsistent: not a 2D reflectivity profile")
 
         output_beam = input_beam.duplicate()
 
