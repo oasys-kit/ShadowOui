@@ -1,4 +1,4 @@
-import os, copy
+import numpy, os, copy
 
 from PyQt5.QtWidgets import QWidget, QLabel, QMessageBox, QSizePolicy, QVBoxLayout
 from PyQt5.QtGui import QPixmap
@@ -505,7 +505,7 @@ class Transfocator(ow_compound_optical_element.CompoundOpticalElement):
             cylinder_angle_out.append(box.get_cylinder_angle())
             prerefl_file_out.append(box.get_prerefl_file())
 
-        if self.nlenses > 0:
+        if numpy.sum(self.nlenses) > 0:
             shadow_oe._oe.append_transfocator(p0=self.p,
                                              q0=self.q,
                                              nlenses=self.nlenses,
