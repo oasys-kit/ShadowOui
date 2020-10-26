@@ -59,6 +59,7 @@ VARIABLES = [
     ["incidence_angle_mrad", "Incidence Angle (mrad)", "mrad"],
     ["reflection_angle_deg", "Reflection Angle (deg)", "deg"],
     ["reflection_angle_mrad", "Reflection Angle (mrad)", "mrad"],
+    ["mirror_orientation_angle_user_value", "O.E. Orientation Angle (deg)", "deg"],
     ["object_side_focal_distance", "Object Side Focal Distance", "l"],
     ["image_side_focal_distance", "Image Side Focal Distance", "l"],
     ["user_defined_bragg_angle", "(User Defined) Bragg Angle", "deg"],
@@ -86,7 +87,7 @@ class ScanVariableLoopPoint(AbstractScanVariableLoopPoint):
     category = "User Defined"
     keywords = ["data", "file", "load", "read"]
 
-    variable_name_id = Setting(10)
+    variable_name_id = Setting(11)
 
     def __init__(self):
         super(ScanVariableLoopPoint, self).__init__()

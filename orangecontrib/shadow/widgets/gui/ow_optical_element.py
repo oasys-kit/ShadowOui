@@ -3209,13 +3209,51 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                             variable_value = trigger.get_additional_parameter("variable_value")
                             variable_um = trigger.get_additional_parameter("variable_um")
 
+
+                            def check_options(variable_name):
+                                if variable_name in ["mm_mirror_offset_x",
+                                                     "mm_mirror_rotation_x",
+                                                     "mm_mirror_offset_y",
+                                                     "mm_mirror_rotation_y",
+                                                     "mm_mirror_offset_z",
+                                                     "mm_mirror_rotation_z"]:
+                                    self.mirror_movement = 1
+                                    self.set_MirrorMovement()
+                                elif variable_name == "mirror_orientation_angle_user_value":
+                                    self.mirror_orientation_angle = 4
+                                    self.mirror_orientation_angle_user()
+                                elif variable_name == "incidence_angle_deg":
+                                    self.calculate_incidence_angle_mrad()
+                                elif variable_name == "incidence_angle_mrad":
+                                    self.calculate_incidence_angle_deg()
+                                elif variable_name == "reflection_angle_deg":
+                                    self.calculate_reflection_angle_mrad()
+                                elif variable_name == "reflection_angle_mrad":
+                                    self.calculate_reflection_angle_deg()
+                                elif variable_name in ["object_side_focal_distance", "image_side_focal_distance"]:
+                                    self.surface_shape_parameters = 0
+                                    self.focii_and_continuation_plane = 1
+                                    self.set_IntExt_Parameters()
+                                elif variable_name == "user_defined_bragg_angle":
+                                    self.diffraction_calculation = 1
+                                    self.set_UserDefinedBraggAngle()
+                                    self.set_DiffractionCalculation()
+                                elif variable_name in ["slit_width_xaxis", "slit_height_zaxis"]:
+                                    self.aperturing = 1
+                                    self.set_Aperturing()
+                                elif variable_name in ["thickness"]:
+                                    self.absorption = 1
+                                    self.set_Absorption()
+
                             if "," in variable_name:
                                 variable_names = variable_name.split(",")
 
                                 for variable_name in variable_names:
                                     setattr(self, variable_name.strip(), variable_value)
+                                    check_options(variable_name)
                             else:
                                 setattr(self, variable_name, variable_value)
+                                check_options(variable_name)
 
                             self.input_beam.setScanningData(ShadowBeam.ScanningData(variable_name, variable_value, variable_display_name, variable_um))
 
