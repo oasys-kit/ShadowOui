@@ -79,6 +79,7 @@ class AbstractScanHistoWidget(QWidget):
                    beam,
                    col,
                    nbins=100,
+                   ref=23,
                    title="",
                    xtitle="",
                    ytitle="",
@@ -165,6 +166,7 @@ class Scan3DHistoWidget(AbstractScanHistoWidget):
                    beam,
                    col,
                    nbins=100,
+                   ref=23,
                    title="",
                    xtitle="",
                    ytitle="",
@@ -180,7 +182,7 @@ class Scan3DHistoWidget(AbstractScanHistoWidget):
         factor=ShadowPlot.get_factor(col, conv=self.workspace_units_to_cm)
 
         if histo_index==0 and xrange is None:
-            ticket = beam._beam.histo1(col, xrange=None, nbins=nbins, nolost=1, ref=23)
+            ticket = beam._beam.histo1(col, xrange=None, nbins=nbins, nolost=1, ref=ref)
 
             fwhm = ticket['fwhm']
             xrange = ticket['xrange']
@@ -189,9 +191,9 @@ class Scan3DHistoWidget(AbstractScanHistoWidget):
             if not fwhm is None:
                 xrange = [centroid - 2*fwhm , centroid + 2*fwhm]
 
-        ticket = beam._beam.histo1(col, xrange=xrange, nbins=nbins, nolost=1, ref=23)
+        ticket = beam._beam.histo1(col, xrange=xrange, nbins=nbins, nolost=1, ref=ref)
 
-        if not ytitle is None:  ytitle = ytitle + ' weighted by ' + ShadowPlot.get_shadow_label(23)
+        if not ytitle is None:  ytitle = ytitle + ' weighted by ' + ShadowPlot.get_shadow_label(ref)
 
         histogram = ticket['histogram_path']
         bins = ticket['bin_path']*factor
@@ -353,6 +355,7 @@ class ScanHistoWidget(AbstractScanHistoWidget):
                    beam,
                    col,
                    nbins=100,
+                   ref=23,
                    title="",
                    xtitle="",
                    ytitle="",
@@ -369,7 +372,7 @@ class ScanHistoWidget(AbstractScanHistoWidget):
         factor=ShadowPlot.get_factor(col, conv=self.workspace_units_to_cm)
 
         if histo_index==0 and xrange is None:
-            ticket = beam._beam.histo1(col, xrange=None, nbins=nbins, nolost=1, ref=23)
+            ticket = beam._beam.histo1(col, xrange=None, nbins=nbins, nolost=1, ref=ref)
 
             fwhm = ticket['fwhm']
             xrange = ticket['xrange']
@@ -378,9 +381,9 @@ class ScanHistoWidget(AbstractScanHistoWidget):
             if not fwhm is None:
                 xrange = [centroid - 2*fwhm , centroid + 2*fwhm]
 
-        ticket = beam._beam.histo1(col, xrange=xrange, nbins=nbins, nolost=1, ref=23)
+        ticket = beam._beam.histo1(col, xrange=xrange, nbins=nbins, nolost=1, ref=ref)
 
-        if not ytitle is None:  ytitle = ytitle + ' weighted by ' + ShadowPlot.get_shadow_label(23)
+        if not ytitle is None:  ytitle = ytitle + ' weighted by ' + ShadowPlot.get_shadow_label(ref)
 
         histogram = ticket['histogram_path']
         bins = ticket['bin_path']*factor

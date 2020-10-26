@@ -441,6 +441,7 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
                 histo_data = self.plot_canvas.plot_histo(beam=beam,
                                                          col=var,
+                                                         ref=self.weight_column_index,
                                                          nbins=self.number_of_bins,
                                                          title=title,
                                                          xtitle=xtitle,
