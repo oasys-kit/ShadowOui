@@ -13,7 +13,8 @@ from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel
 from PyQt5.QtGui import QFont, QPalette, QColor
 from matplotlib.patches import FancyArrowPatch, ArrowStyle
-from scipy import optimize, asarray
+from scipy import optimize
+from numpy import asarray
 
 from oasys.widgets import gui
 from oasys.widgets import congruence
@@ -503,6 +504,7 @@ class ShadowPlot:
         def plot_histo(self, beam, col, nolost, xrange, ref, title, xtitle, ytitle, nbins = 100, xum="", conv=1.0, ticket_to_add=None, flux=None):
 
             ticket = beam.histo1(col, nbins=nbins, xrange=xrange, nolost=nolost, ref=ref)
+            if ref in [24, 25]: ticket['intensity'] = beam.getshonecol(ref, nolost=nolost).sum()
 
             # TODO: check congruence between tickets
             if not ticket_to_add is None:
@@ -610,6 +612,7 @@ class ShadowPlot:
             if nbins_v == None: nbins_v = nbins
 
             ticket = beam.histo2(var_x, var_y, nbins=nbins, nbins_h=nbins_h, nbins_v=nbins_v, xrange=xrange, yrange=yrange, nolost=nolost, ref=ref)
+            if ref in [24, 25]: ticket['intensity'] = beam.getshonecol(ref, nolost=nolost).sum()
 
             # TODO: check congruence between tickets
             if not ticket_to_add is None:

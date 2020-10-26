@@ -3219,6 +3219,14 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                                                      "mm_mirror_rotation_z"]:
                                     self.mirror_movement = 1
                                     self.set_MirrorMovement()
+                                elif variable_name in ["sm_offset_x_mirr_ref_frame",
+                                                       "sm_offset_y_mirr_ref_frame",
+                                                       "sm_offset_z_mirr_ref_frame",
+                                                       "sm_rotation_around_x",
+                                                       "sm_rotation_around_y",
+                                                       "sm_rotation_around_z"]:
+                                    self.source_movement = 1
+                                    self.set_SourceMovement()
                                 elif variable_name == "mirror_orientation_angle_user_value":
                                     self.mirror_orientation_angle = 4
                                     self.mirror_orientation_angle_user()
