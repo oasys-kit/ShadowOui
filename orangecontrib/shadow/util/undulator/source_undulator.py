@@ -746,8 +746,8 @@ class SourceUndulator(object):
         from wofry.propagator.propagator import PropagationManager, PropagationElements, PropagationParameters
         from syned.beamline.beamline_element import BeamlineElement
         from syned.beamline.element_coordinates import ElementCoordinates
-        from wofry.propagator.propagators1D.fresnel_zoom import FresnelZoom1D
-        from wofry.beamline.optical_elements.ideal_elements.screen import WOScreen1D
+        from wofryimpl.propagator.propagators1D.fresnel_zoom import FresnelZoom1D
+        from wofryimpl.beamline.optical_elements.ideal_elements.screen import WOScreen1D
 
 
         input_wavefront = GenericWavefront1D().initialize_wavefront_from_arrays(theta*distance,numpy.sqrt(radiation_flux)+0j)
