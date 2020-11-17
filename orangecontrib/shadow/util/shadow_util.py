@@ -476,7 +476,9 @@ class ShadowPlot:
             self.sigma_h.setText("0.0000")
             if hasattr(self, "sigma_v"):  self.sigma_v.setText("0.0000")
             self.centroid_h.setText("0.0000")
-            if hasattr(self, "sigma_v"):  self.sigma_v.setText("0.0000")
+            if hasattr(self, "centroid_v"):  self.centroid_v.setText("0.0000")
+            self.boundary_h.setText("")
+            if hasattr(self, "boundary_v"):  self.centroid_v.setText("")
 
     class DetailedHistoWidget(QWidget):
 
