@@ -1587,7 +1587,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                                     # genesi del nuovo raggio diffratto attenuato dell'intensità relativa e dell'assorbimento
                                     #
 
-                                    delta_angles = self.calculateDeltaAngles(twotheta_reflection)
+                                    delta_angles = self.calculateDeltaAngles()
 
                                     for delta_index in range(0, len(delta_angles)):
 
@@ -1833,7 +1833,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
     ############################################################
 
-    def calculateDeltaAngles(self, twotheta_reflection):
+    def calculateDeltaAngles(self):
 
         if self.diffracted_arm_type == 0:
             width = self.slit_1_horizontal_aperture*self.micron_to_user_units*0.5
@@ -1852,13 +1852,10 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         delta_angles = []
 
         for index in range(0, int(self.number_of_rotated_rays)):
-            delta = self.random_generator_flat.random()*delta
-            random2 = self.random_generator_flat.random()
+            delta_random = self.random_generator_flat.random()*delta
+            discriminant = self.random_generator_flat.random()
 
-            if random2 >= 0.5:
-                delta_angles.append(-delta)
-            else:
-                delta_angles.append(delta)
+            delta_angles.append(delta_random if discriminant < 0.5 else -delta_random)
 
         return delta_angles
 
