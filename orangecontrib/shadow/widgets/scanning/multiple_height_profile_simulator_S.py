@@ -137,3 +137,6 @@ class OWMultipleHeightProfileSimulatorS(OWAbstractMultipleHeightProfileSimulator
 
     def get_file_format(self):
         return ".dat"
+
+    def get_axis_um(self):
+        return self.workspace_units_label
