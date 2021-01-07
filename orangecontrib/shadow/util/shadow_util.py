@@ -280,7 +280,7 @@ class ShadowPlot:
             super(ShadowPlot.InfoBoxWidget, self).__init__()
 
             info_box_inner=gui.widgetBox(self, "Info")
-            info_box_inner.setFixedHeight(515*y_scale_factor)
+            info_box_inner.setFixedHeight(518*y_scale_factor)
             info_box_inner.setFixedWidth(230*x_scale_factor)
 
             self.flux_box = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
@@ -588,7 +588,7 @@ class ShadowPlot:
             self.x_scale_factor = x_scale_factor
             self.y_scale_factor = y_scale_factor
 
-            self.plot_canvas = ImageView()
+            self.plot_canvas = gui.imageWiew(parent=self)
 
             self.plot_canvas.setColormap({"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256})
             self.plot_canvas.setMinimumWidth(590 * x_scale_factor)
