@@ -147,20 +147,20 @@ class OWxsh_bragg(OWWidget):
         box_miller = oasysgui.widgetBox(box, "", orientation = "horizontal")
         oasysgui.lineEdit(box_miller, self, "H_MILLER_INDEX",
                      label="Miller Indices [h k l]", addSpace=True,
-                    valueType=int, validator=QIntValidator(), labelWidth=350, orientation="horizontal")
+                    valueType=int, labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_miller)
         
         #widget index 2 
         idx += 1 
         oasysgui.lineEdit(box_miller, self, "K_MILLER_INDEX", addSpace=True,
-                    valueType=int, validator=QIntValidator())
+                    valueType=int)
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 3 
         idx += 1 
         oasysgui.lineEdit(box_miller, self, "L_MILLER_INDEX",
                      addSpace=True,
-                    valueType=int, validator=QIntValidator(), orientation="horizontal")
+                    valueType=int, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box) 
 
         gui.separator(box)
@@ -169,28 +169,28 @@ class OWxsh_bragg(OWWidget):
         idx += 1 
         oasysgui.lineEdit(box, self, "TEMPERATURE_FACTOR",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+                    valueType=float, labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 5 
         idx += 1 
         oasysgui.lineEdit(box, self, "E_MIN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+                    valueType=float, labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 6 
         idx += 1 
         oasysgui.lineEdit(box, self, "E_MAX",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+                    valueType=float, labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 7 
         idx += 1 
         oasysgui.lineEdit(box, self, "E_STEP",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+                    valueType=float, labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box) 
         
         #widget index 8 

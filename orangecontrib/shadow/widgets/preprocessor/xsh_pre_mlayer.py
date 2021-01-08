@@ -132,14 +132,14 @@ class OWxsh_pre_mlayer(OWWidget):
         idx += 1
         oasysgui.lineEdit(box, self, "E_MIN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
+                    valueType=float, labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 2
         idx += 1
         oasysgui.lineEdit(box, self, "E_MAX",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
+                    valueType=float, labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 4
@@ -195,35 +195,35 @@ class OWxsh_pre_mlayer(OWWidget):
         idx += 1
         oasysgui.lineEdit(box_2, self, "N_PAIRS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=int, validator=QIntValidator(), labelWidth=550, orientation="horizontal")
+                    valueType=int, labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 11
         idx += 1
         oasysgui.lineEdit(box_2, self, "THICKNESS",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
+                    valueType=float, labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 12
         idx += 1
         oasysgui.lineEdit(box_2, self, "GAMMA",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
+                    valueType=float, labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 13
         idx += 1
         oasysgui.lineEdit(box_2, self, "ROUGHNESS_EVEN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
+                    valueType=float, labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 14
         idx += 1
         oasysgui.lineEdit(box_2, self, "ROUGHNESS_ODD",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
+                    valueType=float, labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_2)
 
         #widget index 15
@@ -290,28 +290,28 @@ class OWxsh_pre_mlayer(OWWidget):
         idx += 1
         oasysgui.lineEdit(box_4, self, "AA0",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
+                    valueType=float, labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_4)
 
         #widget index 21
         idx += 1
         oasysgui.lineEdit(box_4, self, "AA1",
                      label=self.unitLabels()[idx], addSpace=True,
-                     valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
+                     valueType=float, labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_4)
 
         #widget index 22
         idx += 1
         oasysgui.lineEdit(box_4, self, "AA2",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
+                    valueType=float, labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_4)
 
         #widget index 23
         idx += 1
         oasysgui.lineEdit(box_4, self, "AA3",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=550, orientation="horizontal")
+                    valueType=float, labelWidth=550, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box_4)
 
         self.process_showers()

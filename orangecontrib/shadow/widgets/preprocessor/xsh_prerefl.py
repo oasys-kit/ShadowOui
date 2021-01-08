@@ -104,7 +104,7 @@ class OWxsh_prerefl(OWWidget):
         #widget index 1
         idx += 1
         oasysgui.lineEdit(box, self, "DENSITY",
-                     label=self.unitLabels()[idx], addSpace=True, valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+                     label=self.unitLabels()[idx], addSpace=True, valueType=float, labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 2
@@ -122,21 +122,21 @@ class OWxsh_prerefl(OWWidget):
         idx += 1
         oasysgui.lineEdit(box, self, "E_MIN",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+                    valueType=float, labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 4
         idx += 1
         oasysgui.lineEdit(box, self, "E_MAX",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+                    valueType=float, labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
         #widget index 5
         idx += 1
         oasysgui.lineEdit(box, self, "E_STEP",
                      label=self.unitLabels()[idx], addSpace=True,
-                    valueType=float, validator=QDoubleValidator(), labelWidth=350, orientation="horizontal")
+                    valueType=float, labelWidth=350, orientation="horizontal")
         self.show_at(self.unitFlags()[idx], box)
 
         self.process_showers()
