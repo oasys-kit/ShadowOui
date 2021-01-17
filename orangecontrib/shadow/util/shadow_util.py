@@ -20,8 +20,6 @@ from oasys.widgets import gui
 from oasys.widgets import congruence
 from oasys.util.oasys_util import get_sigma, get_fwhm, get_average
 
-from silx.gui.plot.ImageView import ImageView
-
 try:
     import matplotlib
     import matplotlib.pyplot as plt

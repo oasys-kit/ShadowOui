@@ -286,8 +286,8 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
         gui.separator(self.box_scan)
 
-        gui.comboBox(self.box_scan, self, "sigma_fwhm_size", label="Stats: Spot Dimension", labelWidth=310,
-                     items=["Sigma", "FWHM"],
+        gui.comboBox(self.box_scan, self, "sigma_fwhm_size", label="Stats: Spot Attribute", labelWidth=310,
+                     items=["Sigma", "FWHM", "Centroid"],
                      sendSelectedValue=False, orientation="horizontal")
 
         gui.comboBox(self.box_scan, self, "peak_integral_intensity", label="Stats: Intensity (1)", labelWidth=310,
@@ -475,12 +475,15 @@ class Histogram(ow_automatic_element.AutomaticElement):
 
                 self.last_histo_data = histo_data
 
-                if self.sigma_fwhm_size==0:
+                if self.sigma_fwhm_size==0: # sigma
                     sizes = self.current_stats.get_sigmas()
                     label_size = "Sigma " + xum
-                else:
+                elif self.sigma_fwhm_size==1: # FWHM
                     sizes = self.current_stats.get_fwhms()
                     label_size = "FWHM " + xum
+                else: # centroid
+                    sizes = self.current_stats.get_centroids()
+                    label_size = "Centroid " + xum
 
                 if self.absolute_relative_intensity == 0: #relative
                     if self.peak_integral_intensity==0: # peak
