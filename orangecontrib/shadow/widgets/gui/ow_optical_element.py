@@ -1852,7 +1852,6 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             except Exception as exception:
                 QtWidgets.QMessageBox.critical(self, "Error", str(exception), QtWidgets.QMessageBox.Ok)
 
-
     def viewDefectFileName(self):
         try:
             dialog = OpticalElement.ShowDefectFileDialog(parent=self,
@@ -2125,8 +2124,6 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                     OU.write_surface_file(self.zz*conv, numpy.round(self.xx*conv, 8), numpy.round(self.yy*conv, 8), file_path)
             except Exception as exception:
                 QtWidgets.QMessageBox.critical(self, "Error", str(exception), QtWidgets.QMessageBox.Ok)
-
-
 
     def viewSurfaceShape(self):
         try:
@@ -3020,23 +3017,33 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
         values = numpy.loadtxt(os.path.abspath(self.file_diffraction_profile) if self.file_diffraction_profile.startswith('/') else
                                os.path.abspath(os.path.curdir + "/" + self.file_diffraction_profile))
 
-        crystal_delta_thetas   = values[:, 0]
-        crystal_reflectivities = values[:, 1]
+        crystal_delta_thetas     = values[:, 0]
+        crystal_reflectivities_s = values[:, 1]
 
-        interpolated_weight = numpy.sqrt(numpy.interp(delta_thetas,
-                                                      crystal_delta_thetas,
-                                                      crystal_reflectivities,
-                                                      left=crystal_reflectivities[0],
-                                                      right=crystal_reflectivities[-1]))
+        interpolated_weight_s = numpy.sqrt(numpy.interp(delta_thetas,
+                                                        crystal_delta_thetas,
+                                                        crystal_reflectivities_s,
+                                                        left=crystal_reflectivities_s[0],
+                                                        right=crystal_reflectivities_s[-1]))
+        if values.shape[1] == 2:
+            interpolated_weight_p = interpolated_weight_s
+        elif values.shape[1] >= 3:
+            crystal_reflectivities_p = values[:, 2]
+
+            interpolated_weight_p = numpy.sqrt(numpy.interp(delta_thetas,
+                                                            crystal_delta_thetas,
+                                                            crystal_reflectivities_p,
+                                                            left=crystal_reflectivities_p[0],
+                                                            right=crystal_reflectivities_p[-1]))
 
         output_beam = input_beam.duplicate()
 
-        output_beam._beam.rays[:, 6]  = output_beam._beam.rays[:, 6]  * interpolated_weight
-        output_beam._beam.rays[:, 7]  = output_beam._beam.rays[:, 7]  * interpolated_weight
-        output_beam._beam.rays[:, 8]  = output_beam._beam.rays[:, 8]  * interpolated_weight
-        output_beam._beam.rays[:, 15] = output_beam._beam.rays[:, 15] * interpolated_weight
-        output_beam._beam.rays[:, 16] = output_beam._beam.rays[:, 16] * interpolated_weight
-        output_beam._beam.rays[:, 17] = output_beam._beam.rays[:, 17] * interpolated_weight
+        output_beam._beam.rays[:, 6]  = output_beam._beam.rays[:, 6]  * interpolated_weight_s
+        output_beam._beam.rays[:, 7]  = output_beam._beam.rays[:, 7]  * interpolated_weight_s
+        output_beam._beam.rays[:, 8]  = output_beam._beam.rays[:, 8]  * interpolated_weight_s
+        output_beam._beam.rays[:, 15] = output_beam._beam.rays[:, 15] * interpolated_weight_p
+        output_beam._beam.rays[:, 16] = output_beam._beam.rays[:, 16] * interpolated_weight_p
+        output_beam._beam.rays[:, 17] = output_beam._beam.rays[:, 17] * interpolated_weight_p
 
         return output_beam
 
@@ -3398,17 +3405,18 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                                 self.set_UserDefinedBraggAngle()
 
-                                x_index = exchangeData.get_content("plot_x_col")
-                                y_index = exchangeData.get_content("plot_y_col")
+                                x_index = 0
+                                y_index_s = -1
+                                y_index_p = -2
                             else:
                                 raise Exception("Only Th-Thb Scan are accepted from CRYSTAL")
 
                         elif exchangeData.get_widget_name() == "XINPRO" :
                             self.file_diffraction_profile = "xoppy_xinpro_" + str(id(self)) + ".dat"
-                            self.user_defined_bragg_angle     = 0.0
-                            self.user_defined_asymmetry_angle = 0.0
+
                             x_index = 0
-                            y_index = 1
+                            y_index_s = 1
+                            y_index_p = 2
 
                         diffraction_profile = exchangeData.get_content("xoppy_data")
                         conversion_factor = exchangeData.get_content("units_to_degrees")
@@ -3416,7 +3424,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                         file = open(self.file_diffraction_profile, "w")
 
                         for index in range(0, diffraction_profile.shape[0]):
-                            file.write(str(conversion_factor*diffraction_profile[index, x_index]) + " " + str(diffraction_profile[index, y_index]) + "\n")
+                            file.write(str(conversion_factor*diffraction_profile[index, x_index]) + " " + str(diffraction_profile[index, y_index_s]) + " " + str(diffraction_profile[index, y_index_p]) + "\n")
 
                         file.close()
 
