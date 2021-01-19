@@ -384,8 +384,6 @@ class AbstractHybridScreen(AutomaticElement):
 
     def set_NF(self):
         if self.ghy_nf == 0:
-            self.focal_length_calc = 0
-            self.distance_to_image_calc = 0
             self.cb_focal_length_calc.setEnabled(False)
             self.le_focal_length.setEnabled(False)
         else:
