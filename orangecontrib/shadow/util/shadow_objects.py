@@ -217,7 +217,7 @@ class ShadowBeam:
         return new_shadow_beam
 
     @classmethod
-    def mergeBeams(cls, beam_1, beam_2, which_flux=1):
+    def mergeBeams(cls, beam_1, beam_2, which_flux=3, merge_history=1):
         if beam_1 and beam_2:
             rays_1 = None
             rays_2 = None
@@ -227,26 +227,45 @@ class ShadowBeam:
             if len(getattr(beam_2._beam, "rays", numpy.zeros(0))) > 0:
                 rays_2 = copy.deepcopy(beam_2._beam.rays)
 
+            if len(rays_2) != len(rays_1): raise ValueError("The two beams must have the same amount of rays for merging")
+
             merged_beam = beam_1.duplicate(copy_rays=False, history=True)
 
-            if not rays_1 is None and not rays_2 is None:
-                merged_beam._oe_number = beam_1._oe_number
-                merged_beam._beam.rays = numpy.append(rays_1, rays_2, axis=0)
-            elif not rays_1 is None:
-                merged_beam._beam.rays = rays_1
-                merged_beam._oe_number = beam_1._oe_number
-            elif not rays_2 is None:
-                merged_beam._beam.rays = rays_2
-                merged_beam._oe_number = beam_2._oe_number
+            merged_beam._oe_number = beam_1._oe_number
+            merged_beam._beam.rays = numpy.append(rays_1, rays_2, axis=0)
 
             merged_beam._beam.rays[:, 11] = numpy.arange(1, len(merged_beam._beam.rays) + 1, 1) # ray_index
 
             if which_flux==1:
-                merged_beam.set_initial_flux(beam_1.get_initial_flux())
+                if not beam_1.get_initial_flux() is None:
+                    merged_beam.set_initial_flux(beam_1.get_initial_flux())
             elif which_flux==2:
-                merged_beam.set_initial_flux(beam_2.get_initial_flux())
+                if not beam_2.get_initial_flux() is None:
+                    merged_beam.set_initial_flux(beam_2.get_initial_flux())
+            else:
+                if not beam_1.get_initial_flux() is None and not beam_2.get_initial_flux() is None:
+                    merged_beam.set_initial_flux(beam_1.get_initial_flux() + beam_2.get_initial_flux())
+
+            if merge_history > 0:
+                if beam_1.history and beam_2.history:
+                    if len(beam_1.history) == len(beam_2.history):
+                        for index in range(1, beam_1._oe_number + 1):
+                            history_element_1 =  beam_1.getOEHistory(index)
+                            history_element_2 =  beam_2.getOEHistory(index)
+
+                            merged_history_element = merged_beam.getOEHistory(index)
+                            if merge_history == 1:
+                                merged_history_element._input_beam = ShadowBeam.mergeBeams(history_element_1._input_beam, history_element_2._input_beam, which_flux, merge_history=False)
+                            else:
+                                merged_history_element._input_beam = ShadowBeam.mergeBeams(history_element_1._input_beam, history_element_2._input_beam, which_flux, merge_history=True)
+                    else:
+                        raise ValueError("Histories must have the same path to be merged")
+                else:
+                    raise ValueError("Both beams must have a history to be merged")
 
             return merged_beam
+        else:
+            raise Exception("Both input beams should provided for merging")
 
     @classmethod
     def traceFromSource(cls, shadow_src, write_begin_file=0, write_start_file=0, write_end_file=0, history=True, widget_class_name=None):
