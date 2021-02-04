@@ -858,7 +858,9 @@ class ShadowPlot:
             if mode != "r":
                 self.coordinates = self.create_group("coordinates")
                 self.plots = self.create_group("xy_plots")
+                self.additional_data = self.create_group("additional_data")
                 self.last_plot = self.plots.create_group("last_plot")
+
                 self.has_last_plot = False
                 self.has_coordinate = False
 
@@ -944,6 +946,17 @@ class ShadowPlot:
                         for key in attributes.keys():
                             plot.attrs[key] = attributes[key]
 
+        def add_attribute(self, attribute_name, attribute_value, dataset_name=None):
+            if not dataset_name is None:
+                self[dataset_name].attrs[attribute_name] = attribute_value
+            else:
+                self.attrs[attribute_name] = attribute_value
+
+        def get_attribute(self,  attribute_name, dataset_name=None):
+            if not dataset_name is None:
+                return self[dataset_name].attrs[attribute_name]
+            else:
+                return self.attrs[attribute_name]
 
     class HistogramHdf5File(h5py.File):
         def __init__(self, file_name, mode="w"):
