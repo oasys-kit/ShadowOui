@@ -227,7 +227,7 @@ class ShadowBeam:
             if len(getattr(beam_2._beam, "rays", numpy.zeros(0))) > 0:
                 rays_2 = copy.deepcopy(beam_2._beam.rays)
 
-            if len(rays_2) != len(rays_1): raise ValueError("The two beams must have the same amount of rays for merging")
+            #if len(rays_2) != len(rays_1): raise ValueError("The two beams must have the same amount of rays for merging")
 
             merged_beam = beam_1.duplicate(copy_rays=False, history=True)
 
