@@ -982,7 +982,8 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
             calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
             calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(angle_perpen)/angle_num
 
-            calculation_parameters.ff_beam = ShadowBeam.mergeBeams(calculation_parameters.ff_beam, calculation_parameters.image_plane_beam_lost, which_flux=1, merge_history=0)
+            if calculation_parameters.image_plane_beam_lost.get_number_of_rays() > 0:
+                calculation_parameters.ff_beam = ShadowBeam.mergeBeams(calculation_parameters.ff_beam, calculation_parameters.image_plane_beam_lost, which_flux=1, merge_history=0)
         else:
             calculation_parameters.ff_beam = input_parameters.original_shadow_beam
 
@@ -1002,7 +1003,8 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
             calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
             calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
 
-            calculation_parameters.ff_beam = ShadowBeam.mergeBeams(calculation_parameters.ff_beam, calculation_parameters.image_plane_beam_lost, which_flux=1, merge_history=0)
+            if calculation_parameters.image_plane_beam_lost.get_number_of_rays() > 0:
+                calculation_parameters.ff_beam = ShadowBeam.mergeBeams(calculation_parameters.ff_beam, calculation_parameters.image_plane_beam_lost, which_flux=1, merge_history=0)
         else:
             calculation_parameters.ff_beam = input_parameters.original_shadow_beam
 
@@ -1022,11 +1024,13 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
             calculation_parameters.ff_beam._beam.rays[:, 4] = 1/angle_num
             calculation_parameters.ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_conv)/angle_num
 
-            calculation_parameters.ff_beam = ShadowBeam.mergeBeams(calculation_parameters.ff_beam, calculation_parameters.image_plane_beam_lost, which_flux=1, merge_history=0)
+            if calculation_parameters.image_plane_beam_lost.get_number_of_rays() > 0:
+                calculation_parameters.ff_beam = ShadowBeam.mergeBeams(calculation_parameters.ff_beam, calculation_parameters.image_plane_beam_lost, which_flux=1, merge_history=0)
         else:
             calculation_parameters.ff_beam = input_parameters.original_shadow_beam
 
-    if do_nf: calculation_parameters.nf_beam = ShadowBeam.mergeBeams(calculation_parameters.nf_beam, calculation_parameters.image_plane_beam_lost, which_flux=1, merge_history=0)
+    if do_nf and calculation_parameters.image_plane_beam_lost.get_number_of_rays() > 0:
+        calculation_parameters.nf_beam = ShadowBeam.mergeBeams(calculation_parameters.nf_beam, calculation_parameters.image_plane_beam_lost, which_flux=1, merge_history=0)
 
     if input_parameters.file_to_write_out == 1:
 
