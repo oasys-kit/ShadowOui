@@ -60,6 +60,40 @@ class ShadowCongruence():
             if not len(first_row) == 3: raise Exception("Bragg file malformed, please check input")
 
             second_row = ShadowCongruence.__get_numbers(rows[1].strip())
+            #
+            #------ below added by X.J. Yu, slsyxj@nus.edu.sg ------
+            if len(second_row) == 4:
+                n = int(second_row[0])
+                NCOL = int(second_row[1])
+                NREL = int(second_row[2])
+                idx = 1
+                for i in range(n):
+                    idx += 1
+                    #5  (79.9707386      ,-9.50350909E-014) (79.9707386      ,9.50350909E-014 )
+                    if re.match('\s*[0-9]*\.*[0-9]*\s+\(.+,.+\)\s+\(.+,.+\)',rows[idx].strip()) == None:
+                        raise Exception("Bragg file malformed, please check N_BATOM" )
+                    idx += 1
+                    #6.21128610     -23.9350655    33.9683286                     
+                    if re.match('\s*[0-9]*\.*[0-9]*\s+[0-9]*\.*[0-9]*\s+[0-9]*\.*[0-9]*',rows[idx].strip()) == None:
+                        raise Exception("Bragg file malformed, please check G & G_BAR")
+                for i in range(NCOL):
+                    idx += 1
+                    #1  1.000000
+                    this_row = ShadowCongruence.__get_numbers(rows[idx].strip())
+                    if not len(this_row) == 2:
+                        raise Exception("Bragg file malformed, please check occupancy")
+                for i in range(NREL):
+                    idx +=1
+                    this_row = ShadowCongruence.__get_numbers(rows[idx].strip())
+                    if not len(this_row)==1:raise Exception("Bragg file malformed, please check energy")
+                    for ii in range(n):
+                        idx += 1
+                        this_row = ShadowCongruence.__get_numbers(rows[idx].strip())
+                        if not len(this_row)==2:raise Exception("Bragg file malformed, please check F1,F2")
+                file.close()
+                print("Bragg file is ok...")
+                return        
+            #------------------above added by X.J. Yu, slsyxj@nus.edu.sg------------------------------------        
             if not len(second_row) == 3: raise Exception("Bragg file malformed, please check input")
 
             if not (rows[2].strip().startswith("(") and \
@@ -162,11 +196,11 @@ class ShadowCongruence():
             if len(rows) < 2: raise Exception("Surface Error file malformed, please check input")
 
             first_row = ShadowCongruence.__get_numbers(rows[0].strip())
-            if not len(first_row) == 2: raise Exception("Surface Error file malformed, please check input")
+            if not len(first_row) in [1,2]: raise Exception("Surface Error file malformed, please check input")
 
             n_x = int(first_row[0])
 
-            if n_x > 500:
+            if (len(first_row)==2 and n_x > 500) or (len(first_row)==1 and n_x > 10):
                 raise Exception("Malformed file: maximum allowed point in X direction is 500")
 
         except Exception as e:
@@ -563,7 +597,7 @@ class ShadowPlot:
             self.info_box.total_rays.setText(str(ticket['nrays']))
             self.info_box.total_good_rays.setText(str(ticket['good_rays']))
             self.info_box.total_lost_rays.setText(str(ticket['nrays']-ticket['good_rays']))
-            self.info_box.fwhm_h.setText("{:5.4f}".format(ticket['fwhm']*factor))
+            self.info_box.fwhm_h.setText("{:5.4g}".format(ticket['fwhm']*factor))
             self.info_box.label_h.setText("FWHM " + xum)
             self.info_box.sigma_h.setText("{:5.4f}".format(ticket['sigma']*factor))
             self.info_box.label_s_h.setText("\u03c3 " + xum)
@@ -725,7 +759,7 @@ class ShadowPlot:
             self.info_box.total_rays.setText(str(ticket['nrays']))
             self.info_box.total_good_rays.setText(str(ticket['good_rays']))
             self.info_box.total_lost_rays.setText(str(ticket['nrays']-ticket['good_rays']))
-            self.info_box.fwhm_h.setText("{:5.4f}".format(ticket['fwhm_h'] * factor1))
+            self.info_box.fwhm_h.setText("{:5.4g}".format(ticket['fwhm_h'] * factor1))
             self.info_box.fwhm_v.setText("{:5.4f}".format(ticket['fwhm_v'] * factor2))
             self.info_box.label_h.setText("FWHM " + xum)
             self.info_box.label_v.setText("FWHM " + yum)

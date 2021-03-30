@@ -19,6 +19,13 @@ from oasys.util.oasys_util import EmittingStream
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
 
+#----------- By X.J. Yu, slsyxj@nus.edu.sg 
+from xraylib import Crystal_GetCrystalsList
+from orangecontrib.xoppy.util.crystal_shadow import crystal_shadow
+from orangecontrib.xoppy.util.xoppy_xraylib_util import bragg_calc
+import math
+#-------------------------------------------
+
 class OWxsh_bragg(OWWidget):
     name = "Bragg"
     id = "xsh_bragg"
@@ -136,9 +143,12 @@ class OWxsh_bragg(OWWidget):
         #widget index 0
         idx += 1 
         box = oasysgui.widgetBox(tab_bas, "Crystal Parameters", orientation="vertical")
+        temp = set(Crystal_GetCrystalsList()) - set(self.crystals)
+        self.AllCrystals = self.crystals + sorted(list(temp))
         gui.comboBox(box, self, "DESCRIPTOR",
                      label=self.unitLabels()[idx], addSpace=True,
-                     items=self.crystals, sendSelectedValue=False,
+                     #items=self.crystals, sendSelectedValue=False,
+                     items=self.AllCrystals, sendSelectedValue=False,
                      valueType=int, orientation="horizontal", labelWidth=350)
         self.show_at(self.unitFlags()[idx], box)
         
@@ -224,13 +234,23 @@ class OWxsh_bragg(OWWidget):
         self.le_SHADOW_FILE.setText(oasysgui.selectFileFromDialog(self, self.SHADOW_FILE, "Select Output File"))
 
     def compute(self):
+        ILATTICE = self.DESCRIPTOR
+        HMILLER =self.H_MILLER_INDEX
+        KMILLER =self.K_MILLER_INDEX
+        LMILLER =self.L_MILLER_INDEX
+        TEMPER=self.TEMPERATURE_FACTOR
+        ENERGY = self.E_MIN
+        ENERGY_END = self.E_MAX
+        E_STEP = self.E_STEP
         try:
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
 
             self.checkFields()
-            if self.DESCRIPTOR <= 11: # accepted crystals
-                tmp = bragg(interactive=False,
-                            DESCRIPTOR=self.crystals[self.DESCRIPTOR],
+            descriptor = self.AllCrystals[ILATTICE] #X.J. Yu, map the ILATTICE to the index in crystals list
+            if ILATTICE<=12:
+                if ILATTICE <= 11: # accepted crystals
+                    tmp = bragg(interactive=False,
+                            DESCRIPTOR=descriptor,  #self.crystals[self.DESCRIPTOR],
                             H_MILLER_INDEX=self.H_MILLER_INDEX,
                             K_MILLER_INDEX=self.K_MILLER_INDEX,
                             L_MILLER_INDEX=self.L_MILLER_INDEX,
@@ -239,20 +259,29 @@ class OWxsh_bragg(OWWidget):
                             E_MAX=self.E_MAX,
                             E_STEP=self.E_STEP,
                             SHADOW_FILE=congruence.checkFileName(self.SHADOW_FILE))
-            elif self.crystals[self.DESCRIPTOR] == "Graphite": # GRAPHITE
-                OWxsh_bragg.new_bragg(H_MILLER_INDEX=self.H_MILLER_INDEX,
-                                      K_MILLER_INDEX=self.K_MILLER_INDEX,
-                                      L_MILLER_INDEX=self.L_MILLER_INDEX,
-                                      TEMPERATURE_FACTOR=self.TEMPERATURE_FACTOR,
-                                      E_MIN=self.E_MIN,
-                                      E_MAX=self.E_MAX,
-                                      E_STEP=self.E_STEP,
-                                      SHADOW_FILE=congruence.checkFileName(self.SHADOW_FILE))
-            else:
-                QMessageBox.critical(self, "Error.",
-                                     "Crystal %s is not implemented in shadow3"%self.crystals[self.DESCRIPTOR],
-                                     QMessageBox.Ok)
+                elif ILATTICE == 12: # GRAPHITE
+                    OWxsh_bragg.new_bragg(H_MILLER_INDEX=self.H_MILLER_INDEX,
+                                          K_MILLER_INDEX=self.K_MILLER_INDEX,
+                                          L_MILLER_INDEX=self.L_MILLER_INDEX,
+                                          TEMPERATURE_FACTOR=self.TEMPERATURE_FACTOR,
+                                          E_MIN=self.E_MIN,
+                                          E_MAX=self.E_MAX,
+                                          E_STEP=self.E_STEP,
+                                          SHADOW_FILE=congruence.checkFileName(self.SHADOW_FILE))
+                else:
+                    QMessageBox.critical(self, "Error.",
+                                         "Crystal %s is not implemented in shadow3"%self.crystals[self.DESCRIPTOR],
+                                         QMessageBox.Ok)
 
+            else: # New SHADOW file, X.J. Yu, slsyxj@nus.edu.sg 
+                bragg_dictionary = bragg_calc(descriptor=descriptor,hh=HMILLER,kk=KMILLER,ll=LMILLER,temper=TEMPER,
+                                                emin=ENERGY,emax=ENERGY_END,estep=E_STEP,fileout=None)
+                if self.SHADOW_FILE =='':
+                    self.SHADOW_FILE = descriptor + '_' + str(HMILLER) + str(KMILLER) + str(LMILLER) + '_sha.dat'
+                NPOINTS = int(numpy.ceil((ENERGY_END-ENERGY)/self.E_STEP + 0.5))
+                energy = numpy.linspace(ENERGY,ENERGY_END,NPOINTS)
+                crystal_shadow(self.SHADOW_FILE,bragg_dictionary,energy)    
+                                     
             self.send("PreProcessor_Data", ShadowPreProcessorData(bragg_data_file=self.SHADOW_FILE))
 
         except Exception as exception:
