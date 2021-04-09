@@ -3155,22 +3155,35 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                                                os.path.abspath(os.path.curdir + "/" + self.grating_file_efficiency)))
 
         grating_energies     = values[:, 0]
-        grating_efficiencies = values[:, 1]
+        grating_efficiencies_s = values[:, 1]
 
-        interpolated_weight = numpy.sqrt(numpy.interp(beam_energies,
-                                                      grating_energies,
-                                                      grating_efficiencies,
-                                                      left=grating_efficiencies[0],
-                                                      right=grating_efficiencies[-1]))
+        interpolated_weight_s = numpy.sqrt(numpy.interp(beam_energies,
+                                                        grating_energies,
+                                                        grating_efficiencies_s,
+                                                        left=grating_efficiencies_s[0],
+                                                        right=grating_efficiencies_s[-1]))
+
+
+        if values.shape[1] == 2:
+            interpolated_weight_p = interpolated_weight_s
+        elif values.shape[1] >= 3:
+            grating_efficiencies_p = values[:, 2]
+
+            interpolated_weight_p = numpy.sqrt(numpy.interp(beam_energies,
+                                                            grating_energies,
+                                                            grating_efficiencies_p,
+                                                            left=grating_efficiencies_p[0],
+                                                            right=grating_efficiencies_p[-1]))
+
 
         output_beam = input_beam.duplicate()
 
-        output_beam._beam.rays[:, 6] = output_beam._beam.rays[:, 6] * interpolated_weight
-        output_beam._beam.rays[:, 7] = output_beam._beam.rays[:, 7] * interpolated_weight
-        output_beam._beam.rays[:, 8] = output_beam._beam.rays[:, 8] * interpolated_weight
-        output_beam._beam.rays[:, 15] = output_beam._beam.rays[:, 15] * interpolated_weight
-        output_beam._beam.rays[:, 16] = output_beam._beam.rays[:, 16] * interpolated_weight
-        output_beam._beam.rays[:, 17] = output_beam._beam.rays[:, 17] * interpolated_weight
+        output_beam._beam.rays[:, 6] = output_beam._beam.rays[:, 6] * interpolated_weight_s
+        output_beam._beam.rays[:, 7] = output_beam._beam.rays[:, 7] * interpolated_weight_s
+        output_beam._beam.rays[:, 8] = output_beam._beam.rays[:, 8] * interpolated_weight_s
+        output_beam._beam.rays[:, 15] = output_beam._beam.rays[:, 15] * interpolated_weight_p
+        output_beam._beam.rays[:, 16] = output_beam._beam.rays[:, 16] * interpolated_weight_p
+        output_beam._beam.rays[:, 17] = output_beam._beam.rays[:, 17] * interpolated_weight_p
 
         return output_beam
 
