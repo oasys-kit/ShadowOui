@@ -23,7 +23,6 @@ class OWheight_profile_simulator(OWAbstractHeightErrorProfileSimulator):
                 "doc": "PreProcessor Data",
                 "id": "PreProcessor_Data"}]
 
-
     usage_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "height_error_profile_usage.png")
 
     def __init__(self):
@@ -66,6 +65,10 @@ class OWheight_profile_simulator(OWAbstractHeightErrorProfileSimulator):
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
         label = self.le_new_length_x_2.parent().layout().itemAt(0).widget()
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
+
+        if not self.heigth_profile_file_name is None:
+            if self.heigth_profile_file_name.endswith("hdf5"):
+                self.heigth_profile_file_name = self.heigth_profile_file_name[:-4] + "dat"
 
 
     def get_usage_path(self):

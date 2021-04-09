@@ -122,6 +122,10 @@ class OWMultipleHeightProfileSimulatorT(OWAbstractMultipleHeightProfileSimulator
         label = self.le_new_length_x_2.parent().layout().itemAt(0).widget()
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
+        if not self.heigth_profile_file_name is None:
+            if self.heigth_profile_file_name.endswith("hdf5"):
+                self.heigth_profile_file_name = self.heigth_profile_file_name[:-4] + "dat"
+
     def get_usage_path(self):
         return self.usage_path
 

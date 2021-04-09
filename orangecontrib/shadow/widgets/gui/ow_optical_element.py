@@ -1781,11 +1781,11 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             QDialog.__init__(self, parent)
             self.setWindowTitle('Defect File - Surface Error Profile')
 
-            self.setFixedHeight(555)
+            self.setFixedHeight(700)
 
             layout = QtWidgets.QGridLayout(self)
 
-            figure = Figure(figsize=(100, 100))
+            figure = Figure(figsize=(8, 7))
             figure.patch.set_facecolor('white')
 
             axis = figure.add_subplot(111, projection='3d')
@@ -1796,7 +1796,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             figure_canvas = FigureCanvasQTAgg(figure)
             figure_canvas.setFixedWidth(500)
-            figure_canvas.setFixedHeight(500)
+            figure_canvas.setFixedHeight(645)
 
             self.x_coords, self.y_coords, self.z_values = ShadowPreProcessor.read_surface_error_file(filename)
 
