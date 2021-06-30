@@ -2893,7 +2893,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             if self.graphical_options.is_spheric:
                 self.spherical_radius = round(shadow_oe._oe.RMIRR, 4)
             elif self.graphical_options.is_toroidal:
-                self.torus_major_radius = round(shadow_oe._oe.R_MAJ, 4)
+                self.torus_major_radius = round(shadow_oe._oe.R_MAJ + shadow_oe._oe.R_MIN, 4)
                 self.torus_minor_radius = round(shadow_oe._oe.R_MIN, 4)
             elif self.graphical_options.is_hyperboloid or self.graphical_options.is_ellipsoidal:
                 self.ellipse_hyperbola_semi_major_axis = round(shadow_oe._oe.AXMAJ, 4)
