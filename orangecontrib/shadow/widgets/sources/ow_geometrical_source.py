@@ -366,6 +366,62 @@ class GeometricalSource(ow_source.Source):
         label = self.le_sigma_y.parent().layout().itemAt(0).widget()
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
+    def check_source_options(self, variable_name):
+        if variable_name in ["gaussian_central_value",
+                             "gaussian_sigma",
+                             "gaussian_minimum",
+                             "gaussian_maximum"]:
+            self.photon_energy_distribution = 4
+            self.set_PhotonEnergyDistribution()
+        elif variable_name in ["uniform_minimum",
+                               "uniform_maximum"]:
+            self.photon_energy_distribution = 2
+            self.set_PhotonEnergyDistribution()
+        elif variable_name in ["single_line_value"]:
+            self.photon_energy_distribution = 0
+            self.set_PhotonEnergyDistribution()
+        elif variable_name in ["line_value_1",
+                               "line_value_2",
+                               "line_value_3",
+                               "line_value_4",
+                               "line_value_5",
+                               "line_value_6",
+                               "line_value_7",
+                               "line_value_8",
+                               "line_value_9",
+                               "line_value_10"]:
+            self.photon_energy_distribution = 1
+            self.set_PhotonEnergyDistribution()
+        elif variable_name in ["rect_width",
+                               "rect_height"]:
+            self.spatial_type = 1
+            self.set_SpatialType()
+        elif variable_name in ["ell_semiaxis_x",
+                               "ell_semiaxis_z"]:
+            self.spatial_type = 2
+            self.set_SpatialType()
+        elif variable_name in ["gauss_sigma_x",
+                               "gauss_sigma_z"]:
+            self.spatial_type = 3
+            self.set_SpatialType()
+        elif variable_name in ["horizontal_div_x_plus",
+                               "horizontal_div_x_minus",
+                               "vertical_div_z_plus",
+                               "vertical_div_z_minus"]:
+            if not self.angular_distribution in [0, 1]: self.angular_distribution = 0
+            self.set_AngularDistribution()
+        elif variable_name in ["horizontal_sigma_x",
+                               "vertical_sigma_z",
+                               "horizontal_lim_x_plus",
+                               "horizontal_lim_x_minus",
+                               "vertical_lim_z_plus",
+                               "vertical_lim_z_minus"]:
+            self.angular_distribution = 2
+            self.set_AngularDistribution()
+        elif variable_name in ["cone_internal_half_aperture",
+                               "cone_external_half_aperture"]:
+            self.angular_distribution = 3
+            self.set_AngularDistribution()
 
     def callResetSettings(self):
         super().callResetSettings()
@@ -468,7 +524,7 @@ class GeometricalSource(ow_source.Source):
     def selectOptimizeFile(self):
         self.le_optimize_file_name.setText(oasysgui.selectFileFromDialog(self, self.optimize_file_name, "Open Optimize Source Parameters File"))
 
-    def runShadowSource(self):
+    def runShadowSource(self, scanning_data=None):
         self.setStatusMessage("")
         self.progressBarInit()
 
@@ -488,7 +544,6 @@ class GeometricalSource(ow_source.Source):
 
             self.progressBarSet(10)
 
-            #self.information(0, "Running SHADOW")
             self.setStatusMessage("Running SHADOW")
 
             sys.stdout = EmittingStream(textWritten=self.writeStdOut)
@@ -518,14 +573,14 @@ class GeometricalSource(ow_source.Source):
                 for row in grabber.ttyData:
                    self.writeStdOut(row)
 
-            #self.information(0, "Plotting Results")
             self.setStatusMessage("Plotting Results")
 
             self.progressBarSet(80)
             self.plot_results(beam_out)
 
-            #self.information()
             self.setStatusMessage("")
+
+            beam_out.setScanningData(scanned_variable_data=scanning_data)
 
             self.send("Beam", beam_out)
 
@@ -533,9 +588,6 @@ class GeometricalSource(ow_source.Source):
             QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception),
                 QtWidgets.QMessageBox.Ok)
-
-            #self.error_id = self.error_id + 1
-            #self.error(self.error_id, "Exception occurred: " + str(exception))
 
         self.progressBarFinished()
 

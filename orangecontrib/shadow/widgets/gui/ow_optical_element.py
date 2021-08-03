@@ -3229,7 +3229,6 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                             variable_value = trigger.get_additional_parameter("variable_value")
                             variable_um = trigger.get_additional_parameter("variable_um")
 
-
                             def check_options(variable_name):
                                 if variable_name in ["mm_mirror_offset_x",
                                                      "mm_mirror_rotation_x",
@@ -3273,14 +3272,24 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                                     self.absorption = 1
                                     self.set_Absorption()
 
+                            def check_number(x):
+                                try:    return float(x)
+                                except: return x
+
                             if "," in variable_name:
                                 variable_names = variable_name.split(",")
 
-                                for variable_name in variable_names:
-                                    setattr(self, variable_name.strip(), variable_value)
-                                    check_options(variable_name)
+                                if isinstance(variable_value, str) and "," in variable_value:
+                                    variable_values = variable_value.split(",")
+                                    for variable_name, variable_value in zip(variable_names, variable_values):
+                                        setattr(self, variable_name.strip(), check_number(variable_value))
+                                        check_options(variable_name)
+                                else:
+                                    for variable_name in variable_names:
+                                        setattr(self, variable_name.strip(), check_number(variable_value))
+                                        check_options(variable_name)
                             else:
-                                setattr(self, variable_name, variable_value)
+                                setattr(self, variable_name, check_number(variable_value))
                                 check_options(variable_name)
 
                             self.input_beam.setScanningData(ShadowBeam.ScanningData(variable_name, variable_value, variable_display_name, variable_um))

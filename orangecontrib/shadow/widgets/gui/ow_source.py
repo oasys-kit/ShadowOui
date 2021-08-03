@@ -194,8 +194,36 @@ class Source(ow_generic_element.GenericElement):
         if trigger and trigger.new_object == True:
             if trigger.has_additional_parameter("seed_increment"):
                 self.seed += trigger.get_additional_parameter("seed_increment")
+            elif trigger.has_additional_parameter("variable_name"):
+                variable_name = trigger.get_additional_parameter("variable_name").strip()
+                variable_display_name = trigger.get_additional_parameter("variable_display_name").strip()
+                variable_value = trigger.get_additional_parameter("variable_value")
+                variable_um = trigger.get_additional_parameter("variable_um")
 
-            self.runShadowSource()
+                def check_number(x):
+                    try:    return float(x)
+                    except: return x
+
+                if "," in variable_name:
+                    variable_names = variable_name.split(",")
+
+                    if isinstance(variable_value, str) and "," in variable_value:
+                        variable_values = variable_value.split(",")
+                        for variable_name, variable_value in zip(variable_names, variable_values):
+                            setattr(self, variable_name.strip(), check_number(variable_value))
+                            self.check_source_options(variable_name)
+                    else:
+                        for variable_name in variable_names:
+                            setattr(self, variable_name.strip(), check_number(variable_value))
+                            self.check_source_options(variable_name)
+                else:
+                    setattr(self, variable_name, check_number(variable_value))
+                    self.check_source_options(variable_name)
+
+            self.runShadowSource(scanning_data=ShadowBeam.ScanningData(variable_name, variable_value, variable_display_name, variable_um))
+
+    def check_source_options(self, variable_name):
+        pass
 
     def populateFields(self, shadow_src):
         pass
@@ -229,7 +257,7 @@ class Source(ow_generic_element.GenericElement):
             elif self.view_type == 0:
                 self.plot_xy(effective_source_size_beam, 100,  variables[0][0], variables[0][1], plot_canvas_index=5, title=titles[0], xtitle=xtitles[0], ytitle=ytitles[0], xum=xums[0], yum=yums[0])
 
-    def runShadowSource(self):
+    def runShadowSource(self, scanning_data=None):
         raise NotImplementedError("This method is abstract")
 
     def getTitles(self):
