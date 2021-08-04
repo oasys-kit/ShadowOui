@@ -366,6 +366,9 @@ class GeometricalSource(ow_source.Source):
         label = self.le_sigma_y.parent().layout().itemAt(0).widget()
         label.setText(label.text() + " [" + self.workspace_units_label + "]")
 
+    def is_scanning_enabled(self):
+        return True
+
     def check_source_options(self, variable_name):
         if variable_name in ["gaussian_central_value",
                              "gaussian_sigma",
@@ -524,7 +527,7 @@ class GeometricalSource(ow_source.Source):
     def selectOptimizeFile(self):
         self.le_optimize_file_name.setText(oasysgui.selectFileFromDialog(self, self.optimize_file_name, "Open Optimize Source Parameters File"))
 
-    def runShadowSource(self, scanning_data=None):
+    def runShadowSource(self):
         self.setStatusMessage("")
         self.progressBarInit()
 
@@ -580,7 +583,7 @@ class GeometricalSource(ow_source.Source):
 
             self.setStatusMessage("")
 
-            beam_out.setScanningData(scanned_variable_data=scanning_data)
+            beam_out.setScanningData(self.scanning_data)
 
             self.send("Beam", beam_out)
 

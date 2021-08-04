@@ -46,6 +46,8 @@ class Source(ow_generic_element.GenericElement):
     number_of_rays=Setting(5000)
     seed=Setting(5676561)
 
+    scanning_data = None
+
     def __init__(self, show_automatic_box=False):
         super().__init__(show_automatic_box=show_automatic_box)
 
@@ -85,7 +87,6 @@ class Source(ow_generic_element.GenericElement):
         button.setFixedWidth(150)
 
         gui.separator(self.controlArea)
-
 
     def initializeTabs(self):
         current_tab = self.tabs.currentIndex()
@@ -189,12 +190,13 @@ class Source(ow_generic_element.GenericElement):
             except Exception as exception:
                 QMessageBox.critical(self, "Error", str(exception), QMessageBox.Ok)
 
-
     def sendNewBeam(self, trigger):
+        self.scanning_data = None
+
         if trigger and trigger.new_object == True:
             if trigger.has_additional_parameter("seed_increment"):
                 self.seed += trigger.get_additional_parameter("seed_increment")
-            elif trigger.has_additional_parameter("variable_name"):
+            elif trigger.has_additional_parameter("variable_name") and self.is_scanning_enabled():
                 variable_name = trigger.get_additional_parameter("variable_name").strip()
                 variable_display_name = trigger.get_additional_parameter("variable_display_name").strip()
                 variable_value = trigger.get_additional_parameter("variable_value")
@@ -220,7 +222,12 @@ class Source(ow_generic_element.GenericElement):
                     setattr(self, variable_name, check_number(variable_value))
                     self.check_source_options(variable_name)
 
-            self.runShadowSource(scanning_data=ShadowBeam.ScanningData(variable_name, variable_value, variable_display_name, variable_um))
+                self.scanning_data=ShadowBeam.ScanningData(variable_name, variable_value, variable_display_name, variable_um)
+
+            self.runShadowSource()
+
+    def is_scanning_enabled(self):
+        return False
 
     def check_source_options(self, variable_name):
         pass
@@ -257,7 +264,7 @@ class Source(ow_generic_element.GenericElement):
             elif self.view_type == 0:
                 self.plot_xy(effective_source_size_beam, 100,  variables[0][0], variables[0][1], plot_canvas_index=5, title=titles[0], xtitle=xtitles[0], ytitle=ytitles[0], xum=xums[0], yum=yums[0])
 
-    def runShadowSource(self, scanning_data=None):
+    def runShadowSource(self):
         raise NotImplementedError("This method is abstract")
 
     def getTitles(self):
