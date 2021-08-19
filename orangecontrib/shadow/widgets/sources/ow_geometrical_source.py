@@ -650,10 +650,9 @@ class GeometricalSource(ow_source.Source):
     # WEIRD MEMORY INITIALIZATION BY FORTRAN. JUST A FIX.
     def fix_Intensity(self, beam_out):
         if self.polarization == 0:
-            for index in range(0, len(beam_out._beam.rays)):
-                beam_out._beam.rays[index, 15] = 0
-                beam_out._beam.rays[index, 16] = 0
-                beam_out._beam.rays[index, 17] = 0
+            beam_out._beam.rays[:, 15] = 0
+            beam_out._beam.rays[:, 16] = 0
+            beam_out._beam.rays[:, 17] = 0
 
     def acceptExchangeData(self, exchangeData):
         try:

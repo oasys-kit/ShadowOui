@@ -455,8 +455,8 @@ class ShadowSource:
             self.src.FILE_BOUND  = adjust_shadow_string(self.src.FILE_BOUND)
 
     @classmethod
-    def create_src(cls):
-        self = cls.__new__(ShadowSource, src=Shadow.Source())
+    def create_src(cls, src=Shadow.Source()):
+        self = cls.__new__(ShadowSource, src=src)
 
         self.src.OE_NUMBER =  0
         self.src.FILE_TRAJ=bytes("NONESPECIFIED", 'utf-8')
