@@ -113,7 +113,6 @@ class ShadowFile:
 class ShadowBeam:
 
     class ScanningData(object):
-
         def __init__(self,
                      scanned_variable_name,
                      scanned_variable_value,
@@ -124,7 +123,6 @@ class ShadowBeam:
             self.__scanned_variable_value = scanned_variable_value
             self.__scanned_variable_display_name = scanned_variable_display_name
             self.__scanned_variable_um = scanned_variable_um
-
             self.__additional_parameters=additional_parameters
 
         def get_scanned_variable_name(self):
@@ -145,23 +143,20 @@ class ShadowBeam:
         def get_additional_parameter(self, name):
             return self.__additional_parameters[name]
 
-
     def __new__(cls, oe_number=0, beam=None, number_of_rays=0):
-        self = super().__new__(cls)
-        self._oe_number = oe_number
+        __shadow_beam = super().__new__(cls)
+        __shadow_beam._oe_number = oe_number
         if (beam is None):
-            if number_of_rays > 0:
-                self._beam = Shadow.Beam(number_of_rays)
-            else:
-                self._beam = Shadow.Beam()
+            if number_of_rays > 0: __shadow_beam._beam = Shadow.Beam(number_of_rays)
+            else:                  __shadow_beam._beam = Shadow.Beam()
         else:
-            self._beam = beam
+            __shadow_beam._beam = beam
 
-        self.history = []
-        self.scanned_variable_data = None
-        self.__initial_flux          = None
+        __shadow_beam.history = []
+        __shadow_beam.scanned_variable_data = None
+        __shadow_beam.__initial_flux = None
 
-        return self
+        return __shadow_beam
 
     def set_initial_flux(self, initial_flux):
         self.__initial_flux = initial_flux
@@ -176,14 +171,10 @@ class ShadowBeam:
             return None
 
     def get_number_of_rays(self, nolost=0):
-        if nolost==0:
-            return self._beam.rays.shape[0]
-        elif nolost==1:
-            return self._beam.rays[numpy.where(self._beam.rays[:, 9] > 0)].shape[0]
-        elif nolost == 2:
-            return self._beam.rays[numpy.where(self._beam.rays[:, 9] < 0)].shape[0]
-        else:
-            raise ValueError("nolost flag value not valid")
+        if nolost==0:     return self._beam.rays.shape[0]
+        elif nolost==1:   return self._beam.rays[numpy.where(self._beam.rays[:, 9] > 0)].shape[0]
+        elif nolost == 2: return self._beam.rays[numpy.where(self._beam.rays[:, 9] < 0)].shape[0]
+        else: raise ValueError("nolost flag value not valid")
 
     def setBeam(self, beam):
         self._beam = beam
@@ -211,8 +202,7 @@ class ShadowBeam:
         new_shadow_beam.set_initial_flux(self.get_initial_flux())
 
         if history:
-            for historyItem in self.history:
-                new_shadow_beam.history.append(historyItem)
+            for historyItem in self.history: new_shadow_beam.history.append(historyItem)
 
         return new_shadow_beam
 
@@ -269,7 +259,7 @@ class ShadowBeam:
 
     @classmethod
     def traceFromSource(cls, shadow_src, write_begin_file=0, write_start_file=0, write_end_file=0, history=True, widget_class_name=None):
-        self = cls.__new__(ShadowBeam, beam=Shadow.Beam())
+        __shadow_beam = cls.__new__(ShadowBeam, beam=Shadow.Beam())
 
         shadow_src.self_repair()
 
@@ -278,12 +268,12 @@ class ShadowBeam:
         if write_start_file == 1:
             shadow_src.src.write("start.00")
 
-        self._beam.genSource(shadow_src.src)
+        __shadow_beam._beam.genSource(shadow_src.src)
 
         shadow_src.self_repair()
 
         if write_begin_file:
-            self.writeToFile("begin.dat")
+            __shadow_beam.writeToFile("begin.dat")
 
         if write_end_file == 1:
             shadow_src.src.write("end.00")
@@ -291,62 +281,55 @@ class ShadowBeam:
         shadow_source_end = shadow_src.duplicate()
 
         if history:
-            self.history.append(ShadowOEHistoryItem(shadow_source_start=shadow_source_start,
+            __shadow_beam.history.append(ShadowOEHistoryItem(shadow_source_start=shadow_source_start,
                                                     shadow_source_end=shadow_source_end,
                                                     widget_class_name=widget_class_name))
 
-        return self
+        return __shadow_beam
 
     @classmethod
     def traceFromOE(cls, input_beam, shadow_oe, write_start_file=0, write_end_file=0, history=True, widget_class_name=None):
-
-        self = cls.initializeFromPreviousBeam(input_beam)
-
-        shadow_oe.self_repair()
-
-        if history:
-            history_shadow_oe_start = shadow_oe.duplicate()
-
-        if write_start_file == 1:
-            shadow_oe._oe.write("start.%02d"%self._oe_number)
-
-        self._beam.traceOE(shadow_oe._oe, self._oe_number)
+        __shadow_beam = cls.initializeFromPreviousBeam(input_beam)
 
         shadow_oe.self_repair()
 
-        if write_end_file == 1:
-            shadow_oe._oe.write("end.%02d"%self._oe_number)
+        if history: history_shadow_oe_start = shadow_oe.duplicate()
+        if write_start_file == 1: shadow_oe._oe.write("start.%02d"%__shadow_beam._oe_number)
+
+        __shadow_beam._beam.traceOE(shadow_oe._oe, __shadow_beam._oe_number)
+
+        shadow_oe.self_repair()
+
+        if write_end_file == 1: shadow_oe._oe.write("end.%02d"%__shadow_beam._oe_number)
 
         if history:
             history_shadow_oe_end = shadow_oe.duplicate()
 
             #N.B. history[0] = Source
-            if not self._oe_number == 0:
-                if len(self.history) - 1 < self._oe_number:
-                    self.history.append(ShadowOEHistoryItem(oe_number=self._oe_number,
+            if not __shadow_beam._oe_number == 0:
+                if len(__shadow_beam.history) - 1 < __shadow_beam._oe_number:
+                    __shadow_beam.history.append(ShadowOEHistoryItem(oe_number=__shadow_beam._oe_number,
                                                             input_beam=input_beam.duplicate(),
                                                             shadow_oe_start=history_shadow_oe_start,
                                                             shadow_oe_end=history_shadow_oe_end, widget_class_name=widget_class_name))
                 else:
-                    self.history[self._oe_number]=ShadowOEHistoryItem(oe_number=self._oe_number,
+                    __shadow_beam.history[__shadow_beam._oe_number]=ShadowOEHistoryItem(oe_number=__shadow_beam._oe_number,
                                                                       input_beam=input_beam.duplicate(),
                                                                       shadow_oe_start=history_shadow_oe_start,
                                                                       shadow_oe_end=history_shadow_oe_end,
                                                                       widget_class_name=widget_class_name)
 
-        return self
+        return __shadow_beam
 
     @classmethod
     def traceIdealLensOE(cls, input_beam, shadow_oe, history=True, widget_class_name=None):
-
-        self = cls.initializeFromPreviousBeam(input_beam)
+        __shadow_beam = cls.initializeFromPreviousBeam(input_beam)
 
         shadow_oe.self_repair()
 
-        if history:
-            history_shadow_oe_start = shadow_oe.duplicate()
+        if history: history_shadow_oe_start = shadow_oe.duplicate()
 
-        self._beam.traceIdealLensOE(shadow_oe._oe, self._oe_number)
+        __shadow_beam._beam.traceIdealLensOE(shadow_oe._oe, __shadow_beam._oe_number)
 
         shadow_oe.self_repair()
 
@@ -354,20 +337,20 @@ class ShadowBeam:
             history_shadow_oe_end = shadow_oe.duplicate()
 
             #N.B. history[0] = Source
-            if not self._oe_number == 0:
-                if len(self.history) - 1 < self._oe_number:
-                    self.history.append(ShadowOEHistoryItem(oe_number=self._oe_number,
+            if not __shadow_beam._oe_number == 0:
+                if len(__shadow_beam.history) - 1 < __shadow_beam._oe_number:
+                    __shadow_beam.history.append(ShadowOEHistoryItem(oe_number=__shadow_beam._oe_number,
                                                             input_beam=input_beam.duplicate(),
                                                             shadow_oe_start=history_shadow_oe_start,
                                                             shadow_oe_end=history_shadow_oe_end, widget_class_name=widget_class_name))
                 else:
-                    self.history[self._oe_number]=ShadowOEHistoryItem(oe_number=self._oe_number,
+                    __shadow_beam.history[__shadow_beam._oe_number]=ShadowOEHistoryItem(oe_number=__shadow_beam._oe_number,
                                                                       input_beam=input_beam.duplicate(),
                                                                       shadow_oe_start=history_shadow_oe_start,
                                                                       shadow_oe_end=history_shadow_oe_end,
                                                                       widget_class_name=widget_class_name)
 
-        return self
+        return __shadow_beam
 
     @classmethod
     def traceFromCompoundOE(cls,
@@ -379,16 +362,14 @@ class ShadowBeam:
                             write_mirr_files=0,
                             history=True,
                             widget_class_name=None):
-        self = cls.initializeFromPreviousBeam(input_beam)
+        __shadow_beam = cls.initializeFromPreviousBeam(input_beam)
 
         shadow_oe.self_repair()
 
-        if history:
-            history_shadow_oe_start = shadow_oe.duplicate()
+        if history: history_shadow_oe_start = shadow_oe.duplicate()
 
-
-        self._beam.traceCompoundOE(shadow_oe._oe,
-                                   from_oe=self._oe_number,
+        __shadow_beam._beam.traceCompoundOE(shadow_oe._oe,
+                                   from_oe=__shadow_beam._oe_number,
                                    write_start_files=write_start_files,
                                    write_end_files=write_end_files,
                                    write_star_files=write_star_files,
@@ -400,28 +381,28 @@ class ShadowBeam:
             history_shadow_oe_end = shadow_oe.duplicate()
 
             # N.B. history[0] = Source
-            if not self._oe_number == 0:
-                if len(self.history) - 1 < self._oe_number:
-                    self.history.append(ShadowOEHistoryItem(oe_number=self._oe_number,
+            if not __shadow_beam._oe_number == 0:
+                if len(__shadow_beam.history) - 1 < __shadow_beam._oe_number:
+                    __shadow_beam.history.append(ShadowOEHistoryItem(oe_number=__shadow_beam._oe_number,
                                                             input_beam=input_beam.duplicate(),
                                                             shadow_oe_start=history_shadow_oe_start,
                                                             shadow_oe_end=history_shadow_oe_end,
                                                             widget_class_name=widget_class_name))
                 else:
-                    self.history[self._oe_number] = ShadowOEHistoryItem(oe_number=self._oe_number,
+                    __shadow_beam.history[__shadow_beam._oe_number] = ShadowOEHistoryItem(oe_number=__shadow_beam._oe_number,
                                                                         input_beam=input_beam.duplicate(),
                                                                         shadow_oe_start=history_shadow_oe_start,
                                                                         shadow_oe_end=history_shadow_oe_end,
                                                                         widget_class_name=widget_class_name)
 
-        return self
+        return __shadow_beam
 
     @classmethod
     def initializeFromPreviousBeam(cls, input_beam):
-        self = input_beam.duplicate()
-        self._oe_number = input_beam._oe_number + 1
+        __shadow_beam = input_beam.duplicate()
+        __shadow_beam._oe_number = input_beam._oe_number + 1
 
-        return self
+        return __shadow_beam
 
     def getOEHistory(self, oe_number=None):
         if oe_number is None:
@@ -434,10 +415,10 @@ class ShadowBeam:
 
 class ShadowSource:
     def __new__(cls, src=None):
-        self = super().__new__(cls)
-        self.src = src
-        self.source_type = None
-        return self
+        __shadow_source = super().__new__(cls)
+        __shadow_source.src = src
+        __shadow_source.source_type = None
+        return __shadow_source
 
     def set_src(self, src):
         self.src = src
@@ -455,93 +436,92 @@ class ShadowSource:
             self.src.FILE_BOUND  = adjust_shadow_string(self.src.FILE_BOUND)
 
     @classmethod
-    def create_src(cls, src=Shadow.Source()):
-        self = cls.__new__(ShadowSource, src=src)
+    def create_src(cls):
+        __shadow_source = cls.__new__(ShadowSource, src=Shadow.Source())
 
-        self.src.OE_NUMBER =  0
-        self.src.FILE_TRAJ=bytes("NONESPECIFIED", 'utf-8')
-        self.src.FILE_SOURCE=bytes("NONESPECIFIED", 'utf-8')
-        self.src.FILE_BOUND=bytes("NONESPECIFIED", 'utf-8')
+        __shadow_source.src.OE_NUMBER =  0
+        __shadow_source.src.FILE_TRAJ=bytes("NONESPECIFIED", 'utf-8')
+        __shadow_source.src.FILE_SOURCE=bytes("NONESPECIFIED", 'utf-8')
+        __shadow_source.src.FILE_BOUND=bytes("NONESPECIFIED", 'utf-8')
 
-        return self
+        return __shadow_source
 
     @classmethod
     def create_src_from_file(cls, filename):
-        self = cls.create_src()
-        self.src.load(filename)
+        __shadow_source = cls.create_src()
+        __shadow_source.src.load(filename)
 
-        return self
+        return __shadow_source
 
     @classmethod
     def create_bm_src(cls):
-        self = cls.create_src()
+        __shadow_source = cls.create_src()
 
-        self.src.FSOURCE_DEPTH=4
-        self.src.F_COLOR=3
-        self.src.F_PHOT=0
-        self.src.F_POLAR=1
-        self.src.NCOL=0
-        self.src.N_COLOR=0
-        self.src.POL_DEG=0.0
-        self.src.SIGDIX=0.0
-        self.src.SIGDIZ=0.0
-        self.src.SIGMAY=0.0
-        self.src.WXSOU=0.0
-        self.src.WYSOU=0.0
-        self.src.WZSOU=0.0
+        __shadow_source.src.FSOURCE_DEPTH=4
+        __shadow_source.src.F_COLOR=3
+        __shadow_source.src.F_PHOT=0
+        __shadow_source.src.F_POLAR=1
+        __shadow_source.src.NCOL=0
+        __shadow_source.src.N_COLOR=0
+        __shadow_source.src.POL_DEG=0.0
+        __shadow_source.src.SIGDIX=0.0
+        __shadow_source.src.SIGDIZ=0.0
+        __shadow_source.src.SIGMAY=0.0
+        __shadow_source.src.WXSOU=0.0
+        __shadow_source.src.WYSOU=0.0
+        __shadow_source.src.WZSOU=0.0
 
-        self.src.F_WIGGLER = 0
+        __shadow_source.src.F_WIGGLER = 0
 
-        return self
+        return __shadow_source
 
     @classmethod
     def create_undulator_gaussian_src(cls):
-        self = cls.create_src()
+        __shadow_source = cls.create_src()
 
-        self.src.FDISTR =  3
-        self.src.FSOUR =  3
-        self.src.F_COLOR=3
-        self.src.F_PHOT=0
-        self.src.F_POLAR=1
-        self.src.HDIV1 =    0.0
-        self.src.HDIV2 =    0.0
-        self.src.VDIV1 =    0.0
-        self.src.VDIV2 =    0.0
+        __shadow_source.src.FDISTR =  3
+        __shadow_source.src.FSOUR =  3
+        __shadow_source.src.F_COLOR=3
+        __shadow_source.src.F_PHOT=0
+        __shadow_source.src.F_POLAR=1
+        __shadow_source.src.HDIV1 =    0.0
+        __shadow_source.src.HDIV2 =    0.0
+        __shadow_source.src.VDIV1 =    0.0
+        __shadow_source.src.VDIV2 =    0.0
 
-        self.src.F_WIGGLER = 0
+        __shadow_source.src.F_WIGGLER = 0
 
-        return self
+        return __shadow_source
 
     @classmethod
     def create_wiggler_src(cls):
-        self = cls.create_src()
+        __shadow_source = cls.create_src()
 
-        self.src.FDISTR =  0
-        self.src.FSOUR =  0
-        self.src.FSOURCE_DEPTH =  0
-        self.src.F_COLOR=0
-        self.src.F_PHOT=0
-        self.src.F_POLAR=1
-        self.src.F_WIGGLER = 1
-        self.src.NCOL = 0
+        __shadow_source.src.FDISTR =  0
+        __shadow_source.src.FSOUR =  0
+        __shadow_source.src.FSOURCE_DEPTH =  0
+        __shadow_source.src.F_COLOR=0
+        __shadow_source.src.F_PHOT=0
+        __shadow_source.src.F_POLAR=1
+        __shadow_source.src.F_WIGGLER = 1
+        __shadow_source.src.NCOL = 0
 
-        self.src.N_COLOR = 0
-        self.src.IDO_VX = 0
-        self.src.IDO_VZ = 0
-        self.src.IDO_X_S = 0
-        self.src.IDO_Y_S = 0
-        self.src.IDO_Z_S = 0
+        __shadow_source.src.N_COLOR = 0
+        __shadow_source.src.IDO_VX = 0
+        __shadow_source.src.IDO_VZ = 0
+        __shadow_source.src.IDO_X_S = 0
+        __shadow_source.src.IDO_Y_S = 0
+        __shadow_source.src.IDO_Z_S = 0
 
-        self.src.VDIV1 = 1.00000000000000
-        self.src.VDIV2 = 1.00000000000000
-        self.src.WXSOU = 0.00000000000000
-        self.src.WYSOU = 0.00000000000000
-        self.src.WZSOU = 0.00000000000000
+        __shadow_source.src.VDIV1 = 1.00000000000000
+        __shadow_source.src.VDIV2 = 1.00000000000000
+        __shadow_source.src.WXSOU = 0.00000000000000
+        __shadow_source.src.WYSOU = 0.00000000000000
+        __shadow_source.src.WZSOU = 0.00000000000000
 
-        self.src.POL_DEG = 0.00000000000000
+        __shadow_source.src.POL_DEG = 0.00000000000000
 
-        return self
-
+        return __shadow_source
 
     def duplicate(self):
         new_src = ShadowSource.create_src()
@@ -701,7 +681,6 @@ class ShadowOpticalElement:
                                 adjust_shadow_string(self._oe.FILE_SCR_EXT[9])]
 
                 self._oe.FILE_SCR_EXT = numpy.array(FILE_SCR_EXT)
-
 
     def duplicate(self):
         if isinstance(self._oe, Shadow.IdealLensOE):
@@ -912,290 +891,289 @@ class ShadowOpticalElement:
 
     @classmethod
     def create_empty_oe(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=5
-        self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRAC=2
-        self._oe.F_SCREEN=0
-        self._oe.N_SCREEN=0
+        __shadow_oe._oe.FMIRR=5
+        __shadow_oe._oe.F_CRYSTAL = 0
+        __shadow_oe._oe.F_REFRAC=2
+        __shadow_oe._oe.F_SCREEN=0
+        __shadow_oe._oe.N_SCREEN=0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_oe_from_file(cls, filename):
-        self = cls.create_empty_oe()
-        self._oe.load(filename)
+        __shadow_oe = cls.create_empty_oe()
+        __shadow_oe._oe.load(filename)
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_screen_slit(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=5
-        self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRAC=2
-        self._oe.F_SCREEN=1
-        self._oe.N_SCREEN=1
+        __shadow_oe._oe.FMIRR=5
+        __shadow_oe._oe.F_CRYSTAL = 0
+        __shadow_oe._oe.F_REFRAC=2
+        __shadow_oe._oe.F_SCREEN=1
+        __shadow_oe._oe.N_SCREEN=1
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_plane_mirror(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=5
-        self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=5
+        __shadow_oe._oe.F_CRYSTAL = 0
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_spherical_mirror(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=1
-        self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=1
+        __shadow_oe._oe.F_CRYSTAL = 0
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_toroidal_mirror(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=3
-        self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=3
+        __shadow_oe._oe.F_CRYSTAL = 0
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_paraboloid_mirror(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=4
-        self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=4
+        __shadow_oe._oe.F_CRYSTAL = 0
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_ellipsoid_mirror(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=2
-        self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=2
+        __shadow_oe._oe.F_CRYSTAL = 0
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_hyperboloid_mirror(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=7
-        self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=7
+        __shadow_oe._oe.F_CRYSTAL = 0
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_conic_coefficients_mirror(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=10
-        self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=10
+        __shadow_oe._oe.F_CRYSTAL = 0
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_conic_coefficients_refractor(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=10
-        self._oe.F_CRYSTAL = 0
-        self._oe.F_REFRAC = 1
+        __shadow_oe._oe.FMIRR=10
+        __shadow_oe._oe.F_CRYSTAL = 0
+        __shadow_oe._oe.F_REFRAC = 1
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_plane_crystal(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=5
-        self._oe.F_CRYSTAL = 1
-        self._oe.FILE_REFL = bytes("", 'utf-8')
-        self._oe.F_REFLECT = 0
-        self._oe.F_BRAGG_A = 0
-        self._oe.A_BRAGG = 0.0
+        __shadow_oe._oe.FMIRR=5
+        __shadow_oe._oe.F_CRYSTAL = 1
+        __shadow_oe._oe.FILE_REFL = bytes("", 'utf-8')
+        __shadow_oe._oe.F_REFLECT = 0
+        __shadow_oe._oe.F_BRAGG_A = 0
+        __shadow_oe._oe.A_BRAGG = 0.0
 
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_spherical_crystal(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=1
-        self._oe.F_CRYSTAL = 1
-        self._oe.FILE_REFL = bytes("", 'utf-8')
-        self._oe.F_REFLECT = 0
-        self._oe.F_BRAGG_A = 0
-        self._oe.A_BRAGG = 0.0
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=1
+        __shadow_oe._oe.F_CRYSTAL = 1
+        __shadow_oe._oe.FILE_REFL = bytes("", 'utf-8')
+        __shadow_oe._oe.F_REFLECT = 0
+        __shadow_oe._oe.F_BRAGG_A = 0
+        __shadow_oe._oe.A_BRAGG = 0.0
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_toroidal_crystal(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=3
-        self._oe.F_CRYSTAL = 1
-        self._oe.FILE_REFL = bytes("", 'utf-8')
-        self._oe.F_REFLECT = 0
-        self._oe.F_BRAGG_A = 0
-        self._oe.A_BRAGG = 0.0
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=3
+        __shadow_oe._oe.F_CRYSTAL = 1
+        __shadow_oe._oe.FILE_REFL = bytes("", 'utf-8')
+        __shadow_oe._oe.F_REFLECT = 0
+        __shadow_oe._oe.F_BRAGG_A = 0
+        __shadow_oe._oe.A_BRAGG = 0.0
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_paraboloid_crystal(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=4
-        self._oe.F_CRYSTAL = 1
-        self._oe.FILE_REFL = bytes("", 'utf-8')
-        self._oe.F_REFLECT = 0
-        self._oe.F_BRAGG_A = 0
-        self._oe.A_BRAGG = 0.0
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=4
+        __shadow_oe._oe.F_CRYSTAL = 1
+        __shadow_oe._oe.FILE_REFL = bytes("", 'utf-8')
+        __shadow_oe._oe.F_REFLECT = 0
+        __shadow_oe._oe.F_BRAGG_A = 0
+        __shadow_oe._oe.A_BRAGG = 0.0
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_ellipsoid_crystal(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=2
-        self._oe.F_CRYSTAL = 1
-        self._oe.FILE_REFL = bytes("", 'utf-8')
-        self._oe.F_REFLECT = 0
-        self._oe.F_BRAGG_A = 0
-        self._oe.A_BRAGG = 0.0
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=2
+        __shadow_oe._oe.F_CRYSTAL = 1
+        __shadow_oe._oe.FILE_REFL = bytes("", 'utf-8')
+        __shadow_oe._oe.F_REFLECT = 0
+        __shadow_oe._oe.F_BRAGG_A = 0
+        __shadow_oe._oe.A_BRAGG = 0.0
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_hyperboloid_crystal(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=7
-        self._oe.F_CRYSTAL = 1
-        self._oe.FILE_REFL = bytes("", 'utf-8')
-        self._oe.F_REFLECT = 0
-        self._oe.F_BRAGG_A = 0
-        self._oe.A_BRAGG = 0.0
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=7
+        __shadow_oe._oe.F_CRYSTAL = 1
+        __shadow_oe._oe.FILE_REFL = bytes("", 'utf-8')
+        __shadow_oe._oe.F_REFLECT = 0
+        __shadow_oe._oe.F_BRAGG_A = 0
+        __shadow_oe._oe.A_BRAGG = 0.0
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_conic_coefficients_crystal(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=10
-        self._oe.F_CRYSTAL = 1
-        self._oe.FILE_REFL = bytes("", 'utf-8')
-        self._oe.F_REFLECT = 0
-        self._oe.F_BRAGG_A = 0
-        self._oe.A_BRAGG = 0.0
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=10
+        __shadow_oe._oe.F_CRYSTAL = 1
+        __shadow_oe._oe.FILE_REFL = bytes("", 'utf-8')
+        __shadow_oe._oe.F_REFLECT = 0
+        __shadow_oe._oe.F_BRAGG_A = 0
+        __shadow_oe._oe.A_BRAGG = 0.0
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_plane_grating(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=5
-        self._oe.F_GRATING = 1
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=5
+        __shadow_oe._oe.F_GRATING = 1
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_spherical_grating(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=1
-        self._oe.F_GRATING = 1
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=1
+        __shadow_oe._oe.F_GRATING = 1
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_toroidal_grating(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=3
-        self._oe.F_GRATING = 1
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=3
+        __shadow_oe._oe.F_GRATING = 1
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
-
+        return __shadow_oe
 
     @classmethod
     def create_paraboloid_grating(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=4
-        self._oe.F_GRATING = 1
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=4
+        __shadow_oe._oe.F_GRATING = 1
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_ellipsoid_grating(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=2
-        self._oe.F_GRATING = 1
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=2
+        __shadow_oe._oe.F_GRATING = 1
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_hyperboloid_grating(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=7
-        self._oe.F_GRATING = 1
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=7
+        __shadow_oe._oe.F_GRATING = 1
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_conic_coefficients_grating(cls):
-        self = ShadowOpticalElement(oe=Shadow.OE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.OE())
 
-        self._oe.FMIRR=10
-        self._oe.F_GRATING = 1
-        self._oe.F_REFRAC = 0
+        __shadow_oe._oe.FMIRR=10
+        __shadow_oe._oe.F_GRATING = 1
+        __shadow_oe._oe.F_REFRAC = 0
 
-        return self
+        return __shadow_oe
 
     @classmethod
     def create_ideal_lens(cls):
-        self = ShadowOpticalElement(oe=Shadow.IdealLensOE())
+        __shadow_oe = ShadowOpticalElement(oe=Shadow.IdealLensOE())
 
-        return self
+        return __shadow_oe
 
 
 class ShadowCompoundOpticalElement:
