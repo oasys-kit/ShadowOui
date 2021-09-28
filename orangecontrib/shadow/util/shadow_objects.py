@@ -171,6 +171,7 @@ class ShadowBeam:
             return None
 
     def get_number_of_rays(self, nolost=0):
+        if not hasattr(self._beam, "rays"): return 0
         if nolost==0:     return self._beam.rays.shape[0]
         elif nolost==1:   return self._beam.rays[numpy.where(self._beam.rays[:, 9] > 0)].shape[0]
         elif nolost == 2: return self._beam.rays[numpy.where(self._beam.rays[:, 9] < 0)].shape[0]
