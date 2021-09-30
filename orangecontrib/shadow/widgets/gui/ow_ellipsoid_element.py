@@ -109,43 +109,10 @@ class EllipsoidElement(ow_curved_element.CurvedElement):
             congruence.checkStrictlyPositiveNumber(self.auto_slit_width_xaxis, "Slit width/x-axis")
             congruence.checkStrictlyPositiveNumber(self.auto_slit_height_zaxis, "Slit height/z-axis")
 
-            n_screen = 1
-            i_screen = numpy.zeros(10)  # after
-            i_abs = numpy.zeros(10)
-            i_slit = numpy.zeros(10)
-            i_stop = numpy.zeros(10)
-            k_slit = numpy.zeros(10)
-            thick = numpy.zeros(10)
-            file_abs = ['', '', '', '', '', '', '', '', '', '']
-            rx_slit = numpy.zeros(10)
-            rz_slit = numpy.zeros(10)
-            sl_dis = numpy.zeros(10)
-            file_scr_ext = ['', '', '', '', '', '', '', '', '', '']
-            cx_slit = numpy.zeros(10)
-            cz_slit = numpy.zeros(10)
-
-            i_screen[0] = 1
-            i_slit[0] = 1
-
-            rx_slit[0] = self.auto_slit_width_xaxis
-            rz_slit[0] = self.auto_slit_height_zaxis
-            cx_slit[0] = self.auto_slit_center_xaxis
-            cz_slit[0] = self.auto_slit_center_zaxis
-
-            shadow_oe._oe.set_screens(n_screen,
-                                     i_screen,
-                                     i_abs,
-                                     sl_dis,
-                                     i_slit,
-                                     i_stop,
-                                     k_slit,
-                                     thick,
-                                     numpy.array(file_abs),
-                                     rx_slit,
-                                     rz_slit,
-                                     cx_slit,
-                                     cz_slit,
-                                     numpy.array(file_scr_ext))
+            shadow_oe.add_acceptance_slits(self.auto_slit_width_xaxis,
+                                           self.auto_slit_height_zaxis,
+                                           self.auto_slit_center_xaxis,
+                                           self.auto_slit_center_zaxis)
 
     def completeOperations(self, shadow_oe):
         self.manage_acceptance_slits(shadow_oe)

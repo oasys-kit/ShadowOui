@@ -1176,6 +1176,44 @@ class ShadowOpticalElement:
 
         return __shadow_oe
 
+    def add_acceptance_slits(self, auto_slit_width_xaxis, auto_slit_height_zaxis, auto_slit_center_xaxis, auto_slit_center_zaxis):
+        n_screen = 1
+        i_screen = numpy.zeros(10)  # after
+        i_abs = numpy.zeros(10)
+        i_slit = numpy.zeros(10)
+        i_stop = numpy.zeros(10)
+        k_slit = numpy.zeros(10)
+        thick = numpy.zeros(10)
+        file_abs = ['', '', '', '', '', '', '', '', '', '']
+        rx_slit = numpy.zeros(10)
+        rz_slit = numpy.zeros(10)
+        sl_dis = numpy.zeros(10)
+        file_scr_ext = ['', '', '', '', '', '', '', '', '', '']
+        cx_slit = numpy.zeros(10)
+        cz_slit = numpy.zeros(10)
+
+        i_screen[0] = 1
+        i_slit[0] = 1
+
+        rx_slit[0] = auto_slit_width_xaxis
+        rz_slit[0] = auto_slit_height_zaxis
+        cx_slit[0] = auto_slit_center_xaxis
+        cz_slit[0] = auto_slit_center_zaxis
+
+        self._oe.set_screens(n_screen,
+                             i_screen,
+                             i_abs,
+                             sl_dis,
+                             i_slit,
+                             i_stop,
+                             k_slit,
+                             thick,
+                             numpy.array(file_abs),
+                             rx_slit,
+                             rz_slit,
+                             cx_slit,
+                             cz_slit,
+                             numpy.array(file_scr_ext))
 
 class ShadowCompoundOpticalElement:
     def __init__(self, oe=None):
