@@ -1,8 +1,10 @@
 import copy
 import numpy
-from matplotlib import pyplot as plt
 
-from PyQt5.QtWidgets import QMessageBox
+try:
+    from PyQt5.QtWidgets import QMessageBox
+except:
+    pass
 
 from oasys.widgets import congruence
 
@@ -224,7 +226,10 @@ def hy_run(input_parameters=HybridInputParameters()):
             hy_create_shadow_beam(input_parameters, calculation_parameters)
 
     except HybridNotNecessaryWarning as warning:
-         QMessageBox.warning(input_parameters.widget, "Error", str(warning), QMessageBox.Ok)
+        try:
+            QMessageBox.warning(input_parameters.widget, "Error", str(warning), QMessageBox.Ok)
+        except:
+            print(str(warning))
 
     except Exception as exception:
         raise exception
@@ -420,17 +425,24 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
                         if calculation_parameters.beam_not_cut_in_x:
                             input_parameters.ghy_diff_plane = 2
 
-                            QMessageBox.warning(input_parameters.widget,
-                                                "Warning",
-                                                "O.E. does not cut the beam in the Sagittal plane:\nCalculation is done in Tangential plane only",
-                                                QMessageBox.Ok)
+                            try:
+                                QMessageBox.warning(input_parameters.widget,
+                                                    "Warning",
+                                                    "O.E. does not cut the beam in the Sagittal plane:\nCalculation is done in Tangential plane only",
+                                                    QMessageBox.Ok)
+                            except:
+                                print("O.E. does not cut the beam in the Sagittal plane:\nCalculation is done in Tangential plane only")
+
                         elif calculation_parameters.beam_not_cut_in_z:
                             input_parameters.ghy_diff_plane = 1
 
-                            QMessageBox.warning(input_parameters.widget,
-                                                "Warning",
-                                                "O.E. does not cut the beam in the Tangential plane:\nCalculation is done in Sagittal plane only",
-                                                QMessageBox.Ok)
+                            try:
+                                QMessageBox.warning(input_parameters.widget,
+                                                    "Warning",
+                                                    "O.E. does not cut the beam in the Tangential plane:\nCalculation is done in Sagittal plane only",
+                                                    QMessageBox.Ok)
+                            except:
+                                print("O.E. does not cut the beam in the Tangential plane:\nCalculation is done in Sagittal plane only")
 
 ##########################################################################
 
@@ -1810,13 +1822,3 @@ def get_crl_phase_shift(thickness_error_profile, input_parameters, calculation_p
 
     return -2*numpy.pi*calculation_parameters.crl_delta*thickness_error/calculation_parameters.gwavelength
 
-
-def showConfirmMessage(title, message):
-    msgBox = QMessageBox()
-    msgBox.setFixedWidth(500)
-    msgBox.setIcon(QMessageBox.Question)
-    msgBox.setText(title)
-    msgBox.setInformativeText(message)
-    msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-    msgBox.setDefaultButton(QMessageBox.No)
-    return msgBox.exec_()
