@@ -9,14 +9,22 @@ import numpy
 import xraylib
 import h5py
 
-from PyQt5.QtCore import QSettings
-from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel
-from PyQt5.QtGui import QFont, QPalette, QColor
+try:
+    from PyQt5.QtCore import QSettings
+    from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel
+    from PyQt5.QtGui import QFont, QPalette, QColor
+except:
+    pass
+
 from matplotlib.patches import FancyArrowPatch, ArrowStyle
 from scipy import optimize
 from numpy import asarray
 
-from oasys.widgets import gui
+try:
+    from oasys.widgets import gui
+except:
+    pass
+
 from oasys.widgets import congruence
 from oasys.util.oasys_util import get_sigma, get_fwhm, get_average
 
@@ -237,630 +245,735 @@ class ShadowPlotData(ShadowStatisticData):
         self.fwhm_h = fwhm_h
         self.fwhm_v = fwhm_v
 
-class ShadowPlot:
+try:
+    class ShadowPlot:
 
-    _is_conversione_active = True
+        _is_conversione_active = True
 
-    #########################################################################################
-    #
-    # FOR TEMPORARY USE: FIX AN ERROR IN PYMCA.PLOT.IMAGEWIEW
-    #
-    #########################################################################################
-
-
-    @classmethod
-    def set_conversion_active(cls, is_active=True):
-        ShadowPlot._is_conversione_active = is_active
-
-    """Sample code to add 2D dataset saving as text to ImageView."""
+        #########################################################################################
+        #
+        # FOR TEMPORARY USE: FIX AN ERROR IN PYMCA.PLOT.IMAGEWIEW
+        #
+        #########################################################################################
 
 
-    #########################################################################################
-    #
-    # WIDGET FOR DETAILED PLOT
-    #
-    #########################################################################################
+        @classmethod
+        def set_conversion_active(cls, is_active=True):
+            ShadowPlot._is_conversione_active = is_active
 
-    class InfoBoxWidget(QWidget):
-        intensity_field = ""
-        flux_field = ""
-        total_rays_field = ""
-        total_good_rays_field = ""
-        total_lost_rays_field = ""
-        fwhm_h_field = ""
-        fwhm_v_field = ""
-        sigma_h_field = ""
-        sigma_v_field = ""
-        centroid_h_field = ""
-        centroid_v_field = ""
+        """Sample code to add 2D dataset saving as text to ImageView."""
 
-        def __init__(self, x_scale_factor = 1.0, y_scale_factor = 1.0, is_2d=True):
-            super(ShadowPlot.InfoBoxWidget, self).__init__()
 
-            info_box_inner=gui.widgetBox(self, "Info")
-            info_box_inner.setFixedHeight(518*y_scale_factor)
-            info_box_inner.setFixedWidth(230*x_scale_factor)
+        #########################################################################################
+        #
+        # WIDGET FOR DETAILED PLOT
+        #
+        #########################################################################################
 
-            self.flux_box = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
-            self.flux     = gui.lineEdit(self.flux_box, self, "flux_field", "\u03a6 [ph/s/0.1%BW]", tooltip="Flux", labelWidth=115, valueType=str, orientation="horizontal")
-            self.flux_box.setVisible(False)
+        class InfoBoxWidget(QWidget):
+            intensity_field = ""
+            flux_field = ""
+            total_rays_field = ""
+            total_good_rays_field = ""
+            total_lost_rays_field = ""
+            fwhm_h_field = ""
+            fwhm_v_field = ""
+            sigma_h_field = ""
+            sigma_v_field = ""
+            centroid_h_field = ""
+            centroid_v_field = ""
 
-            self.intensity = gui.lineEdit(info_box_inner, self, "intensity_field", "Intensity", tooltip="Intensity", labelWidth=115, valueType=str, orientation="horizontal")
-            self.total_rays = gui.lineEdit(info_box_inner, self, "total_rays_field", "Total Rays", tooltip="Total Rays", labelWidth=115, valueType=str, orientation="horizontal")
-            self.total_good_rays = gui.lineEdit(info_box_inner, self, "total_good_rays_field", "Total Good Rays", tooltip="Total Good Rays", labelWidth=115, valueType=str, orientation="horizontal")
-            self.total_lost_rays = gui.lineEdit(info_box_inner, self, "total_lost_rays_field", "Total Lost Rays", tooltip="Total Lost Rays", labelWidth=115, valueType=str, orientation="horizontal")
+            def __init__(self, x_scale_factor = 1.0, y_scale_factor = 1.0, is_2d=True):
+                super(ShadowPlot.InfoBoxWidget, self).__init__()
 
-            label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+                info_box_inner=gui.widgetBox(self, "Info")
+                info_box_inner.setFixedHeight(518*y_scale_factor)
+                info_box_inner.setFixedWidth(230*x_scale_factor)
 
-            self.label_h = QLabel("FWHM ")
-            self.label_h.setFixedWidth(115)
-            palette =  QPalette(self.label_h.palette())
-            palette.setColor(QPalette.Foreground, QColor('blue'))
-            self.label_h.setPalette(palette)
-            label_box_1.layout().addWidget(self.label_h)
-            self.fwhm_h = gui.lineEdit(label_box_1, self, "fwhm_h_field", "", tooltip="FWHM", labelWidth=115, valueType=str, orientation="horizontal")
+                self.flux_box = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+                self.flux     = gui.lineEdit(self.flux_box, self, "flux_field", "\u03a6 [ph/s/0.1%BW]", tooltip="Flux", labelWidth=115, valueType=str, orientation="horizontal")
+                self.flux_box.setVisible(False)
 
-            if is_2d:
-                label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+                self.intensity = gui.lineEdit(info_box_inner, self, "intensity_field", "Intensity", tooltip="Intensity", labelWidth=115, valueType=str, orientation="horizontal")
+                self.total_rays = gui.lineEdit(info_box_inner, self, "total_rays_field", "Total Rays", tooltip="Total Rays", labelWidth=115, valueType=str, orientation="horizontal")
+                self.total_good_rays = gui.lineEdit(info_box_inner, self, "total_good_rays_field", "Total Good Rays", tooltip="Total Good Rays", labelWidth=115, valueType=str, orientation="horizontal")
+                self.total_lost_rays = gui.lineEdit(info_box_inner, self, "total_lost_rays_field", "Total Lost Rays", tooltip="Total Lost Rays", labelWidth=115, valueType=str, orientation="horizontal")
 
-                self.label_v = QLabel("FWHM ")
-                self.label_v.setFixedWidth(115)
-                palette =  QPalette(self.label_v.palette())
-                palette.setColor(QPalette.Foreground, QColor('red'))
-                self.label_v.setPalette(palette)
-                label_box_2.layout().addWidget(self.label_v)
-                self.fwhm_v = gui.lineEdit(label_box_2, self, "fwhm_v_field", "", tooltip="FWHM", labelWidth=115, valueType=str, orientation="horizontal")
+                label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
 
-            label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+                self.label_h = QLabel("FWHM ")
+                self.label_h.setFixedWidth(115)
+                palette =  QPalette(self.label_h.palette())
+                palette.setColor(QPalette.Foreground, QColor('blue'))
+                self.label_h.setPalette(palette)
+                label_box_1.layout().addWidget(self.label_h)
+                self.fwhm_h = gui.lineEdit(label_box_1, self, "fwhm_h_field", "", tooltip="FWHM", labelWidth=115, valueType=str, orientation="horizontal")
 
-            self.label_s_h = QLabel("\u03c3 (s.d.)")
-            self.label_s_h.setFixedWidth(115)
-            palette =  QPalette(self.label_s_h.palette())
-            palette.setColor(QPalette.Foreground, QColor('blue'))
-            self.label_s_h.setPalette(palette)
-            label_box_1.layout().addWidget(self.label_s_h)
-            self.sigma_h = gui.lineEdit(label_box_1, self, "sigma_h_field", "", tooltip="Sigma", labelWidth=115, valueType=str, orientation="horizontal")
+                if is_2d:
+                    label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
 
-            if is_2d:
-                label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+                    self.label_v = QLabel("FWHM ")
+                    self.label_v.setFixedWidth(115)
+                    palette =  QPalette(self.label_v.palette())
+                    palette.setColor(QPalette.Foreground, QColor('red'))
+                    self.label_v.setPalette(palette)
+                    label_box_2.layout().addWidget(self.label_v)
+                    self.fwhm_v = gui.lineEdit(label_box_2, self, "fwhm_v_field", "", tooltip="FWHM", labelWidth=115, valueType=str, orientation="horizontal")
 
-                self.label_s_v = QLabel("\u03c3 (s.d.)")
-                self.label_s_v.setFixedWidth(115)
-                palette =  QPalette(self.label_s_v.palette())
-                palette.setColor(QPalette.Foreground, QColor('red'))
-                self.label_s_v.setPalette(palette)
-                label_box_2.layout().addWidget(self.label_s_v)
-                self.sigma_v = gui.lineEdit(label_box_2, self, "sigma_v_field", "", tooltip="Sigma", labelWidth=115, valueType=str, orientation="horizontal")
+                label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
 
-            label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+                self.label_s_h = QLabel("\u03c3 (s.d.)")
+                self.label_s_h.setFixedWidth(115)
+                palette =  QPalette(self.label_s_h.palette())
+                palette.setColor(QPalette.Foreground, QColor('blue'))
+                self.label_s_h.setPalette(palette)
+                label_box_1.layout().addWidget(self.label_s_h)
+                self.sigma_h = gui.lineEdit(label_box_1, self, "sigma_h_field", "", tooltip="Sigma", labelWidth=115, valueType=str, orientation="horizontal")
 
-            self.label_c_h = QLabel("centroid ")
-            self.label_c_h.setFixedWidth(115)
-            palette =  QPalette(self.label_c_h.palette())
-            palette.setColor(QPalette.Foreground, QColor('blue'))
-            self.label_c_h.setPalette(palette)
-            label_box_1.layout().addWidget(self.label_c_h)
-            self.centroid_h = gui.lineEdit(label_box_1, self, "centroid_h_field", "", tooltip="Centroid", labelWidth=115, valueType=str, orientation="horizontal")
+                if is_2d:
+                    label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
 
-            if is_2d:
-                label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
+                    self.label_s_v = QLabel("\u03c3 (s.d.)")
+                    self.label_s_v.setFixedWidth(115)
+                    palette =  QPalette(self.label_s_v.palette())
+                    palette.setColor(QPalette.Foreground, QColor('red'))
+                    self.label_s_v.setPalette(palette)
+                    label_box_2.layout().addWidget(self.label_s_v)
+                    self.sigma_v = gui.lineEdit(label_box_2, self, "sigma_v_field", "", tooltip="Sigma", labelWidth=115, valueType=str, orientation="horizontal")
 
-                self.label_c_v = QLabel("centroid ")
-                self.label_c_v.setFixedWidth(115)
-                palette =  QPalette(self.label_c_v.palette())
-                palette.setColor(QPalette.Foreground, QColor('red'))
-                self.label_c_v.setPalette(palette)
-                label_box_2.layout().addWidget(self.label_c_v)
-                self.centroid_v = gui.lineEdit(label_box_2, self, "centroid_v_field", "", tooltip="Sigma", labelWidth=115, valueType=str, orientation="horizontal")
+                label_box_1 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
 
-            self.intensity.setReadOnly(True)
-            font = QFont(self.intensity.font())
-            font.setBold(True)
-            self.intensity.setFont(font)
-            palette = QPalette(self.intensity.palette())
-            palette.setColor(QPalette.Text, QColor('dark blue'))
-            palette.setColor(QPalette.Base, QColor(243, 240, 160))
-            self.intensity.setPalette(palette)
+                self.label_c_h = QLabel("centroid ")
+                self.label_c_h.setFixedWidth(115)
+                palette =  QPalette(self.label_c_h.palette())
+                palette.setColor(QPalette.Foreground, QColor('blue'))
+                self.label_c_h.setPalette(palette)
+                label_box_1.layout().addWidget(self.label_c_h)
+                self.centroid_h = gui.lineEdit(label_box_1, self, "centroid_h_field", "", tooltip="Centroid", labelWidth=115, valueType=str, orientation="horizontal")
 
-            self.flux.setReadOnly(True)
-            font = QFont(self.flux.font())
-            font.setBold(True)
-            self.flux.setFont(font)
-            palette = QPalette(self.flux.palette())
-            palette.setColor(QPalette.Text, QColor('dark blue'))
-            palette.setColor(QPalette.Base, QColor(243, 240, 160))
-            self.flux.setPalette(palette)
+                if is_2d:
+                    label_box_2 = gui.widgetBox(info_box_inner, "", addSpace=False, orientation="horizontal")
 
-            self.total_rays.setReadOnly(True)
-            font = QFont(self.total_rays.font())
-            font.setBold(True)
-            self.total_rays.setFont(font)
-            palette = QPalette(self.intensity.palette())
-            palette.setColor(QPalette.Text, QColor('dark blue'))
-            palette.setColor(QPalette.Base, QColor(243, 240, 160))
-            self.total_rays.setPalette(palette)
+                    self.label_c_v = QLabel("centroid ")
+                    self.label_c_v.setFixedWidth(115)
+                    palette =  QPalette(self.label_c_v.palette())
+                    palette.setColor(QPalette.Foreground, QColor('red'))
+                    self.label_c_v.setPalette(palette)
+                    label_box_2.layout().addWidget(self.label_c_v)
+                    self.centroid_v = gui.lineEdit(label_box_2, self, "centroid_v_field", "", tooltip="Sigma", labelWidth=115, valueType=str, orientation="horizontal")
 
-            self.total_good_rays.setReadOnly(True)
-            font = QFont(self.total_good_rays.font())
-            font.setBold(True)
-            self.total_good_rays.setFont(font)
-            palette = QPalette(self.total_good_rays.palette())
-            palette.setColor(QPalette.Text, QColor('dark blue'))
-            palette.setColor(QPalette.Base, QColor(243, 240, 160))
-            self.total_good_rays.setPalette(palette)
-
-            self.total_lost_rays.setReadOnly(True)
-            font = QFont(self.total_lost_rays.font())
-            font.setBold(True)
-            self.total_lost_rays.setFont(font)
-            palette = QPalette(self.total_lost_rays.palette())
-            palette.setColor(QPalette.Text, QColor('dark blue'))
-            palette.setColor(QPalette.Base, QColor(243, 240, 160))
-            self.total_lost_rays.setPalette(palette)
-
-            self.fwhm_h.setReadOnly(True)
-            font = QFont(self.fwhm_h.font())
-            font.setBold(True)
-            self.fwhm_h.setFont(font)
-            palette = QPalette(self.fwhm_h.palette())
-            palette.setColor(QPalette.Text, QColor('dark blue'))
-            palette.setColor(QPalette.Base, QColor(243, 240, 160))
-            self.fwhm_h.setPalette(palette)
-
-            self.sigma_h.setReadOnly(True)
-            font = QFont(self.sigma_h.font())
-            font.setBold(True)
-            self.sigma_h.setFont(font)
-            palette = QPalette(self.sigma_h.palette())
-            palette.setColor(QPalette.Text, QColor('dark blue'))
-            palette.setColor(QPalette.Base, QColor(243, 240, 160))
-            self.sigma_h.setPalette(palette)
-
-            self.centroid_h.setReadOnly(True)
-            font = QFont(self.centroid_h.font())
-            font.setBold(True)
-            self.centroid_h.setFont(font)
-            palette = QPalette(self.centroid_h.palette())
-            palette.setColor(QPalette.Text, QColor('dark blue'))
-            palette.setColor(QPalette.Base, QColor(243, 240, 160))
-            self.centroid_h.setPalette(palette)
-
-            if is_2d:
-                self.fwhm_v.setReadOnly(True)
-                font = QFont(self.fwhm_v.font())
+                self.intensity.setReadOnly(True)
+                font = QFont(self.intensity.font())
                 font.setBold(True)
-                self.fwhm_v.setFont(font)
-                palette = QPalette(self.fwhm_v.palette())
+                self.intensity.setFont(font)
+                palette = QPalette(self.intensity.palette())
                 palette.setColor(QPalette.Text, QColor('dark blue'))
                 palette.setColor(QPalette.Base, QColor(243, 240, 160))
-                self.fwhm_v.setPalette(palette)
+                self.intensity.setPalette(palette)
 
-                self.sigma_v.setReadOnly(True)
-                font = QFont(self.sigma_v.font())
+                self.flux.setReadOnly(True)
+                font = QFont(self.flux.font())
                 font.setBold(True)
-                self.sigma_v.setFont(font)
-                palette = QPalette(self.sigma_v.palette())
+                self.flux.setFont(font)
+                palette = QPalette(self.flux.palette())
                 palette.setColor(QPalette.Text, QColor('dark blue'))
                 palette.setColor(QPalette.Base, QColor(243, 240, 160))
-                self.sigma_v.setPalette(palette)
+                self.flux.setPalette(palette)
 
-                self.centroid_v.setReadOnly(True)
-                font = QFont(self.centroid_v.font())
+                self.total_rays.setReadOnly(True)
+                font = QFont(self.total_rays.font())
                 font.setBold(True)
-                self.centroid_v.setFont(font)
-                palette = QPalette(self.centroid_v.palette())
+                self.total_rays.setFont(font)
+                palette = QPalette(self.intensity.palette())
                 palette.setColor(QPalette.Text, QColor('dark blue'))
                 palette.setColor(QPalette.Base, QColor(243, 240, 160))
-                self.centroid_v.setPalette(palette)
+                self.total_rays.setPalette(palette)
+
+                self.total_good_rays.setReadOnly(True)
+                font = QFont(self.total_good_rays.font())
+                font.setBold(True)
+                self.total_good_rays.setFont(font)
+                palette = QPalette(self.total_good_rays.palette())
+                palette.setColor(QPalette.Text, QColor('dark blue'))
+                palette.setColor(QPalette.Base, QColor(243, 240, 160))
+                self.total_good_rays.setPalette(palette)
+
+                self.total_lost_rays.setReadOnly(True)
+                font = QFont(self.total_lost_rays.font())
+                font.setBold(True)
+                self.total_lost_rays.setFont(font)
+                palette = QPalette(self.total_lost_rays.palette())
+                palette.setColor(QPalette.Text, QColor('dark blue'))
+                palette.setColor(QPalette.Base, QColor(243, 240, 160))
+                self.total_lost_rays.setPalette(palette)
+
+                self.fwhm_h.setReadOnly(True)
+                font = QFont(self.fwhm_h.font())
+                font.setBold(True)
+                self.fwhm_h.setFont(font)
+                palette = QPalette(self.fwhm_h.palette())
+                palette.setColor(QPalette.Text, QColor('dark blue'))
+                palette.setColor(QPalette.Base, QColor(243, 240, 160))
+                self.fwhm_h.setPalette(palette)
+
+                self.sigma_h.setReadOnly(True)
+                font = QFont(self.sigma_h.font())
+                font.setBold(True)
+                self.sigma_h.setFont(font)
+                palette = QPalette(self.sigma_h.palette())
+                palette.setColor(QPalette.Text, QColor('dark blue'))
+                palette.setColor(QPalette.Base, QColor(243, 240, 160))
+                self.sigma_h.setPalette(palette)
+
+                self.centroid_h.setReadOnly(True)
+                font = QFont(self.centroid_h.font())
+                font.setBold(True)
+                self.centroid_h.setFont(font)
+                palette = QPalette(self.centroid_h.palette())
+                palette.setColor(QPalette.Text, QColor('dark blue'))
+                palette.setColor(QPalette.Base, QColor(243, 240, 160))
+                self.centroid_h.setPalette(palette)
+
+                if is_2d:
+                    self.fwhm_v.setReadOnly(True)
+                    font = QFont(self.fwhm_v.font())
+                    font.setBold(True)
+                    self.fwhm_v.setFont(font)
+                    palette = QPalette(self.fwhm_v.palette())
+                    palette.setColor(QPalette.Text, QColor('dark blue'))
+                    palette.setColor(QPalette.Base, QColor(243, 240, 160))
+                    self.fwhm_v.setPalette(palette)
+
+                    self.sigma_v.setReadOnly(True)
+                    font = QFont(self.sigma_v.font())
+                    font.setBold(True)
+                    self.sigma_v.setFont(font)
+                    palette = QPalette(self.sigma_v.palette())
+                    palette.setColor(QPalette.Text, QColor('dark blue'))
+                    palette.setColor(QPalette.Base, QColor(243, 240, 160))
+                    self.sigma_v.setPalette(palette)
+
+                    self.centroid_v.setReadOnly(True)
+                    font = QFont(self.centroid_v.font())
+                    font.setBold(True)
+                    self.centroid_v.setFont(font)
+                    palette = QPalette(self.centroid_v.palette())
+                    palette.setColor(QPalette.Text, QColor('dark blue'))
+                    palette.setColor(QPalette.Base, QColor(243, 240, 160))
+                    self.centroid_v.setPalette(palette)
 
 
-        def set_flux(self, flux=None):
-            if flux is None:
+            def set_flux(self, flux=None):
+                if flux is None:
+                    self.flux.setText("0.0")
+                    self.flux_box.setVisible(False)
+                else:
+                    self.flux.setText('%.3E' % flux)
+                    self.flux_box.setVisible(True)
+
+            def clear(self):
+                self.intensity.setText("0.0")
                 self.flux.setText("0.0")
                 self.flux_box.setVisible(False)
+                self.total_rays.setText("0")
+                self.total_good_rays.setText("0")
+                self.total_lost_rays.setText("0")
+                self.fwhm_h.setText("0.0000")
+                if hasattr(self, "fwhm_v"):  self.fwhm_v.setText("0.0000")
+                self.sigma_h.setText("0.0000")
+                if hasattr(self, "sigma_v"):  self.sigma_v.setText("0.0000")
+                self.centroid_h.setText("0.0000")
+                if hasattr(self, "centroid_v"):  self.centroid_v.setText("0.0000")
+                self.boundary_h.setText("")
+                if hasattr(self, "boundary_v"):  self.centroid_v.setText("")
+
+        class DetailedHistoWidget(QWidget):
+
+            def __init__(self, x_scale_factor = 1.0, y_scale_factor = 1.0):
+                super(ShadowPlot.DetailedHistoWidget, self).__init__()
+
+                self.plot_canvas = gui.plotWindow(roi=False, control=False, position=True, logScale=True, fit=True)
+                self.plot_canvas.setDefaultPlotLines(True)
+                self.plot_canvas.setActiveCurveColor(color='blue')
+                self.plot_canvas.setMinimumWidth(590*x_scale_factor)
+                self.plot_canvas.setMaximumWidth(590*x_scale_factor)
+
+                self.info_box = ShadowPlot.InfoBoxWidget(x_scale_factor, y_scale_factor, is_2d=False)
+
+                layout = QGridLayout()
+
+                layout.addWidget(   self.info_box, 0, 1, 1, 1)
+                layout.addWidget(self.plot_canvas, 0, 0, 1, 1)
+
+                layout.setColumnMinimumWidth(0, 600*x_scale_factor)
+                layout.setColumnMinimumWidth(1, 230*x_scale_factor)
+
+                self.setLayout(layout)
+
+            def plot_histo(self, beam, col, nolost, xrange, ref, title, xtitle, ytitle, nbins = 100, xum="", conv=1.0, ticket_to_add=None, flux=None):
+
+                ticket = beam.histo1(col, nbins=nbins, xrange=xrange, nolost=nolost, ref=ref)
+                if ref in [24, 25]: ticket['intensity'] = beam.getshonecol(ref, nolost=nolost).sum()
+
+                # TODO: check congruence between tickets
+                if not ticket_to_add is None:
+                    last_ticket = copy.deepcopy(ticket)
+
+                    ticket['histogram'] += ticket_to_add['histogram']
+                    ticket['histogram_path'] += ticket_to_add['histogram_path']
+
+                    ticket['intensity'] += ticket_to_add['intensity']
+                    ticket['nrays'] += ticket_to_add['nrays']
+                    ticket['good_rays'] += ticket_to_add['good_rays']
+
+                ticket['fwhm'], ticket['fwhm_quote'], ticket['fwhm_coordinates'] = get_fwhm(ticket['histogram'], ticket['bin_center'])
+                ticket['sigma']    = get_sigma(ticket['histogram'], ticket['bin_center'])
+                ticket['centroid'] = get_average(ticket['histogram'], ticket['bin_center'])
+
+                factor=ShadowPlot.get_factor(col, conv)
+
+                if ref != 0 and not ytitle is None:  ytitle = ytitle + ' weighted by ' + ShadowPlot.get_shadow_label(ref)
+
+                histogram = ticket['histogram_path']
+                bins = ticket['bin_path']*factor
+
+                self.plot_canvas.addCurve(bins, histogram, title, symbol='', color='blue', replace=True) #'+', '^', ','
+                if not xtitle is None: self.plot_canvas.setGraphXLabel(xtitle)
+                if not ytitle is None: self.plot_canvas.setGraphYLabel(ytitle)
+                if not title is None: self.plot_canvas.setGraphTitle(title)
+                self.plot_canvas.setInteractiveMode(mode='zoom')
+
+                if ticket['fwhm'] == None: ticket['fwhm'] = 0.0
+                if not ticket_to_add is None:
+                    if last_ticket['fwhm'] == None: last_ticket['fwhm'] = 0.0
+
+                n_patches = len(self.plot_canvas._backend.ax.patches)
+                if (n_patches > 0): self.plot_canvas._backend.ax.patches.remove(self.plot_canvas._backend.ax.patches[n_patches-1])
+
+                if not ticket['fwhm'] == 0.0:
+                    x_fwhm_i, x_fwhm_f = ticket['fwhm_coordinates']
+                    x_fwhm_i, x_fwhm_f = x_fwhm_i*factor, x_fwhm_f*factor
+                    y_fwhm             = ticket['fwhm_quote']
+
+                    self.plot_canvas._backend.ax.add_patch(FancyArrowPatch([x_fwhm_i, y_fwhm],
+                                                              [x_fwhm_f, y_fwhm],
+                                                              arrowstyle=ArrowStyle.CurveAB(head_width=2, head_length=4),
+                                                              color='b',
+                                                              linewidth=1.5))
+                if min(histogram) < 0:
+                    self.plot_canvas.setGraphYLimits(min(histogram), max(histogram))
+                else:
+                    self.plot_canvas.setGraphYLimits(0, max(histogram))
+
+                self.plot_canvas.replot()
+
+                self.info_box.intensity.setText("{:4.3f}".format(ticket['intensity']))
+                self.info_box.set_flux(flux)
+                self.info_box.total_rays.setText(str(ticket['nrays']))
+                self.info_box.total_good_rays.setText(str(ticket['good_rays']))
+                self.info_box.total_lost_rays.setText(str(ticket['nrays']-ticket['good_rays']))
+                self.info_box.fwhm_h.setText("{:5.4f}".format(ticket['fwhm']*factor))
+                self.info_box.label_h.setText("FWHM " + xum)
+                self.info_box.sigma_h.setText("{:5.4f}".format(ticket['sigma']*factor))
+                self.info_box.label_s_h.setText("\u03c3 " + xum)
+                self.info_box.centroid_h.setText("{:5.4f}".format(ticket['centroid']*factor))
+                self.info_box.label_c_h.setText("centroid " + xum)
+
+                if not ticket_to_add is None:
+                    return ticket, last_ticket
+                else:
+                    return ticket, None
+
+            def clear(self):
+                self.plot_canvas.clear()
+                self.info_box.clear()
+
+        class DetailedPlotWidget(QWidget):
+            def __init__(self, x_scale_factor = 1.0, y_scale_factor = 1.0):
+                super(ShadowPlot.DetailedPlotWidget, self).__init__()
+
+                self.x_scale_factor = x_scale_factor
+                self.y_scale_factor = y_scale_factor
+
+                self.plot_canvas = gui.imageWiew(parent=self)
+
+                self.plot_canvas.setColormap({"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256})
+                self.plot_canvas.setMinimumWidth(590 * x_scale_factor)
+                self.plot_canvas.setMaximumWidth(590 * y_scale_factor)
+
+                self.info_box = ShadowPlot.InfoBoxWidget(x_scale_factor, y_scale_factor)
+
+                layout = QGridLayout()
+
+                layout.addWidget(self.info_box,    0, 1, 1, 1)
+                layout.addWidget(self.plot_canvas, 0, 0, 1, 1)
+
+                layout.setColumnMinimumWidth(0, 600*x_scale_factor)
+                layout.setColumnMinimumWidth(1, 230*x_scale_factor)
+
+                self.setLayout(layout)
+
+            def plot_xy(self, beam, var_x, var_y, title, xtitle, ytitle, xrange=None, yrange=None, nolost=1, nbins=100, nbins_h=None, nbins_v=None, xum="", yum="", conv=1.0, ref=23, is_footprint=False, ticket_to_add=None, flux=None):
+
+                matplotlib.rcParams['axes.formatter.useoffset']='False'
+
+                if nbins_h == None: nbins_h = nbins
+                if nbins_v == None: nbins_v = nbins
+
+                ticket = beam.histo2(var_x, var_y, nbins=nbins, nbins_h=nbins_h, nbins_v=nbins_v, xrange=xrange, yrange=yrange, nolost=nolost, ref=ref)
+                if ref in [24, 25]: ticket['intensity'] = beam.getshonecol(ref, nolost=nolost).sum()
+
+                # TODO: check congruence between tickets
+                if not ticket_to_add is None:
+                    last_ticket = copy.deepcopy(ticket)
+
+                    ticket['histogram'] += ticket_to_add['histogram']
+                    ticket['histogram_h'] += ticket_to_add['histogram_h']
+                    ticket['histogram_v'] += ticket_to_add['histogram_v']
+
+                    ticket['intensity'] += ticket_to_add['intensity']
+                    ticket['nrays'] += ticket_to_add['nrays']
+                    ticket['good_rays'] += ticket_to_add['good_rays']
+
+                ticket['fwhm_h'], ticket['fwhm_quote_h'], ticket['fwhm_coordinates_h'] = get_fwhm(ticket['histogram_h'], ticket['bin_h_center'])
+                ticket['fwhm_v'], ticket['fwhm_quote_v'], ticket['fwhm_coordinates_v'] = get_fwhm(ticket['histogram_v'], ticket['bin_v_center'])
+                ticket['sigma_h']    = get_sigma(ticket['histogram_h'], ticket['bin_h_center'])
+                ticket['sigma_v']    = get_sigma(ticket['histogram_v'], ticket['bin_v_center'])
+                ticket['centroid_h'] = get_average(ticket['histogram_h'], ticket['bin_h_center'])
+                ticket['centroid_v'] = get_average(ticket['histogram_v'], ticket['bin_v_center'])
+
+                if is_footprint:
+                    factor1 = 1.0
+                    factor2 = 1.0
+                else:
+                    factor1=ShadowPlot.get_factor(var_x, conv)
+                    factor2=ShadowPlot.get_factor(var_y, conv)
+
+                xx = ticket['bin_h_edges']
+                yy = ticket['bin_v_edges']
+
+                xmin, xmax = xx.min(), xx.max()
+                ymin, ymax = yy.min(), yy.max()
+
+                origin = (xmin*factor1, ymin*factor2)
+                scale = (abs((xmax-xmin)/nbins_h)*factor1, abs((ymax-ymin)/nbins_v)*factor2)
+
+                self.plot_canvas.setColormap({"name":QSettings().value("output/shadow-default-colormap", "temperature", str),
+                                              "normalization":"linear",
+                                              "autoscale":True,
+                                              "vmin":0,
+                                              "vmax":0,
+                                              "colors":256})
+
+                # PyMCA inverts axis!!!! histogram must be calculated reversed
+                self.plot_canvas.setImage(ticket['histogram'].T, origin=origin, scale=scale)
+
+                if xtitle is None: xtitle=ShadowPlot.get_shadow_label(var_x)
+                if ytitle is None: ytitle=ShadowPlot.get_shadow_label(var_y)
+
+                self.plot_canvas.setGraphXLabel(xtitle)
+                self.plot_canvas.setGraphYLabel(ytitle)
+                self.plot_canvas.setGraphTitle(title)
+
+                self.plot_canvas._histoHPlot.setGraphYLabel('A.U.')
+
+                self.plot_canvas._histoHPlot._backend.ax.xaxis.get_label().set_color('white')
+                self.plot_canvas._histoHPlot._backend.ax.xaxis.get_label().set_fontsize(1)
+                for label in self.plot_canvas._histoHPlot._backend.ax.xaxis.get_ticklabels():
+                    label.set_color('white')
+                    label.set_fontsize(1)
+
+                self.plot_canvas._histoVPlot.setGraphXLabel('A.U.')
+
+                self.plot_canvas._histoVPlot._backend.ax.yaxis.get_label().set_color('white')
+                self.plot_canvas._histoVPlot._backend.ax.yaxis.get_label().set_fontsize(1)
+                for label in self.plot_canvas._histoVPlot._backend.ax.yaxis.get_ticklabels():
+                    label.set_color('white')
+                    label.set_fontsize(1)
+
+                if ticket['fwhm_h'] == None: ticket['fwhm_h'] = 0.0
+                if ticket['fwhm_v'] == None: ticket['fwhm_v'] = 0.0
+                if not ticket_to_add is None:
+                    if last_ticket['fwhm_h'] == None: last_ticket['fwhm_h'] = 0.0
+                    if last_ticket['fwhm_v'] == None: last_ticket['fwhm_v'] = 0.0
+
+                n_patches = len(self.plot_canvas._histoHPlot._backend.ax.patches)
+                if (n_patches > 0): self.plot_canvas._histoHPlot._backend.ax.patches.remove(self.plot_canvas._histoHPlot._backend.ax.patches[n_patches-1])
+
+                if not ticket['fwhm_h'] == 0.0:
+                    x_fwhm_i, x_fwhm_f = ticket['fwhm_coordinates_h']
+                    x_fwhm_i, x_fwhm_f = x_fwhm_i*factor1, x_fwhm_f*factor1
+                    y_fwhm = ticket['fwhm_quote_h']
+
+                    self.plot_canvas._histoHPlot._backend.ax.add_patch(FancyArrowPatch([x_fwhm_i, y_fwhm],
+                                                                         [x_fwhm_f, y_fwhm],
+                                                                         arrowstyle=ArrowStyle.CurveAB(head_width=2, head_length=4),
+                                                                         color='b',
+                                                                         linewidth=1.5))
+
+                n_patches = len(self.plot_canvas._histoVPlot._backend.ax.patches)
+                if (n_patches > 0): self.plot_canvas._histoVPlot._backend.ax.patches.remove(self.plot_canvas._histoVPlot._backend.ax.patches[n_patches-1])
+
+                if not ticket['fwhm_v'] == 0.0:
+                    y_fwhm_i, y_fwhm_f = ticket['fwhm_coordinates_v']
+                    y_fwhm_i, y_fwhm_f = y_fwhm_i*factor2, y_fwhm_f*factor2
+                    x_fwhm = ticket['fwhm_quote_v']
+
+                    self.plot_canvas._histoVPlot._backend.ax.add_patch(FancyArrowPatch([x_fwhm, y_fwhm_i],
+                                                                         [x_fwhm, y_fwhm_f],
+                                                                         arrowstyle=ArrowStyle.CurveAB(head_width=2, head_length=4),
+                                                                         color='r',
+                                                                         linewidth=1.5))
+
+                self.plot_canvas._histoHPlot.replot()
+                self.plot_canvas._histoVPlot.replot()
+                self.plot_canvas.replot()
+
+                self.info_box.intensity.setText("{:4.3f}".format(ticket['intensity']))
+                self.info_box.set_flux(flux)
+                self.info_box.total_rays.setText(str(ticket['nrays']))
+                self.info_box.total_good_rays.setText(str(ticket['good_rays']))
+                self.info_box.total_lost_rays.setText(str(ticket['nrays']-ticket['good_rays']))
+                self.info_box.fwhm_h.setText("{:5.4f}".format(ticket['fwhm_h'] * factor1))
+                self.info_box.fwhm_v.setText("{:5.4f}".format(ticket['fwhm_v'] * factor2))
+                self.info_box.label_h.setText("FWHM " + xum)
+                self.info_box.label_v.setText("FWHM " + yum)
+                self.info_box.sigma_h.setText("{:5.4f}".format(ticket['sigma_h'] * factor1))
+                self.info_box.sigma_v.setText("{:5.4f}".format(ticket['sigma_v'] * factor2))
+                self.info_box.label_s_h.setText("\u03c3 " + xum)
+                self.info_box.label_s_v.setText("\u03c3 " + yum)
+                self.info_box.centroid_h.setText("{:5.4f}".format(ticket['centroid_h'] * factor1))
+                self.info_box.centroid_v.setText("{:5.4f}".format(ticket['centroid_v'] * factor2))
+                self.info_box.label_c_h.setText("centroid " + xum)
+                self.info_box.label_c_v.setText("centroid " + yum)
+
+                if not ticket_to_add is None:
+                    return ticket, last_ticket
+                else:
+                    return ticket, None
+
+            def clear(self):
+                self.plot_canvas.clear()
+
+                self.plot_canvas._histoHPlot.clear()
+                self.plot_canvas._histoVPlot.clear()
+
+                self.plot_canvas._histoHPlot._backend.ax.xaxis.get_label().set_color('white')
+                self.plot_canvas._histoHPlot._backend.ax.xaxis.get_label().set_fontsize(1)
+                for label in self.plot_canvas._histoHPlot._backend.ax.xaxis.get_ticklabels():
+                    label.set_color('white')
+                    label.set_fontsize(1)
+
+                self.plot_canvas._histoVPlot._backend.ax.yaxis.get_label().set_color('white')
+                self.plot_canvas._histoVPlot._backend.ax.yaxis.get_label().set_fontsize(1)
+                for label in self.plot_canvas._histoVPlot._backend.ax.yaxis.get_ticklabels():
+                    label.set_color('white')
+                    label.set_fontsize(1)
+
+                self.plot_canvas._histoHPlot.setGraphYLabel('A.U.')
+                self.plot_canvas._histoVPlot.setGraphXLabel('A.U.')
+
+                self.plot_canvas._histoHPlot.replot()
+                self.plot_canvas._histoVPlot.replot()
+
+                self.info_box.clear()
+
+        #########################################################################################
+
+        @classmethod
+        def plotxy_preview(cls, plot_window, beam, var_x, var_y, nolost=0, title='PLOTXY', xtitle=None, ytitle=None, conv=1.0, is_footprint=False):
+
+            matplotlib.rcParams['axes.formatter.useoffset']='False'
+
+            col1 = beam.getshonecol(var_x, nolost=nolost)
+            col2 = beam.getshonecol(var_y, nolost=nolost)
+
+            if is_footprint:
+                factor1 = 1.0
+                factor2 = 1.0
             else:
-                self.flux.setText('%.3E' % flux)
-                self.flux_box.setVisible(True)
+                factor1 = ShadowPlot.get_factor(var_x, conv)
+                factor2 = ShadowPlot.get_factor(var_y, conv)
 
-        def clear(self):
-            self.intensity.setText("0.0")
-            self.flux.setText("0.0")
-            self.flux_box.setVisible(False)
-            self.total_rays.setText("0")
-            self.total_good_rays.setText("0")
-            self.total_lost_rays.setText("0")
-            self.fwhm_h.setText("0.0000")
-            if hasattr(self, "fwhm_v"):  self.fwhm_v.setText("0.0000")
-            self.sigma_h.setText("0.0000")
-            if hasattr(self, "sigma_v"):  self.sigma_v.setText("0.0000")
-            self.centroid_h.setText("0.0000")
-            if hasattr(self, "centroid_v"):  self.centroid_v.setText("0.0000")
-            self.boundary_h.setText("")
-            if hasattr(self, "boundary_v"):  self.centroid_v.setText("")
+            if xtitle is None: xtitle=ShadowPlot.get_shadow_label(var_x)
+            if ytitle is None: ytitle=ShadowPlot.get_shadow_label(var_y)
 
-    class DetailedHistoWidget(QWidget):
+            plot_window.addCurve(col1*factor1, col2*factor2, title, symbol='.', color='blue', replace=True) #'+', '^', ','
 
-        def __init__(self, x_scale_factor = 1.0, y_scale_factor = 1.0):
-            super(ShadowPlot.DetailedHistoWidget, self).__init__()
+            if not xtitle is None: plot_window.setGraphXLabel(xtitle)
+            if not ytitle is None: plot_window.setGraphYLabel(ytitle)
+            if not title is None: plot_window.setGraphTitle(title)
+            plot_window.setInteractiveMode(mode='zoom')
 
-            self.plot_canvas = gui.plotWindow(roi=False, control=False, position=True, logScale=True, fit=True)
-            self.plot_canvas.setDefaultPlotLines(True)
-            self.plot_canvas.setActiveCurveColor(color='blue')
-            self.plot_canvas.setMinimumWidth(590*x_scale_factor)
-            self.plot_canvas.setMaximumWidth(590*x_scale_factor)
+        @classmethod
+        def plot_histo_preview(cls, plot_window, beam, col, nolost, ref, title, xtitle, ytitle, conv=1.0):
 
-            self.info_box = ShadowPlot.InfoBoxWidget(x_scale_factor, y_scale_factor, is_2d=False)
-
-            layout = QGridLayout()
-
-            layout.addWidget(   self.info_box, 0, 1, 1, 1)
-            layout.addWidget(self.plot_canvas, 0, 0, 1, 1)
-
-            layout.setColumnMinimumWidth(0, 600*x_scale_factor)
-            layout.setColumnMinimumWidth(1, 230*x_scale_factor)
-
-            self.setLayout(layout)
-
-        def plot_histo(self, beam, col, nolost, xrange, ref, title, xtitle, ytitle, nbins = 100, xum="", conv=1.0, ticket_to_add=None, flux=None):
-
-            ticket = beam.histo1(col, nbins=nbins, xrange=xrange, nolost=nolost, ref=ref)
-            if ref in [24, 25]: ticket['intensity'] = beam.getshonecol(ref, nolost=nolost).sum()
-
-            # TODO: check congruence between tickets
-            if not ticket_to_add is None:
-                last_ticket = copy.deepcopy(ticket)
-
-                ticket['histogram'] += ticket_to_add['histogram']
-                ticket['histogram_path'] += ticket_to_add['histogram_path']
-
-                ticket['intensity'] += ticket_to_add['intensity']
-                ticket['nrays'] += ticket_to_add['nrays']
-                ticket['good_rays'] += ticket_to_add['good_rays']
-
-            ticket['fwhm'], ticket['fwhm_quote'], ticket['fwhm_coordinates'] = get_fwhm(ticket['histogram'], ticket['bin_center'])
-            ticket['sigma']    = get_sigma(ticket['histogram'], ticket['bin_center'])
-            ticket['centroid'] = get_average(ticket['histogram'], ticket['bin_center'])
+            matplotlib.rcParams['axes.formatter.useoffset']='False'
 
             factor=ShadowPlot.get_factor(col, conv)
+
+            ticket = beam.histo1(col, nbins=100, xrange=None, nolost=nolost, ref=ref)
 
             if ref != 0 and not ytitle is None:  ytitle = ytitle + ' weighted by ' + ShadowPlot.get_shadow_label(ref)
 
             histogram = ticket['histogram_path']
             bins = ticket['bin_path']*factor
 
-            self.plot_canvas.addCurve(bins, histogram, title, symbol='', color='blue', replace=True) #'+', '^', ','
-            if not xtitle is None: self.plot_canvas.setGraphXLabel(xtitle)
-            if not ytitle is None: self.plot_canvas.setGraphYLabel(ytitle)
-            if not title is None: self.plot_canvas.setGraphTitle(title)
-            self.plot_canvas.setInteractiveMode(mode='zoom')
-
-            if ticket['fwhm'] == None: ticket['fwhm'] = 0.0
-            if not ticket_to_add is None:
-                if last_ticket['fwhm'] == None: last_ticket['fwhm'] = 0.0
-
-            n_patches = len(self.plot_canvas._backend.ax.patches)
-            if (n_patches > 0): self.plot_canvas._backend.ax.patches.remove(self.plot_canvas._backend.ax.patches[n_patches-1])
-
-            if not ticket['fwhm'] == 0.0:
-                x_fwhm_i, x_fwhm_f = ticket['fwhm_coordinates']
-                x_fwhm_i, x_fwhm_f = x_fwhm_i*factor, x_fwhm_f*factor
-                y_fwhm             = ticket['fwhm_quote']
-
-                self.plot_canvas._backend.ax.add_patch(FancyArrowPatch([x_fwhm_i, y_fwhm],
-                                                          [x_fwhm_f, y_fwhm],
-                                                          arrowstyle=ArrowStyle.CurveAB(head_width=2, head_length=4),
-                                                          color='b',
-                                                          linewidth=1.5))
+            plot_window.addCurve(bins, histogram, title, symbol='', color='blue', replace=True) #'+', '^', ','
+            if not xtitle is None: plot_window.setGraphXLabel(xtitle)
+            if not ytitle is None: plot_window.setGraphYLabel(ytitle)
+            if not title is None: plot_window.setGraphTitle(title)
+            plot_window.setInteractiveMode(mode='zoom')
             if min(histogram) < 0:
-                self.plot_canvas.setGraphYLimits(min(histogram), max(histogram))
+                plot_window.setGraphYLimits(min(histogram), max(histogram))
             else:
-                self.plot_canvas.setGraphYLimits(0, max(histogram))
+                plot_window.setGraphYLimits(0, max(histogram))
+            plot_window.replot()
+
+        @classmethod
+        def get_factor(cls, var, conv):
+            factor = 1.0
+
+            if ShadowPlot._is_conversione_active:
+                if var == 1 or var == 2 or var == 3:
+                    factor = 1e4*conv # cm to micron
+                elif var == 4 or var == 5 or var == 6:
+                    factor = 1e6 # rad to urad
+
+            return factor
+
+        @classmethod
+        def get_shadow_label(cls, var):
+            return (stp.getLabel(var-1))[0]
+
+
+        #########################################################################################
+        #
+        # SAVE/LOAD FILES in HDF5 Format
+        #
+        #########################################################################################
+
+
+        class PlotXYHdf5File(h5py.File):
+            def __init__(self, file_name, mode="w"):
+                try:
+                    super(ShadowPlot.PlotXYHdf5File, self).__init__(name=file_name, mode=mode)
+                except OSError as e:
+                    if "already open" in str(e) and mode=="w":
+                        super(ShadowPlot.PlotXYHdf5File, self).__init__(name=file_name, mode="a")
+                        self.close()
+                        super(ShadowPlot.PlotXYHdf5File, self).__init__(name=file_name, mode="w")
+
+                if mode != "r":
+                    self.coordinates = self.create_group("coordinates")
+                    self.plots = self.create_group("xy_plots")
+                    self.additional_data = self.create_group("additional_data")
+                    self.last_plot = self.plots.create_group("last_plot")
+
+                    self.has_last_plot = False
+                    self.has_coordinate = False
+
+                    self.attrs["default"]          = "coordinates/X"
+                    self.attrs["file_name"]        = file_name
+                    self.attrs["file_time"]        = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+                    self.attrs["creator"]          = "PlotXYHdf5File.__init__"
+                    self.attrs["code"]             = "ShadowOui"
+                    self.attrs["HDF5_Version"]     = h5py.version.hdf5_version
+                    self.attrs["h5py_version"]     = h5py.version.version
+
+            def get_last_plot(self, dataset_name="intensity"):
+                return self.get_plot_xy(dataset_name=dataset_name)
+
+            def get_coordinates(self):
+                bin_h_center = self["coordinates/X"].value
+                h_label = self["coordinates"].attrs["x_label"]
+                bin_v_center = self["coordinates/Y"].value
+                v_label = self["coordinates"].attrs["y_label"]
+
+                return bin_h_center, bin_v_center, h_label, v_label
+
+            def get_plot_xy(self, plot_name="last_plot", dataset_name="intensity"):
+                histogram = self["/xy_plots/" + plot_name + "/" + dataset_name].value
+                histogram_h = self["/xy_plots/" + plot_name + "/histogram_h"].value
+                histogram_v = self["/xy_plots/" + plot_name + "/histogram_v"].value
+
+                return histogram, histogram_h, histogram_v, self["/xy_plots/" + plot_name].attrs
+
+            def write_coordinates(self, ticket):
+                if not self.has_coordinate:
+                    self.x = self.coordinates.create_dataset("X", data=ticket["bin_h_center"])
+                    self.y = self.coordinates.create_dataset("Y", data=ticket["bin_v_center"])
+                    self.has_coordinate = True
+                else:
+                    self.x[...] = ticket["bin_h_center"]
+                    self.y[...] = ticket["bin_v_center"]
+
+                try:
+                    self.coordinates.attrs["x_label"] = ShadowPlot.get_shadow_label(ticket["col_h"])
+                    self.coordinates.attrs["y_label"] = ShadowPlot.get_shadow_label(ticket["col_v"])
+                except:
+                    self.coordinates.attrs["x_label"] = ticket["h_label"]
+                    self.coordinates.attrs["y_label"] = ticket["v_label"]
+
+
+            def add_plot_xy(self, ticket, plot_name="last_plot", dataset_name="intensity", attributes={}):
+                    if plot_name is None or plot_name.strip() == "" or plot_name.strip() == "last_plot":
+                        if not self.has_last_plot:
+                            self.lp_histogram   = self.last_plot.create_dataset(dataset_name, data=ticket['histogram'])
+                            self.lp_histogram_h = self.last_plot.create_dataset("histogram_h", data=ticket['histogram_h'])
+                            self.lp_histogram_v = self.last_plot.create_dataset("histogram_v", data=ticket['histogram_v'])
+                            self.has_last_plot = True
+                        else:
+                            if self.lp_histogram.name != "/xy_plots/last_plot/" + dataset_name:
+                                self.last_plot.move(self.lp_histogram.name, "/xy_plots/last_plot/" + dataset_name)
+
+                            self.lp_histogram[...]   = ticket['histogram']
+                            self.lp_histogram_h[...] = ticket['histogram_h']
+                            self.lp_histogram_v[...] = ticket['histogram_v']
+
+                        self.last_plot.attrs["intensity"] = ticket["intensity"]
+                        self.last_plot.attrs["total_rays"] = ticket["nrays"]
+                        self.last_plot.attrs["good_rays"] = ticket["good_rays"]
+                        self.last_plot.attrs["lost_rays"] = ticket["nrays"]-ticket["good_rays"]
+
+                        if not attributes is None:
+                            for key in attributes.keys():
+                                self.last_plot.attrs[key] = attributes[key]
+
+                    else:
+                        plot = self.plots.create_group(plot_name)
+
+                        plot.create_dataset(dataset_name, data=ticket['histogram'])
+                        plot.create_dataset("histogram_h", data=ticket['histogram_h'])
+                        plot.create_dataset("histogram_v", data=ticket['histogram_v'])
+                        plot.attrs["intensity"] = ticket["intensity"]
+                        plot.attrs["total_rays"] = ticket["nrays"]
+                        plot.attrs["good_rays"] = ticket["good_rays"]
+                        plot.attrs["lost_rays"] = ticket["nrays"]-ticket["good_rays"]
+
+                        if not attributes is None:
+                            for key in attributes.keys():
+                                plot.attrs[key] = attributes[key]
+
+            def add_attribute(self, attribute_name, attribute_value, dataset_name=None):
+                if not dataset_name is None:
+                    self[dataset_name].attrs[attribute_name] = attribute_value
+                else:
+                    self.attrs[attribute_name] = attribute_value
+
+            def get_attribute(self,  attribute_name, dataset_name=None):
+                if not dataset_name is None:
+                    return self[dataset_name].attrs[attribute_name]
+                else:
+                    return self.attrs[attribute_name]
+
+        class HistogramHdf5File(h5py.File):
+            def __init__(self, file_name, mode="w"):
+                super(ShadowPlot.HistogramHdf5File, self).__init__(name=file_name, mode=mode)
 
-            self.plot_canvas.replot()
-
-            self.info_box.intensity.setText("{:4.3f}".format(ticket['intensity']))
-            self.info_box.set_flux(flux)
-            self.info_box.total_rays.setText(str(ticket['nrays']))
-            self.info_box.total_good_rays.setText(str(ticket['good_rays']))
-            self.info_box.total_lost_rays.setText(str(ticket['nrays']-ticket['good_rays']))
-            self.info_box.fwhm_h.setText("{:5.4f}".format(ticket['fwhm']*factor))
-            self.info_box.label_h.setText("FWHM " + xum)
-            self.info_box.sigma_h.setText("{:5.4f}".format(ticket['sigma']*factor))
-            self.info_box.label_s_h.setText("\u03c3 " + xum)
-            self.info_box.centroid_h.setText("{:5.4f}".format(ticket['centroid']*factor))
-            self.info_box.label_c_h.setText("centroid " + xum)
-
-            if not ticket_to_add is None:
-                return ticket, last_ticket
-            else:
-                return ticket, None
-
-        def clear(self):
-            self.plot_canvas.clear()
-            self.info_box.clear()
-
-    class DetailedPlotWidget(QWidget):
-        def __init__(self, x_scale_factor = 1.0, y_scale_factor = 1.0):
-            super(ShadowPlot.DetailedPlotWidget, self).__init__()
-
-            self.x_scale_factor = x_scale_factor
-            self.y_scale_factor = y_scale_factor
-
-            self.plot_canvas = gui.imageWiew(parent=self)
-
-            self.plot_canvas.setColormap({"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256})
-            self.plot_canvas.setMinimumWidth(590 * x_scale_factor)
-            self.plot_canvas.setMaximumWidth(590 * y_scale_factor)
-
-            self.info_box = ShadowPlot.InfoBoxWidget(x_scale_factor, y_scale_factor)
-
-            layout = QGridLayout()
-
-            layout.addWidget(self.info_box,    0, 1, 1, 1)
-            layout.addWidget(self.plot_canvas, 0, 0, 1, 1)
-
-            layout.setColumnMinimumWidth(0, 600*x_scale_factor)
-            layout.setColumnMinimumWidth(1, 230*x_scale_factor)
-
-            self.setLayout(layout)
-
-        def plot_xy(self, beam, var_x, var_y, title, xtitle, ytitle, xrange=None, yrange=None, nolost=1, nbins=100, nbins_h=None, nbins_v=None, xum="", yum="", conv=1.0, ref=23, is_footprint=False, ticket_to_add=None, flux=None):
-
-            matplotlib.rcParams['axes.formatter.useoffset']='False'
-
-            if nbins_h == None: nbins_h = nbins
-            if nbins_v == None: nbins_v = nbins
-
-            ticket = beam.histo2(var_x, var_y, nbins=nbins, nbins_h=nbins_h, nbins_v=nbins_v, xrange=xrange, yrange=yrange, nolost=nolost, ref=ref)
-            if ref in [24, 25]: ticket['intensity'] = beam.getshonecol(ref, nolost=nolost).sum()
-
-            # TODO: check congruence between tickets
-            if not ticket_to_add is None:
-                last_ticket = copy.deepcopy(ticket)
-
-                ticket['histogram'] += ticket_to_add['histogram']
-                ticket['histogram_h'] += ticket_to_add['histogram_h']
-                ticket['histogram_v'] += ticket_to_add['histogram_v']
-
-                ticket['intensity'] += ticket_to_add['intensity']
-                ticket['nrays'] += ticket_to_add['nrays']
-                ticket['good_rays'] += ticket_to_add['good_rays']
-
-            ticket['fwhm_h'], ticket['fwhm_quote_h'], ticket['fwhm_coordinates_h'] = get_fwhm(ticket['histogram_h'], ticket['bin_h_center'])
-            ticket['fwhm_v'], ticket['fwhm_quote_v'], ticket['fwhm_coordinates_v'] = get_fwhm(ticket['histogram_v'], ticket['bin_v_center'])
-            ticket['sigma_h']    = get_sigma(ticket['histogram_h'], ticket['bin_h_center'])
-            ticket['sigma_v']    = get_sigma(ticket['histogram_v'], ticket['bin_v_center'])
-            ticket['centroid_h'] = get_average(ticket['histogram_h'], ticket['bin_h_center'])
-            ticket['centroid_v'] = get_average(ticket['histogram_v'], ticket['bin_v_center'])
-
-            if is_footprint:
-                factor1 = 1.0
-                factor2 = 1.0
-            else:
-                factor1=ShadowPlot.get_factor(var_x, conv)
-                factor2=ShadowPlot.get_factor(var_y, conv)
-
-            xx = ticket['bin_h_edges']
-            yy = ticket['bin_v_edges']
-
-            xmin, xmax = xx.min(), xx.max()
-            ymin, ymax = yy.min(), yy.max()
-
-            origin = (xmin*factor1, ymin*factor2)
-            scale = (abs((xmax-xmin)/nbins_h)*factor1, abs((ymax-ymin)/nbins_v)*factor2)
-
-            self.plot_canvas.setColormap({"name":QSettings().value("output/shadow-default-colormap", "temperature", str),
-                                          "normalization":"linear",
-                                          "autoscale":True,
-                                          "vmin":0,
-                                          "vmax":0,
-                                          "colors":256})
-
-            # PyMCA inverts axis!!!! histogram must be calculated reversed
-            self.plot_canvas.setImage(ticket['histogram'].T, origin=origin, scale=scale)
-
-            if xtitle is None: xtitle=ShadowPlot.get_shadow_label(var_x)
-            if ytitle is None: ytitle=ShadowPlot.get_shadow_label(var_y)
-
-            self.plot_canvas.setGraphXLabel(xtitle)
-            self.plot_canvas.setGraphYLabel(ytitle)
-            self.plot_canvas.setGraphTitle(title)
-
-            self.plot_canvas._histoHPlot.setGraphYLabel('A.U.')
-
-            self.plot_canvas._histoHPlot._backend.ax.xaxis.get_label().set_color('white')
-            self.plot_canvas._histoHPlot._backend.ax.xaxis.get_label().set_fontsize(1)
-            for label in self.plot_canvas._histoHPlot._backend.ax.xaxis.get_ticklabels():
-                label.set_color('white')
-                label.set_fontsize(1)
-
-            self.plot_canvas._histoVPlot.setGraphXLabel('A.U.')
-
-            self.plot_canvas._histoVPlot._backend.ax.yaxis.get_label().set_color('white')
-            self.plot_canvas._histoVPlot._backend.ax.yaxis.get_label().set_fontsize(1)
-            for label in self.plot_canvas._histoVPlot._backend.ax.yaxis.get_ticklabels():
-                label.set_color('white')
-                label.set_fontsize(1)
-
-            if ticket['fwhm_h'] == None: ticket['fwhm_h'] = 0.0
-            if ticket['fwhm_v'] == None: ticket['fwhm_v'] = 0.0
-            if not ticket_to_add is None:
-                if last_ticket['fwhm_h'] == None: last_ticket['fwhm_h'] = 0.0
-                if last_ticket['fwhm_v'] == None: last_ticket['fwhm_v'] = 0.0
-
-            n_patches = len(self.plot_canvas._histoHPlot._backend.ax.patches)
-            if (n_patches > 0): self.plot_canvas._histoHPlot._backend.ax.patches.remove(self.plot_canvas._histoHPlot._backend.ax.patches[n_patches-1])
-
-            if not ticket['fwhm_h'] == 0.0:
-                x_fwhm_i, x_fwhm_f = ticket['fwhm_coordinates_h']
-                x_fwhm_i, x_fwhm_f = x_fwhm_i*factor1, x_fwhm_f*factor1
-                y_fwhm = ticket['fwhm_quote_h']
-
-                self.plot_canvas._histoHPlot._backend.ax.add_patch(FancyArrowPatch([x_fwhm_i, y_fwhm],
-                                                                     [x_fwhm_f, y_fwhm],
-                                                                     arrowstyle=ArrowStyle.CurveAB(head_width=2, head_length=4),
-                                                                     color='b',
-                                                                     linewidth=1.5))
-
-            n_patches = len(self.plot_canvas._histoVPlot._backend.ax.patches)
-            if (n_patches > 0): self.plot_canvas._histoVPlot._backend.ax.patches.remove(self.plot_canvas._histoVPlot._backend.ax.patches[n_patches-1])
-
-            if not ticket['fwhm_v'] == 0.0:
-                y_fwhm_i, y_fwhm_f = ticket['fwhm_coordinates_v']
-                y_fwhm_i, y_fwhm_f = y_fwhm_i*factor2, y_fwhm_f*factor2
-                x_fwhm = ticket['fwhm_quote_v']
-
-                self.plot_canvas._histoVPlot._backend.ax.add_patch(FancyArrowPatch([x_fwhm, y_fwhm_i],
-                                                                     [x_fwhm, y_fwhm_f],
-                                                                     arrowstyle=ArrowStyle.CurveAB(head_width=2, head_length=4),
-                                                                     color='r',
-                                                                     linewidth=1.5))
-
-            self.plot_canvas._histoHPlot.replot()
-            self.plot_canvas._histoVPlot.replot()
-            self.plot_canvas.replot()
-
-            self.info_box.intensity.setText("{:4.3f}".format(ticket['intensity']))
-            self.info_box.set_flux(flux)
-            self.info_box.total_rays.setText(str(ticket['nrays']))
-            self.info_box.total_good_rays.setText(str(ticket['good_rays']))
-            self.info_box.total_lost_rays.setText(str(ticket['nrays']-ticket['good_rays']))
-            self.info_box.fwhm_h.setText("{:5.4f}".format(ticket['fwhm_h'] * factor1))
-            self.info_box.fwhm_v.setText("{:5.4f}".format(ticket['fwhm_v'] * factor2))
-            self.info_box.label_h.setText("FWHM " + xum)
-            self.info_box.label_v.setText("FWHM " + yum)
-            self.info_box.sigma_h.setText("{:5.4f}".format(ticket['sigma_h'] * factor1))
-            self.info_box.sigma_v.setText("{:5.4f}".format(ticket['sigma_v'] * factor2))
-            self.info_box.label_s_h.setText("\u03c3 " + xum)
-            self.info_box.label_s_v.setText("\u03c3 " + yum)
-            self.info_box.centroid_h.setText("{:5.4f}".format(ticket['centroid_h'] * factor1))
-            self.info_box.centroid_v.setText("{:5.4f}".format(ticket['centroid_v'] * factor2))
-            self.info_box.label_c_h.setText("centroid " + xum)
-            self.info_box.label_c_v.setText("centroid " + yum)
-
-            if not ticket_to_add is None:
-                return ticket, last_ticket
-            else:
-                return ticket, None
-
-        def clear(self):
-            self.plot_canvas.clear()
-
-            self.plot_canvas._histoHPlot.clear()
-            self.plot_canvas._histoVPlot.clear()
-
-            self.plot_canvas._histoHPlot._backend.ax.xaxis.get_label().set_color('white')
-            self.plot_canvas._histoHPlot._backend.ax.xaxis.get_label().set_fontsize(1)
-            for label in self.plot_canvas._histoHPlot._backend.ax.xaxis.get_ticklabels():
-                label.set_color('white')
-                label.set_fontsize(1)
-
-            self.plot_canvas._histoVPlot._backend.ax.yaxis.get_label().set_color('white')
-            self.plot_canvas._histoVPlot._backend.ax.yaxis.get_label().set_fontsize(1)
-            for label in self.plot_canvas._histoVPlot._backend.ax.yaxis.get_ticklabels():
-                label.set_color('white')
-                label.set_fontsize(1)
-
-            self.plot_canvas._histoHPlot.setGraphYLabel('A.U.')
-            self.plot_canvas._histoVPlot.setGraphXLabel('A.U.')
-
-            self.plot_canvas._histoHPlot.replot()
-            self.plot_canvas._histoVPlot.replot()
-
-            self.info_box.clear()
-
-    #########################################################################################
-
-    @classmethod
-    def plotxy_preview(cls, plot_window, beam, var_x, var_y, nolost=0, title='PLOTXY', xtitle=None, ytitle=None, conv=1.0, is_footprint=False):
-
-        matplotlib.rcParams['axes.formatter.useoffset']='False'
-
-        col1 = beam.getshonecol(var_x, nolost=nolost)
-        col2 = beam.getshonecol(var_y, nolost=nolost)
-
-        if is_footprint:
-            factor1 = 1.0
-            factor2 = 1.0
-        else:
-            factor1 = ShadowPlot.get_factor(var_x, conv)
-            factor2 = ShadowPlot.get_factor(var_y, conv)
-
-        if xtitle is None: xtitle=ShadowPlot.get_shadow_label(var_x)
-        if ytitle is None: ytitle=ShadowPlot.get_shadow_label(var_y)
-
-        plot_window.addCurve(col1*factor1, col2*factor2, title, symbol='.', color='blue', replace=True) #'+', '^', ','
-
-        if not xtitle is None: plot_window.setGraphXLabel(xtitle)
-        if not ytitle is None: plot_window.setGraphYLabel(ytitle)
-        if not title is None: plot_window.setGraphTitle(title)
-        plot_window.setInteractiveMode(mode='zoom')
-
-    @classmethod
-    def plot_histo_preview(cls, plot_window, beam, col, nolost, ref, title, xtitle, ytitle, conv=1.0):
-
-        matplotlib.rcParams['axes.formatter.useoffset']='False'
-
-        factor=ShadowPlot.get_factor(col, conv)
-
-        ticket = beam.histo1(col, nbins=100, xrange=None, nolost=nolost, ref=ref)
-
-        if ref != 0 and not ytitle is None:  ytitle = ytitle + ' weighted by ' + ShadowPlot.get_shadow_label(ref)
-
-        histogram = ticket['histogram_path']
-        bins = ticket['bin_path']*factor
-
-        plot_window.addCurve(bins, histogram, title, symbol='', color='blue', replace=True) #'+', '^', ','
-        if not xtitle is None: plot_window.setGraphXLabel(xtitle)
-        if not ytitle is None: plot_window.setGraphYLabel(ytitle)
-        if not title is None: plot_window.setGraphTitle(title)
-        plot_window.setInteractiveMode(mode='zoom')
-        if min(histogram) < 0:
-            plot_window.setGraphYLimits(min(histogram), max(histogram))
-        else:
-            plot_window.setGraphYLimits(0, max(histogram))
-        plot_window.replot()
-
-    @classmethod
-    def get_factor(cls, var, conv):
-        factor = 1.0
-
-        if ShadowPlot._is_conversione_active:
-            if var == 1 or var == 2 or var == 3:
-                factor = 1e4*conv # cm to micron
-            elif var == 4 or var == 5 or var == 6:
-                factor = 1e6 # rad to urad
-
-        return factor
-
-    @classmethod
-    def get_shadow_label(cls, var):
-        return (stp.getLabel(var-1))[0]
-
-
-    #########################################################################################
-    #
-    # SAVE/LOAD FILES in HDF5 Format
-    #
-    #########################################################################################
-
-    
-    class PlotXYHdf5File(h5py.File):
-        def __init__(self, file_name, mode="w"):
-            try:
-                super(ShadowPlot.PlotXYHdf5File, self).__init__(name=file_name, mode=mode)
-            except OSError as e:
-                if "already open" in str(e) and mode=="w":
-                    super(ShadowPlot.PlotXYHdf5File, self).__init__(name=file_name, mode="a")
-                    self.close()
-                    super(ShadowPlot.PlotXYHdf5File, self).__init__(name=file_name, mode="w")
-
-            if mode != "r":
                 self.coordinates = self.create_group("coordinates")
-                self.plots = self.create_group("xy_plots")
-                self.additional_data = self.create_group("additional_data")
+                self.plots = self.create_group("histogram_plots")
                 self.last_plot = self.plots.create_group("last_plot")
-
                 self.has_last_plot = False
                 self.has_coordinate = False
 
@@ -872,150 +985,48 @@ class ShadowPlot:
                 self.attrs["HDF5_Version"]     = h5py.version.hdf5_version
                 self.attrs["h5py_version"]     = h5py.version.version
 
-        def get_last_plot(self, dataset_name="intensity"):
-            return self.get_plot_xy(dataset_name=dataset_name)
-
-        def get_coordinates(self):
-            bin_h_center = self["coordinates/X"].value
-            h_label = self["coordinates"].attrs["x_label"]
-            bin_v_center = self["coordinates/Y"].value
-            v_label = self["coordinates"].attrs["y_label"]
-
-            return bin_h_center, bin_v_center, h_label, v_label
-
-        def get_plot_xy(self, plot_name="last_plot", dataset_name="intensity"):
-            histogram = self["/xy_plots/" + plot_name + "/" + dataset_name].value
-            histogram_h = self["/xy_plots/" + plot_name + "/histogram_h"].value
-            histogram_v = self["/xy_plots/" + plot_name + "/histogram_v"].value
-
-            return histogram, histogram_h, histogram_v, self["/xy_plots/" + plot_name].attrs
-
-        def write_coordinates(self, ticket):
-            if not self.has_coordinate:
-                self.x = self.coordinates.create_dataset("X", data=ticket["bin_h_center"])
-                self.y = self.coordinates.create_dataset("Y", data=ticket["bin_v_center"])
-                self.has_coordinate = True
-            else:
-                self.x[...] = ticket["bin_h_center"]
-                self.y[...] = ticket["bin_v_center"]
-
-            try:
-                self.coordinates.attrs["x_label"] = ShadowPlot.get_shadow_label(ticket["col_h"])
-                self.coordinates.attrs["y_label"] = ShadowPlot.get_shadow_label(ticket["col_v"])
-            except:
-                self.coordinates.attrs["x_label"] = ticket["h_label"]
-                self.coordinates.attrs["y_label"] = ticket["v_label"]
-
-
-        def add_plot_xy(self, ticket, plot_name="last_plot", dataset_name="intensity", attributes={}):
-                if plot_name is None or plot_name.strip() == "" or plot_name.strip() == "last_plot":
-                    if not self.has_last_plot:
-                        self.lp_histogram   = self.last_plot.create_dataset(dataset_name, data=ticket['histogram'])
-                        self.lp_histogram_h = self.last_plot.create_dataset("histogram_h", data=ticket['histogram_h'])
-                        self.lp_histogram_v = self.last_plot.create_dataset("histogram_v", data=ticket['histogram_v'])
-                        self.has_last_plot = True
-                    else:
-                        if self.lp_histogram.name != "/xy_plots/last_plot/" + dataset_name:
-                            self.last_plot.move(self.lp_histogram.name, "/xy_plots/last_plot/" + dataset_name)
-
-                        self.lp_histogram[...]   = ticket['histogram']
-                        self.lp_histogram_h[...] = ticket['histogram_h']
-                        self.lp_histogram_v[...] = ticket['histogram_v']
-
-                    self.last_plot.attrs["intensity"] = ticket["intensity"]
-                    self.last_plot.attrs["total_rays"] = ticket["nrays"]
-                    self.last_plot.attrs["good_rays"] = ticket["good_rays"]
-                    self.last_plot.attrs["lost_rays"] = ticket["nrays"]-ticket["good_rays"]
-
-                    if not attributes is None:
-                        for key in attributes.keys():
-                            self.last_plot.attrs[key] = attributes[key]
-
+            def write_coordinates(self, ticket):
+                if not self.has_coordinate:
+                    self.x = self.coordinates.create_dataset("X", data=ticket["bin_center"])
+                    self.has_coordinate = True
                 else:
-                    plot = self.plots.create_group(plot_name)
+                    self.x[...] = ticket["bin_center"]
 
-                    plot.create_dataset(dataset_name, data=ticket['histogram'])
-                    plot.create_dataset("histogram_h", data=ticket['histogram_h'])
-                    plot.create_dataset("histogram_v", data=ticket['histogram_v'])
-                    plot.attrs["intensity"] = ticket["intensity"]
-                    plot.attrs["total_rays"] = ticket["nrays"]
-                    plot.attrs["good_rays"] = ticket["good_rays"]
-                    plot.attrs["lost_rays"] = ticket["nrays"]-ticket["good_rays"]
+                self.coordinates.attrs["x_label"] = ShadowPlot.get_shadow_label(ticket["col"])
 
-                    if not attributes is None:
-                        for key in attributes.keys():
-                            plot.attrs[key] = attributes[key]
+            def add_histogram(self, ticket, plot_name="last_plot", dataset_name="intensity", attributes={}):
+                    if plot_name is None or plot_name.strip() == "" or plot_name.strip() == "last_plot":
+                        if not self.has_last_plot:
+                            self.lp_histogram  = self.last_plot.create_dataset(dataset_name, data=ticket['histogram'])
+                            self.has_last_plot = True
+                        else:
+                            if self.lp_histogram.name != "/histogram_plots/last_plot/" + dataset_name:
+                                self.last_plot.move(self.lp_histogram.name, "/histogram_plots/last_plot/" + dataset_name)
 
-        def add_attribute(self, attribute_name, attribute_value, dataset_name=None):
-            if not dataset_name is None:
-                self[dataset_name].attrs[attribute_name] = attribute_value
-            else:
-                self.attrs[attribute_name] = attribute_value
+                            self.lp_histogram[...] = ticket['histogram']
 
-        def get_attribute(self,  attribute_name, dataset_name=None):
-            if not dataset_name is None:
-                return self[dataset_name].attrs[attribute_name]
-            else:
-                return self.attrs[attribute_name]
+                        self.last_plot.attrs["intensity"] = ticket["intensity"]
+                        self.last_plot.attrs["total_rays"] = ticket["nrays"]
+                        self.last_plot.attrs["good_rays"] = ticket["good_rays"]
+                        self.last_plot.attrs["lost_rays"] = ticket["nrays"]-ticket["good_rays"]
 
-    class HistogramHdf5File(h5py.File):
-        def __init__(self, file_name, mode="w"):
-            super(ShadowPlot.HistogramHdf5File, self).__init__(name=file_name, mode=mode)
-
-            self.coordinates = self.create_group("coordinates")
-            self.plots = self.create_group("histogram_plots")
-            self.last_plot = self.plots.create_group("last_plot")
-            self.has_last_plot = False
-            self.has_coordinate = False
-
-            self.attrs["default"]          = "coordinates/X"
-            self.attrs["file_name"]        = file_name
-            self.attrs["file_time"]        = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
-            self.attrs["creator"]          = "PlotXYHdf5File.__init__"
-            self.attrs["code"]             = "ShadowOui"
-            self.attrs["HDF5_Version"]     = h5py.version.hdf5_version
-            self.attrs["h5py_version"]     = h5py.version.version
-
-        def write_coordinates(self, ticket):
-            if not self.has_coordinate:
-                self.x = self.coordinates.create_dataset("X", data=ticket["bin_center"])
-                self.has_coordinate = True
-            else:
-                self.x[...] = ticket["bin_center"]
-
-            self.coordinates.attrs["x_label"] = ShadowPlot.get_shadow_label(ticket["col"])
-
-        def add_histogram(self, ticket, plot_name="last_plot", dataset_name="intensity", attributes={}):
-                if plot_name is None or plot_name.strip() == "" or plot_name.strip() == "last_plot":
-                    if not self.has_last_plot:
-                        self.lp_histogram  = self.last_plot.create_dataset(dataset_name, data=ticket['histogram'])
-                        self.has_last_plot = True
+                        if not attributes is None:
+                            for key in attributes.keys():
+                                self.last_plot.attrs[key] = attributes[key]
                     else:
-                        if self.lp_histogram.name != "/histogram_plots/last_plot/" + dataset_name:
-                            self.last_plot.move(self.lp_histogram.name, "/histogram_plots/last_plot/" + dataset_name)
+                        plot = self.plots.create_group(plot_name)
 
-                        self.lp_histogram[...] = ticket['histogram']
+                        plot.create_dataset(dataset_name, data=ticket['histogram'])
+                        plot.attrs["intensity"]  = ticket["intensity"]
+                        plot.attrs["total_rays"] = ticket["nrays"]
+                        plot.attrs["good_rays"]  = ticket["good_rays"]
+                        plot.attrs["lost_rays"]  = ticket["nrays"]-ticket["good_rays"]
 
-                    self.last_plot.attrs["intensity"] = ticket["intensity"]
-                    self.last_plot.attrs["total_rays"] = ticket["nrays"]
-                    self.last_plot.attrs["good_rays"] = ticket["good_rays"]
-                    self.last_plot.attrs["lost_rays"] = ticket["nrays"]-ticket["good_rays"]
-
-                    if not attributes is None:
-                        for key in attributes.keys():
-                            self.last_plot.attrs[key] = attributes[key]
-                else:
-                    plot = self.plots.create_group(plot_name)
-
-                    plot.create_dataset(dataset_name, data=ticket['histogram'])
-                    plot.attrs["intensity"]  = ticket["intensity"]
-                    plot.attrs["total_rays"] = ticket["nrays"]
-                    plot.attrs["good_rays"]  = ticket["good_rays"]
-                    plot.attrs["lost_rays"]  = ticket["nrays"]-ticket["good_rays"]
-
-                    if not attributes is None:
-                        for key in attributes.keys():
-                            plot.attrs[key] = attributes[key]
+                        if not attributes is None:
+                            for key in attributes.keys():
+                                plot.attrs[key] = attributes[key]
+except:
+    pass
 
 class ShadowPreProcessor:
 
@@ -1098,7 +1109,6 @@ class ShadowPreProcessor:
                     z_values[x_index, z_index] = z_value
 
         return x_coords, y_coords, z_values
-
 
 class ShadowMath:
 
@@ -1620,49 +1630,51 @@ class Properties(object):
             if hasattr(self._props,name):
                 return getattr(self._props, name)
 
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
 try:
+    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.figure import Figure
     from mpl_toolkits.mplot3d import Axes3D  # necessario per caricare i plot 3D
 except:
     pass
 
-from PyQt5.QtWidgets import QApplication, QVBoxLayout
-from PyQt5.QtCore import QCoreApplication
+try:
+    from PyQt5.QtWidgets import QApplication, QVBoxLayout
+    from PyQt5.QtCore import QCoreApplication
 
-class MathTextLabel(QWidget):
-    def __init__(self, mathText, size=None, parent=None, **kwargs):
-        QWidget.__init__(self, parent, **kwargs)
+    class MathTextLabel(QWidget):
+        def __init__(self, mathText, size=None, parent=None, **kwargs):
+            QWidget.__init__(self, parent, **kwargs)
 
-        l=QVBoxLayout(self)
-        l.setContentsMargins(0,0,0,0)
+            l=QVBoxLayout(self)
+            l.setContentsMargins(0,0,0,0)
 
-        r,g,b,a=self.palette().base().color().getRgbF()
+            r,g,b,a=self.palette().base().color().getRgbF()
 
-        self._figure=Figure(edgecolor=(r,g,b), facecolor=(r,g,b))
-        self._canvas=FigureCanvas(self._figure)
-        l.addWidget(self._canvas)
+            self._figure=Figure(edgecolor=(r,g,b), facecolor=(r,g,b))
+            self._canvas=FigureCanvas(self._figure)
+            l.addWidget(self._canvas)
 
-        self._figure.clear()
+            self._figure.clear()
 
-        if not size:
-            size = QCoreApplication.instance().font().pointSize()
+            if not size:
+                size = QCoreApplication.instance().font().pointSize()
 
-        text=self._figure.suptitle(
-            mathText,
-            x=0.0,
-            y=1.0,
-            horizontalalignment='left',
-            verticalalignment='top',
-            size=size)
-        self._canvas.draw()
+            text=self._figure.suptitle(
+                mathText,
+                x=0.0,
+                y=1.0,
+                horizontalalignment='left',
+                verticalalignment='top',
+                size=size)
+            self._canvas.draw()
 
-        (x0,y0),(x1,y1)=text.get_window_extent().get_points()
-        w=x1-x0; h=y1-y0
+            (x0,y0),(x1,y1)=text.get_window_extent().get_points()
+            w=x1-x0; h=y1-y0
 
-        self._figure.set_size_inches(w/80, h/80)
-        self.setFixedSize(w,h)
-
+            self._figure.set_size_inches(w/80, h/80)
+            self.setFixedSize(w,h)
+except:
+    pass
 
 
 if __name__ == "__main__":
