@@ -10,6 +10,7 @@ import requests
 from io import BytesIO
 
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
+from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
@@ -29,6 +30,8 @@ class ImageToBeamConverter(widget.OWWidget):
     category = "Utility"
     keywords = ["data", "file", "load", "read"]
 
+    inputs = [("Beam", ShadowBeam, "setBeam")]
+
     outputs = [{"name":"Beam",
                 "type":ShadowBeam,
                 "doc":"Shadow Beam",
@@ -47,6 +50,8 @@ class ImageToBeamConverter(widget.OWWidget):
     number_of_z_bins = Setting(5)
 
     image_nparray = None
+
+    input_beam = None
 
     def __init__(self):
         self.setFixedWidth(700)
@@ -83,7 +88,7 @@ class ImageToBeamConverter(widget.OWWidget):
         ################################# beam parameters
         beam_parameters_box = oasysgui.widgetBox(left_box_1, "", addSpace=True, orientation="horizontal")
         oasysgui.lineEdit(beam_parameters_box, self, "pixel_size", "Pixel Size [um]", labelWidth=200, valueType=float, orientation="horizontal")
-        oasysgui.lineEdit(beam_parameters_box, self, "number_of_rays", "Number of sampled rays", labelWidth=200, valueType=int, orientation="horizontal")
+        self.wid_number_of_rays =  oasysgui.lineEdit(beam_parameters_box, self, "number_of_rays", "Number of sampled rays", labelWidth=200, valueType=int, orientation="horizontal")
 
         gui.separator(self.controlArea)
 
@@ -95,6 +100,17 @@ class ImageToBeamConverter(widget.OWWidget):
         if self.image_file_name != "":
             self.loadFileToNumpyArray()
 
+
+    def setBeam(self, input_beam):
+        if ShadowCongruence.checkEmptyBeam(input_beam):
+            self.input_beam = input_beam
+            self.number_of_rays = input_beam._beam.nrays()
+            self.wid_number_of_rays.setEnabled(False)
+        else:
+            self.input_beam = None
+            self.wid_number_of_rays.setEnabled(True)
+
+        self.convertToBeam()
 
     def selectFile(self):
         self.image_file_name = oasysgui.selectFileFromDialog(self, self.image_file_name, "Open Image",
@@ -199,9 +215,12 @@ class ImageToBeamConverter(widget.OWWidget):
 
         number_of_rays = x0s.size
 
-        if number_of_rays == 0: return None
+        if self.input_beam is None:
+            if number_of_rays == 0: return None
+            beam_out = ShadowBeam(number_of_rays=number_of_rays)
+        else:
+            beam_out = self.input_beam.duplicate()
 
-        beam_out = ShadowBeam(number_of_rays=number_of_rays)
 
         x = x0s - self.image_nparray.shape[0] / 2
         z = x1s - self.image_nparray.shape[1] / 2
@@ -209,28 +228,28 @@ class ImageToBeamConverter(widget.OWWidget):
         x *= self.pixel_size*1e-6 / self.workspace_units_to_m
         z *= self.pixel_size*1e-6 / self.workspace_units_to_m
 
-        for index in range(0, number_of_rays):
-
+        for index in range(0, beam_out._beam.nrays()):
             ray = beam_out._beam.rays[index]
 
             ray[0]  = x[index]                         # X
-            ray[1]  = 0.0                              # Y
             ray[2]  = z[index]                         # Z
-            ray[3]  = 0                                # director cos x
-            ray[4]  = 1                                # director cos y
-            ray[5]  = 0                                # director cos z
-            ray[6]  = 1.0/numpy.sqrt(2)                # Es_x
-            ray[7]  = 0.0                              # Es_y
-            ray[8]  = 0.0                              # Es_z
-            ray[9]  = 1                                # good/lost
-            ray[10] = 2*numpy.pi/1e-8                  # wavenumber
-            ray[11] = index                            # ray index
-            ray[12] = 1                                # good only
-            ray[13] = 0.0                              # Es_phi
-            ray[14] = 0.0                              # Ep_phi
-            ray[15] = 0.0                              # Ep_x
-            ray[16] = 0.0                              # Ep_y
-            ray[17] = 1.0/numpy.sqrt(2)                # Ep_z
+            if self.input_beam is None:
+                ray[1]  = 0.0                              # Y
+                ray[3]  = 0                                # director cos x
+                ray[4]  = 1                                # director cos y
+                ray[5]  = 0                                # director cos z
+                ray[6]  = 1.0/numpy.sqrt(2)                # Es_x
+                ray[7]  = 0.0                              # Es_y
+                ray[8]  = 0.0                              # Es_z
+                ray[9]  = 1                                # good/lost
+                ray[10] = 2*numpy.pi/1e-8                  # wavenumber
+                ray[11] = index                            # ray index
+                ray[12] = 1                                # good only
+                ray[13] = 0.0                              # Es_phi
+                ray[14] = 0.0                              # Ep_phi
+                ray[15] = 0.0                              # Ep_x
+                ray[16] = 0.0                              # Ep_y
+                ray[17] = 1.0/numpy.sqrt(2)                # Ep_z
 
         return beam_out
 
