@@ -2085,8 +2085,11 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 b = self.c5*Y + self.c6*X + self.c9
                 a = self.c3
 
-                z_values = (-b + sign*numpy.sqrt(b**2 - 4*a*c))/(2*a)
-                z_values[b**2 - 4*a*c < 0] = numpy.nan
+                if a != 0.0:
+                    z_values = (-b + sign*numpy.sqrt(b**2 - 4*a*c))/(2*a)
+                    z_values[b**2 - 4*a*c < 0] = numpy.nan
+                else:
+                    z_values = -c/b
 
             self.zz = z_values
 
