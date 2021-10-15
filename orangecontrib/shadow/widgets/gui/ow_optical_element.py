@@ -2106,11 +2106,13 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 if not file_path is None and not file_path.strip() == "":
                     self.check_values()
 
-                    self.calculate_surface(self.parent(), self.bin_x, self.bin_y)
+                    self.calculate_surface(self.parent(), int(self.bin_x), int(self.bin_y))
 
                     ST.write_shadow_surface(self.zz, numpy.round(self.xx, 6), numpy.round(self.yy, 6), file_path)
             except Exception as exception:
                 QtWidgets.QMessageBox.critical(self, "Error", str(exception), QtWidgets.QMessageBox.Ok)
+
+                if self.parent().IS_DEVELOP: raise exception
 
 
         def save_oasys_surface(self):
@@ -2120,13 +2122,15 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 if not file_path is None and not file_path.strip() == "":
                     self.check_values()
 
-                    self.calculate_surface(self.parent(), self.bin_x, self.bin_y)
+                    self.calculate_surface(self.parent(), int(self.bin_x), int(self.bin_y))
 
                     conv = self.parent().workspace_units_to_m
 
                     OU.write_surface_file(self.zz*conv, numpy.round(self.xx*conv, 8), numpy.round(self.yy*conv, 8), file_path)
             except Exception as exception:
                 QtWidgets.QMessageBox.critical(self, "Error", str(exception), QtWidgets.QMessageBox.Ok)
+
+                if self.parent().IS_DEVELOP: raise exception
 
     def viewSurfaceShape(self):
         try:
@@ -2136,7 +2140,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             QtWidgets.QMessageBox.critical(self, "Error",
                                        str(exception), QtWidgets.QMessageBox.Ok)
 
-            if self.IS_DEVELOP: raise exception
+            if self.parent().IS_DEVELOP: raise exception
 
     def selectFileFacetDescr(self):
         self.le_ms_file_facet_descr.setText(oasysgui.selectFileFromDialog(self, self.ms_file_facet_descr, "Select File with Facet Description"))
