@@ -73,10 +73,10 @@ class Hdf5TreeViewWidget(qt.QWidget):
             file = data.h5py_object.file
 
             try:
-                self.x_scale = file["coordinates/X"].value
+                self.x_scale = file["coordinates/X"][()]
                 self.x_label = file["coordinates"].attrs["x_label"]
                 try:
-                    self.y_scale = file["coordinates/Y"].value
+                    self.y_scale = file["coordinates/Y"][()]
                     self.y_label = file["coordinates"].attrs["y_label"]
                 except:
                     self.y_scale = None

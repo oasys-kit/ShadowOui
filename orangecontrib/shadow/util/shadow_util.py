@@ -885,17 +885,17 @@ try:
                 return self.get_plot_xy(dataset_name=dataset_name)
 
             def get_coordinates(self):
-                bin_h_center = self["coordinates/X"].value
+                bin_h_center = self["coordinates/X"][()]
                 h_label = self["coordinates"].attrs["x_label"]
-                bin_v_center = self["coordinates/Y"].value
+                bin_v_center = self["coordinates/Y"][()]
                 v_label = self["coordinates"].attrs["y_label"]
 
                 return bin_h_center, bin_v_center, h_label, v_label
 
             def get_plot_xy(self, plot_name="last_plot", dataset_name="intensity"):
-                histogram = self["/xy_plots/" + plot_name + "/" + dataset_name].value
-                histogram_h = self["/xy_plots/" + plot_name + "/histogram_h"].value
-                histogram_v = self["/xy_plots/" + plot_name + "/histogram_v"].value
+                histogram = self["/xy_plots/" + plot_name + "/" + dataset_name][()]
+                histogram_h = self["/xy_plots/" + plot_name + "/histogram_h"][()]
+                histogram_v = self["/xy_plots/" + plot_name + "/histogram_v"][()]
 
                 return histogram, histogram_h, histogram_v, self["/xy_plots/" + plot_name].attrs
 
