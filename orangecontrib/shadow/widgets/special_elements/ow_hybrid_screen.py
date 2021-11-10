@@ -11,7 +11,7 @@ from oasys.util.oasys_util import EmittingStream, TriggerIn
 
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence, ShadowPlot
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
-from orangecontrib.shadow.util.hybrid import hybrid_control
+from orangecontrib.shadow.widgets.special_elements.bl import hybrid_control
 
 from PyQt5.QtGui import QImage, QPixmap,  QPalette, QFont, QColor, QTextCursor
 from PyQt5.QtWidgets import QLabel, QWidget, QHBoxLayout, QMessageBox
