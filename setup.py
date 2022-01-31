@@ -43,6 +43,8 @@ INSTALL_REQUIRES = (
     'shadow3>=18.5.30',
     'oasys1>=1.2.89',
     'wofryshadow>=1.0.3',
+    'dabax',
+    'xoppylib',
 )
 
 PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))

@@ -87,6 +87,7 @@ class OWxsh_bragg(OWWidget):
         # "Aluminum",
         # "Iron",
         # "Titanium"
+        "YB66"  # this uses an ad-hoc patch
     ]
 
     usage_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "bragg_usage.png")
@@ -248,6 +249,24 @@ class OWxsh_bragg(OWWidget):
                                       E_MAX=self.E_MAX,
                                       E_STEP=self.E_STEP,
                                       SHADOW_FILE=congruence.checkFileName(self.SHADOW_FILE))
+
+            elif self.crystals[self.DESCRIPTOR] == "YB66": # GRAPHITE
+                from xoppylib.crystals.create_bragg_preprocessor_file_v2 import create_bragg_preprocessor_file_v2
+                from dabax.dabax_xraylib import DabaxXraylib
+
+                create_bragg_preprocessor_file_v2(
+                    interactive = False,
+                    DESCRIPTOR = self.crystals[self.DESCRIPTOR],
+                    H_MILLER_INDEX = self.H_MILLER_INDEX,
+                    K_MILLER_INDEX = self.K_MILLER_INDEX,
+                    L_MILLER_INDEX = self.L_MILLER_INDEX,
+                    TEMPERATURE_FACTOR = self.TEMPERATURE_FACTOR,
+                    E_MIN = self.E_MIN,
+                    E_MAX = self.E_MAX,
+                    E_STEP = self.E_STEP,
+                    SHADOW_FILE = congruence.checkFileName(self.SHADOW_FILE),
+                    material_constants_library = DabaxXraylib(),
+                )
             else:
                 QMessageBox.critical(self, "Error.",
                                      "Crystal %s is not implemented in shadow3"%self.crystals[self.DESCRIPTOR],
