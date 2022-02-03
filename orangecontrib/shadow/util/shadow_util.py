@@ -62,28 +62,35 @@ class ShadowCongruence():
         try:
             rows = file.readlines()
 
+
             if len(rows) < 10: raise Exception("Bragg file malformed, please check input")
 
-            first_row = ShadowCongruence.__get_numbers(rows[0].strip())
-            if not len(first_row) == 3: raise Exception("Bragg file malformed, please check input")
 
-            second_row = ShadowCongruence.__get_numbers(rows[1].strip())
-            if not len(second_row) == 3: raise Exception("Bragg file malformed, please check input")
 
-            if not (rows[2].strip().startswith("(") and \
-                            rows[3].strip().startswith("(") and \
-                            rows[4].strip().startswith("(") and \
-                            rows[5].strip().startswith("(")):
-                raise Exception("Bragg file malformed, please check input")
+            if "# Bragg version," in rows[0]:
+                pass # version 2
+            else:
+                first_row = ShadowCongruence.__get_numbers(rows[0].strip())
 
-            seventh_row = ShadowCongruence.__get_numbers(rows[6].strip())
-            if not len(seventh_row) == 3: raise Exception("Bragg file malformed, please check input")
+                if not len(first_row) == 3: raise Exception("Bragg file malformed, please check input")
 
-            eighth_row = ShadowCongruence.__get_numbers(rows[7].strip())
-            if not len(eighth_row) == 3: raise Exception("Bragg file malformed, please check input")
+                second_row = ShadowCongruence.__get_numbers(rows[1].strip())
+                if not len(second_row) == 3: raise Exception("Bragg file malformed, please check input")
 
-            nineth_row = ShadowCongruence.__get_numbers(rows[8].strip())
-            if not len(nineth_row) == 1: raise Exception("Bragg file malformed, please check input")
+                if not (rows[2].strip().startswith("(") and \
+                                rows[3].strip().startswith("(") and \
+                                rows[4].strip().startswith("(") and \
+                                rows[5].strip().startswith("(")):
+                    raise Exception("Bragg file malformed, please check input")
+
+                seventh_row = ShadowCongruence.__get_numbers(rows[6].strip())
+                if not len(seventh_row) == 3: raise Exception("Bragg file malformed, please check input")
+
+                eighth_row = ShadowCongruence.__get_numbers(rows[7].strip())
+                if not len(eighth_row) == 3: raise Exception("Bragg file malformed, please check input")
+
+                nineth_row = ShadowCongruence.__get_numbers(rows[8].strip())
+                if not len(nineth_row) == 1: raise Exception("Bragg file malformed, please check input")
         except Exception as e:
             file.close()
 
