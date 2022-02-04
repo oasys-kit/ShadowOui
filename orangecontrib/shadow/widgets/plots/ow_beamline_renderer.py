@@ -238,13 +238,14 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                            height=height, shift=shift, label="End Point",
                            aspect_ratio_modifier=aspect_ratio_modifier)
 
-            limits[:, 0, :] *= 10.0/self.element_expansion_factor # aestetic
+            if self.draw_optical_axis:
+                if self.use_range == 1:
+                    for i in range(number_of_elements): limits[i, 1, :] = numpy.array([self.range_min, self.range_max])
+                    self.draw_central_radiation_line(centers=centers, rng=numpy.array([self.range_min, self.range_max]))
+                else:
+                    self.draw_central_radiation_line(centers=centers)
 
-            if self.use_range == 1:
-                for i in range(number_of_elements): limits[i, 1, :] = numpy.array([self.range_min, self.range_max])
-                self.draw_central_radiation_line(centers=centers, rng=numpy.array([self.range_min, self.range_max]))
-            else:
-                self.draw_central_radiation_line(centers=centers)
+            limits[:, 0, :] *= 10.0/self.element_expansion_factor # aestetic
 
             self.axis.set_xlim([numpy.min(limits[:, 0, :]), numpy.max(limits[:, 0, :])])
             self.axis.set_ylim([numpy.min(limits[:, 1, :]), numpy.max(limits[:, 1, :])])
@@ -258,10 +259,7 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
 
             self.axis.set_box_aspect(((length_x/factor), (length_y/factor), (length_z/factor)))
 
-            self.axis.set_ylabel("\n\nDistance along beam direction [user units]")
-
-            self.axis.axes.xaxis.set_ticklabels([])
-            self.axis.axes.zaxis.set_ticklabels([])
+            self.format_axis()
 
             if reset_rotation: self.reset_rotation()
 
