@@ -38,12 +38,14 @@ class Info(widget.OWWidget):
     def __init__(self, show_automatic_box=True):
         super().__init__()
 
+        window_width  = round(min(geom.width()*0.98, self.WIDGET_WIDTH))
+        window_height = round(min(geom.height() * 0.95, self.WIDGET_HEIGHT))
+
         geom = QApplication.desktop().availableGeometry()
         self.setGeometry(QRect(round(geom.width()*0.05),
                                round(geom.height()*0.05),
-                               round(min(geom.width()*0.98, self.WIDGET_WIDTH)),
-                               round(min(geom.height()*0.95, self.WIDGET_HEIGHT))))
-
+                               window_width,
+                               window_height))
 
         gen_box = gui.widgetBox(self.mainArea, "Beamline Info", addSpace=True, orientation="horizontal")
 

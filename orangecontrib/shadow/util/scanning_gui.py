@@ -51,7 +51,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from PyQt5.QtCore import Qt
 
 from matplotlib import cm, rcParams
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from oasys.widgets.gui import FigureCanvas3D
 from matplotlib.figure import Figure
 from matplotlib.collections import LineCollection
 from matplotlib.colors import colorConverter, ListedColormap
@@ -112,7 +112,7 @@ class Scan3DHistoWidget(AbstractScanHistoWidget):
 
         self.colorbar = None
 
-        self.plot_canvas = FigureCanvasQTAgg(self.figure)
+        self.plot_canvas = FigureCanvas3D(ax=self.axis, fig=self.figure)
 
         layout = QVBoxLayout()
 

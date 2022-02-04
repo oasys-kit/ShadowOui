@@ -63,7 +63,7 @@ class BeamCleaner(widget.OWWidget):
     description = "Tools: Beam Cleaner"
     icon = "icons/clean.png"
     maintainer = "Luca Rebuffi"
-    maintainer_email = "luca.rebuffi(@at@)elettra.eu"
+    maintainer_email = "lrebuffi(@at@)anl.gov"
     priority = 30
     category = "User Defined"
     keywords = ["data", "file", "load", "read"]

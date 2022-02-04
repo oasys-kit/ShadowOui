@@ -930,7 +930,7 @@ def hy_conv(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
             calculation_parameters.xx_image_ff = calculation_parameters.xx_screen + input_parameters.ghy_distance*numpy.tan(dx_conv) # ray tracing to the image plane
             calculation_parameters.dx_conv = dx_conv
 
-        if input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1:
+        if input_parameters.ghy_nf >= 1 and input_parameters.ghy_calcType > 1:
             s1d = Sampler1D(calculation_parameters.dif_x.get_values(), calculation_parameters.dif_x.get_abscissas())
             pos_dif = s1d.get_n_sampled_points(len(calculation_parameters.xx_focal_ray))
 
@@ -946,7 +946,7 @@ def hy_conv(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
             calculation_parameters.zz_image_ff = calculation_parameters.zz_screen + input_parameters.ghy_distance*numpy.tan(dz_conv) # ray tracing to the image plane
             calculation_parameters.dz_conv = dz_conv
 
-        if input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1:
+        if input_parameters.ghy_nf >= 1 and input_parameters.ghy_calcType > 1:
             s1d = Sampler1D(calculation_parameters.dif_z.get_values(), calculation_parameters.dif_z.get_abscissas())
             pos_dif = s1d.get_n_sampled_points(len(calculation_parameters.zz_focal_ray))
 
@@ -975,7 +975,7 @@ def hy_conv(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
 #########################################################################
 
 def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_parameters=HybridCalculationParameters()):
-    do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
+    do_nf = input_parameters.ghy_nf >= 1 and input_parameters.ghy_calcType > 1
 
     if do_nf:
         calculation_parameters.nf_beam = calculation_parameters.image_plane_beam.duplicate(history=False)
@@ -1068,7 +1068,7 @@ def hy_create_shadow_beam(input_parameters=HybridInputParameters(), calculation_
 ##########################################################################
 
 def propagate_1D_x_direction(calculation_parameters, input_parameters):
-    do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
+    do_nf = input_parameters.ghy_nf >= 1 and input_parameters.ghy_calcType > 1
 
     scale_factor = 1.0
 
@@ -1199,7 +1199,7 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
     # ------------------------------------------
     # near field calculation
     # ------------------------------------------
-    if input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1:  # near field calculation
+    if input_parameters.ghy_nf >= 1 and input_parameters.ghy_calcType > 1:  # near field calculation
         focallength_nf = input_parameters.ghy_focallength
 
         fftsize = int(scale_factor * calculate_fft_size(calculation_parameters.ghy_x_min,
@@ -1280,7 +1280,7 @@ def propagate_1D_x_direction(calculation_parameters, input_parameters):
 ##########################################################################
 
 def propagate_1D_z_direction(calculation_parameters, input_parameters):
-    do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
+    do_nf = input_parameters.ghy_nf >= 1 and input_parameters.ghy_calcType > 1
 
     scale_factor = 1.0
 
@@ -1401,7 +1401,7 @@ def propagate_1D_z_direction(calculation_parameters, input_parameters):
     # ------------------------------------------
     # near field calculation
     # ------------------------------------------
-    if input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1:
+    if input_parameters.ghy_nf >= 1 and input_parameters.ghy_calcType > 1:
         focallength_nf = input_parameters.ghy_focallength
 
         fftsize = int(scale_factor * calculate_fft_size(calculation_parameters.ghy_z_min,

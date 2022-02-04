@@ -8,7 +8,7 @@ from PyQt5.QtGui import QTextCursor, QFont, QPalette, QColor, QPixmap
 
 from Shadow import ShadowTools as ST
 from matplotlib import cm
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from oasys.widgets.gui import FigureCanvas3D
 from matplotlib.figure import Figure
 
 import orangecanvas.resources as resources
@@ -394,7 +394,7 @@ class OWxsh_waviness(OWWidget):
 
         self.axis.set_zlabel("Z [nm]")
 
-        self.figure_canvas = FigureCanvasQTAgg(self.figure)
+        self.figure_canvas = FigureCanvas3D(ax=self.axis, fig=self.figure)
         self.mainArea.layout().addWidget(self.figure_canvas)
 
         gui.rubber(self.mainArea)
