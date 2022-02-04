@@ -76,14 +76,9 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
 
     def render_beamline(self, reset_rotation=True):
         if not self.input_beam is None:
-            self.axis.clear()
-            self.axis.text2D(0.05, 0.95,
-                            "Mouse Left Button (Hold and Drag): Rotate\nMouse Right Button (Hold and Drag): Zoom\nMouse Left & Right Buttons or Central Buttons (Hold and Drag): Shift",
-                            transform=self.axis.transAxes,
-                            color='blue')
+            self.figure_canvas.clear_axis()
 
-
-            number_of_elements=self.input_beam.historySize() + 1
+            number_of_elements=self.input_beam.historySize() + (1 if self.draw_source else 0)
 
             centers, limits = initialize_arrays(number_of_elements=number_of_elements)
 
@@ -105,8 +100,7 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
 
             for history_element in self.input_beam.getOEHistory():
                 if not history_element._shadow_source_end is None:
-                    #source = history_element._shadow_source_end.src
-                    self.add_source(centers, limits, length=0.0, height=self.initial_height, canting=0.0, aspect_ration_modifier=aspect_ratio_modifier)
+                    if self.draw_source: self.add_source(centers, limits, length=0.0, height=self.initial_height, canting=0.0, aspect_ration_modifier=aspect_ratio_modifier)
                 elif not history_element._shadow_oe_end is None:
                     oe_number = history_element._oe_number
                     oe_end   = history_element._shadow_oe_end._oe
@@ -136,9 +130,25 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                     if isinstance(oe_end, OE):
                         if oe_end.F_REFRAC == 2: # empty element
                             height, shift = get_height_shift()
-                            self.add_point(centers, limits,
-                                           oe_index=oe_number, distance=oe_distance, height=height, shift=shift,
-                                           label="Empty Element", aspect_ratio_modifier=aspect_ratio_modifier)
+
+                            if "Slit" in history_element._widget_class_name:
+                                if oe_end.I_ABS[0] == 1: # Filters
+                                    label = "Absorber"
+                                    aperture = None
+                                elif oe_end.I_SLIT[0] == 1: # Slits
+                                    label = "Slits"
+                                    aperture = [oe_end.RX_SLIT[0], oe_end.RZ_SLIT[0]]
+                                else:
+                                    label = "Empty Element"
+                                    aperture = None
+
+                                self.add_slits_filter(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
+                                                      distance=oe_distance, height=height, shift=shift,
+                                                      aperture=aperture, label=label, aspect_ratio_modifier=aspect_ratio_modifier)
+                            else:
+                                self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
+                                               distance=oe_distance, height=height, shift=shift,
+                                               label="Empty Element", aspect_ratio_modifier=aspect_ratio_modifier)
                         else:
                             if oe_end.F_REFRAC == 0:
                                 if oe_end.IDUMMY == 0:  # oe not changed by shadow, angles in deg changed to rad
@@ -190,8 +200,8 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                                     color = OpticalElementsColors.MIRROR
                                     label = "Mirror"
 
-                                self.add_optical_element(centers, limits,
-                                                         oe_index=oe_number, distance=oe_distance, height=height, shift=shift,
+                                self.add_optical_element(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
+                                                         distance=oe_distance, height=height, shift=shift,
                                                          length=length, width=width, thickness=10/self.workspace_units_to_mm, inclination=inclination, orientation=orientation,
                                                          color=color, aspect_ration_modifier=aspect_ratio_modifier, label=label)
 
@@ -203,18 +213,18 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                                 previous_orientation = orientation
                             else:
                                 height, shift = get_height_shift()
-                                self.add_point(centers, limits,
-                                               oe_index=oe_number, distance=oe_distance, height=height, shift=shift,
+                                self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
+                                               distance=oe_distance, height=height, shift=shift,
                                                label="Refractor (not implemented)", aspect_ratio_modifier=aspect_ratio_modifier)
                     elif isinstance(oe_end, IdealLensOE):
                         height, shift = get_height_shift()
-                        self.add_point(centers, limits,
-                                       oe_index=oe_number, distance=oe_distance, height=height, shift=shift,
+                        self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
+                                       distance=oe_distance, height=height, shift=shift,
                                        label="Ideal Lens (not implemented)", aspect_ratio_modifier=aspect_ratio_modifier)
                     elif isinstance(oe_end, CompoundOE):
                         height, shift = get_height_shift()
-                        self.add_point(centers, limits,
-                                       oe_index=oe_number, distance=oe_distance, height=height, shift=shift,
+                        self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
+                                       distance=oe_distance, height=height, shift=shift,
                                        label="Compound OE (not implemented)", aspect_ratio_modifier=aspect_ratio_modifier)
 
                     previous_height         = height
@@ -223,11 +233,12 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                     previous_image_distance = image_distance
 
             height, shift = get_height_shift()
-            self.add_point(centers, limits, oe_index=self.input_beam.historySize(), distance=previous_oe_distance + previous_image_distance,
+            self.add_point(centers, limits, oe_index=number_of_elements - 1,
+                           distance=previous_oe_distance + previous_image_distance,
                            height=height, shift=shift, label="End Point",
                            aspect_ratio_modifier=aspect_ratio_modifier)
 
-            limits[:, 0, :] *= 10 # X axis
+            limits[:, 0, :] *= 10.0/self.element_expansion_factor # aestetic
 
             if self.use_range == 1:
                 for i in range(number_of_elements): limits[i, 1, :] = numpy.array([self.range_min, self.range_max])
@@ -247,9 +258,10 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
 
             self.axis.set_box_aspect(((length_x/factor), (length_y/factor), (length_z/factor)))
 
-            self.axis.set_xlabel("Width")
-            self.axis.set_ylabel("Length")
-            self.axis.set_zlabel("Height")
+            self.axis.set_ylabel("\n\nDistance along beam direction [user units]")
+
+            self.axis.axes.xaxis.set_ticklabels([])
+            self.axis.axes.zaxis.set_ticklabels([])
 
             if reset_rotation: self.reset_rotation()
 

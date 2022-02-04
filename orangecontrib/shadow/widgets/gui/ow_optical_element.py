@@ -1794,7 +1794,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             axis.set_ylabel("Y [" + parent.workspace_units_label + "]")
             axis.set_zlabel("Z [nm]")
 
-            figure_canvas = FigureCanvas3D(ax=axis, fig=figure)
+            figure_canvas = FigureCanvas3D(ax=axis, fig=figure, show_legend=False)
             figure_canvas.setFixedWidth(500)
             figure_canvas.setFixedHeight(645)
 
@@ -1901,7 +1901,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             axis.set_ylabel("Y [" + parent.workspace_units_label + "]")
             axis.set_zlabel("Z [" + parent.workspace_units_label + "]")
 
-            figure_canvas = FigureCanvas3D(ax=axis, fig=figure)
+            figure_canvas = FigureCanvas3D(ax=axis, fig=figure, show_legend=False)
             figure_canvas.setFixedWidth(500)
             figure_canvas.setFixedHeight(500)
 

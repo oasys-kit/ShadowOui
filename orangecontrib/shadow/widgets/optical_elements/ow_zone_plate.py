@@ -26,8 +26,6 @@ GOOD_ZP = 191919
 
 COLLIMATED_SOURCE_LIMIT = 1e4 # m
 
-
-
 class ZonePlate(GenericElement):
 
     name = "Zone Plate"
