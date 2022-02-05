@@ -72,7 +72,7 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
             if ShadowCongruence.checkGoodBeam(beam):
                 self.input_beam = beam
 
-                self.render()
+                self.render(init_range=True)
 
     def render_beamline(self, reset_rotation=True):
         if not self.input_beam is None:
@@ -238,28 +238,5 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                            height=height, shift=shift, label="End Point",
                            aspect_ratio_modifier=aspect_ratio_modifier)
 
-            if self.draw_optical_axis:
-                if self.use_range == 1:
-                    for i in range(number_of_elements): limits[i, 1, :] = numpy.array([self.range_min, self.range_max])
-                    self.draw_central_radiation_line(centers=centers, rng=numpy.array([self.range_min, self.range_max]))
-                else:
-                    self.draw_central_radiation_line(centers=centers)
-
-            limits[:, 0, :] *= 10.0/self.element_expansion_factor # aestetic
-
-            self.axis.set_xlim([numpy.min(limits[:, 0, :]), numpy.max(limits[:, 0, :])])
-            self.axis.set_ylim([numpy.min(limits[:, 1, :]), numpy.max(limits[:, 1, :])])
-            self.axis.set_zlim([numpy.min([0.0, numpy.min(limits[:, 2, :])]), numpy.max(limits[:, 2, :])])
-
-            length_x = numpy.max(limits[:, 0, :]) - numpy.min(limits[:, 0, :])
-            length_y = numpy.max(limits[:, 1, :]) - numpy.min(limits[:, 1, :])
-            length_z = numpy.max(limits[:, 2, :])
-
-            factor = numpy.max([length_x, length_y, length_z])
-
-            self.axis.set_box_aspect(((length_x/factor), (length_y/factor), (length_z/factor)))
-
-            self.format_axis()
-
-            if reset_rotation: self.reset_rotation()
+            return number_of_elements, centers, limits
 
