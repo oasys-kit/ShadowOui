@@ -561,7 +561,8 @@ class GeometricalSource(ow_source.Source):
             beam_out = ShadowBeam.traceFromSource(shadow_src,
                                                   write_begin_file=write_begin_file,
                                                   write_start_file=write_start_file,
-                                                  write_end_file=write_end_file)
+                                                  write_end_file=write_end_file,
+                                                  widget_class_name=self.__class__.name)
 
             if self.photon_energy_distribution == 4:
                 self.generate_gaussian_spectrum(beam_out)

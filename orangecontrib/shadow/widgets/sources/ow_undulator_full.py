@@ -4,6 +4,7 @@
 
 
 import sys
+
 import numpy
 
 from PyQt5 import QtGui, QtWidgets
@@ -28,7 +29,7 @@ from silx.gui.plot import Plot2D
 from orangecontrib.shadow.util.undulator.source_undulator import SourceUndulator
 from orangecontrib.shadow.util.undulator.source_undulator_input_output import SourceUndulatorInputOutput
 from Shadow import Beam as Shadow3Beam
-from orangecontrib.shadow.util.shadow_objects import ShadowBeam, ShadowOEHistoryItem
+from orangecontrib.shadow.util.shadow_objects import ShadowSource, ShadowBeam, ShadowOEHistoryItem
 
 class UndulatorFull(ow_source.Source, WidgetDecorator):
 
@@ -612,7 +613,9 @@ class UndulatorFull(ow_source.Source, WidgetDecorator):
                                             file_out="radiation.h5",mode="w",entry_name="radiation")
 
             beam_out = ShadowBeam(beam=shadow3_beam)
-            beam_out.getOEHistory().append(ShadowOEHistoryItem())
+            beam_out.getOEHistory().append(ShadowOEHistoryItem(shadow_source_start=ShadowSource.create_src(),
+                                                               shadow_source_end=ShadowSource.create_src(),
+                                                               widget_class_name="Full Undulator"))
 
             if self.add_power:
                 additional_parameters = {}

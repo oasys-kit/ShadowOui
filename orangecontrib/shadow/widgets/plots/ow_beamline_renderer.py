@@ -67,12 +67,18 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
 
     input_beam=None
 
+    def __init__(self):
+        super(ShadowBeamlineRenderer, self).__init__(is_using_workspace_units=True)
+
     def setBeam(self, beam):
         if ShadowCongruence.checkEmptyBeam(beam):
             if ShadowCongruence.checkGoodBeam(beam):
                 self.input_beam = beam
 
                 self.render(init_range=True)
+
+    def get_units_attributes(self):
+        return self.workspace_units_label, self.workspace_units_to_mm
 
     def render_beamline(self, reset_rotation=True):
         if not self.input_beam is None:
@@ -100,7 +106,16 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
 
             for history_element in self.input_beam.getOEHistory():
                 if not history_element._shadow_source_end is None:
-                    if self.draw_source: self.add_source(centers, limits, length=0.0, height=self.initial_height, canting=0.0, aspect_ration_modifier=aspect_ratio_modifier)
+                    if self.draw_source:
+                        source_name = None
+                        if not history_element._widget_class_name is None:
+                            if "Geometric" in history_element._widget_class_name: source_name = "Geometrical"
+                            elif "Bending" in history_element._widget_class_name: source_name = "Bending Magnet"
+                            elif "Undulator" in history_element._widget_class_name: source_name = "Undulator"
+                            elif "Wiggler" in history_element._widget_class_name: source_name = "Wiggler"
+
+                        self.add_source(centers, limits, length=0.0, height=self.initial_height, canting=0.0,
+                                        aspect_ration_modifier=aspect_ratio_modifier, source_name=source_name)
                 elif not history_element._shadow_oe_end is None:
                     oe_number = history_element._oe_number
                     oe_end   = history_element._shadow_oe_end._oe
@@ -127,10 +142,10 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
 
                         return height, shift
 
+                    height, shift = get_height_shift()
+
                     if isinstance(oe_end, OE):
                         if oe_end.F_REFRAC == 2: # empty element
-                            height, shift = get_height_shift()
-
                             if "Slit" in history_element._widget_class_name:
                                 if oe_end.I_ABS[0] == 1: # Filters
                                     label = "Absorber"
@@ -157,10 +172,6 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                                 else:
                                     inclination  = (numpy.pi/2) - oe_end.T_INCIDENCE
                                     alpha        = int(oe_end.ALPHA * TODEG)
-
-                                height, shift = get_height_shift()
-
-                                print()
 
                                 if previous_orientation == Orientations.UP:
                                     if alpha == 0:     orientation = Orientations.UP
@@ -212,17 +223,14 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
 
                                 previous_orientation = orientation
                             else:
-                                height, shift = get_height_shift()
                                 self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
                                                distance=oe_distance, height=height, shift=shift,
                                                label="Refractor (not implemented)", aspect_ratio_modifier=aspect_ratio_modifier)
                     elif isinstance(oe_end, IdealLensOE):
-                        height, shift = get_height_shift()
                         self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
                                        distance=oe_distance, height=height, shift=shift,
                                        label="Ideal Lens (not implemented)", aspect_ratio_modifier=aspect_ratio_modifier)
                     elif isinstance(oe_end, CompoundOE):
-                        height, shift = get_height_shift()
                         self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
                                        distance=oe_distance, height=height, shift=shift,
                                        label="Compound OE (not implemented)", aspect_ratio_modifier=aspect_ratio_modifier)
