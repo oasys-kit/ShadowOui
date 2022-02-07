@@ -121,119 +121,146 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                     oe_end   = history_element._shadow_oe_end._oe
                     oe_start = history_element._shadow_oe_start._oe
 
-                    source_distance = oe_end.T_SOURCE
-                    image_distance  = oe_end.T_IMAGE
-
-                    oe_distance = previous_oe_distance + previous_image_distance + source_distance
-
                     def get_height_shift():
                         if previous_orientation == Orientations.UP:
-                            height = previous_height + (source_distance + previous_image_distance)*numpy.sin(2*beam_vertical_inclination)
-                            shift  = previous_shift
+                            height = previous_height + (source_distance + previous_image_distance) * numpy.sin(2 * beam_vertical_inclination)
+                            shift = previous_shift
                         elif previous_orientation == Orientations.DOWN:
-                            height = previous_height - (source_distance + previous_image_distance)*numpy.sin(2*beam_vertical_inclination)
-                            shift  = previous_shift
+                            height = previous_height - (source_distance + previous_image_distance) * numpy.sin(2 * beam_vertical_inclination)
+                            shift = previous_shift
                         if previous_orientation == Orientations.LEFT:
                             height = previous_height
-                            shift  = previous_shift - (source_distance + previous_image_distance)*numpy.sin(2*beam_horizontal_inclination)
+                            shift = previous_shift - (source_distance + previous_image_distance) * numpy.sin(2 * beam_horizontal_inclination)
                         elif previous_orientation == Orientations.RIGHT:
                             height = previous_height
-                            shift  = previous_shift + (source_distance + previous_image_distance)*numpy.sin(2*beam_horizontal_inclination)
+                            shift = previous_shift + (source_distance + previous_image_distance) * numpy.sin(2 * beam_horizontal_inclination)
 
                         return height, shift
 
-                    height, shift = get_height_shift()
+                    if (isinstance(oe_start), OE) or isinstance(oe_start, IdealLensOE):
+                        source_distance = oe_end.T_SOURCE
+                        image_distance  = oe_end.T_IMAGE
 
-                    if isinstance(oe_end, OE):
-                        if oe_end.F_REFRAC == 2: # empty element
-                            if "Slit" in history_element._widget_class_name:
-                                if oe_end.I_ABS[0] == 1: # Filters
-                                    label = "Absorber"
-                                    aperture = None
-                                elif oe_end.I_SLIT[0] == 1: # Slits
-                                    label = "Slits"
-                                    aperture = [oe_end.RX_SLIT[0], oe_end.RZ_SLIT[0]]
+                        oe_distance = previous_oe_distance + previous_image_distance + source_distance
+
+                        height, shift = get_height_shift()
+
+                        if isinstance(oe_start, OE):
+                            if oe_end.F_REFRAC == 2: # empty element
+                                if "Slit" in history_element._widget_class_name:
+                                    if oe_end.I_ABS[0] == 1: # Filters
+                                        label = "Absorber"
+                                        aperture = None
+                                    elif oe_end.I_SLIT[0] == 1: # Slits
+                                        label = "Slits"
+                                        aperture = [oe_end.RX_SLIT[0], oe_end.RZ_SLIT[0]]
+                                    else:
+                                        label = "Empty Element"
+                                        aperture = None
+
+                                    self.add_slits_filter(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
+                                                          distance=oe_distance, height=height, shift=shift,
+                                                          aperture=aperture, label=label, aspect_ratio_modifier=aspect_ratio_modifier)
                                 else:
-                                    label = "Empty Element"
-                                    aperture = None
-
-                                self.add_slits_filter(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
-                                                      distance=oe_distance, height=height, shift=shift,
-                                                      aperture=aperture, label=label, aspect_ratio_modifier=aspect_ratio_modifier)
+                                    self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
+                                                   distance=oe_distance, height=height, shift=shift,
+                                                   label="Empty Element", aspect_ratio_modifier=aspect_ratio_modifier)
                             else:
-                                self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
-                                               distance=oe_distance, height=height, shift=shift,
-                                               label="Empty Element", aspect_ratio_modifier=aspect_ratio_modifier)
-                        else:
-                            if oe_end.F_REFRAC == 0:
-                                if oe_end.IDUMMY == 0:  # oe not changed by shadow, angles in deg changed to rad
-                                    inclination = (90 - oe_end.T_INCIDENCE) / TODEG
-                                    alpha       = int(oe_end.ALPHA)
+                                if oe_end.F_REFRAC == 0:
+                                    if oe_end.IDUMMY == 0:  # oe not changed by shadow, angles in deg changed to rad
+                                        inclination = (90 - oe_end.T_INCIDENCE) / TODEG
+                                        alpha       = int(oe_end.ALPHA)
+                                    else:
+                                        inclination  = (numpy.pi/2) - oe_end.T_INCIDENCE
+                                        alpha        = int(oe_end.ALPHA * TODEG)
+
+                                    if previous_orientation == Orientations.UP:
+                                        if alpha == 0:     orientation = Orientations.UP
+                                        elif alpha == 90:  orientation = Orientations.LEFT
+                                        elif alpha == 180: orientation = Orientations.DOWN
+                                        elif alpha == 270: orientation = Orientations.RIGHT
+                                    elif previous_orientation == Orientations.DOWN:
+                                        if alpha == 0:     orientation = Orientations.DOWN
+                                        elif alpha == 90:  orientation = Orientations.RIGHT
+                                        elif alpha == 180: orientation = Orientations.UP
+                                        elif alpha == 270: orientation = Orientations.LEFT
+                                    elif previous_orientation == Orientations.LEFT:
+                                        if alpha == 0:     orientation = Orientations.LEFT
+                                        elif alpha == 90:  orientation = Orientations.DOWN
+                                        elif alpha == 180: orientation = Orientations.RIGHT
+                                        elif alpha == 270: orientation = Orientations.UP
+                                    elif previous_orientation == Orientations.RIGHT:
+                                        if alpha == 0:     orientation = Orientations.RIGHT
+                                        elif alpha == 90:  orientation = Orientations.UP
+                                        elif alpha == 180: orientation = Orientations.LEFT
+                                        elif alpha == 270: orientation = Orientations.DOWN
+
+                                    if oe_end.FHIT_C == 1:
+                                        width = oe_start.RWIDX1 + oe_start.RWIDX2
+                                        length = oe_start.RLEN1 + oe_start.RLEN2
+                                    else:
+                                        width = 100 / self.workspace_units_to_mm
+                                        length = 100 / self.workspace_units_to_mm
+
+                                    if oe_end.F_CRYSTAL == 1:
+                                        color = OpticalElementsColors.CRYSTAL
+                                        label = "Crystal"
+                                    elif oe_end.F_GRATING == 1:
+                                        color = OpticalElementsColors.GRATING
+                                        label = "Grating"
+                                    else:
+                                        color = OpticalElementsColors.MIRROR
+                                        label = "Mirror"
+
+                                    self.add_optical_element(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
+                                                             distance=oe_distance, height=height, shift=shift,
+                                                             length=length, width=width, thickness=10/self.workspace_units_to_mm, inclination=inclination, orientation=orientation,
+                                                             color=color, aspect_ration_modifier=aspect_ratio_modifier, label=label)
+
+                                    if orientation == Orientations.UP:      beam_vertical_inclination += inclination
+                                    elif orientation == Orientations.DOWN:  beam_vertical_inclination -= inclination
+                                    elif orientation == Orientations.LEFT:  beam_horizontal_inclination -= inclination
+                                    elif orientation == Orientations.RIGHT: beam_horizontal_inclination += inclination
+
+                                    previous_orientation = orientation
                                 else:
-                                    inclination  = (numpy.pi/2) - oe_end.T_INCIDENCE
-                                    alpha        = int(oe_end.ALPHA * TODEG)
+                                    self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
+                                                   distance=oe_distance, height=height, shift=shift,
+                                                   label="Refractor (not implemented)", aspect_ratio_modifier=aspect_ratio_modifier)
+                        elif isinstance(oe_end, IdealLensOE):
+                            self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
+                                           distance=oe_distance, height=height, shift=shift,
+                                           label="Ideal Lens (not implemented)", aspect_ratio_modifier=aspect_ratio_modifier)
+                    elif isinstance(oe_start, CompoundOE):
+                        n_elements = len(oe_start.list)
 
-                                if previous_orientation == Orientations.UP:
-                                    if alpha == 0:     orientation = Orientations.UP
-                                    elif alpha == 90:  orientation = Orientations.LEFT
-                                    elif alpha == 180: orientation = Orientations.DOWN
-                                    elif alpha == 270: orientation = Orientations.RIGHT
-                                elif previous_orientation == Orientations.DOWN:
-                                    if alpha == 0:     orientation = Orientations.DOWN
-                                    elif alpha == 90:  orientation = Orientations.RIGHT
-                                    elif alpha == 180: orientation = Orientations.UP
-                                    elif alpha == 270: orientation = Orientations.LEFT
-                                elif previous_orientation == Orientations.LEFT:
-                                    if alpha == 0:     orientation = Orientations.LEFT
-                                    elif alpha == 90:  orientation = Orientations.DOWN
-                                    elif alpha == 180: orientation = Orientations.RIGHT
-                                    elif alpha == 270: orientation = Orientations.UP
-                                elif previous_orientation == Orientations.RIGHT:
-                                    if alpha == 0:     orientation = Orientations.RIGHT
-                                    elif alpha == 90:  orientation = Orientations.UP
-                                    elif alpha == 180: orientation = Orientations.LEFT
-                                    elif alpha == 270: orientation = Orientations.DOWN
+                        source_distance = 0.0
+                        image_distance = 0.0
 
-                                if oe_end.FHIT_C == 1:
-                                    width = oe_start.RWIDX1 + oe_start.RWIDX2
-                                    length = oe_start.RLEN1 + oe_start.RLEN2
-                                else:
-                                    width = 100 / self.workspace_units_to_mm
-                                    length = 100 / self.workspace_units_to_mm
+                        for i, oe in enumerate(oe_start.list):
+                            oe_type = 'UNKNOWN'
+                            if isinstance(oe, OE):
+                                if oe.F_REFRAC == 1: oe_type = 'CRL'
+                                else:                oe_type = 'MIRROR'
+                                if oe.F_CRYSTAL == 1: oe_type = 'CRYSTAL'
+                                if oe.F_GRATING == 1: oe_type = 'GRATING'
+                                if oe.F_REFRAC == 2:  oe_type = 'EMPTY'
+                            elif isinstance(oe, IdealLensOE): oe_type = 'IDEAL LENS'
 
-                                if oe_end.F_CRYSTAL == 1:
-                                    color = OpticalElementsColors.CRYSTAL
-                                    label = "Crystal"
-                                elif oe_end.F_GRATING == 1:
-                                    color = OpticalElementsColors.GRATING
-                                    label = "Grating"
-                                else:
-                                    color = OpticalElementsColors.MIRROR
-                                    label = "Mirror"
-
-                                self.add_optical_element(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
-                                                         distance=oe_distance, height=height, shift=shift,
-                                                         length=length, width=width, thickness=10/self.workspace_units_to_mm, inclination=inclination, orientation=orientation,
-                                                         color=color, aspect_ration_modifier=aspect_ratio_modifier, label=label)
-
-                                if orientation == Orientations.UP:      beam_vertical_inclination += inclination
-                                elif orientation == Orientations.DOWN:  beam_vertical_inclination -= inclination
-                                elif orientation == Orientations.LEFT:  beam_horizontal_inclination -= inclination
-                                elif orientation == Orientations.RIGHT: beam_horizontal_inclination += inclination
-
-                                previous_orientation = orientation
+                            if n_elements == 1:
+                                source_distance = oe.T_SOURCE
+                                image_distance = oe.T_IMAGE
                             else:
-                                self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
-                                               distance=oe_distance, height=height, shift=shift,
-                                               label="Refractor (not implemented)", aspect_ratio_modifier=aspect_ratio_modifier)
-                    elif isinstance(oe_end, IdealLensOE):
+                                if i < int(n_elements/2): source_distance += oe.T_SOURCE + oe.T_IMAGE
+                                else:                     image_distance += oe.T_SOURCE + oe.T_IMAGE
+
+                        oe_distance = previous_oe_distance + previous_image_distance + source_distance
+
+                        height, shift = get_height_shift()
+
                         self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
                                        distance=oe_distance, height=height, shift=shift,
-                                       label="Ideal Lens (not implemented)", aspect_ratio_modifier=aspect_ratio_modifier)
-                    elif isinstance(oe_end, CompoundOE):
-                        self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
-                                       distance=oe_distance, height=height, shift=shift,
-                                       label="Compound OE (not implemented)", aspect_ratio_modifier=aspect_ratio_modifier)
+                                       label="Compound OE ("+ oe_type + ")", aspect_ratio_modifier=aspect_ratio_modifier)
 
                     previous_height         = height
                     previous_shift          = shift
