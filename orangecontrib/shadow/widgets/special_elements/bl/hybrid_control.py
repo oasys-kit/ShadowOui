@@ -924,7 +924,7 @@ def hy_conv(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
     if input_parameters.ghy_diff_plane == 1: #1d calculation in x direction
         if calculation_parameters.do_ff_x:
             s1d = Sampler1D(calculation_parameters.dif_xp.get_values(), calculation_parameters.dif_xp.get_abscissas())
-            pos_dif = s1d.get_n_sampled_points(len(calculation_parameters.xp_screen), seed=input_parameters.random_seed)
+            pos_dif = s1d.get_n_sampled_points(len(calculation_parameters.xp_screen), seed=None if input_parameters.random_seed is None else (input_parameters.random_seed + 1))
 
             dx_wave = numpy.arctan(pos_dif) # calculate dx from tan(dx)
             dx_conv = dx_wave + calculation_parameters.dx_ray # add the ray divergence kicks
@@ -934,13 +934,13 @@ def hy_conv(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
 
         if input_parameters.ghy_nf >= 1 and input_parameters.ghy_calcType > 1:
             s1d = Sampler1D(calculation_parameters.dif_x.get_values(), calculation_parameters.dif_x.get_abscissas())
-            pos_dif = s1d.get_n_sampled_points(len(calculation_parameters.xx_focal_ray), seed=input_parameters.random_seed)
+            pos_dif = s1d.get_n_sampled_points(len(calculation_parameters.xx_focal_ray), seed=None if input_parameters.random_seed is None else (input_parameters.random_seed + 2))
 
             calculation_parameters.xx_image_nf = pos_dif + calculation_parameters.xx_focal_ray
     elif input_parameters.ghy_diff_plane == 2: #1d calculation in z direction
         if calculation_parameters.do_ff_z:
             s1d = Sampler1D(calculation_parameters.dif_zp.get_values(), calculation_parameters.dif_zp.get_abscissas())
-            pos_dif = s1d.get_n_sampled_points(len(calculation_parameters.zp_screen), seed=input_parameters.random_seed)
+            pos_dif = s1d.get_n_sampled_points(len(calculation_parameters.zp_screen), seed=None if input_parameters.random_seed is None else (input_parameters.random_seed + 3))
 
             dz_wave = numpy.arctan(pos_dif) # calculate dz from tan(dz)
             dz_conv = dz_wave + calculation_parameters.dz_ray # add the ray divergence kicks
@@ -950,7 +950,7 @@ def hy_conv(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
 
         if input_parameters.ghy_nf >= 1 and input_parameters.ghy_calcType > 1:
             s1d = Sampler1D(calculation_parameters.dif_z.get_values(), calculation_parameters.dif_z.get_abscissas())
-            pos_dif = s1d.get_n_sampled_points(len(calculation_parameters.zz_focal_ray), seed=input_parameters.random_seed)
+            pos_dif = s1d.get_n_sampled_points(len(calculation_parameters.zz_focal_ray), seed=None if input_parameters.random_seed is None else (input_parameters.random_seed + 4))
 
             calculation_parameters.zz_image_nf = pos_dif + calculation_parameters.zz_focal_ray
     elif input_parameters.ghy_diff_plane == 3: #2D
@@ -958,7 +958,7 @@ def hy_conv(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
             s2d = Sampler2D(calculation_parameters.dif_xpzp.z_values,
                             calculation_parameters.dif_xpzp.x_coord,
                             calculation_parameters.dif_xpzp.y_coord)
-            pos_dif_x, pos_dif_z = s2d.get_n_sampled_points(len(calculation_parameters.zp_screen), seed=input_parameters.random_seed)
+            pos_dif_x, pos_dif_z = s2d.get_n_sampled_points(len(calculation_parameters.zp_screen), seed=None if input_parameters.random_seed is None else (input_parameters.random_seed + 5))
 
             dx_wave = numpy.arctan(pos_dif_x) # calculate dx from tan(dx)
             dx_conv = dx_wave + calculation_parameters.dx_ray # add the ray divergence kicks
