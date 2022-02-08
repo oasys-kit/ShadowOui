@@ -137,7 +137,7 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
 
                         return height, shift
 
-                    if (isinstance(oe_start), OE) or isinstance(oe_start, IdealLensOE):
+                    if (isinstance(oe_start, OE) or isinstance(oe_start, IdealLensOE)):
                         source_distance = oe_end.T_SOURCE
                         image_distance  = oe_end.T_IMAGE
 
@@ -147,7 +147,7 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
 
                         if isinstance(oe_start, OE):
                             if oe_end.F_REFRAC == 2: # empty element
-                                if "Slit" in history_element._widget_class_name:
+                                if not history_element._widget_class_name is None and "Slit" in history_element._widget_class_name:
                                     if oe_end.I_ABS[0] == 1: # Filters
                                         label = "Absorber"
                                         aperture = None
