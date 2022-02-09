@@ -75,12 +75,12 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
             if ShadowCongruence.checkGoodBeam(beam):
                 self.input_beam = beam
 
-                self.render(init_range=True)
+                self.render(on_receiving_input=True)
 
     def get_units_attributes(self):
         return self.workspace_units_label, self.workspace_units_to_mm
 
-    def render_beamline(self, reset_rotation=True):
+    def render_beamline(self):
         if not self.input_beam is None:
             self.figure_canvas.clear_axis()
 
