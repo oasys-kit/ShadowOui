@@ -100,7 +100,7 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
             previous_shift  = 0.0
             previous_orientation = Orientations.UP
             beam_horizontal_inclination = 0.0
-            beam_vertical_inclination = 0.0
+            beam_vertical_inclination   = 0.0
 
             TODEG = 180.0 / numpy.pi
 
@@ -114,10 +114,11 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                             elif "Undulator" in history_element._widget_class_name: source_name = "Undulator"
                             elif "Wiggler" in history_element._widget_class_name: source_name = "Wiggler"
 
-                        self.add_source(centers, limits, length=0.0, height=self.initial_height, canting=0.0,
+                        self.add_source(centers, limits, length=0.0, height=previous_height, canting=0.0,
                                         aspect_ration_modifier=aspect_ratio_modifier, source_name=source_name)
                 elif not history_element._shadow_oe_end is None:
                     oe_number = history_element._oe_number
+                    oe_index = oe_number if self.draw_source else (oe_number - 1)
                     oe_end   = history_element._shadow_oe_end._oe
                     oe_start = history_element._shadow_oe_start._oe
 
@@ -147,24 +148,37 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
 
                         if isinstance(oe_start, OE):
                             if oe_end.F_REFRAC == 2: # empty element
-                                if not history_element._widget_class_name is None and "Slit" in history_element._widget_class_name:
-                                    if oe_end.I_ABS[0] == 1: # Filters
-                                        label = "Absorber"
-                                        aperture = None
-                                    elif oe_end.I_SLIT[0] == 1: # Slits
-                                        label = "Slits"
-                                        aperture = [oe_end.RX_SLIT[0], oe_end.RZ_SLIT[0]]
-                                    else:
-                                        label = "Empty Element"
-                                        aperture = None
+                                if not history_element._widget_class_name is None:
+                                    if "Slit" in history_element._widget_class_name:
+                                        if oe_end.I_ABS[0] == 1: # Filters
+                                            self.add_slits_filter(centers, limits, oe_index=oe_index,
+                                                                  distance=oe_distance, height=height, shift=shift,
+                                                                  aperture=None, label="Absorber",
+                                                                  aspect_ratio_modifier=aspect_ratio_modifier)
+                                        elif oe_end.I_SLIT[0] == 1: # Slits
+                                            self.add_slits_filter(centers, limits, oe_index=oe_index,
+                                                                  distance=oe_distance, height=height, shift=shift,
+                                                                  aperture=[oe_end.RX_SLIT[0], oe_end.RZ_SLIT[0]], label="Slits",
+                                                                  aspect_ratio_modifier=aspect_ratio_modifier)
 
-                                    self.add_slits_filter(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
-                                                          distance=oe_distance, height=height, shift=shift,
-                                                          aperture=aperture, label=label, aspect_ratio_modifier=aspect_ratio_modifier)
+                                        else:
+                                            self.add_point(centers, limits, oe_index=oe_index,
+                                                           distance=oe_distance, height=height, shift=shift,
+                                                           label=None, aspect_ratio_modifier=aspect_ratio_modifier)
+                                    elif "ZonePlate" in history_element._widget_class_name:
+                                        length    = 5 / self.workspace_units_to_mm
+
+                                        self.add_non_optical_element(centers, limits, oe_index=oe_index,
+                                                                 distance=oe_distance, height=height, shift=shift, length=length,
+                                                                 color=OpticalElementsColors.LENS, aspect_ration_modifier=aspect_ratio_modifier, label="Zone Plate")
+                                    else:
+                                        self.add_point(centers, limits, oe_index=oe_index,
+                                                       distance=oe_distance, height=height, shift=shift,
+                                                       label=None, aspect_ratio_modifier=aspect_ratio_modifier)
                                 else:
-                                    self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
+                                    self.add_point(centers, limits, oe_index=oe_index,
                                                    distance=oe_distance, height=height, shift=shift,
-                                                   label="Empty Element", aspect_ratio_modifier=aspect_ratio_modifier)
+                                                   label=None, aspect_ratio_modifier=aspect_ratio_modifier)
                             else:
                                 if oe_end.F_REFRAC == 0:
                                     if oe_end.IDUMMY == 0:  # oe not changed by shadow, angles in deg changed to rad
@@ -212,7 +226,7 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                                         color = OpticalElementsColors.MIRROR
                                         label = "Mirror"
 
-                                    self.add_optical_element(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
+                                    self.add_optical_element(centers, limits, oe_index=oe_index,
                                                              distance=oe_distance, height=height, shift=shift,
                                                              length=length, width=width, thickness=10/self.workspace_units_to_mm, inclination=inclination, orientation=orientation,
                                                              color=color, aspect_ration_modifier=aspect_ratio_modifier, label=label)
@@ -224,13 +238,13 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
 
                                     previous_orientation = orientation
                                 else:
-                                    self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
+                                    self.add_point(centers, limits, oe_index=oe_index,
                                                    distance=oe_distance, height=height, shift=shift,
-                                                   label="Refractor (not implemented)", aspect_ratio_modifier=aspect_ratio_modifier)
+                                                   label="Refractor", aspect_ratio_modifier=aspect_ratio_modifier)
                         elif isinstance(oe_end, IdealLensOE):
-                            self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
+                            self.add_point(centers, limits, oe_index=oe_index,
                                            distance=oe_distance, height=height, shift=shift,
-                                           label="Ideal Lens (not implemented)", aspect_ratio_modifier=aspect_ratio_modifier)
+                                           label="Ideal Lens", aspect_ratio_modifier=aspect_ratio_modifier)
                     elif isinstance(oe_start, CompoundOE):
                         n_elements = len(oe_start.list)
 
@@ -238,18 +252,20 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                         image_distance = 0.0
 
                         for i, oe in enumerate(oe_start.list):
-                            oe_type = 'UNKNOWN'
+                            oe_type = 'Unknown'
                             if isinstance(oe, OE):
-                                if oe.F_REFRAC == 1: oe_type = 'CRL'
-                                else:                oe_type = 'MIRROR'
-                                if oe.F_CRYSTAL == 1: oe_type = 'CRYSTAL'
-                                if oe.F_GRATING == 1: oe_type = 'GRATING'
-                                if oe.F_REFRAC == 2:  oe_type = 'EMPTY'
-                            elif isinstance(oe, IdealLensOE): oe_type = 'IDEAL LENS'
+                                if oe.F_REFRAC == 1: oe_type = 'CRLs/Transfocator'
+                                elif oe.F_REFRAC == 2:  oe_type = 'Empty'
+                                else:
+                                    oe_type = 'K-B Mirror' # KB
+                                    if oe.F_CRYSTAL == 1: oe_type = 'Double-Crystal Monochromator'
+                                    if oe.F_GRATING == 1: oe_type = 'Gratings' # not actually implemented
+
+                            elif isinstance(oe, IdealLensOE): oe_type = 'Ideal Lens'
 
                             if n_elements == 1:
                                 source_distance = oe.T_SOURCE
-                                image_distance = oe.T_IMAGE
+                                image_distance  = oe.T_IMAGE
                             else:
                                 if i < int(n_elements/2): source_distance += oe.T_SOURCE + oe.T_IMAGE
                                 else:                     image_distance += oe.T_SOURCE + oe.T_IMAGE
@@ -258,9 +274,24 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
 
                         height, shift = get_height_shift()
 
-                        self.add_point(centers, limits, oe_index=oe_number if self.draw_source else (oe_number - 1),
-                                       distance=oe_distance, height=height, shift=shift,
-                                       label="Compound OE ("+ oe_type + ")", aspect_ratio_modifier=aspect_ratio_modifier)
+                        if oe_type in ['Unknown', 'Empty', 'Ideal Lens']:
+                            self.add_point(centers, limits, oe_index=oe_index,
+                                           distance=oe_distance, height=height, shift=shift,
+                                           label="Compound OE (" + oe_type + ")", aspect_ratio_modifier=aspect_ratio_modifier)
+                        else:
+                            if oe_type == 'CRLs/Transfocator':
+                                length    = source_distance + image_distance - (oe_start.list[0].T_SOURCE - oe_start.list[-1].T_IMAGE)
+                                color     = OpticalElementsColors.LENS
+                            else:
+                                length    =  100 / self.workspace_units_to_mm
+
+                                if oe_type == 'K-B Mirror': color = OpticalElementsColors.MIRROR
+                                elif oe_type == 'Double-Crystal Monochromator': color = OpticalElementsColors.CRYSTAL
+                                elif oe_type == 'Gratings': color = OpticalElementsColors.GRATING
+
+                            self.add_non_optical_element(centers, limits, oe_index=oe_index,
+                                                         distance=oe_distance, height=height, shift=shift, length=length,
+                                                         color=color, aspect_ration_modifier=aspect_ratio_modifier, label=oe_type)
 
                     previous_height         = height
                     previous_shift          = shift
