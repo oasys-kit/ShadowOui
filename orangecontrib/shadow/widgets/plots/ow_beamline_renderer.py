@@ -51,7 +51,7 @@ from Shadow import OE, IdealLensOE, CompoundOE
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
-from oasys.widgets.abstract.beamline_rendering.ow_abstract_beamline_renderer import AbstractBeamlineRenderer, AspectRatioModifier, Orientations, OpticalElementsColors, initialize_arrays
+from oasys.widgets.abstract.beamline_rendering.ow_abstract_beamline_renderer import AbstractBeamlineRenderer, AspectRatioModifier, Orientations, OpticalElementsColors, initialize_arrays, get_height_shift, get_inclinations
 
 class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
     name = "Beamline Renderer"
@@ -95,6 +95,7 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                                                                                  1.0,
                                                                                  1,0])
             previous_oe_distance    = 0.0
+            previous_image_segment  = 0.0
             previous_image_distance = 0.0
             previous_height = self.initial_height # for better visibility
             previous_shift  = 0.0
@@ -122,29 +123,44 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                     oe_end   = history_element._shadow_oe_end._oe
                     oe_start = history_element._shadow_oe_start._oe
 
-                    def get_height_shift():
-                        if previous_orientation == Orientations.UP:
-                            height = previous_height + (source_distance + previous_image_distance) * numpy.sin(2 * beam_vertical_inclination)
-                            shift = previous_shift
-                        elif previous_orientation == Orientations.DOWN:
-                            height = previous_height - (source_distance + previous_image_distance) * numpy.sin(2 * beam_vertical_inclination)
-                            shift = previous_shift
-                        if previous_orientation == Orientations.LEFT:
-                            height = previous_height
-                            shift = previous_shift - (source_distance + previous_image_distance) * numpy.sin(2 * beam_horizontal_inclination)
-                        elif previous_orientation == Orientations.RIGHT:
-                            height = previous_height
-                            shift = previous_shift + (source_distance + previous_image_distance) * numpy.sin(2 * beam_horizontal_inclination)
-
-                        return height, shift
-
                     if (isinstance(oe_start, OE) or isinstance(oe_start, IdealLensOE)):
-                        source_distance = oe_end.T_SOURCE
-                        image_distance  = oe_end.T_IMAGE
+                        if oe_end.IDUMMY == 0: alpha = int(oe_end.ALPHA)  # oe not changed by shadow, angles in deg changed to rad
+                        else:                  alpha = int(oe_end.ALPHA * TODEG)
 
-                        oe_distance = previous_oe_distance + previous_image_distance + source_distance
+                        if previous_orientation == Orientations.UP:
+                            if alpha == 0:     orientation = Orientations.UP
+                            elif alpha == 90:  orientation = Orientations.LEFT
+                            elif alpha == 180: orientation = Orientations.DOWN
+                            elif alpha == 270: orientation = Orientations.RIGHT
+                        elif previous_orientation == Orientations.DOWN:
+                            if alpha == 0:     orientation = Orientations.DOWN
+                            elif alpha == 90:  orientation = Orientations.RIGHT
+                            elif alpha == 180: orientation = Orientations.UP
+                            elif alpha == 270: orientation = Orientations.LEFT
+                        elif previous_orientation == Orientations.LEFT:
+                            if alpha == 0:     orientation = Orientations.LEFT
+                            elif alpha == 90:  orientation = Orientations.DOWN
+                            elif alpha == 180: orientation = Orientations.RIGHT
+                            elif alpha == 270: orientation = Orientations.UP
+                        elif previous_orientation == Orientations.RIGHT:
+                            if alpha == 0:     orientation = Orientations.RIGHT
+                            elif alpha == 90:  orientation = Orientations.UP
+                            elif alpha == 180: orientation = Orientations.LEFT
+                            elif alpha == 270: orientation = Orientations.DOWN
 
-                        height, shift = get_height_shift()
+                        source_segment = oe_start.T_SOURCE
+                        image_segment  = oe_start.T_IMAGE
+
+                        source_distance = source_segment * numpy.cos(beam_vertical_inclination) * numpy.cos(beam_horizontal_inclination)
+
+                        segment_to_oe      = previous_image_segment + source_segment
+                        oe_total_distance  = previous_oe_distance + previous_image_distance + source_distance
+
+                        height, shift = get_height_shift(segment_to_oe,
+                                                         previous_height,
+                                                         previous_shift,
+                                                         beam_vertical_inclination,
+                                                         beam_horizontal_inclination)
 
                         if isinstance(oe_start, OE):
                             if oe_end.F_REFRAC == 2: # empty element
@@ -152,62 +168,37 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                                     if "Slit" in history_element._widget_class_name:
                                         if oe_end.I_ABS[0] == 1: # Filters
                                             self.add_slits_filter(centers, limits, oe_index=oe_index,
-                                                                  distance=oe_distance, height=height, shift=shift,
+                                                                  distance=oe_total_distance, height=height, shift=shift,
                                                                   aperture=None, label="Absorber",
                                                                   aspect_ratio_modifier=aspect_ratio_modifier)
                                         elif oe_end.I_SLIT[0] == 1: # Slits
                                             self.add_slits_filter(centers, limits, oe_index=oe_index,
-                                                                  distance=oe_distance, height=height, shift=shift,
+                                                                  distance=oe_total_distance, height=height, shift=shift,
                                                                   aperture=[oe_end.RX_SLIT[0], oe_end.RZ_SLIT[0]], label="Slits",
                                                                   aspect_ratio_modifier=aspect_ratio_modifier)
 
                                         else:
                                             self.add_point(centers, limits, oe_index=oe_index,
-                                                           distance=oe_distance, height=height, shift=shift,
+                                                           distance=oe_total_distance, height=height, shift=shift,
                                                            label=None, aspect_ratio_modifier=aspect_ratio_modifier)
                                     elif "ZonePlate" in history_element._widget_class_name:
                                         length    = 5 / self.workspace_units_to_mm
 
                                         self.add_non_optical_element(centers, limits, oe_index=oe_index,
-                                                                 distance=oe_distance, height=height, shift=shift, length=length,
+                                                                 distance=oe_total_distance, height=height, shift=shift, length=length,
                                                                  color=OpticalElementsColors.LENS, aspect_ration_modifier=aspect_ratio_modifier, label="Zone Plate")
                                     else:
                                         self.add_point(centers, limits, oe_index=oe_index,
-                                                       distance=oe_distance, height=height, shift=shift,
+                                                       distance=oe_total_distance, height=height, shift=shift,
                                                        label=None, aspect_ratio_modifier=aspect_ratio_modifier)
                                 else:
                                     self.add_point(centers, limits, oe_index=oe_index,
-                                                   distance=oe_distance, height=height, shift=shift,
+                                                   distance=oe_total_distance, height=height, shift=shift,
                                                    label=None, aspect_ratio_modifier=aspect_ratio_modifier)
                             else:
                                 if oe_end.F_REFRAC == 0:
-                                    if oe_end.IDUMMY == 0:  # oe not changed by shadow, angles in deg changed to rad
-                                        inclination = (90 - oe_end.T_INCIDENCE) / TODEG
-                                        alpha       = int(oe_end.ALPHA)
-                                    else:
-                                        inclination  = (numpy.pi/2) - oe_end.T_INCIDENCE
-                                        alpha        = int(oe_end.ALPHA * TODEG)
-
-                                    if previous_orientation == Orientations.UP:
-                                        if alpha == 0:     orientation = Orientations.UP
-                                        elif alpha == 90:  orientation = Orientations.LEFT
-                                        elif alpha == 180: orientation = Orientations.DOWN
-                                        elif alpha == 270: orientation = Orientations.RIGHT
-                                    elif previous_orientation == Orientations.DOWN:
-                                        if alpha == 0:     orientation = Orientations.DOWN
-                                        elif alpha == 90:  orientation = Orientations.RIGHT
-                                        elif alpha == 180: orientation = Orientations.UP
-                                        elif alpha == 270: orientation = Orientations.LEFT
-                                    elif previous_orientation == Orientations.LEFT:
-                                        if alpha == 0:     orientation = Orientations.LEFT
-                                        elif alpha == 90:  orientation = Orientations.DOWN
-                                        elif alpha == 180: orientation = Orientations.RIGHT
-                                        elif alpha == 270: orientation = Orientations.UP
-                                    elif previous_orientation == Orientations.RIGHT:
-                                        if alpha == 0:     orientation = Orientations.RIGHT
-                                        elif alpha == 90:  orientation = Orientations.UP
-                                        elif alpha == 180: orientation = Orientations.LEFT
-                                        elif alpha == 270: orientation = Orientations.DOWN
+                                    if oe_end.IDUMMY == 0: inclination = (90 - oe_end.T_INCIDENCE) / TODEG # oe not changed by shadow, angles in deg changed to rad
+                                    else:                  inclination  = (numpy.pi/2) - oe_end.T_INCIDENCE
 
                                     if oe_end.FHIT_C == 1:
                                         width = oe_start.RWIDX1 + oe_start.RWIDX2
@@ -226,30 +217,27 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                                         color = OpticalElementsColors.MIRROR
                                         label = "Mirror"
 
+                                    absolute_inclination, beam_horizontal_inclination, beam_vertical_inclination = get_inclinations(orientation, inclination, beam_vertical_inclination, beam_horizontal_inclination)
+
                                     self.add_optical_element(centers, limits, oe_index=oe_index,
-                                                             distance=oe_distance, height=height, shift=shift,
-                                                             length=length, width=width, thickness=10/self.workspace_units_to_mm, inclination=inclination, orientation=orientation,
+                                                             distance=oe_total_distance, height=height, shift=shift,
+                                                             length=length, width=width, thickness=10/self.workspace_units_to_mm, inclination=absolute_inclination, orientation=orientation,
                                                              color=color, aspect_ration_modifier=aspect_ratio_modifier, label=label)
-
-                                    if orientation == Orientations.UP:      beam_vertical_inclination += inclination
-                                    elif orientation == Orientations.DOWN:  beam_vertical_inclination -= inclination
-                                    elif orientation == Orientations.LEFT:  beam_horizontal_inclination -= inclination
-                                    elif orientation == Orientations.RIGHT: beam_horizontal_inclination += inclination
-
-                                    previous_orientation = orientation
                                 else:
                                     self.add_point(centers, limits, oe_index=oe_index,
-                                                   distance=oe_distance, height=height, shift=shift,
+                                                   distance=oe_total_distance, height=height, shift=shift,
                                                    label="Refractor", aspect_ratio_modifier=aspect_ratio_modifier)
                         elif isinstance(oe_end, IdealLensOE):
                             self.add_point(centers, limits, oe_index=oe_index,
-                                           distance=oe_distance, height=height, shift=shift,
+                                           distance=oe_total_distance, height=height, shift=shift,
                                            label="Ideal Lens", aspect_ratio_modifier=aspect_ratio_modifier)
+
+                        previous_orientation = orientation
                     elif isinstance(oe_start, CompoundOE):
                         n_elements = len(oe_start.list)
 
-                        source_distance = 0.0
-                        image_distance = 0.0
+                        source_segment = 0.0
+                        image_segment  = 0.0
 
                         for i, oe in enumerate(oe_start.list):
                             oe_type = 'Unknown'
@@ -264,23 +252,30 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                             elif isinstance(oe, IdealLensOE): oe_type = 'Ideal Lens'
 
                             if n_elements == 1:
-                                source_distance = oe.T_SOURCE
-                                image_distance  = oe.T_IMAGE
+                                source_segment = oe.T_SOURCE
+                                image_segment  = oe.T_IMAGE
                             else:
-                                if i < int(n_elements/2): source_distance += oe.T_SOURCE + oe.T_IMAGE
-                                else:                     image_distance += oe.T_SOURCE + oe.T_IMAGE
+                                if i < int(n_elements/2): source_segment += (oe.T_SOURCE + oe.T_IMAGE)
+                                else:                     image_segment += (oe.T_SOURCE + oe.T_IMAGE)
 
-                        oe_distance = previous_oe_distance + previous_image_distance + source_distance
+                        source_distance = source_segment * numpy.cos(beam_vertical_inclination) * numpy.cos(beam_horizontal_inclination)
 
-                        height, shift = get_height_shift()
+                        segment_to_oe      = previous_image_segment + source_segment
+                        oe_total_distance  = previous_oe_distance + source_distance
+
+                        height, shift = get_height_shift(segment_to_oe,
+                                                         previous_height,
+                                                         previous_shift,
+                                                         beam_vertical_inclination,
+                                                         beam_horizontal_inclination)
 
                         if oe_type in ['Unknown', 'Empty', 'Ideal Lens']:
                             self.add_point(centers, limits, oe_index=oe_index,
-                                           distance=oe_distance, height=height, shift=shift,
+                                           distance=oe_total_distance, height=height, shift=shift,
                                            label="Compound OE (" + oe_type + ")", aspect_ratio_modifier=aspect_ratio_modifier)
                         else:
                             if oe_type == 'CRLs/Transfocator':
-                                length    = source_distance + image_distance - (oe_start.list[0].T_SOURCE - oe_start.list[-1].T_IMAGE)
+                                length    = source_segment + image_segment - (oe_start.list[0].T_SOURCE - oe_start.list[-1].T_IMAGE)
                                 color     = OpticalElementsColors.LENS
                             else:
                                 length    =  100 / self.workspace_units_to_mm
@@ -290,15 +285,23 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                                 elif oe_type == 'Gratings': color = OpticalElementsColors.GRATING
 
                             self.add_non_optical_element(centers, limits, oe_index=oe_index,
-                                                         distance=oe_distance, height=height, shift=shift, length=length,
+                                                         distance=oe_total_distance, height=height, shift=shift, length=length,
                                                          color=color, aspect_ration_modifier=aspect_ratio_modifier, label=oe_type)
+
+                    image_distance          = image_segment * numpy.cos(beam_vertical_inclination) * numpy.cos(beam_horizontal_inclination)  # new direction
 
                     previous_height         = height
                     previous_shift          = shift
-                    previous_oe_distance    = oe_distance
+                    previous_oe_distance    = oe_total_distance
+                    previous_image_segment  = image_segment
                     previous_image_distance = image_distance
 
-            height, shift = get_height_shift()
+            height, shift = get_height_shift(previous_image_segment,
+                                             previous_height,
+                                             previous_shift,
+                                             beam_vertical_inclination,
+                                             beam_horizontal_inclination)
+
             self.add_point(centers, limits, oe_index=number_of_elements - 1,
                            distance=previous_oe_distance + previous_image_distance,
                            height=height, shift=shift, label="End Point",
