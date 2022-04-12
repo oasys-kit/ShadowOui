@@ -129,7 +129,8 @@ class UndulatorGaussian(ow_source.Source, WidgetDecorator):
             beam_out = ShadowBeam.traceFromSource(shadow_src,
                                                   write_begin_file=write_begin_file,
                                                   write_start_file=write_start_file,
-                                                  write_end_file=write_end_file)
+                                                  write_end_file=write_end_file,
+                                                  widget_class_name=self.__class__.name)
 
             if self.trace_shadow:
                 grabber.stop()

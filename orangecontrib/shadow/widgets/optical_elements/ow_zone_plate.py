@@ -26,8 +26,6 @@ GOOD_ZP = 191919
 
 COLLIMATED_SOURCE_LIMIT = 1e4 # m
 
-
-
 class ZonePlate(GenericElement):
 
     name = "Zone Plate"
@@ -740,7 +738,10 @@ class ZonePlate(GenericElement):
                                       cz_slit,
                                       file_scr_ext)
 
-        output_beam = ShadowBeam.traceFromOE(self.input_beam, empty_element, history=True)
+        output_beam = ShadowBeam.traceFromOE(self.input_beam,
+                                             empty_element,
+                                             history=True,
+                                             widget_class_name=type(self).__name__)
 
         go = numpy.where(output_beam._beam.rays[:, 9] == GOOD)
         lo = numpy.where(output_beam._beam.rays[:, 9] != GOOD)

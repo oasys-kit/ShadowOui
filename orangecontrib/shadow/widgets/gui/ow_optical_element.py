@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QDialog, QWidget, QLabel, QSizePolicy, QFileDialog
 from PyQt5.QtGui import QPalette, QColor, QFont, QPixmap
 
 from matplotlib import cm
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from oasys.widgets.gui import FigureCanvas3D
 from matplotlib.figure import Figure
 try:
     from mpl_toolkits.mplot3d import Axes3D  # necessario per caricare i plot 3D
@@ -1794,7 +1794,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             axis.set_ylabel("Y [" + parent.workspace_units_label + "]")
             axis.set_zlabel("Z [nm]")
 
-            figure_canvas = FigureCanvasQTAgg(figure)
+            figure_canvas = FigureCanvas3D(ax=axis, fig=figure, show_legend=False, show_buttons=False)
             figure_canvas.setFixedWidth(500)
             figure_canvas.setFixedHeight(645)
 
@@ -1901,7 +1901,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
             axis.set_ylabel("Y [" + parent.workspace_units_label + "]")
             axis.set_zlabel("Z [" + parent.workspace_units_label + "]")
 
-            figure_canvas = FigureCanvasQTAgg(figure)
+            figure_canvas = FigureCanvas3D(ax=axis, fig=figure, show_legend=False, show_buttons=False)
             figure_canvas.setFixedWidth(500)
             figure_canvas.setFixedHeight(500)
 
