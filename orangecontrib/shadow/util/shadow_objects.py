@@ -246,9 +246,9 @@ class ShadowBeam:
 
                             merged_history_element = merged_beam.getOEHistory(index)
                             if merge_history == 1:
-                                merged_history_element._input_beam = ShadowBeam.mergeBeams(history_element_1._input_beam, history_element_2._input_beam, which_flux, merge_history=False)
+                                merged_history_element._input_beam = ShadowBeam.mergeBeams(history_element_1._input_beam, history_element_2._input_beam, which_flux, merge_history=0)
                             else:
-                                merged_history_element._input_beam = ShadowBeam.mergeBeams(history_element_1._input_beam, history_element_2._input_beam, which_flux, merge_history=True)
+                                merged_history_element._input_beam = ShadowBeam.mergeBeams(history_element_1._input_beam, history_element_2._input_beam, which_flux, merge_history=1)
                     else:
                         raise ValueError("Histories must have the same path to be merged")
                 else:

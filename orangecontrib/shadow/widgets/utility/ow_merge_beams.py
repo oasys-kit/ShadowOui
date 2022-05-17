@@ -300,7 +300,7 @@ class MergeBeams(OWWidget):
                     current_beam._beam.rays[:, 17] *= numpy.sqrt(ratio)
 
                 if merged_beam is None: merged_beam = current_beam
-                else: merged_beam = ShadowBeam.mergeBeams(merged_beam, current_beam, which_flux=3, merge_history=2)
+                else: merged_beam = ShadowBeam.mergeBeams(merged_beam, current_beam, which_flux=3, merge_history=0)
 
         self.send("Beam", merged_beam)
 
