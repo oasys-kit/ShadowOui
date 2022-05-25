@@ -106,8 +106,8 @@ class OWOasysDataConverter(widget.OWWidget):
                         surface_data_file = filename + "_shadow.dat"
 
                     ST.write_shadow_surface(self.oasys_data.zz/self.workspace_units_to_m,
-                                            numpy.round(self.oasys_data.xx/self.workspace_units_to_m, 6),
-                                            numpy.round(self.oasys_data.yy/self.workspace_units_to_m, 6),
+                                            numpy.round(self.oasys_data.xx/self.workspace_units_to_m, 9),
+                                            numpy.round(self.oasys_data.yy/self.workspace_units_to_m, 9),
                                             surface_data_file)
 
                     error_profile_x_dim = abs(self.oasys_data.xx[-1] - self.oasys_data.xx[0])/self.workspace_units_to_m
