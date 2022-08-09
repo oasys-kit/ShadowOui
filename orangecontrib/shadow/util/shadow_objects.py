@@ -246,9 +246,9 @@ class ShadowBeam:
 
                             merged_history_element = merged_beam.getOEHistory(index)
                             if merge_history == 1:
-                                merged_history_element._input_beam = ShadowBeam.mergeBeams(history_element_1._input_beam, history_element_2._input_beam, which_flux, merge_history=False)
+                                merged_history_element._input_beam = ShadowBeam.mergeBeams(history_element_1._input_beam, history_element_2._input_beam, which_flux, merge_history=0)
                             else:
-                                merged_history_element._input_beam = ShadowBeam.mergeBeams(history_element_1._input_beam, history_element_2._input_beam, which_flux, merge_history=True)
+                                merged_history_element._input_beam = ShadowBeam.mergeBeams(history_element_1._input_beam, history_element_2._input_beam, which_flux, merge_history=1)
                     else:
                         raise ValueError("Histories must have the same path to be merged")
                 else:
@@ -283,13 +283,13 @@ class ShadowBeam:
 
         if history:
             __shadow_beam.history.append(ShadowOEHistoryItem(shadow_source_start=shadow_source_start,
-                                                    shadow_source_end=shadow_source_end,
-                                                    widget_class_name=widget_class_name))
+                                                             shadow_source_end=shadow_source_end,
+                                                             widget_class_name=widget_class_name))
 
         return __shadow_beam
 
     @classmethod
-    def traceFromOE(cls, input_beam, shadow_oe, write_start_file=0, write_end_file=0, history=True, widget_class_name=None):
+    def traceFromOE(cls, input_beam, shadow_oe, write_start_file=0, write_end_file=0, history=True, widget_class_name=None, recursive_history=True):
         __shadow_beam = cls.initializeFromPreviousBeam(input_beam)
 
         shadow_oe.self_repair()
@@ -310,13 +310,13 @@ class ShadowBeam:
             if not __shadow_beam._oe_number == 0:
                 if len(__shadow_beam.history) - 1 < __shadow_beam._oe_number:
                     __shadow_beam.history.append(ShadowOEHistoryItem(oe_number=__shadow_beam._oe_number,
-                                                                     input_beam=input_beam.duplicate(),
+                                                                     input_beam=input_beam.duplicate(history=recursive_history),
                                                                      shadow_oe_start=history_shadow_oe_start,
                                                                      shadow_oe_end=history_shadow_oe_end,
                                                                      widget_class_name=widget_class_name))
                 else:
                     __shadow_beam.history[__shadow_beam._oe_number]=ShadowOEHistoryItem(oe_number=__shadow_beam._oe_number,
-                                                                      input_beam=input_beam.duplicate(),
+                                                                      input_beam=input_beam.duplicate(history=recursive_history),
                                                                       shadow_oe_start=history_shadow_oe_start,
                                                                       shadow_oe_end=history_shadow_oe_end,
                                                                       widget_class_name=widget_class_name)
@@ -324,7 +324,7 @@ class ShadowBeam:
         return __shadow_beam
 
     @classmethod
-    def traceIdealLensOE(cls, input_beam, shadow_oe, history=True, widget_class_name=None):
+    def traceIdealLensOE(cls, input_beam, shadow_oe, history=True, widget_class_name=None, recursive_history=True):
         __shadow_beam = cls.initializeFromPreviousBeam(input_beam)
 
         shadow_oe.self_repair()
@@ -342,13 +342,13 @@ class ShadowBeam:
             if not __shadow_beam._oe_number == 0:
                 if len(__shadow_beam.history) - 1 < __shadow_beam._oe_number:
                     __shadow_beam.history.append(ShadowOEHistoryItem(oe_number=__shadow_beam._oe_number,
-                                                                     input_beam=input_beam.duplicate(),
+                                                                     input_beam=input_beam.duplicate(history=recursive_history),
                                                                      shadow_oe_start=history_shadow_oe_start,
                                                                      shadow_oe_end=history_shadow_oe_end,
                                                                      widget_class_name=widget_class_name))
                 else:
                     __shadow_beam.history[__shadow_beam._oe_number]=ShadowOEHistoryItem(oe_number=__shadow_beam._oe_number,
-                                                                                        input_beam=input_beam.duplicate(),
+                                                                                        input_beam=input_beam.duplicate(history=recursive_history),
                                                                                         shadow_oe_start=history_shadow_oe_start,
                                                                                         shadow_oe_end=history_shadow_oe_end,
                                                                                         widget_class_name=widget_class_name)
@@ -364,7 +364,8 @@ class ShadowBeam:
                             write_star_files=0,
                             write_mirr_files=0,
                             history=True,
-                            widget_class_name=None):
+                            widget_class_name=None,
+                            recursive_history=True):
         __shadow_beam = cls.initializeFromPreviousBeam(input_beam)
 
         shadow_oe.self_repair()
@@ -387,13 +388,13 @@ class ShadowBeam:
             if not __shadow_beam._oe_number == 0:
                 if len(__shadow_beam.history) - 1 < __shadow_beam._oe_number:
                     __shadow_beam.history.append(ShadowOEHistoryItem(oe_number=__shadow_beam._oe_number,
-                                                                     input_beam=input_beam.duplicate(),
+                                                                     input_beam=input_beam.duplicate(history=recursive_history),
                                                                      shadow_oe_start=history_shadow_oe_start,
                                                                      shadow_oe_end=history_shadow_oe_end,
                                                                      widget_class_name=widget_class_name))
                 else:
                     __shadow_beam.history[__shadow_beam._oe_number] = ShadowOEHistoryItem(oe_number=__shadow_beam._oe_number,
-                                                                                          input_beam=input_beam.duplicate(),
+                                                                                          input_beam=input_beam.duplicate(history=recursive_history),
                                                                                           shadow_oe_start=history_shadow_oe_start,
                                                                                           shadow_oe_end=history_shadow_oe_end,
                                                                                           widget_class_name=widget_class_name)
