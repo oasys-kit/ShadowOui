@@ -19,6 +19,9 @@ from oasys.util.oasys_util import EmittingStream
 
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
 
+from xoppylib.decorators.dabax_decorated import DabaxDecorated
+from xoppylib.crystals.tools import bragg_calc, bragg_calc2
+
 class OWxsh_bragg(OWWidget):
     name = "Bragg"
     id = "xsh_bragg"
@@ -47,58 +50,23 @@ class OWxsh_bragg(OWWidget):
     E_STEP = Setting(100.0)
     SHADOW_FILE = Setting("bragg.dat")
 
+    PREPROCESSOR_FILE_VERSION = Setting(0)
+    DESCRIPTOR_DABAX = Setting(0)
+    DESCRIPTOR_XRAYSERVER = Setting(0)
 
-    crystals = [
-        "Si",
-        "Si_NIST",
-        "Si2",
-        "Ge",
-        "Diamond",
-        "GaAs",
-        "GaSb",
-        "GaP",
-        "InAs",
-        "InP",
-        "InSb",
-        "SiC",   #11  Up to here they are ZincBlende structure, thus accepred by the preprocessor
-        # "NaCl",
-        # "CsF",
-        # "LiF",
-        # "KCl",
-        # "CsCl",
-        # "Be",
-        "Graphite",  # this one is accepted via ad-hoc patch (bragg_new)
-        # "PET",
-        # "Beryl",
-        # "KAP",
-        # "RbAP",
-        # "TlAP",
-        # "Muscovite",
-        # "AlphaQuartz",
-        # "Copper",
-        # "LiNbO3",
-        # "Platinum",
-        # "Gold",
-        # "Sapphire",
-        # "LaB6",
-        # "LaB6_NIST",
-        # "KTP",
-        # "AlphaAlumina",
-        # "Aluminum",
-        # "Iron",
-        # "Titanium"
-    ]
 
     usage_path = os.path.join(resources.package_dirname("orangecontrib.shadow.widgets.gui"), "misc", "bragg_usage.png")
 
     def __init__(self):
         super().__init__()
 
+        self.populate_crystal_lists()
+
         self.runaction = widget.OWAction("Compute", self)
         self.runaction.triggered.connect(self.compute)
         self.addAction(self.runaction)
 
-        self.setFixedWidth(550)
+        self.setFixedWidth(650)
         self.setFixedHeight(550)
 
         idx = -1 
@@ -132,16 +100,44 @@ class OWxsh_bragg(OWWidget):
 
         usage_box.layout().addWidget(label)
 
+        box = oasysgui.widgetBox(tab_bas, "Crystal Parameters", orientation="vertical")
+
+        #widget index -0.1
+        idx += 1
+        gui.comboBox(box, self, "PREPROCESSOR_FILE_VERSION",
+                     label=self.unitLabels()[idx], addSpace=True,
+                     items=["v1 [default]","v2 [from DABAX list]","v2 [from XRayServer list]"], sendSelectedValue=False,
+                     valueType=int, orientation="horizontal", labelWidth=350)
+        self.show_at(self.unitFlags()[idx], box)
 
         #widget index 0
-        idx += 1 
-        box = oasysgui.widgetBox(tab_bas, "Crystal Parameters", orientation="vertical")
-        gui.comboBox(box, self, "DESCRIPTOR",
+        idx += 1
+        box1 = oasysgui.widgetBox(box, "", orientation="vertical")
+        gui.comboBox(box1, self, "DESCRIPTOR",
                      label=self.unitLabels()[idx], addSpace=True,
                      items=self.crystals, sendSelectedValue=False,
                      valueType=int, orientation="horizontal", labelWidth=350)
-        self.show_at(self.unitFlags()[idx], box)
-        
+        self.show_at(self.unitFlags()[idx], box1)
+
+        #widget index 0.1
+        idx += 1
+        box2 = oasysgui.widgetBox(box, "", orientation="vertical")
+        gui.comboBox(box2, self, "DESCRIPTOR_DABAX",
+                     label=self.unitLabels()[idx], addSpace=True,
+                     items=self.crystals_dabax, sendSelectedValue=False,
+                     valueType=int, orientation="horizontal", labelWidth=350)
+        self.show_at(self.unitFlags()[idx], box2)
+
+        #widget index 0.2
+        idx += 1
+        box3 = oasysgui.widgetBox(box, "", orientation="vertical")
+        gui.comboBox(box3, self, "DESCRIPTOR_XRAYSERVER",
+                     label=self.unitLabels()[idx], addSpace=True,
+                     items=self.crystals_xrayserver, sendSelectedValue=False,
+                     valueType=int, orientation="horizontal", labelWidth=350)
+        self.show_at(self.unitFlags()[idx], box3)
+
+
         #widget index 1 
         idx += 1 
         box_miller = oasysgui.widgetBox(box, "", orientation = "horizontal")
@@ -213,54 +209,136 @@ class OWxsh_bragg(OWWidget):
 
         gui.rubber(self.controlArea)
 
-    def unitLabels(self):
-         return ['Crystal descriptor','H miller index','K miller index','L miller index','Temperature factor','Minimum energy [eV]','Maximum energy [eV]','Energy step [eV]','File name (for SHADOW)']
+    def populate_crystal_lists(self):
+        self.crystals = [
+            "Si",
+            "Si_NIST",
+            "Si2",
+            "Ge",
+            "Diamond",
+            "GaAs",
+            "GaSb",
+            "GaP",
+            "InAs",
+            "InP",
+            "InSb",
+            "SiC",  # 11  Up to here they are ZincBlende structure, thus accepted by the preprocessor
+            "Graphite",  # this one is accepted via ad-hoc patch (bragg_new)
+            "YB66",  # this uses an ad-hoc patch
+            "Beryl",  # this uses an ad-hoc patch
+            "Muscovite",  # this uses an ad-hoc patch
+        ]
 
+        dx1 = DabaxDecorated(file_Crystals="Crystals.dat")
+        list1 = dx1.Crystal_GetCrystalsList()
+        self.crystals_dabax = list1
+
+        dx2 = DabaxDecorated(file_Crystals="Crystals_xrayserver.dat")
+        list2 = dx2.Crystal_GetCrystalsList()
+        self.crystals_xrayserver = list2
+
+    def unitLabels(self):
+         return ['Preprocessor file version','Crystal descriptor [default list]','Crystal descriptor [DABAX list]','Crystal descriptor [XRayServer list]','H miller index','K miller index','L miller index','Temperature factor','Minimum energy [eV]','Maximum energy [eV]','Energy step [eV]','File name (for SHADOW)']
 
     def unitFlags(self):
-         return ['True','True','True','True','True','True','True','True','True']
+         return ['True','self.PREPROCESSOR_FILE_VERSION == 0','self.PREPROCESSOR_FILE_VERSION == 1','self.PREPROCESSOR_FILE_VERSION == 2','True','True','True','True','True','True','True','True']
 
     def selectFile(self):
         self.le_SHADOW_FILE.setText(oasysgui.selectFileFromDialog(self, self.SHADOW_FILE, "Select Output File"))
 
     def compute(self):
-        try:
-            sys.stdout = EmittingStream(textWritten=self.writeStdOut)
+        sys.stdout = EmittingStream(textWritten=self.writeStdOut)
+        self.checkFields()
 
-            self.checkFields()
-            if self.DESCRIPTOR <= 11: # accepted crystals
-                tmp = bragg(interactive=False,
-                            DESCRIPTOR=self.crystals[self.DESCRIPTOR],
-                            H_MILLER_INDEX=self.H_MILLER_INDEX,
-                            K_MILLER_INDEX=self.K_MILLER_INDEX,
-                            L_MILLER_INDEX=self.L_MILLER_INDEX,
-                            TEMPERATURE_FACTOR=self.TEMPERATURE_FACTOR,
-                            E_MIN=self.E_MIN,
-                            E_MAX=self.E_MAX,
-                            E_STEP=self.E_STEP,
-                            SHADOW_FILE=congruence.checkFileName(self.SHADOW_FILE))
-            elif self.crystals[self.DESCRIPTOR] == "Graphite": # GRAPHITE
-                OWxsh_bragg.new_bragg(H_MILLER_INDEX=self.H_MILLER_INDEX,
-                                      K_MILLER_INDEX=self.K_MILLER_INDEX,
-                                      L_MILLER_INDEX=self.L_MILLER_INDEX,
-                                      TEMPERATURE_FACTOR=self.TEMPERATURE_FACTOR,
-                                      E_MIN=self.E_MIN,
-                                      E_MAX=self.E_MAX,
-                                      E_STEP=self.E_STEP,
-                                      SHADOW_FILE=congruence.checkFileName(self.SHADOW_FILE))
-            else:
-                QMessageBox.critical(self, "Error.",
-                                     "Crystal %s is not implemented in shadow3"%self.crystals[self.DESCRIPTOR],
+        if self.PREPROCESSOR_FILE_VERSION == 0:
+            try:
+                if self.DESCRIPTOR <= 11: # accepted crystals
+                    tmp = bragg(interactive=False,
+                                DESCRIPTOR=self.crystals[self.DESCRIPTOR],
+                                H_MILLER_INDEX=self.H_MILLER_INDEX,
+                                K_MILLER_INDEX=self.K_MILLER_INDEX,
+                                L_MILLER_INDEX=self.L_MILLER_INDEX,
+                                TEMPERATURE_FACTOR=self.TEMPERATURE_FACTOR,
+                                E_MIN=self.E_MIN,
+                                E_MAX=self.E_MAX,
+                                E_STEP=self.E_STEP,
+                                SHADOW_FILE=congruence.checkFileName(self.SHADOW_FILE))
+                elif self.crystals[self.DESCRIPTOR] == "Graphite": # GRAPHITE
+                    OWxsh_bragg.new_bragg(H_MILLER_INDEX=self.H_MILLER_INDEX,
+                                          K_MILLER_INDEX=self.K_MILLER_INDEX,
+                                          L_MILLER_INDEX=self.L_MILLER_INDEX,
+                                          TEMPERATURE_FACTOR=self.TEMPERATURE_FACTOR,
+                                          E_MIN=self.E_MIN,
+                                          E_MAX=self.E_MAX,
+                                          E_STEP=self.E_STEP,
+                                          SHADOW_FILE=congruence.checkFileName(self.SHADOW_FILE))
+
+
+                elif self.crystals[self.DESCRIPTOR] == "YB66":
+                    from xoppylib.crystals.create_bragg_preprocessor_file_v2 import create_bragg_preprocessor_file_v2
+                    from dabax.dabax_xraylib import DabaxXraylib
+
+                    create_bragg_preprocessor_file_v2(
+                        interactive = False,
+                        DESCRIPTOR = self.crystals[self.DESCRIPTOR],
+                        H_MILLER_INDEX = self.H_MILLER_INDEX,
+                        K_MILLER_INDEX = self.K_MILLER_INDEX,
+                        L_MILLER_INDEX = self.L_MILLER_INDEX,
+                        TEMPERATURE_FACTOR = self.TEMPERATURE_FACTOR,
+                        E_MIN = self.E_MIN,
+                        E_MAX = self.E_MAX,
+                        E_STEP = self.E_STEP,
+                        SHADOW_FILE = congruence.checkFileName(self.SHADOW_FILE),
+                        material_constants_library = DabaxXraylib(),
+                    )
+                else:
+                    from xoppylib.crystals.create_bragg_preprocessor_file_v2 import create_bragg_preprocessor_file_v2
+                    create_bragg_preprocessor_file_v2(
+                        interactive = False,
+                        DESCRIPTOR = self.crystals[self.DESCRIPTOR],
+                        H_MILLER_INDEX = self.H_MILLER_INDEX,
+                        K_MILLER_INDEX = self.K_MILLER_INDEX,
+                        L_MILLER_INDEX = self.L_MILLER_INDEX,
+                        TEMPERATURE_FACTOR = self.TEMPERATURE_FACTOR,
+                        E_MIN = self.E_MIN,
+                        E_MAX = self.E_MAX,
+                        E_STEP = self.E_STEP,
+                        SHADOW_FILE = congruence.checkFileName(self.SHADOW_FILE),
+                        material_constants_library = xraylib,
+                    )
+            except Exception as exception:
+                QMessageBox.critical(self, "Error",
+                                     str(exception),
                                      QMessageBox.Ok)
+                if self.IS_DEVELOP: raise exception
 
-            self.send("PreProcessor_Data", ShadowPreProcessorData(bragg_data_file=self.SHADOW_FILE))
+        elif self.PREPROCESSOR_FILE_VERSION == 1:
+            dic1 = bragg_calc2(descriptor=self.crystals_dabax[self.DESCRIPTOR_DABAX],
+                                hh=self.H_MILLER_INDEX,
+                                kk=self.K_MILLER_INDEX,
+                                ll=self.L_MILLER_INDEX,
+                                temper=self.TEMPERATURE_FACTOR,
+                                emin=self.E_MIN,
+                                emax=self.E_MAX,
+                                estep=self.E_STEP,
+                                fileout=congruence.checkFileName(self.SHADOW_FILE),
+                                material_constants_library=DabaxDecorated(file_Crystals="Crystals.dat"))
+        elif self.PREPROCESSOR_FILE_VERSION == 2:
+            dic2 = bragg_calc2(descriptor=self.crystals_xrayserver[self.DESCRIPTOR_XRAYSERVER],
+                                hh=self.H_MILLER_INDEX,
+                                kk=self.K_MILLER_INDEX,
+                                ll=self.L_MILLER_INDEX,
+                                temper=self.TEMPERATURE_FACTOR,
+                                emin=self.E_MIN,
+                                emax=self.E_MAX,
+                                estep=self.E_STEP,
+                                fileout=congruence.checkFileName(self.SHADOW_FILE),
+                                material_constants_library=DabaxDecorated(file_Crystals="Crystals_xrayserver.dat"))
+        else:
+            raise NotImplementedError
 
-        except Exception as exception:
-            QMessageBox.critical(self, "Error",
-                                 str(exception),
-                                 QMessageBox.Ok)
+        self.send("PreProcessor_Data", ShadowPreProcessorData(bragg_data_file=self.SHADOW_FILE))
 
-            if self.IS_DEVELOP: raise exception
 
     @classmethod
     def new_bragg(cls,
@@ -388,12 +466,6 @@ class OWxsh_bragg(OWWidget):
 
 
     def checkFields(self):
-        if type(self.DESCRIPTOR) == str: # back compatibility with old version
-            try:
-                self.DESCRIPTOR = self.crystals.index(self.DESCRIPTOR)
-            except:
-                self.DESCRIPTOR = 0
-
         self.H_MILLER_INDEX = congruence.checkNumber(self.H_MILLER_INDEX, "H miller index")
         self.K_MILLER_INDEX = congruence.checkNumber(self.K_MILLER_INDEX, "K miller index")
         self.L_MILLER_INDEX = congruence.checkNumber(self.L_MILLER_INDEX, "L miller index")
@@ -422,6 +494,7 @@ class OWxsh_bragg(OWWidget):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     w = OWxsh_bragg()
+    w.PREPROCESSOR_FILE_VERSION = 1
     w.show()
     app.exec()
     w.saveSettings()
