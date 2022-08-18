@@ -40,7 +40,7 @@ SETUP_REQUIRES = (
 )
 
 INSTALL_REQUIRES = (
-    'shadow3>=22.6.3',
+    'shadow3>=22.8.10',
     'oasys1>=1.2.108',
     'wofryshadow>=1.0.3',
     'dabax',
