@@ -1028,7 +1028,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                     self.asymmetric_cut_box = oasysgui.widgetBox(self.mosaic_box_1, "", addSpace=False, orientation="vertical", height=110)
 
-                    gui.comboBox(self.asymmetric_cut_box, self, "asymmetric_cut", label="Asymmetric cut", labelWidth=355,
+                    self.asymmetric_cut_combo = gui.comboBox(self.asymmetric_cut_box, self, "asymmetric_cut", label="Asymmetric cut", labelWidth=355,
                                  items=["No", "Yes"],
                                  callback=self.set_AsymmetricCut, sendSelectedValue=False, orientation="horizontal")
 
@@ -1632,6 +1632,12 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
     def set_BraggLaue(self):
         self.asymmetric_cut_box_1_order.setVisible(self.diffraction_geometry==1) #LAUE
+        if self.diffraction_geometry==1:
+            self.asymmetric_cut = 1
+            self.set_AsymmetricCut()
+            self.asymmetric_cut_combo.setEnabled(False)
+        else:
+            self.asymmetric_cut_combo.setEnabled(True)
 
     def set_UnitsInUse(self):
         self.autosetting_box_units_1.setVisible(self.units_in_use == 0)
