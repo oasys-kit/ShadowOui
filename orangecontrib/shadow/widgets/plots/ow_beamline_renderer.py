@@ -127,6 +127,10 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                         if oe_end.IDUMMY == 0: alpha = int(oe_end.ALPHA)  # oe not changed by shadow, angles in deg changed to rad
                         else:                  alpha = int(oe_end.ALPHA * TODEG)
 
+                        if alpha < 0: alpha = int(360 + alpha)
+
+                        if not alpha in [0, 90, 180, 270]: raise ValueError("Rendering not possible, orientation angle not supported")
+
                         if previous_orientation == Orientations.UP:
                             if alpha == 0:     orientation = Orientations.UP
                             elif alpha == 90:  orientation = Orientations.LEFT
