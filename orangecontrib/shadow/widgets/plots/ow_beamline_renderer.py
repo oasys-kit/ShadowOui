@@ -279,7 +279,7 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                                            label="Compound OE (" + oe_type + ")", aspect_ratio_modifier=aspect_ratio_modifier)
                         else:
                             if oe_type == 'CRLs/Transfocator':
-                                length    = source_segment + image_segment - (oe_start.list[0].T_SOURCE - oe_start.list[-1].T_IMAGE)
+                                length    = source_segment + image_segment - (oe_start.list[0].T_SOURCE + oe_start.list[-1].T_IMAGE)
                                 color     = OpticalElementsColors.LENS
                             else:
                                 length    =  100 / self.workspace_units_to_mm
