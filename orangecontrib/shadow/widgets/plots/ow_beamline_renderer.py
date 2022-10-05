@@ -201,8 +201,12 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                                                    label=None, aspect_ratio_modifier=aspect_ratio_modifier)
                             else:
                                 if oe_end.F_REFRAC == 0:
-                                    if oe_end.IDUMMY == 0: inclination = (90 - oe_end.T_INCIDENCE) / TODEG # oe not changed by shadow, angles in deg changed to rad
-                                    else:                  inclination  = (numpy.pi/2) - oe_end.T_INCIDENCE
+                                    if oe_end.IDUMMY == 0:
+                                        inclination_in = (90 - oe_end.T_INCIDENCE) / TODEG # oe not changed by shadow, angles in deg changed to rad
+                                        inclination_out = (90 - oe_end.T_REFLECTION) / TODEG
+                                    else:
+                                        inclination_in  = (numpy.pi/2) - oe_end.T_INCIDENCE
+                                        inclination_out  = (numpy.pi/2) - oe_end.T_REFLECTION
 
                                     if oe_end.FHIT_C == 1:
                                         width = oe_start.RWIDX1 + oe_start.RWIDX2
@@ -221,7 +225,7 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
                                         color = OpticalElementsColors.MIRROR
                                         label = "Mirror"
 
-                                    absolute_inclination, beam_horizontal_inclination, beam_vertical_inclination = get_inclinations(orientation, inclination, beam_vertical_inclination, beam_horizontal_inclination)
+                                    absolute_inclination, beam_horizontal_inclination, beam_vertical_inclination = get_inclinations(orientation, inclination_in, inclination_out, beam_vertical_inclination, beam_horizontal_inclination)
 
                                     self.add_optical_element(centers, limits, oe_index=oe_index,
                                                              distance=oe_total_distance, height=height, shift=shift,
