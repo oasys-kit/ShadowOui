@@ -1035,6 +1035,8 @@ try:
 except:
     pass
 
+from scipy.interpolate import RectBivariateSpline
+
 class ShadowPreProcessor:
 
     @classmethod
@@ -1116,6 +1118,193 @@ class ShadowPreProcessor:
                     z_values[x_index, z_index] = z_value
 
         return x_coords, y_coords, z_values
+
+    @classmethod
+    def apply_user_diffraction_profile(cls, crystal, h, k, l, asymmetry_angle, file_diffraction_profile, input_beam):
+        values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/angle." +
+                                               ("0" + str(input_beam._oe_number) if (input_beam._oe_number < 10) else
+                                                str(input_beam._oe_number))))
+
+        beam_incident_angles = values[:, 1]
+        beam_wavelengths     = ShadowPhysics.getWavelengthFromShadowK(input_beam._beam.rays[:, 10])
+        d_spacing            = xraylib.Crystal_dSpacing(xraylib.Crystal_GetCrystal(crystal), h, k, l)
+        bragg_angles         = numpy.degrees(numpy.arcsin(0.5*beam_wavelengths/d_spacing))
+        diffraction_angles   = 90 - (bragg_angles - asymmetry_angle)
+        delta_thetas         = diffraction_angles - beam_incident_angles
+
+        values = numpy.loadtxt(os.path.abspath(file_diffraction_profile) if file_diffraction_profile.startswith('/') else
+                               os.path.abspath(os.path.curdir + "/" + file_diffraction_profile))
+
+        crystal_delta_thetas     = values[:, 0]
+        crystal_reflectivities_s = values[:, 1]
+
+        interpolated_weight_s = numpy.sqrt(numpy.interp(delta_thetas,
+                                                        crystal_delta_thetas,
+                                                        crystal_reflectivities_s,
+                                                        left=crystal_reflectivities_s[0],
+                                                        right=crystal_reflectivities_s[-1]))
+        if values.shape[1] == 2: interpolated_weight_p = interpolated_weight_s
+        elif values.shape[1] >= 3:
+            crystal_reflectivities_p = values[:, 2]
+
+            interpolated_weight_p = numpy.sqrt(numpy.interp(delta_thetas,
+                                                            crystal_delta_thetas,
+                                                            crystal_reflectivities_p,
+                                                            left=crystal_reflectivities_p[0],
+                                                            right=crystal_reflectivities_p[-1]))
+
+        output_beam = input_beam.duplicate()
+
+        output_beam._beam.rays[:, 6]  = output_beam._beam.rays[:, 6]  * interpolated_weight_s
+        output_beam._beam.rays[:, 7]  = output_beam._beam.rays[:, 7]  * interpolated_weight_s
+        output_beam._beam.rays[:, 8]  = output_beam._beam.rays[:, 8]  * interpolated_weight_s
+        output_beam._beam.rays[:, 15] = output_beam._beam.rays[:, 15] * interpolated_weight_p
+        output_beam._beam.rays[:, 16] = output_beam._beam.rays[:, 16] * interpolated_weight_p
+        output_beam._beam.rays[:, 17] = output_beam._beam.rays[:, 17] * interpolated_weight_p
+
+        return output_beam
+
+    @classmethod
+    def apply_user_reflectivity(cls, file_type, angle_units, energy_units, file_reflectivity, input_beam):
+        if file_type == 0: # angle vs refl.
+            values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/angle." +
+                                                   ("0" + str(input_beam._oe_number) if (input_beam._oe_number < 10) else
+                                                    str(input_beam._oe_number))))
+
+            beam_incident_angles = 90.0 - values[:, 1]
+
+            values = numpy.loadtxt(os.path.abspath(file_reflectivity) if file_reflectivity.startswith('/') else
+                                   os.path.abspath(os.path.curdir + "/" + file_reflectivity))
+
+            mirror_grazing_angles = values[:, 0]
+            mirror_reflectivities = values[:, 1]
+
+            if mirror_grazing_angles[-1] < mirror_grazing_angles[0]: # XOPPY MLayer gives angles in descendent order
+                mirror_grazing_angles = values[:, 0][::-1]
+                mirror_reflectivities = values[:, 1][::-1]
+
+            if angle_units == 0: mirror_grazing_angles = numpy.degrees(1e-3 * mirror_grazing_angles) # mrad to deg
+
+            interpolated_weight_s = numpy.sqrt(numpy.interp(beam_incident_angles,
+                                                            mirror_grazing_angles,
+                                                            mirror_reflectivities,
+                                                            left=mirror_reflectivities[0],
+                                                            right=mirror_reflectivities[-1]))
+            interpolated_weight_p = interpolated_weight_s
+
+        elif file_type == 1: # Energy vs Refl.
+            beam_energies = ShadowPhysics.getEnergyFromShadowK(input_beam._beam.rays[:, 10])
+
+            values = numpy.loadtxt(os.path.abspath(os.path.abspath(file_reflectivity)  if file_reflectivity.startswith('/') else
+                                                   os.path.abspath(os.path.curdir + "/" + file_reflectivity)))
+
+            mirror_energies = values[:, 0]
+            mirror_reflectivities = values[:, 1]
+
+            if energy_units == 1: mirror_energies *= 1e3 # KeV to eV
+
+            interpolated_weight_s = numpy.sqrt(numpy.interp(beam_energies,
+                                                            mirror_energies,
+                                                            mirror_reflectivities,
+                                                            left=mirror_reflectivities[0],
+                                                            right=mirror_reflectivities[-1]))
+            interpolated_weight_p = interpolated_weight_s
+
+        elif file_type == 2: # 2D Energy vs Angle vs Reflectivity
+            values = numpy.loadtxt(os.path.abspath(os.path.curdir + "/angle." +
+                                                   ("0" + str(input_beam._oe_number) if (input_beam._oe_number < 10) else
+                                                    str(input_beam._oe_number))))
+
+            beam_incident_angles = 90.0 - values[:, 1]
+
+            beam_energies = ShadowPhysics.getEnergyFromShadowK(input_beam._beam.rays[:, 10])
+
+            values = numpy.loadtxt(os.path.abspath(os.path.abspath(file_reflectivity)  if file_reflectivity.startswith('/') else
+                                                   os.path.abspath(os.path.curdir + "/" + file_reflectivity)))
+
+            mirror_energies       = values[:, 0]
+            mirror_grazing_angles = values[:, 1]
+            mirror_energies         = numpy.unique(mirror_energies)
+            mirror_grazing_angles   = numpy.unique(mirror_grazing_angles)
+            if angle_units  == 0: mirror_grazing_angles = numpy.degrees(1e-3 * mirror_grazing_angles)
+            if energy_units == 1: mirror_energies *= 1e3 # KeV to eV
+
+            def get_interpolator_weight_2D(mirror_energies, mirror_grazing_angles, mirror_reflectivities):
+                mirror_reflectivities = numpy.reshape(mirror_reflectivities, (mirror_energies.shape[0], mirror_grazing_angles.shape[0]))
+
+                interpolator = RectBivariateSpline(mirror_energies, mirror_grazing_angles, mirror_reflectivities, kx=2, ky=2)
+
+                interpolated_weight = numpy.zeros(beam_energies.shape[0])
+                for energy, angle, i in zip(beam_energies, beam_incident_angles, range(interpolated_weight.shape[0])):
+                    interpolated_weight[i] = numpy.sqrt(interpolator(energy, angle))
+                interpolated_weight[numpy.where(numpy.isnan(interpolated_weight))] = 0.0
+
+                return interpolated_weight
+
+            if values.shape[1] == 3:
+                mirror_reflectivities = values[:, 2]
+
+                interpolated_weight_s = get_interpolator_weight_2D(mirror_energies, mirror_grazing_angles, mirror_reflectivities)
+                interpolated_weight_p = interpolated_weight_s
+            elif values.shape[1] == 4:
+                mirror_reflectivities_s = values[:, 2]
+                mirror_reflectivities_p = values[:, 3]
+
+                interpolated_weight_s = get_interpolator_weight_2D(mirror_energies, mirror_grazing_angles, mirror_reflectivities_s)
+                interpolated_weight_p = get_interpolator_weight_2D(mirror_energies, mirror_grazing_angles, mirror_reflectivities_p)
+            else:
+                raise ValueError("User input is inconsistent: not a 2D reflectivity profile")
+
+        output_beam = input_beam.duplicate()
+
+        output_beam._beam.rays[:, 6] = output_beam._beam.rays[:, 6] * interpolated_weight_s
+        output_beam._beam.rays[:, 7] = output_beam._beam.rays[:, 7] * interpolated_weight_s
+        output_beam._beam.rays[:, 8] = output_beam._beam.rays[:, 8] * interpolated_weight_s
+        output_beam._beam.rays[:, 15] = output_beam._beam.rays[:, 15] * interpolated_weight_p
+        output_beam._beam.rays[:, 16] = output_beam._beam.rays[:, 16] * interpolated_weight_p
+        output_beam._beam.rays[:, 17] = output_beam._beam.rays[:, 17] * interpolated_weight_p
+
+        return output_beam
+
+    @classmethod
+    def apply_user_grating_efficiency(cls, grating_file_efficiency, input_beam):
+        beam_energies = ShadowPhysics.getEnergyFromShadowK(input_beam._beam.rays[:, 10])
+
+        values = numpy.loadtxt(os.path.abspath(os.path.abspath(grating_file_efficiency) if grating_file_efficiency.startswith('/') else
+                                               os.path.abspath(os.path.curdir + "/" + grating_file_efficiency)))
+
+        grating_energies     = values[:, 0]
+        grating_efficiencies_s = values[:, 1]
+
+        interpolated_weight_s = numpy.sqrt(numpy.interp(beam_energies,
+                                                        grating_energies,
+                                                        grating_efficiencies_s,
+                                                        left=grating_efficiencies_s[0],
+                                                        right=grating_efficiencies_s[-1]))
+
+
+        if values.shape[1] == 2: interpolated_weight_p = interpolated_weight_s
+        elif values.shape[1] >= 3:
+            grating_efficiencies_p = values[:, 2]
+
+            interpolated_weight_p = numpy.sqrt(numpy.interp(beam_energies,
+                                                            grating_energies,
+                                                            grating_efficiencies_p,
+                                                            left=grating_efficiencies_p[0],
+                                                            right=grating_efficiencies_p[-1]))
+
+
+        output_beam = input_beam.duplicate()
+
+        output_beam._beam.rays[:, 6] = output_beam._beam.rays[:, 6] * interpolated_weight_s
+        output_beam._beam.rays[:, 7] = output_beam._beam.rays[:, 7] * interpolated_weight_s
+        output_beam._beam.rays[:, 8] = output_beam._beam.rays[:, 8] * interpolated_weight_s
+        output_beam._beam.rays[:, 15] = output_beam._beam.rays[:, 15] * interpolated_weight_p
+        output_beam._beam.rays[:, 16] = output_beam._beam.rays[:, 16] * interpolated_weight_p
+        output_beam._beam.rays[:, 17] = output_beam._beam.rays[:, 17] * interpolated_weight_p
+
+        return output_beam
+
 
 class ShadowMath:
 
