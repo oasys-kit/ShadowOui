@@ -22,6 +22,8 @@ from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
 from xoppylib.decorators.dabax_decorated import DabaxDecorated
 from xoppylib.crystals.tools import bragg_calc, bragg_calc2
 
+from urllib.error import HTTPError
+
 class OWxsh_bragg(OWWidget):
     name = "Bragg"
     id = "xsh_bragg"
@@ -230,11 +232,17 @@ class OWxsh_bragg(OWWidget):
         ]
 
         dx1 = DabaxDecorated(file_Crystals="Crystals.dat")
-        list1 = dx1.Crystal_GetCrystalsList()
+        try: list1 = dx1.Crystal_GetCrystalsList()
+        except HTTPError as e: # Anti-bot policies can block this call
+            if "UserAgentBlocked" in str(e): list1 = {}
+            else: raise e
         self.crystals_dabax = list1
 
         dx2 = DabaxDecorated(file_Crystals="Crystals_xrayserver.dat")
-        list2 = dx2.Crystal_GetCrystalsList()
+        try: list2 = dx2.Crystal_GetCrystalsList()
+        except HTTPError as e: # Anti-bot policies can block this call
+            if "UserAgentBlocked" in str(e): list2 = {}
+            else: raise e
         self.crystals_xrayserver = list2
 
     def unitLabels(self):
