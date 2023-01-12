@@ -68,6 +68,7 @@ class ConicCoefficientsPreProcessorData:
                 incidence_angle_deg      = None,
                 reflection_angle_deg     = None,
                 mirror_orientation_angle = None,
+                title="",
                  ):
         self.conic_coefficient_0 = conic_coefficient_0
         self.conic_coefficient_1 = conic_coefficient_1
@@ -87,6 +88,7 @@ class ConicCoefficientsPreProcessorData:
         self.incidence_angle_deg      = incidence_angle_deg
         self.reflection_angle_deg     = reflection_angle_deg
         self.mirror_orientation_angle = mirror_orientation_angle
+        self.title = title
 
 
 def adjust_shadow_string(string_to_adjust):

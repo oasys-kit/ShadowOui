@@ -30,10 +30,10 @@ class OWWolterCalculator(OWWidget):
     name = "Wolter Calculator"
     id = "WolterCalculator"
     description = "Calculation of coefficients for Wolter systems"
-    icon = "icons/wolter.png"
+    icon = "icons/wolter2.png"
     author = "Manuel Sanchez del Rio"
     maintainer_email = "srio@esrf.eu"
-    priority = 100
+    priority = 101
     category = ""
     keywords = ["oasys", "wolter", "telescope", "advanced KB"]
 
