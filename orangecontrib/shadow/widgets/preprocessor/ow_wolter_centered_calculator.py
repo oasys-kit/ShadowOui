@@ -119,7 +119,7 @@ class OWWolterCenteredCalculator(OWWidget):
                      callback=self.update_panel, sendSelectedValue=False, orientation="horizontal")
 
         self.w_p1 = oasysgui.lineEdit(box, self, "p1", "parabola directrix coordinate (-p)", labelWidth=220, valueType=float, orientation="horizontal")
-        self.w_p2 = oasysgui.lineEdit(box, self, "p2", "ellipse interfocal distance (2c)", labelWidth=220, valueType=float, orientation="horizontal")
+        self.w_p2 = oasysgui.lineEdit(box, self, "p2", "hyperbola interfocal distance (2c)", labelWidth=220, valueType=float, orientation="horizontal")
         self.w_theta1 = oasysgui.lineEdit(box, self, "theta1", "Grazing angle at principal surface [rad]", labelWidth=260, valueType=float, orientation="horizontal", callback=self.update_panel)
 
 
@@ -205,6 +205,65 @@ class OWWolterCenteredCalculator(OWWidget):
 
             self.design_output.setText(results_txt)
 
+
+            Pp = None
+            Qp = numpy.sqrt(tkt['x_pmin']**2 + tkt['y_pmin'])
+            Fp = Qp
+            print("\n\nParabola p = NOT DEFINED ")
+            print("Parabola q = ", Qp)
+            print("Parabola f = ", Qp)
+
+            Ph = Qp
+            Qh = numpy.sqrt((tkt['x_pmin']-2*tkt['c'])**2 + tkt['y_pmin'])
+            Fh = 1/(1/Ph+1/Qh)
+            print("\nHyperbola p = ", Ph)
+            print("Hyperbola q = ", Qh)
+            print("Hyperbola f = ", Fh)
+
+            F = 1. / (1 / Fp + 1 / Fh)
+            print("\nCombined f = ", F)
+
+            #
+            # Ellipse###########################################################################
+            #
+            c_e = 5.0
+            Pe = numpy.sqrt((tkt['x_pmin']-2*c_e)**2 + tkt['y_pmin']**2)
+            Qe = numpy.sqrt( tkt['x_pmin']       **2 + tkt['y_pmin']**2)
+            print("\n\n\nFor ellipse at 2 * c_e = %f" % (2*c_e))
+            print("\n\n\nPe = %f; Qe = %f" % (Pe, Qe))
+            print("\n ellipse c_e=%f" % c_e)
+            b_e = numpy.sqrt(Pe*Qe) * numpy.sin(self.theta1)
+            print("\n ellipse b_e=%f" % b_e)
+            a_e = numpy.sqrt(c_e**2 + b_e**2)
+            print("\n ellipse a_e=%f" % a_e)
+            print("\ncheck 1: ", (tkt['x_pmin']-c_e)**2 / a_e**2 + tkt['y_pmin']**2 / b_e**2)
+            print("\ncheck y(x_pmin): ", b_e * numpy.sqrt(1 - (tkt['x_pmin'] - c_e) ** 2 / a_e ** 2), tkt['y_pmin'])
+
+
+            # Delta = Pe**2 - tkt['y_pmin']**2
+            # if Delta < 0:
+            #     print("\n Cannot calculate ellipse (Delta=%f)...." % Delta)
+            # else:
+            #     c_e = numpy.abs(0.5 * (tkt['x_pmin'] - numpy.sqrt(Delta)))
+            #     print("\n ellipse c_e=%f" % c_e)
+            #     b_e = numpy.sqrt(Pe*Qe) * numpy.sin(2*self.theta1)
+            #     print("\n ellipse b_e=%f" % b_e)
+            #     a_e = numpy.sqrt(c_e**2 + b_e**2)
+            #     print("\n ellipse a_e=%f" % a_e)
+
+            # Ellipse
+            # (x-c_e)^2/a^2 + y^2/b_e^2 = 1 (Underwood)
+            # (z-c_e)^2/a^2 + (y^2+x^2)/b_e^2 = 1 (Shadow)
+            # normal incidence (Underwood x->z, y->y  ->x)
+
+            ccc_centered_ellipse = numpy.array([1 / b_e ** 2, 1 / b_e ** 2, 1 / a_e ** 2, \
+                                                  0, 0, 0, \
+                                                  0, 0, -2 * c_e / a_e ** 2, \
+                                                  (c_e / a_e) ** 2 - 1])
+            ccc_centered_ellipse /= ccc_centered_ellipse[0]
+
+            print("\n\nEllipse coeff: ", ccc_centered_ellipse)
+
             #
             # plot data
             #
@@ -222,7 +281,19 @@ class OWWolterCenteredCalculator(OWWidget):
             y2a =  tkt['b'] * numpy.sqrt(((x - tkt['c']) / tkt['a']) ** 2 - 1)
             y2b = -tkt['b'] * numpy.sqrt(((x - tkt['c']) / tkt['a']) ** 2 - 1)
 
+            y3a =   b_e * numpy.sqrt(1 - ((x - c_e) / a_e) ** 2)
+            y3b =  -b_e * numpy.sqrt(1 - ((x - c_e) / a_e) ** 2)
 
+            # self.plot_multi_data1D([-x,-x], [y1a,y1b],
+            #                       10, 2, 0,
+            #                       title="parabola", xtitle="-z [m] (along optical axis)", ytitle="x,y [m]",
+            #                       ytitles=["1","2"],
+            #                       colors=['blue','blue'],
+            #                       replace=True,
+            #                       control=False,
+            #                       xrange=None,
+            #                       yrange=None,
+            #                       symbol=['',''])
 
             self.plot_multi_data1D([-x,-x], [y1a,y1b],
                                   10, 2, 0,
@@ -234,7 +305,6 @@ class OWWolterCenteredCalculator(OWWidget):
                                   xrange=None,
                                   yrange=None,
                                   symbol=['',''])
-
 
             self.plot_multi_data1D([-x,-x], [y2a,y2b],
                                   20, 3, 1,
@@ -250,16 +320,28 @@ class OWWolterCenteredCalculator(OWWidget):
             x_c = numpy.array([tkt['x_pmin']*1.5, tkt['x_pmin'], 2*tkt['c'], 2*tkt['c'],  tkt['x_pmin'],  tkt['x_pmin']*1.5])
             y_c = numpy.array([tkt['y_pmin'],     tkt['y_pmin'], 0         , 0         , -tkt['y_pmin'], -tkt['y_pmin']   ])
 
-            self.plot_multi_data1D([-x,-x,-x,-x, -x_c], [y1a,y1b,y2a,y2b,y_c],
+            # self.plot_multi_data1D([-x,-x,-x,-x, -x_c], [y1a,y1b,y2a,y2b,y_c],
+            #                       80, 4, 2,
+            #                       title="parabola+hyperbola", xtitle="-z [m] (along optical axis)", ytitle="x,y [m]",
+            #                       ytitles=["parabola+","parabola-","hyperbola+","hyperbola-", "ray"],
+            #                       colors=['blue','blue','red','red','k'],
+            #                       replace=True,
+            #                       control=False,
+            #                       xrange=None,
+            #                       yrange=None,
+            #                       symbol=['','','','',''])
+
+
+            self.plot_multi_data1D([-x,-x,-x,-x, -x_c, -x, -x], [y1a,y1b,y2a,y2b,y_c, y3a, y3b],
                                   80, 4, 2,
-                                  title="parabola+hyperbola", xtitle="-z [m] (along optical axis)", ytitle="x,y [m]",
-                                  ytitles=["parabola+","parabola-","hyperbola+","hyperbola-", "ray"],
-                                  colors=['blue','blue','red','red','k'],
+                                  title="parabola+hyperbola+ellipse", xtitle="-z [m] (along optical axis)", ytitle="x,y [m]",
+                                  ytitles=["parabola+","parabola-","hyperbola+","hyperbola-", "ray", "ell","ell"],
+                                  colors=['blue','blue','red','red','k','green','green'],
                                   replace=True,
                                   control=False,
                                   xrange=None,
                                   yrange=None,
-                                  symbol=['','','','',''])
+                                  symbol=['','','','','','',''])
 
             #
             # send data
@@ -291,16 +373,16 @@ class OWWolterCenteredCalculator(OWWidget):
                 )
 
             preprocessor_oe2 = ConicCoefficientsPreProcessorData(
-                conic_coefficient_0=tkt['ccc2'][0],
-                conic_coefficient_1=tkt['ccc2'][1],
-                conic_coefficient_2=tkt['ccc2'][2],
-                conic_coefficient_3=tkt['ccc2'][3],
-                conic_coefficient_4=tkt['ccc2'][4],
-                conic_coefficient_5=tkt['ccc2'][5],
-                conic_coefficient_6=tkt['ccc2'][6],
-                conic_coefficient_7=tkt['ccc2'][7],
-                conic_coefficient_8=tkt['ccc2'][8],
-                conic_coefficient_9=tkt['ccc2'][9],
+                conic_coefficient_0= tkt['ccc2'][0],
+                conic_coefficient_1= tkt['ccc2'][1],
+                conic_coefficient_2= tkt['ccc2'][2],
+                conic_coefficient_3= tkt['ccc2'][3],
+                conic_coefficient_4= tkt['ccc2'][4],
+                conic_coefficient_5= tkt['ccc2'][5],
+                conic_coefficient_6= tkt['ccc2'][6],
+                conic_coefficient_7= tkt['ccc2'][7],
+                conic_coefficient_8= tkt['ccc2'][8],
+                conic_coefficient_9= tkt['ccc2'][9],
                 source_plane_distance=tkt['x_pmin'],
                 image_plane_distance=2*tkt['c'],
                 angles_respect_to=0,
@@ -520,7 +602,9 @@ class OWWolterCenteredCalculator(OWWidget):
         if len(y_list) != len(colors):
             colors = colors * len(y_list)
         if len(y_list) != len(symbol):
-            symbol = symbol * len(y_list)
+            symbols = symbol * len(y_list)
+        else:
+            symbols = symbol
 
         if tabs_canvas_index is None: tabs_canvas_index = 0 #back compatibility?
 
@@ -555,11 +639,12 @@ class OWWolterCenteredCalculator(OWWidget):
 
 
         for i in range(len(y_list)):
+            print(">>>>>>>>>>>>>>>>>>>> ADDING PLOT INDEX", i, x_list[i].shape, y_list[i].shape,ytitles[i],symbols[i],colors[i])
             self.plot_canvas[plot_canvas_index].addCurve(x_list[i], y_list[i],
                                          ytitles[i],
                                          xlabel=xtitle,
                                          ylabel=ytitle,
-                                         symbol='',
+                                         symbol=symbols[i],
                                          color=colors[i])
         #
         self.plot_canvas[plot_canvas_index].getLegendsDockWidget().setFixedHeight(150)
