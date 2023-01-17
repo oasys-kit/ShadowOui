@@ -69,6 +69,7 @@ class OWWolterCenteredCalculator(OWWidget):
 
     ellipse_flag = Setting(1)
     ellipse_2c = Setting(10.0)
+    npoints = Setting(400)
     tab=[]
 
     usage_path = os.path.join(resources.package_dirname("orangecontrib.syned.widgets.gui"), "misc", "predabam_usage.png")
@@ -111,7 +112,7 @@ class OWWolterCenteredCalculator(OWWidget):
 
         tab_step_1 = oasysgui.widgetBox(tab_calc, "Calculation Parameters", addSpace=True, orientation="vertical", height=600)
 
-        box = oasysgui.widgetBox(tab_step_1, "setup inputs", orientation="vertical")
+        box = oasysgui.widgetBox(tab_step_1, "Main inputs", orientation="vertical")
 
         gui.comboBox(box, self, "setup_type", label="Setup type", labelWidth=260,
                      items=["Wolter-I",
@@ -120,16 +121,20 @@ class OWWolterCenteredCalculator(OWWidget):
                             ],
                      callback=self.update_panel, sendSelectedValue=False, orientation="horizontal")
 
-        self.w_p1 = oasysgui.lineEdit(box, self, "p1", "parabola directrix coordinate (-p)", labelWidth=220, valueType=float, orientation="horizontal")
-        self.w_p2 = oasysgui.lineEdit(box, self, "p2", "hyperbola interfocal distance (2c)", labelWidth=220, valueType=float, orientation="horizontal")
+        self.w_p1 = oasysgui.lineEdit(box, self, "p1", "parabola directrix coord (-p=-f/2)", labelWidth=240, valueType=float, orientation="horizontal")
+        self.w_p2 = oasysgui.lineEdit(box, self, "p2", "hyperbola interfocal distance (2c)", labelWidth=240, valueType=float, orientation="horizontal")
         self.w_theta1 = oasysgui.lineEdit(box, self, "theta1", "Grazing angle at principal surface [rad]", labelWidth=260, valueType=float, orientation="horizontal", callback=self.update_panel)
 
-        box = oasysgui.widgetBox(tab_step_1, "Replace parabola by ellipse?", orientation="vertical")
-        gui.comboBox(box, self, "ellipse_flag", label="Consider ellipse", labelWidth=260,
+        box = oasysgui.widgetBox(tab_step_1, "Ellipse inputs", orientation="vertical")
+        gui.comboBox(box, self, "ellipse_flag", label="Replace parabola by ellipse?", labelWidth=260,
                      items=["No","Yes"],
                      callback=self.update_panel, sendSelectedValue=False, orientation="horizontal")
         self.w_ellipse_2c = oasysgui.widgetBox(box, "", orientation="vertical")
         oasysgui.lineEdit(self.w_ellipse_2c, self, "ellipse_2c", "Ellipse focus (x=2c)", labelWidth=260, valueType=float, orientation="horizontal", callback=self.update_panel)
+
+        box = oasysgui.widgetBox(tab_step_1, "Other inputs", orientation="vertical")
+        oasysgui.lineEdit(box, self, "npoints", "Points (for plot)", labelWidth=260, valueType=int, orientation="horizontal", callback=self.update_panel)
+
 
         #
         #-------------------- Output
@@ -184,103 +189,100 @@ class OWWolterCenteredCalculator(OWWidget):
             print("# DESIGN PHASE")
             print("####################################################\n")
 
-            tkt = self.recipe4()
+            tkt = self.wolter1_centered()
 
             p = tkt['p']
-            a = tkt['a']
-            b = tkt['b']
-            c = tkt['c']
+            a_h = tkt['a_h']
+            b_h = tkt['b_h']
+            c_h = tkt['c_h']
+            a_e = tkt['a_e']
+            b_e = tkt['b_e']
+            c_e = tkt['c_e']
             x_pmin = tkt['x_pmin']
             y_pmin = tkt['y_pmin']
+            x_he = tkt['x_he']
+            y_he = tkt['y_he']
 
             results_txt += "\nparabola p=%f"  % p
-            results_txt += "\nhyperbola a=%f" % a
-            results_txt += "\nhyperbola b=%f" % b
-            results_txt += "\nhyperbola c=%f" % c
+            if self.ellipse_flag:
+                results_txt += "\nellipse (replacing parabola) a=%f" % a_e
+                results_txt += "\nellipse (replacing parabola) b=%f" % b_e
+                results_txt += "\nellipse (replacing parabola) c=%f" % c_e
+            results_txt += "\nhyperbola a=%f" % a_h
+            results_txt += "\nhyperbola b=%f" % b_h
+            results_txt += "\nhyperbola c=%f" % c_h
 
 
             results_txt += "\n\n\n    oe1(normalized)      oe2(normalized)"
-            for i in range(10):
-                results_txt += "\nccc[%d]       %10.4g       %10.4g  " % (i,
-                                                                    tkt['ccc1'][i]/tkt['ccc1'][0], tkt['ccc2'][i]/tkt['ccc2'][0])
 
-            results_txt += "\n\n\n    oe1           oe2 "
-            for i in range(10):
-                results_txt += "\nccc[%d]       %10.4g       %10.4g  " % (i, tkt['ccc1'][i], tkt['ccc2'][i])
+            if self.ellipse_flag:
+                for i in range(10):
+                    results_txt += "\nccc[%d]       %10.4g       %10.4g  " % (i,
+                            tkt['ccc3'][i]/tkt['ccc3'][0], tkt['ccc2'][i]/tkt['ccc2'][0])
+
+                results_txt += "\n\n\n    oe1           oe2 "
+                for i in range(10):
+                    results_txt += "\nccc[%d]       %10.4g       %10.4g  " % (i, tkt['ccc3'][i], tkt['ccc2'][i])
+
+
+            else:
+                for i in range(10):
+                    results_txt += "\nccc[%d]       %10.4g       %10.4g  " % (i,
+                            tkt['ccc1'][i]/tkt['ccc1'][0], tkt['ccc2'][i]/tkt['ccc2'][0])
+
+                results_txt += "\n\n\n    oe1           oe2 "
+                for i in range(10):
+                    results_txt += "\nccc[%d]       %10.4g       %10.4g  " % (i, tkt['ccc1'][i], tkt['ccc2'][i])
 
 
             self.design_output.setText(results_txt)
 
+            if self.ellipse_flag:
+                Pe = numpy.sqrt((2 * c_e) ** 2 + 0)
+                Qe = numpy.sqrt(x_he ** 2 + y_he ** 2)
+                Fe = 1 / (1 / Pe + 1 / Qe)
+                print("\n\nEllipse p = ", Pe)
+                print("Ellipse q = ", Qe)
+                print("Ellipse f = ", Fe)
 
-            Pp = None
-            Qp = numpy.sqrt(x_pmin**2 + y_pmin**2)
-            Fp = Qp
-            print("\n\nParabola p = NOT DEFINED ")
-            print("Parabola q = ", Qp)
-            print("Parabola f = ", Qp)
+                Ph = Qe
+                Qh = numpy.sqrt((x_pmin - 2 * c_h) ** 2 + y_pmin ** 2)
+                Fh = 1 / (1 / Ph + 1 / Qh)
+                print("\nHyperbola p = ", Ph)
+                print("Hyperbola q = ", Qh)
+                print("Hyperbola f = ", Fh)
 
-            Ph = Qp
-            Qh = numpy.sqrt((x_pmin-2*c)**2 + y_pmin**2)
-            Fh = 1/(1/Ph+1/Qh)
-            print("\nHyperbola p = ", Ph)
-            print("Hyperbola q = ", Qh)
-            print("Hyperbola f = ", Fh)
+                F = 1. / (1 / Fe + 1 / Fh)
+                print("\nCombined f = ", F)
 
-            F = 1. / (1 / Fp + 1 / Fh)
-            print("\nCombined f = ", F)
+                print("N.A. (at cross point)", numpy.sin(y_he/(2*c_e)))
+                print("Angle (at cross point)", y_he / (2 * c_e))
 
-            #
-            # Ellipse###########################################################################
-            #
-            c_e = self.ellipse_2c / 2
-            Pe = numpy.sqrt((x_pmin-2*c_e)**2 + y_pmin**2)
-            Qe = numpy.sqrt( x_pmin       **2 + y_pmin**2)
-            print("\n\n\nFor ellipse at 2 * c_e = %f" % (2*c_e))
-            print("\n\n\nPe = %f; Qe = %f" % (Pe, Qe))
-            print("\n ellipse c_e=%f" % c_e)
-            b_e = numpy.sqrt(Pe*Qe) * numpy.sin(self.theta1)
-            print("\n ellipse b_e=%f" % b_e)
-            a_e = numpy.sqrt(c_e**2 + b_e**2)
-            print("\n ellipse a_e=%f" % a_e)
-            print("\ncheck 1: ", (tkt['x_pmin']-c_e)**2 / a_e**2 + tkt['y_pmin']**2 / b_e**2)
-            print("\ncheck y(x_pmin): ", b_e * numpy.sqrt(1 - (tkt['x_pmin'] - c_e) ** 2 / a_e ** 2), tkt['y_pmin'])
-            print("\nangle: ", numpy.arcsin(numpy.sqrt(Pe * Qe) / b_e))
+            else:
+                Pp = None
+                Qp = numpy.sqrt(x_pmin**2 + y_pmin**2)
+                Fp = Qp
+                print("\n\nParabola p = NOT DEFINED ")
+                print("Parabola q = ", Qp)
+                print("Parabola f = ", Qp)
 
-            # intersection hyperbola ellipse
-            # hyperbola: (x-c_h)**2/a_h**2 - y**2/b_h**2 = 1
-            # ellipse: (x-c_e)**2/a_e**2 + y**2/b_e**2 = 1
-            a_h = tkt['a']
-            b_h = tkt['b']
-            c_h = tkt['c']
-            A = 1.0 / a_e ** 2 + (b_h / b_e / a_h) ** 2
-            B = -2 * c_e / a_e ** 2 - 2 * c_h * (b_h / b_e / a_h) ** 2
-            C = -(b_h / b_e) ** 2 - 1 + (c_e / a_e) ** 2 + (c_h * b_h / b_e / a_h) ** 2
+                Ph = Qp
+                Qh = numpy.sqrt((x_pmin-2*c_h)**2 + y_pmin**2)
+                Fh = 1/(1/Ph+1/Qh)
+                print("\nHyperbola p = ", Ph)
+                print("Hyperbola q = ", Qh)
+                print("Hyperbola f = ", Fh)
 
-            D = B ** 2 - 4 * A * C
-            if D < 0:
-                print("\n Cannot calculate ellipse (Delta=%f)...." % D)
-            x_he = (-B + numpy.sqrt(D)) / 2 / A
-            print("A,B,C,D, x_he: ", A, B, C, D, x_he)
+                F = 1. / (1 / Fp + 1 / Fh)
+                print("\nCombined f = ", F)
 
 
-            # Ellipse
-            # (x-c_e)^2/a^2 + y^2/b_e^2 = 1 (Underwood)
-            # (z-c_e)^2/a^2 + (y^2+x^2)/b_e^2 = 1 (Shadow)
-            # normal incidence (Underwood x->z, y->y  ->x)
-
-            ccc_centered_ellipse = numpy.array([1 / b_e ** 2, 1 / b_e ** 2, 1 / a_e ** 2, \
-                                                  0, 0, 0, \
-                                                  0, 0, -2 * c_e / a_e ** 2, \
-                                                  (c_e / a_e) ** 2 - 1])
-            ccc_centered_ellipse /= ccc_centered_ellipse[0]
-
-            print("\n\nEllipse coeff: ", ccc_centered_ellipse)
 
             #
             # plot data
             #
             self.progressBarInit()
-            x = numpy.linspace(x_pmin*1.5, -x_pmin*1.5/5, 200)
+            x = numpy.linspace(x_pmin*1.5, -x_pmin*1.5/5, self.npoints)
 
             #
             # parabola
@@ -292,11 +294,11 @@ class OWWolterCenteredCalculator(OWWidget):
             #
             # hyperbola
             #
-            y2a =  b * numpy.sqrt(((x - c) / a) ** 2 - 1)
-            y2b = -b * numpy.sqrt(((x - c) / a) ** 2 - 1)
-            p_x =  numpy.sqrt((x - 2 * c) ** 2 + y2a ** 2)
+            y2a =  b_h * numpy.sqrt(((x - c_h) / a_h) ** 2 - 1)
+            y2b = -b_h * numpy.sqrt(((x - c_h) / a_h) ** 2 - 1)
+            p_x =  numpy.sqrt((x - 2 * c_h) ** 2 + y2a ** 2)
             q_h_x =  numpy.sqrt(x ** 2 + y2a ** 2)
-            theta_h = numpy.arcsin(b/numpy.sqrt(p_x*q_h_x))
+            theta_h = numpy.arcsin(b_h/numpy.sqrt(p_x*q_h_x))
 
             #
             # ellipse
@@ -304,7 +306,7 @@ class OWWolterCenteredCalculator(OWWidget):
             y3a =   b_e * numpy.sqrt(1 - ((x - c_e) / a_e) ** 2)
             y3b =  -b_e * numpy.sqrt(1 - ((x - c_e) / a_e) ** 2)
             q_e_x =  numpy.sqrt(x ** 2 + y3a ** 2)
-            theta_e = numpy.arcsin(b/numpy.sqrt(p_x*q_e_x))
+            theta_e = numpy.arcsin(b_e/numpy.sqrt(p_x*q_e_x))
 
             # plot oe 1
 
@@ -349,19 +351,22 @@ class OWWolterCenteredCalculator(OWWidget):
             #
 
 
-            x_c = numpy.array([x_pmin*1.5, x_pmin, 2*c, 2*c,  x_pmin,  x_pmin*1.5])
+            x_c = numpy.array([x_pmin*1.5, x_pmin, 2*c_h, 2*c_h,  x_pmin,  x_pmin*1.5])
             y_c = numpy.array([y_pmin,     y_pmin, 0  , 0  , -y_pmin, -y_pmin    ])
+
+            x_c2 = numpy.array([2*c_e, x_he, 2*c_h, 2*c_h,  x_he,  2*c_e])
+            y_c2 = numpy.array([0,     y_he, 0    ,   0  , -y_he,  0    ])
             if self.ellipse_flag:
-                self.plot_multi_data1D([-x,-x,-x,-x, -x_c, -x, -x], [y1a,y1b,y2a,y2b,y_c, y3a, y3b],
+                self.plot_multi_data1D([-x,-x,-x,-x, -x_c, -x, -x, -x_c2], [y1a,y1b,y2a,y2b,y_c, y3a, y3b, y_c2],
                                       80, 4, 2,
                                       title="parabola+hyperbola+ellipse", xtitle="-z [m] (along optical axis)", ytitle="x,y [m]",
-                                      ytitles=["parabola+","parabola-","hyperbola+","hyperbola-", "ray at par+hyp crossing", "ell","ell"],
-                                      colors=['blue','blue','red','red','k','green','green'],
+                                      ytitles=["parabola+","parabola-","hyperbola+","hyperbola-", "ray at par+hyp crossing", "ellipse+","ellipse-", "ray at ell+hyp crossing",],
+                                      colors=['blue','blue','red','red','k','green','green','k'],
                                       replace=True,
                                       control=False,
-                                      xrange=None,
+                                      xrange=[-x.min(),- x.max()],
                                       yrange=None,
-                                      symbol=['','','','','','',''])
+                                      symbol=['','','','','','','',''],)
             else:
                 self.plot_multi_data1D([-x,-x,-x,-x, -x_c], [y1a,y1b,y2a,y2b,y_c],
                                       80, 4, 2,
@@ -380,7 +385,7 @@ class OWWolterCenteredCalculator(OWWidget):
             if self.ellipse_flag:
                 Xhe = numpy.array([x_he,x_he])
                 Yhe = numpy.array([0,numpy.nanmax(theta_h)])
-                print(">>>>Xhe,Yhe: ", Xhe, Yhe)
+                # print(">>>>Xhe,Yhe: ", Xhe, Yhe)
                 self.plot_multi_data1D([-x,-x,-x,-x,-Xhe],
                                        [1e3*(x*0+1)*self.theta1,
                                         1e3*theta_p,
@@ -420,46 +425,86 @@ class OWWolterCenteredCalculator(OWWidget):
             print("# RAY-TRACING PHASE")
             print("####################################################\n")
 
-
-            preprocessor_oe1 = ConicCoefficientsPreProcessorData(
-                conic_coefficient_0 = tkt['ccc1'][0],
-                conic_coefficient_1 = tkt['ccc1'][1],
-                conic_coefficient_2 = tkt['ccc1'][2],
-                conic_coefficient_3 = tkt['ccc1'][3],
-                conic_coefficient_4 = tkt['ccc1'][4],
-                conic_coefficient_5 = tkt['ccc1'][5],
-                conic_coefficient_6 = tkt['ccc1'][6],
-                conic_coefficient_7 = tkt['ccc1'][7],
-                conic_coefficient_8 = tkt['ccc1'][8],
-                conic_coefficient_9 = tkt['ccc1'][9],
-                source_plane_distance=None,
-                image_plane_distance=-tkt['x_pmin'],
-                angles_respect_to=0,
-                incidence_angle_deg=0.0,
-                reflection_angle_deg=0.0,
-                mirror_orientation_angle=2, # that means 180 deg
-                title="Primary mirror: Parabolic",
+            if self.ellipse_flag:
+                preprocessor_oe1 = ConicCoefficientsPreProcessorData(
+                    conic_coefficient_0=tkt['ccc3'][0],
+                    conic_coefficient_1=tkt['ccc3'][1],
+                    conic_coefficient_2=tkt['ccc3'][2],
+                    conic_coefficient_3=tkt['ccc3'][3],
+                    conic_coefficient_4=tkt['ccc3'][4],
+                    conic_coefficient_5=tkt['ccc3'][5],
+                    conic_coefficient_6=tkt['ccc3'][6],
+                    conic_coefficient_7=tkt['ccc3'][7],
+                    conic_coefficient_8=tkt['ccc3'][8],
+                    conic_coefficient_9=tkt['ccc3'][9],
+                    source_plane_distance=self.ellipse_2c,
+                    image_plane_distance=-tkt['x_he'],
+                    angles_respect_to=0,
+                    incidence_angle_deg=0.0,
+                    reflection_angle_deg=0.0,
+                    mirror_orientation_angle=2,  # that means 180 deg
+                    title="Primary mirror: Elliptical",
                 )
 
-            preprocessor_oe2 = ConicCoefficientsPreProcessorData(
-                conic_coefficient_0= tkt['ccc2'][0],
-                conic_coefficient_1= tkt['ccc2'][1],
-                conic_coefficient_2= tkt['ccc2'][2],
-                conic_coefficient_3= tkt['ccc2'][3],
-                conic_coefficient_4= tkt['ccc2'][4],
-                conic_coefficient_5= tkt['ccc2'][5],
-                conic_coefficient_6= tkt['ccc2'][6],
-                conic_coefficient_7= tkt['ccc2'][7],
-                conic_coefficient_8= tkt['ccc2'][8],
-                conic_coefficient_9= tkt['ccc2'][9],
-                source_plane_distance=tkt['x_pmin'],
-                image_plane_distance=2*tkt['c'],
-                angles_respect_to=0,
-                incidence_angle_deg=0.0,
-                reflection_angle_deg=0.0,
-                mirror_orientation_angle=0,
-                title="Secondary mirror: Hyperbolic",
-                )
+                preprocessor_oe2 = ConicCoefficientsPreProcessorData(
+                    conic_coefficient_0= tkt['ccc2'][0],
+                    conic_coefficient_1= tkt['ccc2'][1],
+                    conic_coefficient_2= tkt['ccc2'][2],
+                    conic_coefficient_3= tkt['ccc2'][3],
+                    conic_coefficient_4= tkt['ccc2'][4],
+                    conic_coefficient_5= tkt['ccc2'][5],
+                    conic_coefficient_6= tkt['ccc2'][6],
+                    conic_coefficient_7= tkt['ccc2'][7],
+                    conic_coefficient_8= tkt['ccc2'][8],
+                    conic_coefficient_9= tkt['ccc2'][9],
+                    source_plane_distance=tkt['x_he'],
+                    image_plane_distance=2*tkt['c_h'],
+                    angles_respect_to=0,
+                    incidence_angle_deg=0.0,
+                    reflection_angle_deg=0.0,
+                    mirror_orientation_angle=0,
+                    title="Secondary mirror: Hyperbolic",
+                    )
+            else:
+                preprocessor_oe1 = ConicCoefficientsPreProcessorData(
+                    conic_coefficient_0 = tkt['ccc1'][0],
+                    conic_coefficient_1 = tkt['ccc1'][1],
+                    conic_coefficient_2 = tkt['ccc1'][2],
+                    conic_coefficient_3 = tkt['ccc1'][3],
+                    conic_coefficient_4 = tkt['ccc1'][4],
+                    conic_coefficient_5 = tkt['ccc1'][5],
+                    conic_coefficient_6 = tkt['ccc1'][6],
+                    conic_coefficient_7 = tkt['ccc1'][7],
+                    conic_coefficient_8 = tkt['ccc1'][8],
+                    conic_coefficient_9 = tkt['ccc1'][9],
+                    source_plane_distance=None,
+                    image_plane_distance=-tkt['x_pmin'],
+                    angles_respect_to=0,
+                    incidence_angle_deg=0.0,
+                    reflection_angle_deg=0.0,
+                    mirror_orientation_angle=2, # that means 180 deg
+                    title="Primary mirror: Parabolic",
+                    )
+
+                preprocessor_oe2 = ConicCoefficientsPreProcessorData(
+                    conic_coefficient_0= tkt['ccc2'][0],
+                    conic_coefficient_1= tkt['ccc2'][1],
+                    conic_coefficient_2= tkt['ccc2'][2],
+                    conic_coefficient_3= tkt['ccc2'][3],
+                    conic_coefficient_4= tkt['ccc2'][4],
+                    conic_coefficient_5= tkt['ccc2'][5],
+                    conic_coefficient_6= tkt['ccc2'][6],
+                    conic_coefficient_7= tkt['ccc2'][7],
+                    conic_coefficient_8= tkt['ccc2'][8],
+                    conic_coefficient_9= tkt['ccc2'][9],
+                    source_plane_distance=tkt['x_pmin'],
+                    image_plane_distance=2*tkt['c_h'],
+                    angles_respect_to=0,
+                    incidence_angle_deg=0.0,
+                    reflection_angle_deg=0.0,
+                    mirror_orientation_angle=0,
+                    title="Secondary mirror: Hyperbolic",
+                    )
 
             for obj in [preprocessor_oe1,preprocessor_oe2]:
                 print("\nChanging/setting parameters of shadow conic coefficient mirror: ", obj.title)
@@ -521,28 +566,28 @@ class OWWolterCenteredCalculator(OWWidget):
 
         self.plot_canvas[0] = oasysgui.plotWindow(roi=False, control=False, position=True)
         self.plot_canvas[0].setDefaultPlotLines(True)
-        self.plot_canvas[0].setActiveCurveColor(color='blue')
+        # self.plot_canvas[0].setActiveCurveColor(color='blue')
         self.plot_canvas[0].setGraphYLabel("Z [nm]")
         self.plot_canvas[0].setGraphTitle("oe1 Profile")
         self.plot_canvas[0].setInteractiveMode(mode='zoom')
 
         self.plot_canvas[1] = oasysgui.plotWindow(roi=False, control=False, position=True)
         self.plot_canvas[1].setDefaultPlotLines(True)
-        self.plot_canvas[1].setActiveCurveColor(color='red')
+        # self.plot_canvas[1].setActiveCurveColor(color='red')
         self.plot_canvas[1].setGraphYLabel("Z [nm]")
         self.plot_canvas[1].setGraphTitle("oe2 Profile")
         self.plot_canvas[1].setInteractiveMode(mode='zoom')
 
         self.plot_canvas[2] = oasysgui.plotWindow(roi=False, control=False, position=True)
         self.plot_canvas[2].setDefaultPlotLines(True)
-        self.plot_canvas[2].setActiveCurveColor(color='blue')
+        # self.plot_canvas[2].setActiveCurveColor(color='blue')
         self.plot_canvas[2].setGraphYLabel("Z [nm]")
         self.plot_canvas[2].setGraphTitle("Joint Profile")
         self.plot_canvas[2].setInteractiveMode(mode='zoom')
 
         self.plot_canvas[3] = oasysgui.plotWindow(roi=False, control=False, position=True)
         self.plot_canvas[3].setDefaultPlotLines(True)
-        self.plot_canvas[3].setActiveCurveColor(color='black')
+        # self.plot_canvas[3].setActiveCurveColor(color='black')
         self.plot_canvas[3].setGraphYLabel("grazing angle [mrad]")
         self.plot_canvas[3].setGraphTitle("Grazing incident angle")
         self.plot_canvas[3].setInteractiveMode(mode='zoom')
@@ -708,7 +753,7 @@ class OWWolterCenteredCalculator(OWWidget):
 
 
         self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
-        # self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='blue')
+        self.plot_canvas[plot_canvas_index].setActiveCurveColor(color=colors[0])
         self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
         self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
 
@@ -716,7 +761,7 @@ class OWWolterCenteredCalculator(OWWidget):
 
 
         for i in range(len(y_list)):
-            print(">>>>>>>>>>>>>>>>>>>> ADDING PLOT INDEX", i, x_list[i].shape, y_list[i].shape,ytitles[i],symbols[i],colors[i])
+            # print(">>>>>>>>>>>>>>>>>>>> ADDING PLOT INDEX", i, x_list[i].shape, y_list[i].shape,ytitles[i],symbols[i],colors[i])
             self.plot_canvas[plot_canvas_index].addCurve(x_list[i], y_list[i],
                                          ytitles[i],
                                          xlabel=xtitle,
@@ -755,7 +800,9 @@ class OWWolterCenteredCalculator(OWWidget):
             self.plot_data2D_with_histograms(data2D, dataX, dataY, progressBarValue, tabs_canvas_index,plot_canvas_index,
                          title=title, xtitle=xtitle, ytitle=ytitle)
 
-    def recipe4(self,     #  centered system parabola-hyperbola
+    def wolter1_centered(self,
+                         verbose = True,
+                         #  centered system parabola-hyperbola
         # f11 = -0.00194644,
         # f12 = 0.0,
         # f21 = 1.905,
@@ -768,7 +815,8 @@ class OWWolterCenteredCalculator(OWWidget):
         f21 = self.p2
         f22 = 0.0
         theta = self.theta1
-        verbose = True
+        c_e = self.ellipse_2c / 2
+
 
         if f12 != 0.0 or f22 != 0:
             raise Exception("Is your origin at the common focus?")
@@ -776,27 +824,27 @@ class OWWolterCenteredCalculator(OWWidget):
         p = numpy.abs(f11-f12)
 
         # intersection point at the parabola matching angle (https://doi.org/10.1107/S1600577522004593)
-        c0 = (p / 2) / (numpy.tan(theta)) ** 2 - (p/2)
+        x_pmin = (p / 2) / (numpy.tan(theta)) ** 2 - (p/2)
         # y^2 = 2px + p^2
-        c1 = numpy.sqrt( 2 * p * c0 + p**2)
+        y_pmin = numpy.sqrt( 2 * p * x_pmin + p**2)
 
         #
         # hyperbola
         #
 
-        c = f21/2
+        c_h = f21/2
 
         # get a from the hyperbola
         # (x-c)/a)^2 - (y/b)^2 = 1
         # b^2 = c^2 - a^2
 
         A = 1
-        B = -c0**2 + 2 * c * c0 - 2 * c**2 - c1**2
-        C = c**4 + c**2 * c0**2 - 2 * c**3 * c0
+        B = -x_pmin**2 + 2 * c_h * x_pmin - 2 * c_h**2 - y_pmin**2
+        C = c_h**4 + c_h**2 * x_pmin**2 - 2 * c_h**3 * x_pmin
         S1 = numpy.sqrt( (-B + numpy.sqrt(B**2 - 4*A*C)) / (2 * A) )
         S2 = numpy.sqrt( (-B - numpy.sqrt(B ** 2 - 4 * A * C)) / (2 * A) )
-        a = numpy.min((S1,S2))
-        b = numpy.sqrt(c**2 - a**2)
+        a_h = numpy.min((S1,S2))
+        b_h = numpy.sqrt(c_h**2 - a_h**2)
 
         #
         # coeffs
@@ -811,41 +859,87 @@ class OWWolterCenteredCalculator(OWWidget):
         # (z-c)^2/a^2 - (y^2+x*2)/b^2 = 1 (Shadow)
         # # normal incidence (Underwood x->z, y->y  ->x)
 
-        ccc_centered_hyperbola = numpy.array([-1/b**2, -1/b**2, 1/a**2, \
+        ccc_centered_hyperbola = numpy.array([-1/b_h**2, -1/b_h**2, 1/a_h**2, \
                                               0, 0, 0, \
-                                              0, 0, -2*c/a**2, \
-                                              (c/a)**2 - 1])
+                                              0, 0, -2*c_h/a_h**2, \
+                                              (c_h/a_h)**2 - 1])
 
+        #
+        # Ellipse###########################################################################
+        #
+
+        Pe = numpy.sqrt((x_pmin - 2 * c_e) ** 2 + y_pmin ** 2)
+        Qe = numpy.sqrt(x_pmin ** 2 + y_pmin ** 2)
+        b_e = numpy.sqrt(Pe * Qe) * numpy.sin(self.theta1)
+        a_e = numpy.sqrt(c_e ** 2 + b_e ** 2)
+
+        # Ellipse
+        # (x-c_e)^2/a^2 + y^2/b_e^2 = 1 (Underwood)
+        # (z-c_e)^2/a^2 + (y^2+x^2)/b_e^2 = 1 (Shadow)
+        # normal incidence (Underwood x->z, y->y  ->x)
+
+        ccc_centered_ellipse = numpy.array([1 / b_e ** 2, 1 / b_e ** 2, 1 / a_e ** 2, \
+                                              0, 0, 0, \
+                                              0, 0, -2 * c_e / a_e ** 2, \
+                                              (c_e / a_e) ** 2 - 1])
+
+        # intersection hyperbola ellipse
+        # hyperbola: (x-c_h)**2/a_h**2 - y**2/b_h**2 = 1
+        # ellipse: (x-c_e)**2/a_e**2 + y**2/b_e**2 = 1
+
+        A = 1.0 / a_e ** 2 + (b_h / b_e / a_h) ** 2
+        B = -2 * c_e / a_e ** 2 - 2 * c_h * (b_h / b_e / a_h) ** 2
+        C = -(b_h / b_e) ** 2 - 1 + (c_e / a_e) ** 2 + (c_h * b_h / b_e / a_h) ** 2
+
+        D = B ** 2 - 4 * A * C
+        if D < 0:
+            print("\n Cannot calculate ellipse (Delta=%f)...." % D)
+        x_he = (-B + numpy.sqrt(D)) / 2 / A
+        print("A,B,C,D, x_he: ", A, B, C, D, x_he)
+        y_he = b_h * numpy.sqrt(((x_he - c_h) / a_h) ** 2 - 1)
+        y_he2 = b_e * numpy.sqrt(1 - ((x_he - c_e) / a_e) ** 2)
 
         if verbose:
             print("f11, f12", f11, f12)
             print("f21, f22", f21, f22)
 
-            print("c0, c1: ", c0, c1)
-            print("S1, S2: ", S1, S2)
+            print("x_pmin, y_pmin: ", x_pmin, y_pmin)
+
 
 
             print("   theta grazing [deg]: ", theta * 180 / numpy.pi)
-            print("   Parabola p [m]:", p)
-            print("   Hyperbola a, b, c [m]: ", a, b, c)
+            print("   oe 1 can be either parabola or ellipse:")
+            print("           Parabola p [m]:", p)
+            print("           Ellipse a, b, c [m]: ", a_h, b_h, c_h)
+            print("   oe 2 is Hyperbola a, b, c [m]: ", a_h, b_h, c_h)
 
             print("\n\nCalculated parameters: ")
-            x_pmin = c0
-            y_pmin = c1
-            print("   ** Origin is at parabola focus (=far hyperbola focus)**")
-            print("   Common point: x_pmin, y_pmin: ", x_pmin, y_pmin)
+            print("   ** Origin is at common focus (parabola focus=far hyperbola focus)**")
+            print("   Common point (crossing par+hyp): x_pmin, y_pmin: ", x_pmin, y_pmin)
+            print("   Common point (crossing ell+hyp): x_he, y_he: ", x_he, y_he)
+
             print(" ")
 
 
             print("\n   normalized ccc_centered_parabola", ccc_centered_parabola / ccc_centered_parabola[0])
+            print("   normalized ccc_centered_ellipse", ccc_centered_ellipse / ccc_centered_ellipse[0])
             print("   normalized ccc_centered_hyperbola", ccc_centered_hyperbola / ccc_centered_hyperbola[0])
 
             print("\n   ccc_centered_parabola", ccc_centered_parabola)
+            print("   ccc_centered_ellipse", ccc_centered_ellipse)
             print("   ccc_centered_hyperbola", ccc_centered_hyperbola)
 
 
-        return  {'ccc1':ccc_centered_parabola, 'ccc2':ccc_centered_hyperbola,
-                 'p':p, 'a':a, 'b':b, 'c':c, 'x_pmin':x_pmin, 'y_pmin':y_pmin}
+
+        return  {'ccc1':ccc_centered_parabola,
+                 'ccc2':ccc_centered_hyperbola,
+                 'ccc3': ccc_centered_ellipse,
+                 'p':p,
+                 'a_h':a_h, 'b_h':b_h, 'c_h':c_h,
+                 'a_e':a_e, 'b_e':b_e, 'c_e':c_e,
+                 'x_pmin':x_pmin, 'y_pmin':y_pmin,
+                 'x_he':x_he, 'y_he':y_he,
+                 }
 
     @classmethod
     def plot_histo(cls, plot_window, x, y, title, xtitle, ytitle, color='blue', replace=True, symbol=''):
