@@ -67,6 +67,8 @@ class OWWolterCenteredCalculator(OWWidget):
 
     theta1 = Setting(0.0159872)
 
+    ellipse_flag = Setting(1)
+    ellipse_2c = Setting(10.0)
     tab=[]
 
     usage_path = os.path.join(resources.package_dirname("orangecontrib.syned.widgets.gui"), "misc", "predabam_usage.png")
@@ -122,6 +124,12 @@ class OWWolterCenteredCalculator(OWWidget):
         self.w_p2 = oasysgui.lineEdit(box, self, "p2", "hyperbola interfocal distance (2c)", labelWidth=220, valueType=float, orientation="horizontal")
         self.w_theta1 = oasysgui.lineEdit(box, self, "theta1", "Grazing angle at principal surface [rad]", labelWidth=260, valueType=float, orientation="horizontal", callback=self.update_panel)
 
+        box = oasysgui.widgetBox(tab_step_1, "Replace parabola by ellipse?", orientation="vertical")
+        gui.comboBox(box, self, "ellipse_flag", label="Consider ellipse", labelWidth=260,
+                     items=["No","Yes"],
+                     callback=self.update_panel, sendSelectedValue=False, orientation="horizontal")
+        self.w_ellipse_2c = oasysgui.widgetBox(box, "", orientation="vertical")
+        oasysgui.lineEdit(self.w_ellipse_2c, self, "ellipse_2c", "Ellipse focus (x=2c)", labelWidth=260, valueType=float, orientation="horizontal", callback=self.update_panel)
 
         #
         #-------------------- Output
@@ -158,7 +166,10 @@ class OWWolterCenteredCalculator(OWWidget):
         self.w_p1.setVisible(True)
         self.w_p2.setVisible(True)
         self.w_theta1.setVisible  (True)
-
+        if self.ellipse_flag:
+            self.w_ellipse_2c.setVisible(True)
+        else:
+            self.w_ellipse_2c.setVisible(False)
     def calculate(self):
         try:
             self.shadow_output.setText("")
@@ -173,24 +184,19 @@ class OWWolterCenteredCalculator(OWWidget):
             print("# DESIGN PHASE")
             print("####################################################\n")
 
-            if True:
-                tkt = self.recipe4()
-                # tkt = recipe4(
-                #     f11=self.p1,
-                #     f12=0,
-                #     f21=self.p2,
-                #     f22=0,
-                #     theta=self.theta1,
-                #     verbose=1,
-                # )
+            tkt = self.recipe4()
 
-            else:
-                raise Exception(NotImplementedError)
+            p = tkt['p']
+            a = tkt['a']
+            b = tkt['b']
+            c = tkt['c']
+            x_pmin = tkt['x_pmin']
+            y_pmin = tkt['y_pmin']
 
-            results_txt += "\nparabola p=%f"  % tkt['p']
-            results_txt += "\nhyperbola a=%f" % tkt['a']
-            results_txt += "\nhyperbola b=%f" % tkt['b']
-            results_txt += "\nhyperbola c=%f" % tkt['c']
+            results_txt += "\nparabola p=%f"  % p
+            results_txt += "\nhyperbola a=%f" % a
+            results_txt += "\nhyperbola b=%f" % b
+            results_txt += "\nhyperbola c=%f" % c
 
 
             results_txt += "\n\n\n    oe1(normalized)      oe2(normalized)"
@@ -207,14 +213,14 @@ class OWWolterCenteredCalculator(OWWidget):
 
 
             Pp = None
-            Qp = numpy.sqrt(tkt['x_pmin']**2 + tkt['y_pmin']**2)
+            Qp = numpy.sqrt(x_pmin**2 + y_pmin**2)
             Fp = Qp
             print("\n\nParabola p = NOT DEFINED ")
             print("Parabola q = ", Qp)
             print("Parabola f = ", Qp)
 
             Ph = Qp
-            Qh = numpy.sqrt((tkt['x_pmin']-2*tkt['c'])**2 + tkt['y_pmin']**2)
+            Qh = numpy.sqrt((x_pmin-2*c)**2 + y_pmin**2)
             Fh = 1/(1/Ph+1/Qh)
             print("\nHyperbola p = ", Ph)
             print("Hyperbola q = ", Qh)
@@ -226,9 +232,9 @@ class OWWolterCenteredCalculator(OWWidget):
             #
             # Ellipse###########################################################################
             #
-            c_e = 5.0
-            Pe = numpy.sqrt((tkt['x_pmin']-2*c_e)**2 + tkt['y_pmin']**2)
-            Qe = numpy.sqrt( tkt['x_pmin']       **2 + tkt['y_pmin']**2)
+            c_e = self.ellipse_2c / 2
+            Pe = numpy.sqrt((x_pmin-2*c_e)**2 + y_pmin**2)
+            Qe = numpy.sqrt( x_pmin       **2 + y_pmin**2)
             print("\n\n\nFor ellipse at 2 * c_e = %f" % (2*c_e))
             print("\n\n\nPe = %f; Qe = %f" % (Pe, Qe))
             print("\n ellipse c_e=%f" % c_e)
@@ -240,16 +246,22 @@ class OWWolterCenteredCalculator(OWWidget):
             print("\ncheck y(x_pmin): ", b_e * numpy.sqrt(1 - (tkt['x_pmin'] - c_e) ** 2 / a_e ** 2), tkt['y_pmin'])
             print("\nangle: ", numpy.arcsin(numpy.sqrt(Pe * Qe) / b_e))
 
-            # Delta = Pe**2 - tkt['y_pmin']**2
-            # if Delta < 0:
-            #     print("\n Cannot calculate ellipse (Delta=%f)...." % Delta)
-            # else:
-            #     c_e = numpy.abs(0.5 * (tkt['x_pmin'] - numpy.sqrt(Delta)))
-            #     print("\n ellipse c_e=%f" % c_e)
-            #     b_e = numpy.sqrt(Pe*Qe) * numpy.sin(2*self.theta1)
-            #     print("\n ellipse b_e=%f" % b_e)
-            #     a_e = numpy.sqrt(c_e**2 + b_e**2)
-            #     print("\n ellipse a_e=%f" % a_e)
+            # intersection hyperbola ellipse
+            # hyperbola: (x-c_h)**2/a_h**2 - y**2/b_h**2 = 1
+            # ellipse: (x-c_e)**2/a_e**2 + y**2/b_e**2 = 1
+            a_h = tkt['a']
+            b_h = tkt['b']
+            c_h = tkt['c']
+            A = 1.0 / a_e ** 2 + (b_h / b_e / a_h) ** 2
+            B = -2 * c_e / a_e ** 2 - 2 * c_h * (b_h / b_e / a_h) ** 2
+            C = -(b_h / b_e) ** 2 - 1 + (c_e / a_e) ** 2 + (c_h * b_h / b_e / a_h) ** 2
+
+            D = B ** 2 - 4 * A * C
+            if D < 0:
+                print("\n Cannot calculate ellipse (Delta=%f)...." % D)
+            x_he = (-B + numpy.sqrt(D)) / 2 / A
+            print("A,B,C,D, x_he: ", A, B, C, D, x_he)
+
 
             # Ellipse
             # (x-c_e)^2/a^2 + y^2/b_e^2 = 1 (Underwood)
@@ -268,80 +280,137 @@ class OWWolterCenteredCalculator(OWWidget):
             # plot data
             #
             self.progressBarInit()
-            p = tkt['p']
-            x = numpy.linspace(tkt['x_pmin']*1.5, -tkt['x_pmin']*1.5/5, 20000)
+            x = numpy.linspace(x_pmin*1.5, -x_pmin*1.5/5, 200)
 
-
+            #
             # parabola
+            #
             y1a =  numpy.sqrt(2 * p * x + p ** 2)
             y1b = -numpy.sqrt(2 * p * x + p ** 2)
+            theta_p = numpy.arctan((2 * x / p + 1) ** (-1 / 2))
 
+            #
             # hyperbola
+            #
+            y2a =  b * numpy.sqrt(((x - c) / a) ** 2 - 1)
+            y2b = -b * numpy.sqrt(((x - c) / a) ** 2 - 1)
+            p_x =  numpy.sqrt((x - 2 * c) ** 2 + y2a ** 2)
+            q_h_x =  numpy.sqrt(x ** 2 + y2a ** 2)
+            theta_h = numpy.arcsin(b/numpy.sqrt(p_x*q_h_x))
 
-            y2a =  tkt['b'] * numpy.sqrt(((x - tkt['c']) / tkt['a']) ** 2 - 1)
-            y2b = -tkt['b'] * numpy.sqrt(((x - tkt['c']) / tkt['a']) ** 2 - 1)
-
+            #
+            # ellipse
+            #
             y3a =   b_e * numpy.sqrt(1 - ((x - c_e) / a_e) ** 2)
             y3b =  -b_e * numpy.sqrt(1 - ((x - c_e) / a_e) ** 2)
+            q_e_x =  numpy.sqrt(x ** 2 + y3a ** 2)
+            theta_e = numpy.arcsin(b/numpy.sqrt(p_x*q_e_x))
 
-            # self.plot_multi_data1D([-x,-x], [y1a,y1b],
-            #                       10, 2, 0,
-            #                       title="parabola", xtitle="-z [m] (along optical axis)", ytitle="x,y [m]",
-            #                       ytitles=["1","2"],
-            #                       colors=['blue','blue'],
-            #                       replace=True,
-            #                       control=False,
-            #                       xrange=None,
-            #                       yrange=None,
-            #                       symbol=['',''])
+            # plot oe 1
 
-            self.plot_multi_data1D([-x,-x], [y1a,y1b],
-                                  10, 2, 0,
-                                  title="parabola", xtitle="-z [m] (along optical axis)", ytitle="x,y [m]",
-                                  ytitles=["1","2"],
-                                  colors=['blue','blue'],
-                                  replace=True,
-                                  control=False,
-                                  xrange=None,
-                                  yrange=None,
-                                  symbol=['',''])
+            if self.ellipse_flag:
+                self.plot_multi_data1D([-x, -x, -x, -x], [y1a, y1b, y3a, y3b],
+                                       10, 2, 0,
+                                       title="oe1 (parabola or ellipse)", xtitle="-z [m] (along optical axis)", ytitle="x,y [m]",
+                                       ytitles=["parabola+", "parabola-","ellipse+", "ellipse-"],
+                                       colors=['blue', 'blue','green', 'green'],
+                                       replace=True,
+                                       control=False,
+                                       xrange=None,
+                                       yrange=None,
+                                       symbol=['', '','', ''])
 
+            else:
+                self.plot_multi_data1D([-x,-x], [y1a,y1b],
+                                      10, 2, 0,
+                                      title="parabola", xtitle="-z [m] (along optical axis)", ytitle="x,y [m]",
+                                      ytitles=["parabola+","parabola-"],
+                                      colors=['blue','blue'],
+                                      replace=True,
+                                      control=False,
+                                      xrange=None,
+                                      yrange=None,
+                                      symbol=['',''])
+
+            # plot oe2
             self.plot_multi_data1D([-x,-x], [y2a,y2b],
                                   20, 3, 1,
                                   title="hyperbola", xtitle="-z [m] (along optical axis)", ytitle="x,y [m]",
-                                  ytitles=["1","2"],
-                                  colors=['r','r'],
+                                  ytitles=["hyperbola+","hyperbola-"],
+                                  colors=['red','red'],
                                   replace=True,
                                   control=False,
                                   xrange=None,
                                   yrange=None,
                                   symbol=['',''])
 
-            x_c = numpy.array([tkt['x_pmin']*1.5, tkt['x_pmin'], 2*tkt['c'], 2*tkt['c'],  tkt['x_pmin'],  tkt['x_pmin']*1.5])
-            y_c = numpy.array([tkt['y_pmin'],     tkt['y_pmin'], 0         , 0         , -tkt['y_pmin'], -tkt['y_pmin']   ])
-
-            # self.plot_multi_data1D([-x,-x,-x,-x, -x_c], [y1a,y1b,y2a,y2b,y_c],
-            #                       80, 4, 2,
-            #                       title="parabola+hyperbola", xtitle="-z [m] (along optical axis)", ytitle="x,y [m]",
-            #                       ytitles=["parabola+","parabola-","hyperbola+","hyperbola-", "ray"],
-            #                       colors=['blue','blue','red','red','k'],
-            #                       replace=True,
-            #                       control=False,
-            #                       xrange=None,
-            #                       yrange=None,
-            #                       symbol=['','','','',''])
+            #
+            # plot oe1+oe2
+            #
 
 
-            self.plot_multi_data1D([-x,-x,-x,-x, -x_c, -x, -x], [y1a,y1b,y2a,y2b,y_c, y3a, y3b],
-                                  80, 4, 2,
-                                  title="parabola+hyperbola+ellipse", xtitle="-z [m] (along optical axis)", ytitle="x,y [m]",
-                                  ytitles=["parabola+","parabola-","hyperbola+","hyperbola-", "ray", "ell","ell"],
-                                  colors=['blue','blue','red','red','k','green','green'],
-                                  replace=True,
-                                  control=False,
-                                  xrange=None,
-                                  yrange=None,
-                                  symbol=['','','','','','',''])
+            x_c = numpy.array([x_pmin*1.5, x_pmin, 2*c, 2*c,  x_pmin,  x_pmin*1.5])
+            y_c = numpy.array([y_pmin,     y_pmin, 0  , 0  , -y_pmin, -y_pmin    ])
+            if self.ellipse_flag:
+                self.plot_multi_data1D([-x,-x,-x,-x, -x_c, -x, -x], [y1a,y1b,y2a,y2b,y_c, y3a, y3b],
+                                      80, 4, 2,
+                                      title="parabola+hyperbola+ellipse", xtitle="-z [m] (along optical axis)", ytitle="x,y [m]",
+                                      ytitles=["parabola+","parabola-","hyperbola+","hyperbola-", "ray at par+hyp crossing", "ell","ell"],
+                                      colors=['blue','blue','red','red','k','green','green'],
+                                      replace=True,
+                                      control=False,
+                                      xrange=None,
+                                      yrange=None,
+                                      symbol=['','','','','','',''])
+            else:
+                self.plot_multi_data1D([-x,-x,-x,-x, -x_c], [y1a,y1b,y2a,y2b,y_c],
+                                      80, 4, 2,
+                                      title="parabola+hyperbola", xtitle="-z [m] (along optical axis)", ytitle="x,y [m]",
+                                      ytitles=["parabola+","parabola-","hyperbola+","hyperbola-", "ray at par+hyp crossing"],
+                                      colors=['blue','blue','red','red','k'],
+                                      replace=True,
+                                      control=False,
+                                      xrange=None,
+                                      yrange=None,
+                                      symbol=['','','','',''])
+
+
+
+            # plot angles
+            if self.ellipse_flag:
+                Xhe = numpy.array([x_he,x_he])
+                Yhe = numpy.array([0,numpy.nanmax(theta_h)])
+                print(">>>>Xhe,Yhe: ", Xhe, Yhe)
+                self.plot_multi_data1D([-x,-x,-x,-x,-Xhe],
+                                       [1e3*(x*0+1)*self.theta1,
+                                        1e3*theta_p,
+                                        1e3*theta_h,
+                                        1e3*theta_e,
+                                        1e3*Yhe],
+                                      90, 5, 3,
+                                      title="Grazing incident angles", xtitle="-z [m] (along optical axis)", ytitle="angle [mrad]",
+                                      ytitles=["design","parabola","hyperbola","ellipse",'ell+hyp crossing'],
+                                      colors=['black','blue','red','green','pink'],
+                                      replace=True,
+                                      control=False,
+                                      xrange=None,
+                                      yrange=None,
+                                      symbol=['','','','',''])
+            else:
+
+                self.plot_multi_data1D([-x,-x,-x],
+                                       [1e3*(x*0+1)*self.theta1,
+                                        1e3*theta_p,
+                                        1e3*theta_h],
+                                      90, 5, 3,
+                                      title="Grazing incident angles", xtitle="-z [m] (along optical axis)", ytitle="angle [mrad]",
+                                      ytitles=["design","parabola","hyperbola"],
+                                      colors=['black','blue','red'],
+                                      replace=True,
+                                      control=False,
+                                      xrange=None,
+                                      yrange=None,
+                                      symbol=['','',''])
 
             #
             # send data
@@ -431,6 +500,7 @@ class OWWolterCenteredCalculator(OWWidget):
                     oasysgui.createTabPage(self.tabs, "oe1 Profile"),
                     oasysgui.createTabPage(self.tabs, "oe2 Profile"),
                     oasysgui.createTabPage(self.tabs, "join profile"),
+                    oasysgui.createTabPage(self.tabs, "incident angle"),
         ]
 
         for tab in self.tab:
@@ -447,7 +517,7 @@ class OWWolterCenteredCalculator(OWWidget):
         tmp1.layout().addWidget(self.shadow_output)
 
         #
-        self.plot_canvas = [None, None, None]
+        self.plot_canvas = [None, None, None, None]
 
         self.plot_canvas[0] = oasysgui.plotWindow(roi=False, control=False, position=True)
         self.plot_canvas[0].setDefaultPlotLines(True)
@@ -458,7 +528,7 @@ class OWWolterCenteredCalculator(OWWidget):
 
         self.plot_canvas[1] = oasysgui.plotWindow(roi=False, control=False, position=True)
         self.plot_canvas[1].setDefaultPlotLines(True)
-        self.plot_canvas[1].setActiveCurveColor(color='blue')
+        self.plot_canvas[1].setActiveCurveColor(color='red')
         self.plot_canvas[1].setGraphYLabel("Z [nm]")
         self.plot_canvas[1].setGraphTitle("oe2 Profile")
         self.plot_canvas[1].setInteractiveMode(mode='zoom')
@@ -470,10 +540,17 @@ class OWWolterCenteredCalculator(OWWidget):
         self.plot_canvas[2].setGraphTitle("Joint Profile")
         self.plot_canvas[2].setInteractiveMode(mode='zoom')
 
+        self.plot_canvas[3] = oasysgui.plotWindow(roi=False, control=False, position=True)
+        self.plot_canvas[3].setDefaultPlotLines(True)
+        self.plot_canvas[3].setActiveCurveColor(color='black')
+        self.plot_canvas[3].setGraphYLabel("grazing angle [mrad]")
+        self.plot_canvas[3].setGraphTitle("Grazing incident angle")
+        self.plot_canvas[3].setInteractiveMode(mode='zoom')
 
         self.tab[2].layout().addWidget(self.plot_canvas[0])
         self.tab[3].layout().addWidget(self.plot_canvas[1])
         self.tab[4].layout().addWidget(self.plot_canvas[2])
+        self.tab[5].layout().addWidget(self.plot_canvas[3])
 
         self.tabs.setCurrentIndex(0)
 
@@ -631,7 +708,7 @@ class OWWolterCenteredCalculator(OWWidget):
 
 
         self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
-        self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='blue')
+        # self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='blue')
         self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
         self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
 
