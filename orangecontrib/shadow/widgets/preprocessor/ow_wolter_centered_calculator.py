@@ -207,14 +207,14 @@ class OWWolterCenteredCalculator(OWWidget):
 
 
             Pp = None
-            Qp = numpy.sqrt(tkt['x_pmin']**2 + tkt['y_pmin'])
+            Qp = numpy.sqrt(tkt['x_pmin']**2 + tkt['y_pmin']**2)
             Fp = Qp
             print("\n\nParabola p = NOT DEFINED ")
             print("Parabola q = ", Qp)
             print("Parabola f = ", Qp)
 
             Ph = Qp
-            Qh = numpy.sqrt((tkt['x_pmin']-2*tkt['c'])**2 + tkt['y_pmin'])
+            Qh = numpy.sqrt((tkt['x_pmin']-2*tkt['c'])**2 + tkt['y_pmin']**2)
             Fh = 1/(1/Ph+1/Qh)
             print("\nHyperbola p = ", Ph)
             print("Hyperbola q = ", Qh)
@@ -238,7 +238,7 @@ class OWWolterCenteredCalculator(OWWidget):
             print("\n ellipse a_e=%f" % a_e)
             print("\ncheck 1: ", (tkt['x_pmin']-c_e)**2 / a_e**2 + tkt['y_pmin']**2 / b_e**2)
             print("\ncheck y(x_pmin): ", b_e * numpy.sqrt(1 - (tkt['x_pmin'] - c_e) ** 2 / a_e ** 2), tkt['y_pmin'])
-
+            print("\nangle: ", numpy.arcsin(numpy.sqrt(Pe * Qe) / b_e))
 
             # Delta = Pe**2 - tkt['y_pmin']**2
             # if Delta < 0:
