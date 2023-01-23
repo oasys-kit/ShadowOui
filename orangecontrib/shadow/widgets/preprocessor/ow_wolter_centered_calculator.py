@@ -200,6 +200,8 @@ class OWWolterCenteredCalculator(OWWidget):
             c_e = tkt['c_e']
             x_pmin = tkt['x_pmin']
             y_pmin = tkt['y_pmin']
+            x_pmin2 = tkt['x_pmin2']
+            y_pmin2 = tkt['y_pmin2']
             x_he = tkt['x_he']
             y_he = tkt['y_he']
 
@@ -347,7 +349,7 @@ class OWWolterCenteredCalculator(OWWidget):
                                   symbol=['',''])
 
             #
-            # plot oe1+oe2
+            # plot joint oe1+oe2
             #
 
 
@@ -382,40 +384,44 @@ class OWWolterCenteredCalculator(OWWidget):
 
 
             # plot angles
+            XXhe = numpy.array([x_pmin, x_pmin])
+            YYhe = numpy.array([0, numpy.nanmax(theta_h)])
             if self.ellipse_flag:
                 Xhe = numpy.array([x_he,x_he])
                 Yhe = numpy.array([0,numpy.nanmax(theta_h)])
-                # print(">>>>Xhe,Yhe: ", Xhe, Yhe)
-                self.plot_multi_data1D([-x,-x,-x,-x,-Xhe],
+                self.plot_multi_data1D([-x,-x,-x,-XXhe,-x,-Xhe],
                                        [1e3*(x*0+1)*self.theta1,
                                         1e3*theta_p,
                                         1e3*theta_h,
+                                        1e3 * YYhe,
                                         1e3*theta_e,
-                                        1e3*Yhe],
+                                        1e3*Yhe,
+                                        ],
                                       90, 5, 3,
                                       title="Grazing incident angles", xtitle="-z [m] (along optical axis)", ytitle="angle [mrad]",
-                                      ytitles=["design","parabola","hyperbola","ellipse",'ell+hyp crossing'],
-                                      colors=['black','blue','red','green','pink'],
+                                      ytitles=["design","parabola","hyperbola",'par+hyp crossing',"ellipse",'ell+hyp crossing'],
+                                      colors=['black','blue','red','k','green','pink'],
                                       replace=True,
                                       control=False,
                                       xrange=None,
                                       yrange=None,
-                                      symbol=['','','','',''])
+                                      symbol=['','','','','',''])
             else:
 
-                self.plot_multi_data1D([-x,-x,-x],
+                self.plot_multi_data1D([-x,-x,-x,-XXhe],
                                        [1e3*(x*0+1)*self.theta1,
                                         1e3*theta_p,
-                                        1e3*theta_h],
+                                        1e3*theta_h,
+                                        1e3 * YYhe,],
                                       90, 5, 3,
                                       title="Grazing incident angles", xtitle="-z [m] (along optical axis)", ytitle="angle [mrad]",
-                                      ytitles=["design","parabola","hyperbola"],
-                                      colors=['black','blue','red'],
+                                      ytitles=["design","parabola","hyperbola",'par+hyp crossing'],
+                                      colors=['black','blue','red','k'],
                                       replace=True,
                                       control=False,
                                       xrange=None,
                                       yrange=None,
-                                      symbol=['','',''])
+                                      symbol=['','','',''])
 
             #
             # send data
@@ -845,7 +851,8 @@ class OWWolterCenteredCalculator(OWWidget):
         S2 = numpy.sqrt( (-B - numpy.sqrt(B ** 2 - 4 * A * C)) / (2 * A) )
         a_h = numpy.min((S1,S2))
         b_h = numpy.sqrt(c_h**2 - a_h**2)
-
+        b_h2 = numpy.sqrt(numpy.sqrt((x_pmin-c_h) ** 2 + y_pmin ** 2) * numpy.sqrt(x_pmin ** 2 + y_pmin ** 2)) * numpy.sin(theta)
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", b_h, b_h2)
         #
         # coeffs
 
@@ -868,36 +875,151 @@ class OWWolterCenteredCalculator(OWWidget):
         # Ellipse###########################################################################
         #
 
-        Pe = numpy.sqrt((x_pmin - 2 * c_e) ** 2 + y_pmin ** 2)
-        Qe = numpy.sqrt(x_pmin ** 2 + y_pmin ** 2)
-        b_e = numpy.sqrt(Pe * Qe) * numpy.sin(self.theta1)
-        a_e = numpy.sqrt(c_e ** 2 + b_e ** 2)
+        method = 0
+        if method == 0:
+            Pe = numpy.sqrt((x_pmin - 2 * c_e) ** 2 + y_pmin ** 2)
+            Qe = numpy.sqrt(x_pmin ** 2 + y_pmin ** 2)
+            b_e = numpy.sqrt(Pe * Qe) * numpy.sin(self.theta1)
+            a_e = numpy.sqrt(c_e ** 2 + b_e ** 2)
 
-        # Ellipse
-        # (x-c_e)^2/a^2 + y^2/b_e^2 = 1 (Underwood)
-        # (z-c_e)^2/a^2 + (y^2+x^2)/b_e^2 = 1 (Shadow)
-        # normal incidence (Underwood x->z, y->y  ->x)
+            # Ellipse
+            # (x-c_e)^2/a^2 + y^2/b_e^2 = 1 (Underwood)
+            # (z-c_e)^2/a^2 + (y^2+x^2)/b_e^2 = 1 (Shadow)
+            # normal incidence (Underwood x->z, y->y  ->x)
 
-        ccc_centered_ellipse = numpy.array([1 / b_e ** 2, 1 / b_e ** 2, 1 / a_e ** 2, \
-                                              0, 0, 0, \
-                                              0, 0, -2 * c_e / a_e ** 2, \
-                                              (c_e / a_e) ** 2 - 1])
+            ccc_centered_ellipse = numpy.array([1 / b_e ** 2, 1 / b_e ** 2, 1 / a_e ** 2, \
+                                                  0, 0, 0, \
+                                                  0, 0, -2 * c_e / a_e ** 2, \
+                                                  (c_e / a_e) ** 2 - 1])
 
-        # intersection hyperbola ellipse
-        # hyperbola: (x-c_h)**2/a_h**2 - y**2/b_h**2 = 1
-        # ellipse: (x-c_e)**2/a_e**2 + y**2/b_e**2 = 1
+            # intersection hyperbola ellipse
+            # hyperbola: (x-c_h)**2/a_h**2 - y**2/b_h**2 = 1
+            # ellipse: (x-c_e)**2/a_e**2 + y**2/b_e**2 = 1
 
-        A = 1.0 / a_e ** 2 + (b_h / b_e / a_h) ** 2
-        B = -2 * c_e / a_e ** 2 - 2 * c_h * (b_h / b_e / a_h) ** 2
-        C = -(b_h / b_e) ** 2 - 1 + (c_e / a_e) ** 2 + (c_h * b_h / b_e / a_h) ** 2
+            A = 1.0 / a_e ** 2 + (b_h / b_e / a_h) ** 2
+            B = -2 * c_e / a_e ** 2 - 2 * c_h * (b_h / b_e / a_h) ** 2
+            C = -(b_h / b_e) ** 2 - 1 + (c_e / a_e) ** 2 + (c_h * b_h / b_e / a_h) ** 2
 
-        D = B ** 2 - 4 * A * C
-        if D < 0:
-            print("\n Cannot calculate ellipse (Delta=%f)...." % D)
-        x_he = (-B + numpy.sqrt(D)) / 2 / A
-        print("A,B,C,D, x_he: ", A, B, C, D, x_he)
-        y_he = b_h * numpy.sqrt(((x_he - c_h) / a_h) ** 2 - 1)
-        y_he2 = b_e * numpy.sqrt(1 - ((x_he - c_e) / a_e) ** 2)
+            D = B ** 2 - 4 * A * C
+            if D < 0:
+                print("\n Cannot calculate ellipse (Delta=%f)...." % D)
+            x_he = (-B + numpy.sqrt(D)) / 2 / A
+            print("A,B,C,D, x_he: ", A, B, C, D, x_he)
+            y_he = b_h * numpy.sqrt(((x_he - c_h) / a_h) ** 2 - 1)
+            y_he2 = b_e * numpy.sqrt(1 - ((x_he - c_e) / a_e) ** 2)
+
+            x_pmin2 = x_pmin
+            y_pmin2 = y_pmin
+        else:
+            Pe = numpy.sqrt((x_pmin - 2 * c_e) ** 2 + y_pmin ** 2)
+            Qe = numpy.sqrt(x_pmin ** 2 + y_pmin ** 2)
+
+            # get a from the ellipse
+            # (x-c)/a)^2 + (y/b)^2 = 1
+            # b^2 = a^2 - c^2
+
+            A = 1
+            B = -x_pmin ** 2 + 2 * c_e - 2 * c_e ** 2 - y_pmin ** 2
+            C = c_e ** 4 -2 * c_e ** 3 + x_pmin**2 * c_e**2
+            D = B ** 2 - 4 * A * C
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Delta", D)
+            S1 = numpy.sqrt((-B + numpy.sqrt(D)) / (2 * A))
+            S2 = numpy.sqrt((-B - numpy.sqrt(D)) / (2 * A))
+            print(">>>>>>>>>>>>>>>>>>>>>>>> S1, S2: ", S1, S2)
+
+            a_e = numpy.sqrt(S2)
+            b_e = numpy.sqrt(a_e ** 2 - c_e ** 2)
+            one = ((x_pmin - c_e) / a_e)**2 + (y_pmin / b_e) ** 2
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> a_e1, b_e1, c_e, one, ", a_e, b_e, c_e, one)
+
+            a_e = numpy.sqrt(S1)
+            b_e = numpy.sqrt(a_e ** 2 - c_e ** 2)
+            one = ((x_pmin - c_e) / a_e)**2 + (y_pmin / b_e) ** 2
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> a_e1, b_e1, c_e, one, ", a_e, b_e, c_e, one)
+
+
+            #
+            # ############################################################################################################
+            # x_pmin2 = 3 # x_pmin
+            #
+            #
+            # y_h = lambda x, a_h=0, b_h=0, c_h=0:  b_h * numpy.sqrt( (x-c_h)**2 / a_h**2 - 1)
+            #
+            #
+            # Pe = lambda delta, x, y : numpy.sqrt((x-delta) ** 2 + y ** 2)
+            # Qe = lambda x, y: numpy.sqrt(x** 2 + y ** 2)
+            #
+            # ellipse = lambda delta, x=0, y=0, theta=0: \
+            #     4 * (x - delta)**2 / (Pe(delta, x, y) + Qe(x,y) )**2 + \
+            #     y**2 / ( Pe(delta, x, y) * Qe(x, y) * (numpy.sin(theta))**2) - 1
+            #
+            # # inp = [delta, x]
+            # ellipse2 = lambda inp, theta=0, a_h=0, b_h=0, c_h=0: \
+            #     ellipse(inp[0], inp[1], y_h(inp[1], a_h=a_h, b_h=b_h, c_h=c_h), theta=theta)
+            #
+            #
+            # y_pmin2 = y_h(x_pmin2, a_h=a_h, b_h=b_h, c_h=c_h)
+            # print(">>>>>>>>>>>>>>>>>>>>>>>>> x_pmin2, y_pmin2", x_pmin2, y_pmin2)
+            #
+            #
+            # print(">>>> ellipse val", ellipse(numpy.linspace(0,150,150), x=x_pmin2, y=y_pmin2,
+            #                                   theta=self.theta1))
+            #
+            # print(">>>> ellipse2 val", ellipse2([numpy.linspace(0,150,150), x_pmin2], theta=self.theta1,
+            #                                     a_h=a_h, b_h=b_h, c_h = c_h))
+            #
+            # from scipy.optimize import fsolve
+            # # guess = 50
+            # # delta_good = fsolve(ellipse, guess, args=(x_pmin2, y_pmin2, self.theta1))
+            # # x_pmin2 = delta_good[0]
+            # # y_pmin2 = y_h(x_pmin2, a_h, b_h, c_h)
+            #
+            #
+            #
+            # fit_good = fsolve(ellipse2, numpy.array([50, 2.0]), args=(self.theta1, a_h, b_h, c_h))
+            # print(">>>> fit_good: ", fit_good)
+            # delta_good = fit_good[0]
+            # x_pmin2 = fit_good[1]
+            # y_pmin2 = y_h(x_pmin2, a_h, b_h, c_h)
+            # print(">>>>>>>>>>>>>>>>>>>>>>>>> fit x_pmin2, y_pmin2", x_pmin2, y_pmin2)
+            # print(">>>>> fit:", type(delta_good), delta_good[0], ellipse(delta_good, x=x_pmin2, y=y_pmin2,
+            #                                   theta=self.theta1))
+            #
+            #
+            # b_e = numpy.sqrt(Pe(delta_good[0], x_pmin2, y_pmin2) * Qe(x_pmin2,y_pmin2)) * numpy.sin(self.theta1)
+            # a_e = 0.5 * (Pe(delta_good[0], x_pmin2, y_pmin2) + Qe(x_pmin2,y_pmin2)) # numpy.sqrt(c_e ** 2 + b_e ** 2)
+            # c_e = numpy.sqrt(a_e**2 - b_e**2)
+            #
+            # # Ellipse
+            # # (x-c_e)^2/a^2 + y^2/b_e^2 = 1 (Underwood)
+            # # (z-c_e)^2/a^2 + (y^2+x^2)/b_e^2 = 1 (Shadow)
+            # # normal incidence (Underwood x->z, y->y  ->x)
+            #
+            ccc_centered_ellipse = numpy.array([1 / b_e ** 2, 1 / b_e ** 2, 1 / a_e ** 2, \
+                                                  0, 0, 0, \
+                                                  0, 0, -2 * c_e / a_e ** 2, \
+                                                  (c_e / a_e) ** 2 - 1])
+            #
+            # intersection hyperbola ellipse
+            # hyperbola: (x-c_h)**2/a_h**2 - y**2/b_h**2 = 1
+            # ellipse: (x-c_e)**2/a_e**2 + y**2/b_e**2 = 1
+
+            A = 1.0 / a_e ** 2 + (b_h / b_e / a_h) ** 2
+            B = -2 * c_e / a_e ** 2 - 2 * c_h * (b_h / b_e / a_h) ** 2
+            C = -(b_h / b_e) ** 2 - 1 + (c_e / a_e) ** 2 + (c_h * b_h / b_e / a_h) ** 2
+
+            D = B ** 2 - 4 * A * C
+            if D < 0:
+                print("\n Cannot calculate ellipse (Delta=%f)...." % D)
+            x_he = (-B + numpy.sqrt(D)) / 2 / A
+            print("A,B,C,D, x_he: ", A, B, C, D, x_he)
+            y_he = b_h * numpy.sqrt(((x_he - c_h) / a_h) ** 2 - 1)
+            y_he2 = b_e * numpy.sqrt(1 - ((x_he - c_e) / a_e) ** 2)
+
+            x_pmin2 = x_pmin
+            y_pmin2 = y_pmin
+
+            ############################################################################################################
 
         if verbose:
             print("f11, f12", f11, f12)
@@ -938,6 +1060,7 @@ class OWWolterCenteredCalculator(OWWidget):
                  'a_h':a_h, 'b_h':b_h, 'c_h':c_h,
                  'a_e':a_e, 'b_e':b_e, 'c_e':c_e,
                  'x_pmin':x_pmin, 'y_pmin':y_pmin,
+                 'x_pmin2': x_pmin2, 'y_pmin2': y_pmin2,
                  'x_he':x_he, 'y_he':y_he,
                  }
 
