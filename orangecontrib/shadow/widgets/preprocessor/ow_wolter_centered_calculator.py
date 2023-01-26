@@ -5,9 +5,6 @@ from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtWidgets import QApplication, QMessageBox, QScrollArea, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QWidget, QLabel, QSizePolicy
 from PyQt5.QtGui import QTextCursor,QFont, QPalette, QColor, QPainter, QBrush, QPen, QPixmap
 
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-from matplotlib.figure import Figure
-
 import orangecanvas.resources as resources
 
 from orangewidget import gui, widget
@@ -16,14 +13,11 @@ from orangewidget.settings import Setting
 from oasys.widgets.widget import OWWidget
 from oasys.widgets import gui as oasysgui
 
-from srxraylib.metrology.dabam import dabam, autocorrelationfunction
-
-from copy import copy
-from urllib.request import urlopen
-
 from orangecontrib.shadow.util.shadow_objects import ConicCoefficientsPreProcessorData
 
 from oasys.util.oasys_util import EmittingStream
+
+from scipy.optimize import fsolve
 
 class OWWolterCenteredCalculator(OWWidget):
     name = "Wolter Calculator"
@@ -200,8 +194,6 @@ class OWWolterCenteredCalculator(OWWidget):
             c_e = tkt['c_e']
             x_pmin = tkt['x_pmin']
             y_pmin = tkt['y_pmin']
-            x_pmin2 = tkt['x_pmin2']
-            y_pmin2 = tkt['y_pmin2']
             x_he = tkt['x_he']
             y_he = tkt['y_he']
 
@@ -307,8 +299,9 @@ class OWWolterCenteredCalculator(OWWidget):
             #
             y3a =   b_e * numpy.sqrt(1 - ((x - c_e) / a_e) ** 2)
             y3b =  -b_e * numpy.sqrt(1 - ((x - c_e) / a_e) ** 2)
+            p_e_x = numpy.sqrt((x - 2 * c_e) ** 2 + y3a ** 2)
             q_e_x =  numpy.sqrt(x ** 2 + y3a ** 2)
-            theta_e = numpy.arcsin(b_e/numpy.sqrt(p_x*q_e_x))
+            theta_e = numpy.arcsin(b_e/numpy.sqrt(p_e_x*q_e_x))
 
             # plot oe 1
 
@@ -631,85 +624,85 @@ class OWWolterCenteredCalculator(OWWidget):
         self.shadow_output.setTextCursor(cursor)
         self.shadow_output.ensureCursorVisible()
 
-    def plot_data1D(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
-                    log_x=False, log_y=False,
-                    color='blue',
-                    replace=True, control=False, calculate_fwhm=True,
-                    xrange=None, yrange=None, symbol=''):
-
-        if tabs_canvas_index is None: tabs_canvas_index = 0 #back compatibility?
-
-
-        self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
-
-        self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow(parent=None,
-                                                                  backend=None,
-                                                                  resetzoom=True,
-                                                                  autoScale=False,
-                                                                  logScale=True,
-                                                                  grid=True,
-                                                                  curveStyle=True,
-                                                                  colormap=False,
-                                                                  aspectRatio=False,
-                                                                  yInverted=False,
-                                                                  copy=True,
-                                                                  save=True,
-                                                                  print_=True,
-                                                                  control=control,
-                                                                  position=True,
-                                                                  roi=False,
-                                                                  mask=False,
-                                                                  fit=False)
-
-
-        self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
-        self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='blue')
-        self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
-        self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
-
-        # ALLOW FIT BUTTON HERE
-        self.plot_canvas[plot_canvas_index].fitAction.setVisible(True)
-
-        # overwrite FWHM and peak values
-        if calculate_fwhm:
-            try:
-                t = numpy.where(y>=max(y)*0.5)
-                x_left,x_right =  x[t[0][0]], x[t[0][-1]]
-
-                self.plot_canvas[plot_canvas_index].addMarker(x_left, 0.5*y.max(), legend="G1",
-                                                              text="FWHM=%5.2f"%(numpy.abs(x_right-x_left)),
-                                                              color="pink",selectable=False, draggable=False,
-                                                              symbol="+", constraint=None)
-                self.plot_canvas[plot_canvas_index].addMarker(x_right, 0.5*y.max(), legend="G2", text=None, color="pink",
-                                                              selectable=False, draggable=False, symbol="+", constraint=None)
-            except:
-                pass
-
-        self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
-
-        self.plot_histo(self.plot_canvas[plot_canvas_index], x, y, title, xtitle, ytitle, color, replace, symbol=symbol)
-
-        self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(log_x)
-        self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(log_y)
-
-
-        if xrange is not None:
-            self.plot_canvas[plot_canvas_index].setGraphXLimits(xrange[0],xrange[1])
-        if yrange is not None:
-            self.plot_canvas[plot_canvas_index].setGraphYLimits(yrange[0],yrange[1])
-
-        if min(y) < 0:
-            if log_y:
-                self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y)*1.2, max(y)*1.2)
-            else:
-                self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y)*1.01, max(y)*1.01)
-        else:
-            if log_y:
-                self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y), max(y)*1.2)
-            else:
-                self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y)*0.99, max(y)*1.01)
-
-        self.progressBarSet(progressBarValue)
+    # def plot_data1D(self, x, y, progressBarValue, tabs_canvas_index, plot_canvas_index, title="", xtitle="", ytitle="",
+    #                 log_x=False, log_y=False,
+    #                 color='blue',
+    #                 replace=True, control=False, calculate_fwhm=True,
+    #                 xrange=None, yrange=None, symbol=''):
+    #
+    #     if tabs_canvas_index is None: tabs_canvas_index = 0 #back compatibility?
+    #
+    #
+    #     self.tab[tabs_canvas_index].layout().removeItem(self.tab[tabs_canvas_index].layout().itemAt(0))
+    #
+    #     self.plot_canvas[plot_canvas_index] = oasysgui.plotWindow(parent=None,
+    #                                                               backend=None,
+    #                                                               resetzoom=True,
+    #                                                               autoScale=False,
+    #                                                               logScale=True,
+    #                                                               grid=True,
+    #                                                               curveStyle=True,
+    #                                                               colormap=False,
+    #                                                               aspectRatio=False,
+    #                                                               yInverted=False,
+    #                                                               copy=True,
+    #                                                               save=True,
+    #                                                               print_=True,
+    #                                                               control=control,
+    #                                                               position=True,
+    #                                                               roi=False,
+    #                                                               mask=False,
+    #                                                               fit=False)
+    #
+    #
+    #     self.plot_canvas[plot_canvas_index].setDefaultPlotLines(True)
+    #     self.plot_canvas[plot_canvas_index].setActiveCurveColor(color='blue')
+    #     self.plot_canvas[plot_canvas_index].setGraphXLabel(xtitle)
+    #     self.plot_canvas[plot_canvas_index].setGraphYLabel(ytitle)
+    #
+    #     # ALLOW FIT BUTTON HERE
+    #     self.plot_canvas[plot_canvas_index].fitAction.setVisible(True)
+    #
+    #     # overwrite FWHM and peak values
+    #     if calculate_fwhm:
+    #         try:
+    #             t = numpy.where(y>=max(y)*0.5)
+    #             x_left,x_right =  x[t[0][0]], x[t[0][-1]]
+    #
+    #             self.plot_canvas[plot_canvas_index].addMarker(x_left, 0.5*y.max(), legend="G1",
+    #                                                           text="FWHM=%5.2f"%(numpy.abs(x_right-x_left)),
+    #                                                           color="pink",selectable=False, draggable=False,
+    #                                                           symbol="+", constraint=None)
+    #             self.plot_canvas[plot_canvas_index].addMarker(x_right, 0.5*y.max(), legend="G2", text=None, color="pink",
+    #                                                           selectable=False, draggable=False, symbol="+", constraint=None)
+    #         except:
+    #             pass
+    #
+    #     self.tab[tabs_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
+    #
+    #     self.plot_histo(self.plot_canvas[plot_canvas_index], x, y, title, xtitle, ytitle, color, replace, symbol=symbol)
+    #
+    #     self.plot_canvas[plot_canvas_index].setXAxisLogarithmic(log_x)
+    #     self.plot_canvas[plot_canvas_index].setYAxisLogarithmic(log_y)
+    #
+    #
+    #     if xrange is not None:
+    #         self.plot_canvas[plot_canvas_index].setGraphXLimits(xrange[0],xrange[1])
+    #     if yrange is not None:
+    #         self.plot_canvas[plot_canvas_index].setGraphYLimits(yrange[0],yrange[1])
+    #
+    #     if min(y) < 0:
+    #         if log_y:
+    #             self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y)*1.2, max(y)*1.2)
+    #         else:
+    #             self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y)*1.01, max(y)*1.01)
+    #     else:
+    #         if log_y:
+    #             self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y), max(y)*1.2)
+    #         else:
+    #             self.plot_canvas[plot_canvas_index].setGraphYLimits(min(y)*0.99, max(y)*1.01)
+    #
+    #     self.progressBarSet(progressBarValue)
 
 
     def plot_multi_data1D(self, x_list, y_list,
@@ -794,17 +787,17 @@ class OWWolterCenteredCalculator(OWWidget):
         self.progressBarSet(progressBarValue)
 
 
-    def plot_data2D(self, data2D, dataX, dataY, progressBarValue, tabs_canvas_index, plot_canvas_index,
-                    title="",xtitle="", ytitle=""):
-
-        if self.view_type == 0:
-            pass
-        elif self.view_type == 1:
-            self.plot_data2D_only_image(data2D, dataX, dataY, progressBarValue, tabs_canvas_index,plot_canvas_index,
-                         title=title, xtitle=xtitle, ytitle=ytitle)
-        elif self.view_type == 2:
-            self.plot_data2D_with_histograms(data2D, dataX, dataY, progressBarValue, tabs_canvas_index,plot_canvas_index,
-                         title=title, xtitle=xtitle, ytitle=ytitle)
+    # def plot_data2D(self, data2D, dataX, dataY, progressBarValue, tabs_canvas_index, plot_canvas_index,
+    #                 title="",xtitle="", ytitle=""):
+    #
+    #     if self.view_type == 0:
+    #         pass
+    #     elif self.view_type == 1:
+    #         self.plot_data2D_only_image(data2D, dataX, dataY, progressBarValue, tabs_canvas_index,plot_canvas_index,
+    #                      title=title, xtitle=xtitle, ytitle=ytitle)
+    #     elif self.view_type == 2:
+    #         self.plot_data2D_with_histograms(data2D, dataX, dataY, progressBarValue, tabs_canvas_index,plot_canvas_index,
+    #                      title=title, xtitle=xtitle, ytitle=ytitle)
 
     def wolter1_centered(self,
                          verbose = True,
@@ -872,10 +865,10 @@ class OWWolterCenteredCalculator(OWWidget):
                                               (c_h/a_h)**2 - 1])
 
         #
-        # Ellipse###########################################################################
+        # Ellipse ###########################################################################
         #
 
-        method = 0
+        method = 1
         if method == 0:
             Pe = numpy.sqrt((x_pmin - 2 * c_e) ** 2 + y_pmin ** 2)
             Qe = numpy.sqrt(x_pmin ** 2 + y_pmin ** 2)
@@ -908,99 +901,43 @@ class OWWolterCenteredCalculator(OWWidget):
             y_he = b_h * numpy.sqrt(((x_he - c_h) / a_h) ** 2 - 1)
             y_he2 = b_e * numpy.sqrt(1 - ((x_he - c_e) / a_e) ** 2)
 
-            x_pmin2 = x_pmin
-            y_pmin2 = y_pmin
-        else:
+        elif method == 1:
             Pe = numpy.sqrt((x_pmin - 2 * c_e) ** 2 + y_pmin ** 2)
             Qe = numpy.sqrt(x_pmin ** 2 + y_pmin ** 2)
-
-            # get a from the ellipse
-            # (x-c)/a)^2 + (y/b)^2 = 1
-            # b^2 = a^2 - c^2
-
-            A = 1
-            B = -x_pmin ** 2 + 2 * c_e - 2 * c_e ** 2 - y_pmin ** 2
-            C = c_e ** 4 -2 * c_e ** 3 + x_pmin**2 * c_e**2
-            D = B ** 2 - 4 * A * C
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Delta", D)
-            S1 = numpy.sqrt((-B + numpy.sqrt(D)) / (2 * A))
-            S2 = numpy.sqrt((-B - numpy.sqrt(D)) / (2 * A))
-            print(">>>>>>>>>>>>>>>>>>>>>>>> S1, S2: ", S1, S2)
-
-            a_e = numpy.sqrt(S2)
-            b_e = numpy.sqrt(a_e ** 2 - c_e ** 2)
-            one = ((x_pmin - c_e) / a_e)**2 + (y_pmin / b_e) ** 2
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> a_e1, b_e1, c_e, one, ", a_e, b_e, c_e, one)
-
-            a_e = numpy.sqrt(S1)
-            b_e = numpy.sqrt(a_e ** 2 - c_e ** 2)
-            one = ((x_pmin - c_e) / a_e)**2 + (y_pmin / b_e) ** 2
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> a_e1, b_e1, c_e, one, ", a_e, b_e, c_e, one)
+            b_e = numpy.sqrt(Pe * Qe) * numpy.sin(self.theta1)
+            a_e = numpy.sqrt(c_e ** 2 + b_e ** 2)
 
 
-            #
-            # ############################################################################################################
-            # x_pmin2 = 3 # x_pmin
-            #
-            #
-            # y_h = lambda x, a_h=0, b_h=0, c_h=0:  b_h * numpy.sqrt( (x-c_h)**2 / a_h**2 - 1)
-            #
-            #
-            # Pe = lambda delta, x, y : numpy.sqrt((x-delta) ** 2 + y ** 2)
-            # Qe = lambda x, y: numpy.sqrt(x** 2 + y ** 2)
-            #
-            # ellipse = lambda delta, x=0, y=0, theta=0: \
-            #     4 * (x - delta)**2 / (Pe(delta, x, y) + Qe(x,y) )**2 + \
-            #     y**2 / ( Pe(delta, x, y) * Qe(x, y) * (numpy.sin(theta))**2) - 1
-            #
-            # # inp = [delta, x]
-            # ellipse2 = lambda inp, theta=0, a_h=0, b_h=0, c_h=0: \
-            #     ellipse(inp[0], inp[1], y_h(inp[1], a_h=a_h, b_h=b_h, c_h=c_h), theta=theta)
-            #
-            #
-            # y_pmin2 = y_h(x_pmin2, a_h=a_h, b_h=b_h, c_h=c_h)
-            # print(">>>>>>>>>>>>>>>>>>>>>>>>> x_pmin2, y_pmin2", x_pmin2, y_pmin2)
-            #
-            #
-            # print(">>>> ellipse val", ellipse(numpy.linspace(0,150,150), x=x_pmin2, y=y_pmin2,
-            #                                   theta=self.theta1))
-            #
-            # print(">>>> ellipse2 val", ellipse2([numpy.linspace(0,150,150), x_pmin2], theta=self.theta1,
-            #                                     a_h=a_h, b_h=b_h, c_h = c_h))
-            #
-            # from scipy.optimize import fsolve
-            # # guess = 50
-            # # delta_good = fsolve(ellipse, guess, args=(x_pmin2, y_pmin2, self.theta1))
-            # # x_pmin2 = delta_good[0]
-            # # y_pmin2 = y_h(x_pmin2, a_h, b_h, c_h)
-            #
-            #
-            #
-            # fit_good = fsolve(ellipse2, numpy.array([50, 2.0]), args=(self.theta1, a_h, b_h, c_h))
-            # print(">>>> fit_good: ", fit_good)
-            # delta_good = fit_good[0]
-            # x_pmin2 = fit_good[1]
-            # y_pmin2 = y_h(x_pmin2, a_h, b_h, c_h)
-            # print(">>>>>>>>>>>>>>>>>>>>>>>>> fit x_pmin2, y_pmin2", x_pmin2, y_pmin2)
-            # print(">>>>> fit:", type(delta_good), delta_good[0], ellipse(delta_good, x=x_pmin2, y=y_pmin2,
-            #                                   theta=self.theta1))
-            #
-            #
-            # b_e = numpy.sqrt(Pe(delta_good[0], x_pmin2, y_pmin2) * Qe(x_pmin2,y_pmin2)) * numpy.sin(self.theta1)
-            # a_e = 0.5 * (Pe(delta_good[0], x_pmin2, y_pmin2) + Qe(x_pmin2,y_pmin2)) # numpy.sqrt(c_e ** 2 + b_e ** 2)
-            # c_e = numpy.sqrt(a_e**2 - b_e**2)
-            #
-            # # Ellipse
-            # # (x-c_e)^2/a^2 + y^2/b_e^2 = 1 (Underwood)
-            # # (z-c_e)^2/a^2 + (y^2+x^2)/b_e^2 = 1 (Shadow)
-            # # normal incidence (Underwood x->z, y->y  ->x)
-            #
+            # calculate the intersection x1 of the hyperbola with an ellipse  with c_e and
+            # variable eccentricity.
+            # then solve numerically x1(ecc) = x_pmin to get the wanted ellipse that intersects
+            # the hyperbila at x_pmin
+
+            ecc_guess = c_e / a_e
+            ecc_good = fsolve(self.fff, ecc_guess, args=(c_e, a_h, b_h, c_h, x_pmin))
+
+            # print(">>>>>>>>>>>>>>>>>>>> ecc_guess, ecc_good: ", ecc_guess, ecc_good)
+            # print(">>>>>>>>>>>>>>>>>>>> fff[ecc_guess, ecc_good]: ",
+            #       self.fff(ecc_guess, c_e, a_h, b_h, c_h, x_pmin),
+            #       self.fff(ecc_good, c_e, a_h, b_h, c_h, x_pmin),
+            #                )
+            ecc = ecc_good[0]
+
+            a_e = c_e / ecc
+            b_e = numpy.sqrt(a_e**2 - c_e**2)
+
+            # Ellipse
+            # (x-c_e)^2/a^2 + y^2/b_e^2 = 1 (Underwood)
+            # (z-c_e)^2/a^2 + (y^2+x^2)/b_e^2 = 1 (Shadow)
+            # normal incidence (Underwood x->z, y->y  ->x)
+
             ccc_centered_ellipse = numpy.array([1 / b_e ** 2, 1 / b_e ** 2, 1 / a_e ** 2, \
-                                                  0, 0, 0, \
-                                                  0, 0, -2 * c_e / a_e ** 2, \
-                                                  (c_e / a_e) ** 2 - 1])
-            #
-            # intersection hyperbola ellipse
+                                                0, 0, 0, \
+                                                0, 0, -2 * c_e / a_e ** 2, \
+                                                (c_e / a_e) ** 2 - 1])
+
+            # intersection hyperbola ellipse (in fact, redundant because x_he = x_pmin by construction!)
+
             # hyperbola: (x-c_h)**2/a_h**2 - y**2/b_h**2 = 1
             # ellipse: (x-c_e)**2/a_e**2 + y**2/b_e**2 = 1
 
@@ -1015,9 +952,6 @@ class OWWolterCenteredCalculator(OWWidget):
             print("A,B,C,D, x_he: ", A, B, C, D, x_he)
             y_he = b_h * numpy.sqrt(((x_he - c_h) / a_h) ** 2 - 1)
             y_he2 = b_e * numpy.sqrt(1 - ((x_he - c_e) / a_e) ** 2)
-
-            x_pmin2 = x_pmin
-            y_pmin2 = y_pmin
 
             ############################################################################################################
 
@@ -1060,9 +994,32 @@ class OWWolterCenteredCalculator(OWWidget):
                  'a_h':a_h, 'b_h':b_h, 'c_h':c_h,
                  'a_e':a_e, 'b_e':b_e, 'c_e':c_e,
                  'x_pmin':x_pmin, 'y_pmin':y_pmin,
-                 'x_pmin2': x_pmin2, 'y_pmin2': y_pmin2,
                  'x_he':x_he, 'y_he':y_he,
                  }
+
+    def fff(self, ecc, c_e, a_h, b_h, c_h, x_pmin):
+        a_e = c_e / ecc
+        b_e = numpy.sqrt(a_e**2 - c_e**2)
+
+        #
+        # intersection hyperbola ellipse
+        # hyperbola: (x-c_h)**2/a_h**2 - y**2/b_h**2 = 1
+        # ellipse: (x-c_e)**2/a_e**2 + y**2/b_e**2 = 1
+
+        A = 1.0 / a_e ** 2 + (b_h / b_e / a_h) ** 2
+        B = -2 * c_e / a_e ** 2 - 2 * c_h * (b_h / b_e / a_h) ** 2
+        C = -(b_h / b_e) ** 2 - 1 + (c_e / a_e) ** 2 + (c_h * b_h / b_e / a_h) ** 2
+
+        D = B ** 2 - 4 * A * C
+        if D < 0:
+            print("\n Cannot calculate ellipse (Delta=%f)...." % D)
+        x1 = (-B + numpy.sqrt(D)) / 2 / A
+        x2 = (-B - numpy.sqrt(D)) / 2 / A
+        print("A,B,C,D, x1, x2: ", A, B, C, D, x1, x2)
+        # y_he = b_h * numpy.sqrt(((x_he - c_h) / a_h) ** 2 - 1)
+        # y_he2 = b_e * numpy.sqrt(1 - ((x_he - c_e) / a_e) ** 2)
+        return x1 - x_pmin
+
 
     @classmethod
     def plot_histo(cls, plot_window, x, y, title, xtitle, ytitle, color='blue', replace=True, symbol=''):
