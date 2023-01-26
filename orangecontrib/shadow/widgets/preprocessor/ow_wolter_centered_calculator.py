@@ -17,7 +17,7 @@ from orangecontrib.shadow.util.shadow_objects import ConicCoefficientsPreProcess
 
 from oasys.util.oasys_util import EmittingStream
 
-from scipy.optimize import fsolve
+# from scipy.optimize import fsolve
 
 class OWWolterCenteredCalculator(OWWidget):
     name = "Wolter Calculator"
@@ -845,7 +845,7 @@ class OWWolterCenteredCalculator(OWWidget):
         a_h = numpy.min((S1,S2))
         b_h = numpy.sqrt(c_h**2 - a_h**2)
         b_h2 = numpy.sqrt(numpy.sqrt((x_pmin-c_h) ** 2 + y_pmin ** 2) * numpy.sqrt(x_pmin ** 2 + y_pmin ** 2)) * numpy.sin(theta)
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", b_h, b_h2)
+        # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", b_h, b_h2)
         #
         # coeffs
 
@@ -913,15 +913,23 @@ class OWWolterCenteredCalculator(OWWidget):
             # then solve numerically x1(ecc) = x_pmin to get the wanted ellipse that intersects
             # the hyperbila at x_pmin
 
-            ecc_guess = c_e / a_e
-            ecc_good = fsolve(self.fff, ecc_guess, args=(c_e, a_h, b_h, c_h, x_pmin))
+            if False:
+                ecc_guess = c_e / a_e
+                ecc_good = fsolve(self.fff, ecc_guess, args=(c_e, a_h, b_h, c_h, x_pmin))
 
-            # print(">>>>>>>>>>>>>>>>>>>> ecc_guess, ecc_good: ", ecc_guess, ecc_good)
-            # print(">>>>>>>>>>>>>>>>>>>> fff[ecc_guess, ecc_good]: ",
-            #       self.fff(ecc_guess, c_e, a_h, b_h, c_h, x_pmin),
-            #       self.fff(ecc_good, c_e, a_h, b_h, c_h, x_pmin),
-            #                )
-            ecc = ecc_good[0]
+                print("n\n>>>>>>>>>>>>>>>>>>>> ecc_guess, ecc_good: ", ecc_guess, ecc_good)
+                print("\>>>>>>>>>>>>>>>>>>>> fff[ecc_guess, ecc_good]: ",
+                      self.fff(ecc_guess, c_e, a_h, b_h, c_h, x_pmin),
+                      self.fff(ecc_good, c_e, a_h, b_h, c_h, x_pmin),
+                               )
+
+                ecc = ecc_good[0]
+            else:
+                ecc = (self.calculate_ellipse_eccentricity(c_e, a_h, b_h, c_h, x_pmin))[0]
+                print("\n\n>>>>>>>>>>>>>>>>>>>> ecc_anal: ",ecc)
+                print(">>>>>>>>>>>>>>>>>>>> fff[ecc_anal]: ",
+                      self.fff(ecc, c_e, a_h, b_h, c_h, x_pmin),
+                               )
 
             a_e = c_e / ecc
             b_e = numpy.sqrt(a_e**2 - c_e**2)
@@ -997,6 +1005,7 @@ class OWWolterCenteredCalculator(OWWidget):
                  'x_he':x_he, 'y_he':y_he,
                  }
 
+    # TODO: delete
     def fff(self, ecc, c_e, a_h, b_h, c_h, x_pmin):
         a_e = c_e / ecc
         b_e = numpy.sqrt(a_e**2 - c_e**2)
@@ -1020,6 +1029,28 @@ class OWWolterCenteredCalculator(OWWidget):
         # y_he2 = b_e * numpy.sqrt(1 - ((x_he - c_e) / a_e) ** 2)
         return x1 - x_pmin
 
+    def calculate_ellipse_eccentricity(self, c_e, a_h, b_h, c_h, x_pmin):
+        # obtain the eccentricity of the ellipse (given c_e) than crosses the hyperbola (with a_h,b_h,c_h)
+        # at abscissa x_pmin
+
+        #     # intersection hyperbola ellipse
+        #     # ellipse: (x_pmin-c_e)**2/a_e**2 + y**2/b_e**2 = 1
+        #     # hyperbola: (x_pmin-c_h)**2/a_h**2 - y**2/b_h**2 = 1
+        #     Method:
+        #     i) replace y**2 from hyperbola into ellipse
+        #     ii) express a_e and b_e as a function of eccentricity ecc and c_e
+        #     iii) change variable delta=(1/ecc**2 -1) thus giving:
+        #          a1/(1+delta) + b1 / delta -1 = 0
+        #          which is a second-degree equation in delta:
+        #          delta**2 + delta * (1-a1-b1) -b1 = 0
+        #     iv) Solve the second-degree equation and return ecc
+        a1 = ((x_pmin-c_e)/c_e)**2
+        b1 = (b_h/c_e)**2 * ( ((x_pmin-c_h)/a_h)**2 -1)
+        delta1 = 0.5 * (-1 + a1 + b1 + numpy.sqrt(4 * b1 + ( 1 -a1 - b1 ) ** 2))
+        delta2 = 0.5 * (-1 + a1 + b1 - numpy.sqrt(4 * b1 + ( 1 -a1 - b1 ) ** 2))
+        ecc1 = 1 / numpy.sqrt(1 + delta1)
+        ecc2 = 1 / numpy.sqrt(1 + delta2)
+        return ecc1, ecc2
 
     @classmethod
     def plot_histo(cls, plot_window, x, y, title, xtitle, ytitle, color='blue', replace=True, symbol=''):
