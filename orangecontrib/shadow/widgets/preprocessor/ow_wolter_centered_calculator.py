@@ -115,7 +115,7 @@ class OWWolterCenteredCalculator(OWWidget):
                             ],
                      callback=self.update_panel, sendSelectedValue=False, orientation="horizontal")
 
-        self.w_p1 = oasysgui.lineEdit(box, self, "p1", "parabola directrix coord (-p=-f/2)", labelWidth=240, valueType=float, orientation="horizontal")
+        self.w_p1 = oasysgui.lineEdit(box, self, "p1", "parabola directrix coord (z=-p=-f/2)", labelWidth=240, valueType=float, orientation="horizontal")
         self.w_p2 = oasysgui.lineEdit(box, self, "p2", "hyperbola interfocal distance (2c)", labelWidth=240, valueType=float, orientation="horizontal")
         self.w_theta1 = oasysgui.lineEdit(box, self, "theta1", "Grazing angle at principal surface [rad]", labelWidth=260, valueType=float, orientation="horizontal", callback=self.update_panel)
 
@@ -124,7 +124,7 @@ class OWWolterCenteredCalculator(OWWidget):
                      items=["No","Yes"],
                      callback=self.update_panel, sendSelectedValue=False, orientation="horizontal")
         self.w_ellipse_2c = oasysgui.widgetBox(box, "", orientation="vertical")
-        oasysgui.lineEdit(self.w_ellipse_2c, self, "ellipse_2c", "Ellipse focus (x=2c)", labelWidth=260, valueType=float, orientation="horizontal", callback=self.update_panel)
+        oasysgui.lineEdit(self.w_ellipse_2c, self, "ellipse_2c", "Ellipse focus (z=2c)", labelWidth=260, valueType=float, orientation="horizontal", callback=self.update_panel)
 
         box = oasysgui.widgetBox(tab_step_1, "Other inputs", orientation="vertical")
         oasysgui.lineEdit(box, self, "npoints", "Points (for plot)", labelWidth=260, valueType=int, orientation="horizontal", callback=self.update_panel)
@@ -820,7 +820,8 @@ class OWWolterCenteredCalculator(OWWidget):
         if f12 != 0.0 or f22 != 0:
             raise Exception("Is your origin at the common focus?")
 
-        p = numpy.abs(f11-f12)
+        # p = numpy.abs(f11-f12)
+        p = f12 - f11 # sign is important, f11 < 0, f21 > 0
 
         # intersection point at the parabola matching angle (https://doi.org/10.1107/S1600577522004593)
         x_pmin = (p / 2) / (numpy.tan(theta)) ** 2 - (p/2)
@@ -1046,10 +1047,12 @@ class OWWolterCenteredCalculator(OWWidget):
         #     iv) Solve the second-degree equation and return ecc
         a1 = ((x_pmin-c_e)/c_e)**2
         b1 = (b_h/c_e)**2 * ( ((x_pmin-c_h)/a_h)**2 -1)
-        delta1 = 0.5 * (-1 + a1 + b1 + numpy.sqrt(4 * b1 + ( 1 -a1 - b1 ) ** 2))
-        delta2 = 0.5 * (-1 + a1 + b1 - numpy.sqrt(4 * b1 + ( 1 -a1 - b1 ) ** 2))
-        ecc1 = 1 / numpy.sqrt(1 + delta1)
-        ecc2 = 1 / numpy.sqrt(1 + delta2)
+        # delta1 = 0.5 * (-1 + a1 + b1 + numpy.sqrt(4 * b1 + ( 1 -a1 - b1 ) ** 2))
+        # delta2 = 0.5 * (-1 + a1 + b1 - numpy.sqrt(4 * b1 + ( 1 -a1 - b1 ) ** 2))
+        # ecc1 = 1 / numpy.sqrt(1 + delta1)
+        # ecc2 = 1 / numpy.sqrt(1 + delta2)
+        ecc1 = (0.5 * (1 + a1 + b1 + numpy.sqrt(4 * b1 + (1 - a1 - b1) ** 2))) ** (-1 / 2)
+        ecc2 = (0.5 * (1 + a1 + b1 - numpy.sqrt(4 * b1 + (1 - a1 - b1) ** 2))) ** (-1 / 2)
         return ecc1, ecc2
 
     @classmethod
