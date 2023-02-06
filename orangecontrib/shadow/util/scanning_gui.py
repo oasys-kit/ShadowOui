@@ -316,12 +316,10 @@ class Scan3DHistoWidget(AbstractScanHistoWidget):
             lc.set_linewidth(2) # set linewidth a little larger to see properly the colormap variation
             self.axis.add_collection3d(lc, zs=(Y[j,1:]+Y[j,:-1])/2,  zdir='y') # add line to axes
 
-        if histo_index==0:
-            self.colorbar = self.figure.colorbar(lc) # add colorbar, as the normalization is the same for all,
+        if histo_index==0: self.colorbar = self.figure.colorbar(lc) # add colorbar, as the normalization is the same for all,
 
         self.colorbar.update_normal(lc)
         self.colorbar.draw_all()
-        self.colorbar.update_bruteforce(lc)
 
 class ScanHistoWidget(AbstractScanHistoWidget):
 
