@@ -33,6 +33,8 @@ class AutomaticElement(widget.OWWidget):
     def __init__(self, show_automatic_box=True):
         super().__init__()
 
+        nonsense = self.inputs, self.outputs
+
         geom = QApplication.desktop().availableGeometry()
         self.setGeometry(QRect(round(geom.width()*0.05),
                                round(geom.height()*0.05),
