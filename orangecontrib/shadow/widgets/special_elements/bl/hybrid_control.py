@@ -406,7 +406,7 @@ def hy_check_congruence(input_parameters=HybridInputParameters(), calculation_pa
 
             # REQUEST FILTERING OR REFUSING
 
-            if  not input_parameters.ghy_calcType in [3, 4, 6]: # no figure/thickness errors
+            if not input_parameters.ghy_calcType in [3, 4, 6]: # no figure/thickness errors
                 if input_parameters.ghy_automatic == 1:
                     if input_parameters.ghy_diff_plane == 1 and calculation_parameters.beam_not_cut_in_x :
                         calculation_parameters.ff_beam = input_parameters.original_shadow_beam
