@@ -187,7 +187,7 @@ class _ShadowOELensHybridScreen(_ShadowOEHybridScreen):
 # HYBRID SCREENS IMPLEMENTATION CLASSES
 # -------------------------------------------------------------
 
-class ShadowSimpleApertureHybridScreen(AbstractSimpleApertureHybridScreen, _ShadowOEHybridScreen):
+class ShadowSimpleApertureHybridScreen(_ShadowOEHybridScreen, AbstractSimpleApertureHybridScreen):
     def __init__(self, wave_optics_provider : HybridWaveOpticsProvider):
         AbstractSimpleApertureHybridScreen.__init__(self, wave_optics_provider)
     
@@ -222,23 +222,23 @@ class ShadowSimpleApertureHybridScreen(AbstractSimpleApertureHybridScreen, _Shad
 
         return geometrical_parameters
 
-class ShadowMirrorOrGratingSizeHybridScreen(AbstractMirrorOrGratingSizeHybridScreen, _ShadowOEWithSurfaceHybridScreen):
+class ShadowMirrorOrGratingSizeHybridScreen(_ShadowOEWithSurfaceHybridScreen, AbstractMirrorOrGratingSizeHybridScreen):
     def __init__(self, wave_optics_provider: HybridWaveOpticsProvider):
         AbstractMirrorOrGratingSizeHybridScreen.__init__(self, wave_optics_provider)
 
-class ShadowMirrorSizeAndErrorHybridScreen(AbstractMirrorSizeAndErrorHybridScreen, _ShadowOEWithSurfaceHybridScreen):
+class ShadowMirrorSizeAndErrorHybridScreen(_ShadowOEWithSurfaceHybridScreen, AbstractMirrorSizeAndErrorHybridScreen):
     def __init__(self, wave_optics_provider: HybridWaveOpticsProvider):
         AbstractMirrorSizeAndErrorHybridScreen.__init__(self, wave_optics_provider)
 
-class ShadowGratingSizeAndErrorHybridScreen(AbstractGratingSizeAndErrorHybridScreen, _ShadowOEWithSurfaceHybridScreen):
+class ShadowGratingSizeAndErrorHybridScreen(_ShadowOEWithSurfaceHybridScreen, AbstractGratingSizeAndErrorHybridScreen):
     def __init__(self, wave_optics_provider: HybridWaveOpticsProvider):
         AbstractGratingSizeAndErrorHybridScreen.__init__(self, wave_optics_provider)
 
-class ShadowCRLSizeHybridScreen(AbstractCRLSizeHybridScreen, _ShadowOELensHybridScreen):
+class ShadowCRLSizeHybridScreen(_ShadowOELensHybridScreen, AbstractCRLSizeHybridScreen):
     def __init__(self, wave_optics_provider: HybridWaveOpticsProvider):
         AbstractCRLSizeHybridScreen.__init__(self, wave_optics_provider)
 
-class ShadowCRLSizeAndErrorHybridScreen(AbstractCRLSizeAndErrorHybridScreen, _ShadowOELensHybridScreen):
+class ShadowCRLSizeAndErrorHybridScreen(_ShadowOELensHybridScreen, AbstractCRLSizeAndErrorHybridScreen):
     def __init__(self, wave_optics_provider: HybridWaveOpticsProvider):
         AbstractCRLSizeAndErrorHybridScreen.__init__(self, wave_optics_provider)
 
