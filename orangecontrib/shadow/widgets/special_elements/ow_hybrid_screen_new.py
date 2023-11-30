@@ -21,9 +21,10 @@ from orangecontrib.shadow.widgets.gui.ow_automatic_element import AutomaticEleme
 
 from silx.gui.plot.ImageView import ImageView
 
-from hybrid_methods.coherence.hybrid_screen import HybridListener, HybridScreenManager, HybridCalculationType, HybridPropagationType, HybridDiffractionPlane, \
+from hybrid_methods.coherence.hybrid_screen import HybridListener, HybridScreenManager, \
+    HybridCalculationType, HybridPropagationType, HybridDiffractionPlane, \
     HybridInputParameters, HybridCalculationResult, HybridGeometryAnalysis
-from orangecontrib.shadow.widgets.special_elements.bl.hybrid_screen import ShadowHybridOE, ShadowHybridBeam, IMPLEMENTATION
+from orangecontrib.shadow.widgets.special_elements.bl.shadow_hybrid_screen import ShadowHybridOE, ShadowHybridBeam, IMPLEMENTATION
 
 class HybridScreenNew(AutomaticElement, HybridListener):
     inputs = [("Input Beam", ShadowBeam, "setBeam"),
@@ -83,7 +84,7 @@ class HybridScreenNew(AutomaticElement, HybridListener):
     crl_delta = Setting(1e-6)
     crl_scaling_factor = Setting(1.0)
 
-    input_beam = None
+    __input_beam = None
     __plotted_data = None
 
     TABS_AREA_HEIGHT = 560
@@ -381,7 +382,7 @@ class HybridScreenNew(AutomaticElement, HybridListener):
     def setBeam(self, beam):
         if ShadowCongruence.checkEmptyBeam(beam):
             if ShadowCongruence.checkGoodBeam(beam):
-                self.input_beam = beam
+                self.__input_beam = beam
 
                 if self.is_automatic_run:
                     self.run_hybrid()
@@ -458,13 +459,13 @@ class HybridScreenNew(AutomaticElement, HybridListener):
             self.progressBarInit()
             self.initializeTabs()
 
-            if ShadowCongruence.checkEmptyBeam(self.input_beam):
-                if ShadowCongruence.checkGoodBeam(self.input_beam):
+            if ShadowCongruence.checkEmptyBeam(self.__input_beam):
+                if ShadowCongruence.checkGoodBeam(self.__input_beam):
                     sys.stdout = EmittingStream(textWritten=self.write_stdout)
 
                     self.check_fields()
 
-                    history_entry = self.input_beam.getOEHistory(self.input_beam._oe_number)
+                    history_entry = self.__input_beam.getOEHistory(self.__input_beam._oe_number)
 
                     additional_parameters = {}
 
@@ -475,7 +476,7 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                         additional_parameters["crl_scaling_factor"] = self.crl_scaling_factor
 
                     input_parameters = HybridInputParameters(listener=self,
-                                                             beam=ShadowHybridBeam(beam=self.input_beam,
+                                                             beam=ShadowHybridBeam(beam=self.__input_beam,
                                                                                    length_units=self.workspace_units),
                                                              optical_element=ShadowHybridOE(optical_element=history_entry._shadow_oe_end,
                                                                                             name=history_entry._widget_class_name),
@@ -512,21 +513,21 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                             if self.view_type==1: self.plot_results(calculation_result)
 
                             if self.propagation_type == HybridPropagationType.BOTH:
-                                calculation_result.far_field_beam.wrapped_beam.setScanningData(self.input_beam.scanned_variable_data)
-                                calculation_result.near_field_beam.wrapped_beam.setScanningData(self.input_beam.scanned_variable_data)
+                                calculation_result.far_field_beam.wrapped_beam.setScanningData(self.__input_beam.scanned_variable_data)
+                                calculation_result.near_field_beam.wrapped_beam.setScanningData(self.__input_beam.scanned_variable_data)
                                 self.send("Output Beam (Far Field)", calculation_result.far_field_beam.wrapped_beam)
                                 self.send("Output Beam (Near Field)", calculation_result.near_field_beam.wrapped_beam)
                             elif self.propagation_type == HybridPropagationType.FAR_FIELD:
-                                calculation_result.far_field_beam.wrapped_beam.setScanningData(self.input_beam.scanned_variable_data)
+                                calculation_result.far_field_beam.wrapped_beam.setScanningData(self.__input_beam.scanned_variable_data)
                                 self.send("Output Beam (Far Field)", calculation_result.far_field_beam.wrapped_beam)
                             elif self.propagation_type == HybridPropagationType.NEAR_FIELD:
-                                calculation_result.near_field_beam.wrapped_beam.setScanningData(self.input_beam.scanned_variable_data)
+                                calculation_result.near_field_beam.wrapped_beam.setScanningData(self.__input_beam.scanned_variable_data)
                                 self.send("Output Beam (Near Field)", calculation_result.near_field_beam.wrapped_beam)
 
                         self.send("Trigger", TriggerIn(new_object=True))
                     except Exception as e:
                         if self.send_original_beam==1:
-                            self.send("Output Beam (Far Field)", self.input_beam.duplicate(history=True))
+                            self.send("Output Beam (Far Field)", self.__input_beam.duplicate(history=True))
                             self.send("Trigger", TriggerIn(new_object=True))
                         else:
                             raise e
