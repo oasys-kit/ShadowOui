@@ -416,43 +416,43 @@ class AbstractHybridScreen(AutomaticElement):
                     input_parameters.ghy_lengthunit = self.workspace_units
                     input_parameters.widget = self
                     input_parameters.shadow_beam = self.input_beam
-                    input_parameters.ghy_diff_plane = self.ghy_diff_plane + 1
-                    input_parameters.ghy_calcType = self.ghy_calcType + 1
+                    input_parameters.diffraction_plane = self.ghy_diff_plane + 1
+                    input_parameters.calculation_type = self.ghy_calcType + 1
 
                     if self.distance_to_image_calc == 0:
-                        input_parameters.ghy_distance = -1
+                        input_parameters.propagation_distance = -1
                     else:
-                        input_parameters.ghy_distance = self.ghy_distance
+                        input_parameters.propagation_distance = self.ghy_distance
 
                     if self.focal_length_calc == 0:
-                        input_parameters.ghy_focallength = -1
+                        input_parameters.focal_length = -1
                     else:
-                        input_parameters.ghy_focallength = self.ghy_focallength
+                        input_parameters.focal_length = self.ghy_focallength
 
                     if self.ghy_calcType != 0:
-                        input_parameters.ghy_nf = self.ghy_nf
+                        input_parameters.propagation_type = self.ghy_nf
                     else:
-                        input_parameters.ghy_nf = 0
+                        input_parameters.propagation_type = 0
 
-                    input_parameters.ghy_nbins_x = int(self.ghy_nbins_x)
-                    input_parameters.ghy_nbins_z = int(self.ghy_nbins_z)
-                    input_parameters.ghy_npeak = int(self.ghy_npeak)
+                    input_parameters.n_bins_x = int(self.ghy_nbins_x)
+                    input_parameters.n_bins_z = int(self.ghy_nbins_z)
+                    input_parameters.n_peaks = int(self.ghy_npeak)
                     input_parameters.ghy_fftnpts = int(self.ghy_fftnpts)
                     input_parameters.file_to_write_out = self.file_to_write_out
 
-                    input_parameters.ghy_automatic = self.ghy_automatic
+                    input_parameters.analyze_geometry = self.ghy_automatic
 
                     self.add_input_parameters_aux(input_parameters)
 
                     try:
                         calculation_parameters = hybrid_control.hy_run(input_parameters)
 
-                        self.ghy_focallength_calculated = input_parameters.ghy_focallength
+                        self.ghy_focallength_calculated = input_parameters.focal_length
 
-                        self.ghy_distance = input_parameters.ghy_distance
-                        self.ghy_nbins_x = int(input_parameters.ghy_nbins_x)
-                        self.ghy_nbins_z = int(input_parameters.ghy_nbins_z)
-                        self.ghy_npeak   = int(input_parameters.ghy_npeak)
+                        self.ghy_distance = input_parameters.propagation_distance
+                        self.ghy_nbins_x = int(input_parameters.n_bins_x)
+                        self.ghy_nbins_z = int(input_parameters.n_bins_z)
+                        self.ghy_npeak   = int(input_parameters.n_peaks)
                         self.ghy_fftnpts = int(input_parameters.ghy_fftnpts)
 
                         self.plotted_data = input_parameters, calculation_parameters
@@ -465,7 +465,7 @@ class AbstractHybridScreen(AutomaticElement):
 
                         self.send("Output Beam (Far Field)", calculation_parameters.ff_beam)
 
-                        do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
+                        do_nf = input_parameters.propagation_type == 1 and input_parameters.calculation_type > 1
 
                         if do_nf and not calculation_parameters.nf_beam is None:
                             calculation_parameters.nf_beam.setScanningData(self.input_beam.scanned_variable_data)
@@ -495,7 +495,7 @@ class AbstractHybridScreen(AutomaticElement):
         pass
 
     def plot_results(self, calculation_parameters, input_parameters):
-        if input_parameters.ghy_calcType in [3, 4, 6, 7]:
+        if input_parameters.calculation_type in [3, 4, 6, 7]:
             do_plot_x = True
             do_plot_z = True
         else:
@@ -506,7 +506,7 @@ class AbstractHybridScreen(AutomaticElement):
                 do_plot_x = True
                 do_plot_z = True
 
-        do_nf = input_parameters.ghy_nf == 1 and input_parameters.ghy_calcType > 1
+        do_nf = input_parameters.propagation_type == 1 and input_parameters.calculation_type > 1
 
         if do_plot_x or do_plot_z:
             self.setStatusMessage("Plotting Results")

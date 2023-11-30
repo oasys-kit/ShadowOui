@@ -58,7 +58,7 @@ class ShadowHybridBeam(HybridBeamWrapper):
     def __init__(self, beam : ShadowBeam, length_units):
         super(ShadowHybridBeam, self).__init__(beam, length_units)
 
-    def duplicate(self): return self._beam.duplicate()
+    def duplicate(self): return ShadowHybridBeam(self.wrapped_beam.duplicate(), self.length_units)
 
 class ShadowHybridOE(HybridOEWrapper):
     def __init__(self, optical_element, name):
@@ -80,6 +80,8 @@ class ShadowHybridOE(HybridOEWrapper):
         elif calculation_type == HybridCalculationType.MIRROR_OR_GRATING_SIZE: # ADDED BY XIANBO SHI
             shadow_oe._oe.F_RIPPLE = 0 # better safe than sorry
 
+    def duplicate(self): return ShadowHybridOE(self.wrapped_optical_element.duplicate(), self.name)
+
 # -------------------------------------------------------------
 # HYBRID SCREENS HELPER CLASSES
 # -------------------------------------------------------------
@@ -97,6 +99,9 @@ class _ShadowOEHybridScreen():
         number_of_good_rays_after = len(beam_after._beam.rays[numpy.where(beam_after._beam.rays[:, 9] == 1)])
 
         return number_of_good_rays_before == number_of_good_rays_after
+
+    def _extract_calculation_parameters(self, input_parameters: HybridInputParameters): return None
+
 
 class _ShadowOEWithSurfaceHybridScreen(_ShadowOEHybridScreen):
     def _check_oe_displacements(self, input_parameters: HybridInputParameters):
