@@ -485,13 +485,12 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                                                              focal_length=self.focal_length if self.focal_length_calculation==1 else -1,
                                                              propagation_distance=self.propagation_distance if self.propagation_distance_calculation==1 else -1,
                                                              n_bins_x=int(self.n_bins_x),
-                                                             n_bins_z = int(self.n_bins_z),
-                                                             n_peaks = int(self.n_peaks),
-                                                             fft_n_pts = int(self.fft_n_pts),
+                                                             n_bins_z=int(self.n_bins_z),
+                                                             n_peaks=int(self.n_peaks),
+                                                             fft_n_pts=int(self.fft_n_pts),
                                                              analyze_geometry=self.analyze_geometry==1,
                                                              random_seed=None, # TODO: add field
-                                                             additional_parameters=additional_parameters)
-
+                                                             **additional_parameters)
                     try:
                         hybrid_screen = HybridScreenManager.Instance().create_hybrid_screen_manager(IMPLEMENTATION, self.calculation_type)
 
