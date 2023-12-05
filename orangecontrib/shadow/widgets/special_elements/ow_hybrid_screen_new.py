@@ -482,14 +482,14 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                                                                                             name=history_entry._widget_class_name),
                                                              diffraction_plane=self.diffraction_plane,
                                                              propagation_type=self.propagation_type,
-                                                             focal_length=self.focal_length if self.focal_length_calculation==1 else -1,
-                                                             propagation_distance=self.propagation_distance if self.propagation_distance_calculation==1 else -1,
+                                                             near_field_image_distance=self.focal_length if self.focal_length_calculation == 1 else -1,
+                                                             far_field_image_distance=self.propagation_distance if self.propagation_distance_calculation == 1 else -1,
                                                              n_bins_x=int(self.n_bins_x),
                                                              n_bins_z=int(self.n_bins_z),
                                                              n_peaks=int(self.n_peaks),
                                                              fft_n_pts=int(self.fft_n_pts),
                                                              analyze_geometry=self.analyze_geometry==1,
-                                                             random_seed=None, # TODO: add field
+                                                             random_seed=None,  # TODO: add field
                                                              **additional_parameters)
                     try:
                         hybrid_screen = HybridScreenManager.Instance().create_hybrid_screen_manager(IMPLEMENTATION, self.calculation_type)
@@ -497,8 +497,8 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                         calculation_result = hybrid_screen.run_hybrid_method(input_parameters)
 
                         # PARAMETERS IN SET MODE
-                        self.focal_length_calculated = input_parameters.focal_length
-                        self.propagation_distance    = input_parameters.propagation_distance
+                        self.focal_length_calculated = input_parameters.near_field_image_distance
+                        self.propagation_distance    = input_parameters.far_field_image_distance
                         self.n_bins_x                = int(input_parameters.n_bins_x)
                         self.n_bins_z                = int(input_parameters.n_bins_z)
                         self.n_peaks                 = int(input_parameters.n_peaks)

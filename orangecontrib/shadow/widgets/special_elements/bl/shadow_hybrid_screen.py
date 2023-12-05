@@ -94,7 +94,7 @@ class _ShadowOEHybridScreen():
     NPOLY_ANGLE = 3
     NPOLY_L     = 6
 
-    def _no_lost_rays_from_oe(self, input_parameters : HybridInputParameters):
+    def _no_lost_rays_from_oe(self, input_parameters : HybridInputParameters) -> bool:
         shadow_beam   = input_parameters.beam.wrapped_beam
         history_entry = shadow_beam.getOEHistory(shadow_beam._oe_number)
 
@@ -102,11 +102,11 @@ class _ShadowOEHybridScreen():
         beam_before = history_entry._input_beam
 
         number_of_good_rays_before = len(beam_before._beam.rays[numpy.where(beam_before._beam.rays[:, 9] == 1)])
-        number_of_good_rays_after = len(beam_after._beam.rays[numpy.where(beam_after._beam.rays[:, 9] == 1)])
+        number_of_good_rays_after  = len(beam_after._beam.rays[numpy.where(beam_after._beam.rays[:, 9] == 1)])
 
         return number_of_good_rays_before == number_of_good_rays_after
 
-    def _extract_calculation_parameters(self, input_parameters: HybridInputParameters):
+    def _manage_common_initial_screen_projection_data(self, input_parameters: HybridInputParameters) -> AbstractHybridScreen.CalculationParameters:
         calculation_parameters = self._check_compound_oe(input_parameters)
 
         input_shadow_beam = calculation_parameters.get("shadow_beam")
@@ -153,7 +153,7 @@ class _ShadowOEHybridScreen():
 
         calculation_parameters.set("screen_plane_beam",  screen_beam)
 
-        energy     =     ShadowPhysics.getEnergyFromShadowK(screen_beam._beam.rays[:, 10])
+        energy     = ShadowPhysics.getEnergyFromShadowK(screen_beam._beam.rays[:, 10])
         wavelength = ShadowPhysics.getWavelengthFromShadowK(screen_beam._beam.rays[:, 10])
 
         input_parameters.listener.status_message("Using MEAN photon energy [eV]:" + str(numpy.average(energy)))
@@ -168,24 +168,22 @@ class _ShadowOEHybridScreen():
         x_max     = numpy.max(xx_screen)
         z_min     = numpy.min(zz_screen)
         z_max     = numpy.max(zz_screen)
-        dx_ray    = numpy.arctan(xp_screen / yp_screen)  # calculate divergence from direction cosines from SHADOW file  dx = atan(v_x/v_y)
-        dz_ray    = numpy.arctan(zp_screen / yp_screen)  # calculate divergence from direction cosines from SHADOW file  dz = atan(v_z/v_y)
+        dx_rays   = numpy.arctan(xp_screen / yp_screen)  # calculate divergence from direction cosines from SHADOW file  dx = atan(v_x/v_y)
+        dz_rays   = numpy.arctan(zp_screen / yp_screen)  # calculate divergence from direction cosines from SHADOW file  dz = atan(v_z/v_y)
 
-        calculation_parameters.set("energy",     energy)
-        calculation_parameters.set("wavelength", wavelength)
-        calculation_parameters.set("xp_screen",  xp_screen)
-        calculation_parameters.set("yp_screen",  yp_screen)
-        calculation_parameters.set("zp_screen",  zp_screen)
-        calculation_parameters.set("xx_screen",  xx_screen)
-        calculation_parameters.set("zz_screen",  zz_screen)
-        calculation_parameters.set("x_min",      x_min)
-        calculation_parameters.set("x_max",      x_max)
-        calculation_parameters.set("z_min",      z_min)
-        calculation_parameters.set("z_max",      z_max)
-        calculation_parameters.set("dx_ray",     dx_ray)
-        calculation_parameters.set("dz_ray",     dz_ray)
-
-        self._extract_specific_calculation_parameters(input_parameters, calculation_parameters)
+        calculation_parameters.energy     = numpy.average(energy)
+        calculation_parameters.wavelength = numpy.average(wavelength)
+        calculation_parameters.xx_screen  = xx_screen
+        calculation_parameters.zz_screen  = zz_screen
+        calculation_parameters.xp_screen  = xp_screen
+        calculation_parameters.yp_screen  = yp_screen
+        calculation_parameters.zp_screen  = zp_screen
+        calculation_parameters.x_min      = x_min
+        calculation_parameters.x_max      = x_max
+        calculation_parameters.z_min      = z_min
+        calculation_parameters.z_max      = z_max
+        calculation_parameters.dx_rays    = dx_rays
+        calculation_parameters.dz_rays    = dz_rays
 
         return calculation_parameters
 
@@ -258,7 +256,7 @@ class _ShadowOEHybridScreen():
         return "screen." + self._get_oe_string(input_parameters) + ("0" + str(n_screen)) if n_screen < 10 else "10"
 
     def _check_compound_oe(self, input_parameters: HybridInputParameters): 
-        calculation_parameters = AbstractHybridScreen.HybridCalculationParameters()
+        calculation_parameters = AbstractHybridScreen.CalculationParameters()
         calculation_parameters.set("shadow_beam", input_parameters.beam.wrapped_beam)
         
         return calculation_parameters
@@ -269,7 +267,57 @@ class _ShadowOEHybridScreen():
             shadow_oe._oe.FWRITE  = 0  # all
             shadow_oe._oe.F_ANGLE = 1  # angles
 
-    def _extract_specific_calculation_parameters(self, input_parameters, calculation_parameters): pass
+    def _get_ray_tracing_planes(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters):
+        shadow_oe_end = calculation_parameters.get("shadow_oe_end")
+
+        return shadow_oe_end._oe.SIMAG, shadow_oe_end._oe.T_IMAGE
+
+    def _get_screen_plane_histograms(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters):
+        screen_plane_beam = calculation_parameters.get("screen_plane_beam")
+
+        histogram_s  = None
+        bins_s       = None
+        histogram_t  = None
+        bins_t       = None
+        histogram_2D = None
+
+        if input_parameters.diffraction_plane in [HybridDiffractionPlane.SAGITTAL, HybridDiffractionPlane.BOTH_2X1D]:  # 1d in X
+
+            ticket = screen_plane_beam._beam.histo1(1,
+                                                    nbins=int(input_parameters.n_bins_x),
+                                                    xrange=[calculation_parameters.x_min, calculation_parameters.x_max],
+                                                    nolost=1,
+                                                    ref=23)
+
+            histogram_s = ticket['histogram']
+            bins_s      = ticket['bins']
+        elif input_parameters.diffraction_plane in [HybridDiffractionPlane.TANGENTIAL, HybridDiffractionPlane.BOTH_2X1D]:  # 1d in X
+
+            ticket = screen_plane_beam._beam.histo1(3,
+                                                    nbins=int(input_parameters.n_bins_z),
+                                                    xrange=[calculation_parameters.z_min, calculation_parameters.z_max],
+                                                    nolost=1,
+                                                    ref=23)
+
+            histogram_t = ticket['histogram']
+            bins        = ticket['bins']
+        elif input_parameters.diffraction_plane == HybridDiffractionPlane.BOTH_2D:
+            ticket = screen_plane_beam._beam.histo2(col_h=1,
+                                                    col_v=3,
+                                                    nbins_h=int(input_parameters.n_bins_x),
+                                                    nbins_v=int(input_parameters.n_bins_z),
+                                                    xrange=[calculation_parameters.x_min, calculation_parameters.x_max],
+                                                    yrange=[calculation_parameters.z_min, calculation_parameters.z_max],
+                                                    nolost=1,
+                                                    ref=23)
+
+            histogram_s  = ticket['histogram_h']
+            bins_s       = ticket['bin_h_edges']
+            histogram_t  = ticket['histogram_v']
+            bins_t       = ticket['bin_v_edges']
+            histogram_2D = ticket['histogram']
+
+        return histogram_s, bins_s, histogram_t, bins_t, histogram_2D
 
     @staticmethod
     def _get_oe_string(input_parameters):
@@ -310,7 +358,6 @@ class _ShadowOEHybridScreen():
     
         return _ShadowOEHybridScreen._process_shadow_beam(image_beam)
 
-
 class _ShadowApertureHybridScreen(_ShadowOEHybridScreen):
     def _fix_specific_oe_attributes(self, shadow_oe, original_shadow_oe, screen_index):
         if (original_shadow_oe._oe.FMIRR == 5 and \
@@ -335,10 +382,41 @@ class _ShadowApertureHybridScreen(_ShadowOEHybridScreen):
                     shadow_oe._oe.CZ_SLIT[screen_index] = original_shadow_oe._oe.CZ_SLIT[screen_index]
 
             if original_shadow_oe._oe.I_ABS[screen_index] == 1:
-                shadow_oe._oe.THICK[screen_index] = original_shadow_oe._oe.THICK[screen_index]
+                shadow_oe._oe.THICK[screen_index]    = original_shadow_oe._oe.THICK[screen_index]
                 shadow_oe._oe.FILE_ABS[screen_index] = original_shadow_oe._oe.FILE_ABS[screen_index]
         else:
             raise Exception("Connected O.E. is not a Screen-Slit or CRL widget!")
+
+    def _check_oe_displacements(self, input_parameters : HybridInputParameters):
+        shadow_oe = input_parameters.optical_element.wrapped_optical_element
+        if shadow_oe._oe.F_MOVE == 1: raise Exception("O.E. Movements are not supported for this kind of calculation")
+
+    def _calculate_geometrical_parameters(self, input_parameters: HybridInputParameters):
+        geometrical_parameters = ShadowSimpleApertureHybridScreen.GeometricalParameters()
+
+        beam_after    = input_parameters.beam.wrapped_beam
+        history_entry = beam_after.getOEHistory(beam_after._oe_number)
+
+        beam_before = history_entry._input_beam
+        oe_before = history_entry._shadow_oe_start
+
+        if oe_before._oe.I_SLIT[0] == 0:
+            geometrical_parameters.is_infinite = True
+        else:
+            if oe_before._oe.I_STOP[0] == 1: raise Exception("Simple Aperture calculation runs for apertures only")
+
+            beam_at_the_slit = beam_before.duplicate(history=False)
+            beam_at_the_slit._beam.retrace(oe_before._oe.T_SOURCE)  # TRACE INCIDENT BEAM UP TO THE SLIT
+
+            # TODO: MANAGE CASE OF ROTATED SLITS (OE MOVEMENT OR SOURCE MOVEMENT)
+            geometrical_parameters.max_tangential    = oe_before._oe.CZ_SLIT[0] + oe_before._oe.RZ_SLIT[0] / 2
+            geometrical_parameters.min_tangential    = oe_before._oe.CZ_SLIT[0] - oe_before._oe.RZ_SLIT[0] / 2
+            geometrical_parameters.max_sagittal      = oe_before._oe.CX_SLIT[0] + oe_before._oe.RX_SLIT[0] / 2
+            geometrical_parameters.min_sagittal      = oe_before._oe.CX_SLIT[0] - oe_before._oe.RX_SLIT[0] / 2
+            geometrical_parameters.ticket_tangential = beam_at_the_slit._beam.histo1(3, nbins=500, nolost=1, ref=23)
+            geometrical_parameters.ticket_sagittal   = beam_at_the_slit._beam.histo1(1, nbins=500, nolost=1, ref=23)
+
+        return geometrical_parameters
 
 class _ShadowOEWithSurfaceHybridScreen(_ShadowOEHybridScreen):
     def _check_oe_displacements(self, input_parameters: HybridInputParameters):
@@ -387,35 +465,20 @@ class _ShadowOEWithSurfaceHybridScreen(_ShadowOEHybridScreen):
         super(_ShadowOEWithSurfaceHybridScreen, self)._fix_specific_oe_attributes(shadow_oe, original_shadow_oe, screen_index)
         shadow_oe._oe.F_RIPPLE = 0
 
-    def _extract_specific_calculation_parameters(self, input_parameters, calculation_parameters):
+    def _get_footprint_spatial_coordinates(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters):
         mirror_beam = self._read_shadow_file("mirr." + self._get_oe_string(input_parameters))
 
         xx_mirr = mirror_beam._beam.rays[:, 0]
         yy_mirr = mirror_beam._beam.rays[:, 1]
 
-        # read in angle files
-        angle_inc, angle_ref = self.read_shadow_angles("angle." + self._get_oe_string(input_parameters), mirror_beam)
+        calculation_parameters.set("mirror_beam", mirror_beam)
 
-        calculation_parameters.set("angle_inc", angle_inc)
-        calculation_parameters.set("angle_ref", angle_ref)
+        return xx_mirr, yy_mirr
 
-        xx_screen = calculation_parameters.get("xx_screen")
-        zz_screen = calculation_parameters.get("zz_screen")
+    def _get_ray_angles(self, input_parameters: HybridInputParameters, calculation_parameters: AbstractHybridScreen.CalculationParameters):
+        mirror_beam = calculation_parameters.get("mirror_beam")
 
-        # generate theta(z) and l(z) curve over a continuous grid
-        if numpy.amax(xx_screen) == numpy.amin(xx_screen):
-            if input_parameters.diffraction_plane in [HybridDiffractionPlane.SAGITTAL, HybridDiffractionPlane.BOTH_2D, HybridDiffractionPlane.BOTH_2X1D]:
-                raise Exception("Inconsistent calculation: Diffraction plane is set on SAGITTAL, but the beam has no extension in that direction")
-        else:
-            calculation_parameters.set("wangle_x", numpy.poly1d(numpy.polyfit(xx_screen, angle_inc, self.NPOLY_ANGLE)))
-            calculation_parameters.set("wl_x",     numpy.poly1d(numpy.polyfit(xx_screen, xx_mirr,   self.NPOLY_L)))
-
-        if numpy.amax(zz_screen) == numpy.amin(zz_screen):
-            if input_parameters.diffraction_plane in [HybridDiffractionPlane.TANGENTIAL, HybridDiffractionPlane.BOTH_2D, HybridDiffractionPlane.BOTH_2X1D]:
-                raise Exception("Inconsistent calculation: Diffraction plane is set on TANGENTIAL, but the beam has no extension in that direction")
-        else:
-            calculation_parameters.set("wangle_z", numpy.poly1d(numpy.polyfit(zz_screen, angle_inc, self.NPOLY_ANGLE)))
-            calculation_parameters.set("wl_z",     numpy.poly1d(numpy.polyfit(zz_screen, yy_mirr,   self.NPOLY_L)))
+        return self.read_shadow_angles("angle." + self._get_oe_string(input_parameters), mirror_beam)
 
     @staticmethod
     def read_shadow_angles(filename, mirror_beam=None):
@@ -445,11 +508,21 @@ class _ShadowOEWithSurfaceAndErrorHybridScreen(_ShadowOEWithSurfaceHybridScreen)
         if shadow_oe._oe.F_RIPPLE == 1 and shadow_oe._oe.F_G_S == 2: shadow_oe._oe.F_RIPPLE = 0
         else: raise Exception("O.E. has not Surface Error file (setup Advanced Option->Modified Surface:\n\nModification Type = Surface Error\nType of Defect: external spline)")
 
-    def _extract_specific_calculation_parameters(self, input_parameters, calculation_parameters):
-        super(_ShadowOEWithSurfaceAndErrorHybridScreen, self)._extract_specific_calculation_parameters(input_parameters, calculation_parameters)
+    def _get_error_profile(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters):
+        return self._read_shadow_surface(input_parameters.optical_element.wrapped_optical_element._oe.FILE_RIP, dimension=2)
 
-        calculation_parameters.set("w_mirr_2D_values", self._read_shadow_surface(input_parameters.optical_element.wrapped_optical_element._oe.FILE_RIP, dimension=2))
-    
+    def _get_tangential_displacement_index(self, input_parameters: HybridInputParameters, calculation_parameters: AbstractHybridScreen.CalculationParameters):
+        shadow_oe     = calculation_parameters.get("shadow_oe_end")
+        error_profile = calculation_parameters.get("error_profile")
+
+        return 0.0 if shadow_oe._oe.F_MOVE == 0 else shadow_oe._oe.OFFY / error_profile.delta_y()
+
+    def _get_sagittal_displacement_index(self, input_parameters: HybridInputParameters, calculation_parameters: AbstractHybridScreen.CalculationParameters):
+        shadow_oe     = calculation_parameters.get("shadow_oe_end")
+        error_profile = calculation_parameters.get("error_profile")
+
+        return 0.0 if shadow_oe._oe.F_MOVE == 0 else shadow_oe._oe.OFFX / error_profile.delta_x()
+
     @staticmethod
     def _read_shadow_surface(filename, dimension):
         if dimension == 1:
@@ -460,7 +533,6 @@ class _ShadowOEWithSurfaceAndErrorHybridScreen(_ShadowOEWithSurfaceHybridScreen)
             x_coords, y_coords, z_values = ShadowPreProcessor.read_surface_error_file(filename)
     
             return ScaledMatrix(x_coords, y_coords, z_values)
-
 
 class _ShadowOELensHybridScreen(_ShadowApertureHybridScreen):
     def _check_oe_displacements(self, input_parameters : HybridInputParameters): pass
@@ -505,7 +577,7 @@ class _ShadowOELensHybridScreen(_ShadowApertureHybridScreen):
         return geometrical_parameters
 
     def _check_compound_oe(self, input_parameters: HybridInputParameters):
-        calculation_parameters = AbstractHybridScreen.HybridCalculationParameters()
+        calculation_parameters = AbstractHybridScreen.CalculationParameters()
         
         history_entry = input_parameters.beam.wrapped_beam.getOEHistory(input_parameters.beam.wrapped_beam._oe_number)
         compound_oe = history_entry._shadow_oe_end
@@ -567,6 +639,17 @@ class _ShadowOELensHybridScreen(_ShadowApertureHybridScreen):
         
         return calculation_parameters
 
+class _ShadowOELensAndErrorHybridScreen(_ShadowOELensHybridScreen):
+    def _get_error_profiles(self, input_parameters: HybridInputParameters, calculation_parameters: AbstractHybridScreen.CalculationParameters):
+        return [self._read_oasys_surface(thickness_error_file) for thickness_error_file in input_parameters.get("crl_error_profiles")]
+
+    @staticmethod
+    def _read_oasys_surface(filename):
+        x_coords, y_coords, z_values = read_surface_file(filename)
+
+        return ScaledMatrix(x_coords, y_coords, z_values.T)
+
+
 # -------------------------------------------------------------
 # HYBRID SCREENS IMPLEMENTATION CLASSES
 # -------------------------------------------------------------
@@ -574,37 +657,6 @@ class _ShadowOELensHybridScreen(_ShadowApertureHybridScreen):
 class ShadowSimpleApertureHybridScreen(_ShadowApertureHybridScreen, AbstractSimpleApertureHybridScreen):
     def __init__(self, wave_optics_provider : HybridWaveOpticsProvider):
         AbstractSimpleApertureHybridScreen.__init__(self, wave_optics_provider)
-    
-    def _check_oe_displacements(self, input_parameters : HybridInputParameters):
-        shadow_oe = input_parameters.optical_element.wrapped_optical_element
-        if shadow_oe._oe.F_MOVE == 1: raise Exception("O.E. Movements are not supported for this kind of calculation")
-
-    def _calculate_geometrical_parameters(self, input_parameters: HybridInputParameters):
-        geometrical_parameters = ShadowSimpleApertureHybridScreen.GeometricalParameters()
-
-        beam_after    = input_parameters.beam.wrapped_beam
-        history_entry = beam_after.getOEHistory(beam_after._oe_number)
-
-        beam_before = history_entry._input_beam
-        oe_before = history_entry._shadow_oe_start
-
-        if oe_before._oe.I_SLIT[0] == 0:
-            geometrical_parameters.is_infinite = True
-        else:
-            if oe_before._oe.I_STOP[0] == 1: raise Exception("Simple Aperture calculation runs for apertures only")
-
-            beam_at_the_slit = beam_before.duplicate(history=False)
-            beam_at_the_slit._beam.retrace(oe_before._oe.T_SOURCE)  # TRACE INCIDENT BEAM UP TO THE SLIT
-
-            # TODO: MANAGE CASE OF ROTATED SLITS (OE MOVEMENT OR SOURCE MOVEMENT)
-            geometrical_parameters.max_tangential    = oe_before._oe.CZ_SLIT[0] + oe_before._oe.RZ_SLIT[0] / 2
-            geometrical_parameters.min_tangential    = oe_before._oe.CZ_SLIT[0] - oe_before._oe.RZ_SLIT[0] / 2
-            geometrical_parameters.max_sagittal      = oe_before._oe.CX_SLIT[0] + oe_before._oe.RX_SLIT[0] / 2
-            geometrical_parameters.min_sagittal      = oe_before._oe.CX_SLIT[0] - oe_before._oe.RX_SLIT[0] / 2
-            geometrical_parameters.ticket_tangential = beam_at_the_slit._beam.histo1(3, nbins=500, nolost=1, ref=23)
-            geometrical_parameters.ticket_sagittal   = beam_at_the_slit._beam.histo1(1, nbins=500, nolost=1, ref=23)
-
-        return geometrical_parameters
 
 class ShadowMirrorOrGratingSizeHybridScreen(_ShadowOEWithSurfaceHybridScreen, AbstractMirrorOrGratingSizeHybridScreen):
     def __init__(self, wave_optics_provider: HybridWaveOpticsProvider):
@@ -618,35 +670,13 @@ class ShadowGratingSizeAndErrorHybridScreen(_ShadowOEWithSurfaceHybridScreen, Ab
     def __init__(self, wave_optics_provider: HybridWaveOpticsProvider):
         AbstractGratingSizeAndErrorHybridScreen.__init__(self, wave_optics_provider)
 
-    def _extract_specific_calculation_parameters(self, input_parameters, calculation_parameters):
-        super(ShadowGratingSizeAndErrorHybridScreen, self)._extract_specific_calculation_parameters(input_parameters, calculation_parameters)
-
-        angle_ref = calculation_parameters.get("angle_ref")
-        xx_screen = calculation_parameters.get("xx_screen")
-        zz_screen = calculation_parameters.get("zz_screen")
-
-        calculation_parameters.set("wangle_ref_x",  numpy.poly1d(numpy.polyfit(xx_screen, angle_ref, self.NPOLY_ANGLE)))
-        calculation_parameters.set("wangle_ref_z",  numpy.poly1d(numpy.polyfit(zz_screen, angle_ref, self.NPOLY_ANGLE)))
-
 class ShadowCRLSizeHybridScreen(_ShadowOELensHybridScreen, AbstractCRLSizeHybridScreen):
     def __init__(self, wave_optics_provider: HybridWaveOpticsProvider):
         AbstractCRLSizeHybridScreen.__init__(self, wave_optics_provider)
 
-class ShadowCRLSizeAndErrorHybridScreen(_ShadowOELensHybridScreen, AbstractCRLSizeAndErrorHybridScreen):
+class ShadowCRLSizeAndErrorHybridScreen(_ShadowOELensAndErrorHybridScreen, AbstractCRLSizeAndErrorHybridScreen):
     def __init__(self, wave_optics_provider: HybridWaveOpticsProvider):
         AbstractCRLSizeAndErrorHybridScreen.__init__(self, wave_optics_provider)
-
-    def _extract_specific_calculation_parameters(self, input_parameters, calculation_parameters):
-        calculation_parameters.set("w_mirr_2D_values", [self._read_oasys_surface(thickness_error_file) for thickness_error_file in input_parameters.get("crl_error_profiles")])
-    
-    @staticmethod
-    def _read_oasys_surface(filename):
-        x_coords, y_coords, z_values = read_surface_file(filename)
-    
-        return ScaledMatrix(x_coords, y_coords, z_values.T)
-
-
-
 
 # -------------------------------------------------------------
 # -------------------------------------------------------------
