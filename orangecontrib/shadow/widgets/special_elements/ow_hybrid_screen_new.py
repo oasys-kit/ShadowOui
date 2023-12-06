@@ -28,7 +28,7 @@ from orangecontrib.shadow.widgets.special_elements.bl.shadow_hybrid_screen impor
 
 class HybridScreenNew(AutomaticElement, HybridListener):
     inputs = [("Input Beam", ShadowBeam, "setBeam"),
-              ("Thickness Errors Data", OasysThicknessErrorsData, "setThicknessErrorProfiles")]
+              ("Thickness Errors Data", OasysThicknessErrorsData, "set_thickness_error_profiles")]
 
     outputs = [{"name":"Output Beam (Far Field)",
                 "type":ShadowBeam,
@@ -61,20 +61,12 @@ class HybridScreenNew(AutomaticElement, HybridListener):
     diffraction_plane = Setting(1)
     calculation_type = Setting(2)
 
-    focal_length_calculation = Setting(0)
-    focal_length = Setting(0.0)
-    focal_length_calculated = 0.0
-    propagation_distance_calculation = Setting(0)
-    propagation_distance = Setting(0.0)
-
     propagation_type = Setting(0)
 
     n_bins_x = Setting(100)
     n_bins_z = Setting(100)
     n_peaks = Setting(10)
     fft_n_pts = Setting(1e5)
-
-    file_to_write_out = Setting(0)
 
     analyze_geometry = Setting(1)
 
@@ -126,7 +118,7 @@ class HybridScreenNew(AutomaticElement, HybridListener):
         self.view_type_combo = gui.comboBox(view_box_1, self, "view_type", label="Plot Results",
                                             labelWidth=220,
                                             items=["No", "Yes"],
-                                            callback=self.set_PlotQuality, sendSelectedValue=False, orientation="horizontal")
+                                            callback=self.set_plot_quality, sendSelectedValue=False, orientation="horizontal")
 
         self.tabs = oasysgui.tabWidget(plot_tab)
 
@@ -135,9 +127,8 @@ class HybridScreenNew(AutomaticElement, HybridListener):
         self.tabs_setting.setFixedWidth(self.CONTROL_AREA_WIDTH-5)
 
         tab_bas = oasysgui.createTabPage(self.tabs_setting, "Basic Setting")
-        tab_adv = oasysgui.createTabPage(self.tabs_setting, "Advanced Setting")
 
-        box_1 = oasysgui.widgetBox(tab_bas, "Calculation Parameters", addSpace=True, orientation="vertical", height=120)
+        box_1 = oasysgui.widgetBox(tab_bas, "Calculation Parameters", addSpace=True, orientation="vertical", height=130)
 
         self.cb_diffraction_plane = gui.comboBox(box_1, self, "diffraction_plane", label="Diffraction Plane", labelWidth=310,
                                                  items=["Sagittal", "Tangential", "Both (2D)", "Both (1D+1D)"],
@@ -149,13 +140,16 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                             "Diffraction by Mirror or Grating Size",
                             "Diffraction by Mirror Size + Figure Errors",
                             "Diffraction by Grating Size + Figure Errors",
-                            "Diffraction by Lens/C.R.L./Transf. Size",
-                            "Diffraction by Lens/C.R.L./Transf. Size + Thickness Errors"],
+                            "Diffraction by Lens Size",
+                            "Diffraction by Lens Size + Thickness Errors"],
                      callback=self.set_calculation_type,
-                     sendSelectedValue=False, orientation="vertical")
+                     sendSelectedValue=False, orientation="horizontal")
 
-        gui.separator(box_1, 10)
+        self.cb_propagation_type = gui.comboBox(box_1, self, "propagation_type", label="Propagation Type", labelWidth=310,
+                                                items=["Far Field", "Near Field", "Both"],
+                                                sendSelectedValue=False, orientation="horizontal", callback=self.set_propagation_type)
 
+        gui.separator(box_1)
 
         box_2 = oasysgui.widgetBox(tab_bas, "Numerical Control Parameters", addSpace=True, orientation="vertical", height=140)
 
@@ -164,39 +158,7 @@ class HybridScreenNew(AutomaticElement, HybridListener):
         self.le_n_peaks   = oasysgui.lineEdit(box_2, self, "n_peaks", "Number of diffraction peaks", labelWidth=260, valueType=int, orientation="horizontal")
         self.le_fft_n_pts = oasysgui.lineEdit(box_2, self, "fft_n_pts", "Number of points for FFT", labelWidth=260, valueType=int, orientation="horizontal")
 
-        box_3 = oasysgui.widgetBox(tab_adv, "Propagation Parameters", addSpace=True, orientation="vertical", height=240)
-
-        self.cb_propagation_distance_calculation = gui.comboBox(box_3, self, "propagation_distance_calculation", label="Distance to image", labelWidth=150,
-                                                                items=["Use O.E. Image Plane Distance", "Specify Value"],
-                                                                callback=self.set_propagation_distance,
-                                                                sendSelectedValue=False, orientation="horizontal")
-
-        self.le_propagation_distance = oasysgui.lineEdit(box_3, self, "propagation_distance", "Distance to Image value", labelWidth=260, valueType=float, orientation="horizontal")
-
-        gui.separator(box_3)
-
-        self.cb_propagation_type = gui.comboBox(box_3, self, "propagation_type", label="Propagation Type", labelWidth=310,
-                                                items=["Far Field (Fraunhofer)", "Near Field (Fresnel)", "Both"],
-                                                sendSelectedValue=False, orientation="horizontal", callback=self.set_propagation_type)
-
-        self.cb_focal_length_calculation = gui.comboBox(box_3, self, "focal_length_calculation", label="Focal Length", labelWidth=180,
-                                                        items=["Use O.E. Focal Distance", "Specify Value"],
-                                                        callback=self.set_focal_length_calculation,
-                                                        sendSelectedValue=False, orientation="horizontal")
-
-        self.le_focal_length = oasysgui.lineEdit(box_3, self, "focal_length", "Focal Length value", labelWidth=200, valueType=float, orientation="horizontal")
-
-        self.le_focal_length_calculated = oasysgui.lineEdit(box_3, self, "focal_length_calculated", "Focal Length calculated", labelWidth=200, valueType=float, orientation="horizontal")
-        self.le_focal_length_calculated.setReadOnly(True)
-        font = QFont(self.le_focal_length_calculated.font())
-        font.setBold(True)
-        self.le_focal_length_calculated.setFont(font)
-        palette = QPalette(self.le_focal_length_calculated.palette()) # make a copy of the palette
-        palette.setColor(QPalette.Text, QColor('dark blue'))
-        palette.setColor(QPalette.Base, QColor(243, 240, 160))
-        self.le_focal_length_calculated.setPalette(palette)
-
-        box_4 = oasysgui.widgetBox(tab_adv, "Calculation Congruence Parameters", addSpace=True, orientation="vertical", height=200)
+        box_4 = oasysgui.widgetBox(tab_bas, "Calculation Congruence Parameters", addSpace=True, orientation="vertical", height=100)
 
         self.cb_analyze_geometry = gui.comboBox(box_4, self, "analyze_geometry", label="Analize geometry to avoid unuseful calculations", labelWidth=310,
                                                 items=["No", "Yes"],
@@ -208,33 +170,21 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                      sendSelectedValue=False, orientation="horizontal")
 
         self.set_diffraction_plane()
-        self.set_propagation_distance()
         self.set_calculation_type()
         self.set_propagation_type()
 
         self.initializeTabs()
-
-        adv_other_box = oasysgui.widgetBox(tab_bas, "Optional file output", addSpace=False, orientation="vertical")
-
-        gui.comboBox(adv_other_box, self, "file_to_write_out", label="Files to write out", labelWidth=220,
-                     items=["None", "Debug (star.xx)"],
-                     sendSelectedValue=False,
-                     orientation="horizontal")
 
         self.shadow_output = oasysgui.textArea(height=580, width=800)
 
         out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
         out_box.layout().addWidget(self.shadow_output)
 
-        self.set_PlotQuality()
+        self.set_plot_quality()
 
-    def after_change_workspace_units(self):
-        label = self.le_focal_length.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + " [" + self.workspace_units_label + "]")
-        label = self.le_propagation_distance.parent().layout().itemAt(0).widget()
-        label.setText(label.text() + " [" + self.workspace_units_label + "]")
+    def set_propagation_type(self): pass # maybe it can be useful again
 
-    def set_PlotQuality(self):
+    def set_plot_quality(self):
         self.progressBarInit()
 
         if not self.__plotted_data is None:
@@ -419,29 +369,13 @@ class HybridScreenNew(AutomaticElement, HybridListener):
 
         self.cb_diffraction_plane.setEnabled(True)
 
-        if self.tabs_setting.count() == 3: self.tabs_setting.removeTab(2)
+        if self.tabs_setting.count() == 2: self.tabs_setting.removeTab(1)
 
         if self.calculation_type == HybridCalculationType.CRL_SIZE_AND_ERROR_PROFILE:
             self.create_tab_thickness()
             self.diffraction_plane = HybridDiffractionPlane.BOTH_2D
             self.set_diffraction_plane()
             self.cb_diffraction_plane.setEnabled(False)
-
-    def set_propagation_type(self):
-        if self.propagation_type == HybridPropagationType.FAR_FIELD or self.propagation_type == HybridPropagationType.BOTH:
-            self.cb_focal_length_calculation.setEnabled(False)
-            self.le_focal_length.setEnabled(False)
-        else:
-            self.cb_focal_length_calculation.setEnabled(True)
-            self.le_focal_length.setEnabled(True)
-
-        self.set_focal_length_calculation()
-
-    def set_focal_length_calculation(self):
-         self.le_focal_length.setEnabled(self.focal_length_calculation == 1)
-
-    def set_propagation_distance(self):
-         self.le_propagation_distance.setEnabled(self.propagation_distance_calculation == 1)
 
     # --------------------------------------------------
     # HybridListener methods
@@ -479,14 +413,12 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                         additional_parameters["crl_coords_to_m"]    = self.crl_coords_to_m
                         additional_parameters["crl_thickness_to_m"] = self.crl_thickness_to_m
 
+
                     input_parameters = HybridInputParameters(listener=self,
-                                                             beam=ShadowHybridBeam(beam=self.__input_beam,
-                                                                                   length_units=self.workspace_units),
-                                                             optical_element=ShadowHybridOE(optical_element=history_entry._shadow_oe_end,
-                                                                                            name=history_entry._widget_class_name),
+                                                             beam=ShadowHybridBeam(beam=self.__input_beam.duplicate(history=True), length_units=self.workspace_units),
+                                                             optical_element=ShadowHybridOE(optical_element=history_entry._shadow_oe_end.duplicate(), name=history_entry._widget_class_name),
                                                              diffraction_plane=self.diffraction_plane,
                                                              propagation_type=self.propagation_type,
-                                                             propagation_distance=history_entry._shadow_oe_end._oe.T_IMAGE*self.workspace_units_to_m,
                                                              n_bins_x=int(self.n_bins_x),
                                                              n_bins_z=int(self.n_bins_z),
                                                              n_peaks=int(self.n_peaks),
@@ -500,27 +432,26 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                         calculation_result = hybrid_screen.run_hybrid_method(input_parameters)
 
                         # PARAMETERS IN SET MODE
-                        self.n_bins_x                = int(input_parameters.n_bins_x)
-                        self.n_bins_z                = int(input_parameters.n_bins_z)
-                        self.n_peaks                 = int(input_parameters.n_peaks)
-                        self.fft_n_pts               = int(input_parameters.fft_n_pts)
+                        self.n_bins_x                                   = int(input_parameters.n_bins_x)
+                        self.n_bins_z                                   = int(input_parameters.n_bins_z)
+                        self.n_peaks                                    = int(input_parameters.n_peaks)
+                        self.fft_n_pts                                  = int(input_parameters.fft_n_pts)
 
                         self.__plotted_data = calculation_result
 
-                        if not calculation_result.far_field_beam is None and calculation_result.near_field_beam is None: # TEMP : DEBUG MODE
-                            if self.view_type==1: self.plot_results(calculation_result)
+                        if self.view_type==1: self.plot_results(calculation_result)
 
-                            if self.propagation_type == HybridPropagationType.BOTH:
-                                calculation_result.far_field_beam.wrapped_beam.setScanningData(self.__input_beam.scanned_variable_data)
-                                calculation_result.near_field_beam.wrapped_beam.setScanningData(self.__input_beam.scanned_variable_data)
-                                self.send("Output Beam (Far Field)", calculation_result.far_field_beam.wrapped_beam)
-                                self.send("Output Beam (Near Field)", calculation_result.near_field_beam.wrapped_beam)
-                            elif self.propagation_type == HybridPropagationType.FAR_FIELD:
-                                calculation_result.far_field_beam.wrapped_beam.setScanningData(self.__input_beam.scanned_variable_data)
-                                self.send("Output Beam (Far Field)", calculation_result.far_field_beam.wrapped_beam)
-                            elif self.propagation_type == HybridPropagationType.NEAR_FIELD:
-                                calculation_result.near_field_beam.wrapped_beam.setScanningData(self.__input_beam.scanned_variable_data)
-                                self.send("Output Beam (Near Field)", calculation_result.near_field_beam.wrapped_beam)
+                        if self.propagation_type == HybridPropagationType.BOTH:
+                            calculation_result.far_field_beam.wrapped_beam.setScanningData(self.__input_beam.scanned_variable_data)
+                            calculation_result.near_field_beam.wrapped_beam.setScanningData(self.__input_beam.scanned_variable_data)
+                            self.send("Output Beam (Far Field)", calculation_result.far_field_beam.wrapped_beam)
+                            self.send("Output Beam (Near Field)", calculation_result.near_field_beam.wrapped_beam)
+                        elif self.propagation_type == HybridPropagationType.FAR_FIELD:
+                            calculation_result.far_field_beam.wrapped_beam.setScanningData(self.__input_beam.scanned_variable_data)
+                            self.send("Output Beam (Far Field)", calculation_result.far_field_beam.wrapped_beam)
+                        elif self.propagation_type == HybridPropagationType.NEAR_FIELD:
+                            calculation_result.near_field_beam.wrapped_beam.setScanningData(self.__input_beam.scanned_variable_data)
+                            self.send("Output Beam (Near Field)", calculation_result.near_field_beam.wrapped_beam)
 
                         self.send("Trigger", TriggerIn(new_object=True))
                     except Exception as e:
@@ -576,8 +507,8 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                     self.plot_histo_hybrid(progress[1], divergence, 0, title=u"\u2206" + ax + "p", xtitle=r'$\Delta$' + ax + 'p [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
                     if plot_beam: self.plot_histo(calculation_result.far_field_beam.wrapped_beam, progress[3], 1, plot_canvas_index=1, title=ax, xtitle=r'' + ax + ' [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
                 elif self.propagation_type == HybridPropagationType.NEAR_FIELD:
-                    self.plot_histo_hybrid(progress[1], position, 2, title=u"\u2206" + ax, xtitle=r'$\Delta$' + ax + ' [$\mu$m]', ytitle=r'Arbitrary Units', var=1)
-                    if plot_beam: self.plot_histo(calculation_result.far_field_beam.wrapped_beam, progress[3], 1, plot_canvas_index=3, title=ax, xtitle=r'' + ax + ' [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
+                    self.plot_histo_hybrid(progress[1], position, 0, title=u"\u2206" + ax, xtitle=r'$\Delta$' + ax + ' [$\mu$m]', ytitle=r'Arbitrary Units', var=1)
+                    if plot_beam: self.plot_histo(calculation_result.near_field_beam.wrapped_beam, progress[3], 1, plot_canvas_index=1, title=ax, xtitle=r'' + ax + ' [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
             else:
                 if self.propagation_type == HybridPropagationType.BOTH:
                     self.plot_emtpy(progress[0], 0)
@@ -609,9 +540,6 @@ class HybridScreenNew(AutomaticElement, HybridListener):
             plot_direction("T", do_plot_tangential, progress=[86, 88, 94, 98], plot_beam=True)
 
     def check_fields(self):
-        if self.focal_length_calculation == 1:         congruence.checkPositiveNumber(self.focal_length, "Focal Length value")
-        if self.propagation_distance_calculation == 1: congruence.checkPositiveNumber(self.propagation_distance, "Distance to image value")
-
         if self.diffraction_plane in [HybridDiffractionPlane.SAGITTAL, HybridDiffractionPlane.BOTH_2D]:
             congruence.checkStrictlyPositiveNumber(self.n_bins_x, "Number of bins for I(Sagittal) histogram")
         if self.diffraction_plane in [HybridDiffractionPlane.TANGENTIAL, HybridDiffractionPlane.BOTH_2D]:
@@ -634,35 +562,17 @@ class HybridScreenNew(AutomaticElement, HybridListener):
         self.shadow_output.setTextCursor(cursor)
         self.shadow_output.ensureCursorVisible()
 
-    def setThicknessErrorProfiles(self, thickness_errors_data):
+    def set_thickness_error_profiles(self, thickness_errors_data):
         try:
             thickness_error_profile_data_files = thickness_errors_data.thickness_error_profile_data_files
 
             if not thickness_error_profile_data_files is None:
-                self.convert_thickness_error_files(thickness_error_profile_data_files)
+                self.crl_error_profiles = [thickness_error_file for thickness_error_file in thickness_error_profile_data_files]
                 if self.calculation_type==HybridCalculationType.CRL_SIZE_AND_ERROR_PROFILE: self.refresh_files_text_area()
         except Exception as exception:
             QMessageBox.critical(self, "Error", exception.args[0], QMessageBox.Ok)
 
             if self.IS_DEVELOP: raise exception
-
-    def convert_thickness_error_files(self, thickness_error_profile_data_files):
-        self.crl_error_profiles = []
-
-        for thickness_error_file in thickness_error_profile_data_files:
-            xx, yy, zz = OU.read_surface_file(thickness_error_file)
-
-            xx /= self.workspace_units_to_m
-            yy /= self.workspace_units_to_m
-            zz /= self.workspace_units_to_m
-
-            filename, _ = os.path.splitext(os.path.basename(thickness_error_file))
-
-            thickness_error_file = filename + "_hybrid.h5"
-
-            OU.write_surface_file(zz, xx, yy, thickness_error_file)
-
-            self.crl_error_profiles.append(thickness_error_file)
 
     def refresh_files_text_area(self):
         text = ""
@@ -673,7 +583,7 @@ class HybridScreenNew(AutomaticElement, HybridListener):
     def create_tab_thickness(self):
         tab_thick = oasysgui.createTabPage(self.tabs_setting, "Thickness Error")
 
-        input_box = oasysgui.widgetBox(tab_thick, "Thickness Error Files", addSpace=True, orientation="vertical", height=390, width=self.CONTROL_AREA_WIDTH-20)
+        input_box = oasysgui.widgetBox(tab_thick, "Thickness Error Files", addSpace=True, orientation="vertical", height=450, width=self.CONTROL_AREA_WIDTH-20)
 
         gui.comboBox(input_box, self, "crl_material_data", label="Material Properties from", labelWidth=180,
                      items=["Chemical Formula", "Absorption Parameters"],
@@ -694,6 +604,8 @@ class HybridScreenNew(AutomaticElement, HybridListener):
 
         self.refresh_files_text_area()
 
+        oasysgui.lineEdit(input_box, self, "crl_thickness_to_m", label="Thickness conversion to m", labelWidth=260, orientation="horizontal", valueType=float)
+        oasysgui.lineEdit(input_box, self, "crl_coords_to_m",   label="Coordinates conversion to m", labelWidth=260, orientation="horizontal", valueType=float)
         oasysgui.lineEdit(input_box, self, "crl_scaling_factor", "Thickness Error Scaling Factor", labelWidth=260, valueType=float, orientation="horizontal")
 
     def set_crl_material_data(self):

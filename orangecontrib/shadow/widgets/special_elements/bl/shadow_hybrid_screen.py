@@ -96,6 +96,12 @@ class _ShadowOEHybridScreen():
     NPOLY_ANGLE = 3
     NPOLY_L     = 6
 
+    def _set_image_distance_from_optical_element(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters):
+        shadow_oe = input_parameters.optical_element.wrapped_optical_element
+        to_m      = input_parameters.beam.length_units_to_m
+
+        calculation_parameters.image_plane_distance = shadow_oe._oe.T_IMAGE * to_m
+
     def _no_lost_rays_from_oe(self, input_parameters : HybridInputParameters) -> bool:
         shadow_beam   = input_parameters.beam.wrapped_beam
         history_entry = shadow_beam.getOEHistory(shadow_beam._oe_number)
@@ -108,8 +114,8 @@ class _ShadowOEHybridScreen():
 
         return number_of_good_rays_before == number_of_good_rays_after
 
-    def _manage_common_initial_screen_projection_data(self, input_parameters: HybridInputParameters) -> AbstractHybridScreen.CalculationParameters:
-        calculation_parameters = self._check_compound_oe(input_parameters)
+    def _manage_common_initial_screen_projection_data(self, input_parameters: HybridInputParameters, calculation_parameters: AbstractHybridScreen.CalculationParameters):
+        self._check_compound_oe(input_parameters, calculation_parameters)
 
         input_shadow_beam = calculation_parameters.get("shadow_beam")
 
@@ -259,12 +265,9 @@ class _ShadowOEHybridScreen():
 
         return "screen." + self._get_oe_string(input_parameters) + ("0" + str(n_screen)) if n_screen < 10 else "10"
 
-    def _check_compound_oe(self, input_parameters: HybridInputParameters): 
-        calculation_parameters = AbstractHybridScreen.CalculationParameters()
+    def _check_compound_oe(self, input_parameters: HybridInputParameters, calculation_parameters: AbstractHybridScreen.CalculationParameters):
         calculation_parameters.set("shadow_beam", input_parameters.beam.wrapped_beam)
-        
-        return calculation_parameters
-    
+
     def _fix_specific_oe_attributes(self, shadow_oe, original_shadow_oe, screen_index):
         # for all except aperture types
         if shadow_oe._oe.FWRITE > 1 or shadow_oe._oe.F_ANGLE == 0:
@@ -273,6 +276,8 @@ class _ShadowOEHybridScreen():
 
     def _get_screen_plane_histograms(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters):
         screen_plane_beam = calculation_parameters.get("screen_plane_beam")
+        to_m          = input_parameters.beam.length_units_to_m
+        to_user_units = 1/to_m
 
         histogram_s  = None
         bins_s       = None
@@ -283,35 +288,35 @@ class _ShadowOEHybridScreen():
         if input_parameters.diffraction_plane in [HybridDiffractionPlane.SAGITTAL, HybridDiffractionPlane.BOTH_2X1D]:  # 1d in X
             ticket = screen_plane_beam._beam.histo1(1,
                                                     nbins=int(input_parameters.n_bins_x),
-                                                    xrange=[calculation_parameters.x_min, calculation_parameters.x_max],
+                                                    xrange=[calculation_parameters.x_min*to_user_units, calculation_parameters.x_max*to_user_units],
                                                     nolost=1,
                                                     ref=23)
 
             histogram_s = ticket['histogram']
-            bins_s      = ticket['bins']
+            bins_s      = ticket['bins']*to_m
         elif input_parameters.diffraction_plane in [HybridDiffractionPlane.TANGENTIAL, HybridDiffractionPlane.BOTH_2X1D]:  # 1d in X
             ticket = screen_plane_beam._beam.histo1(3,
                                                     nbins=int(input_parameters.n_bins_z),
-                                                    xrange=[calculation_parameters.z_min, calculation_parameters.z_max],
+                                                    xrange=[calculation_parameters.z_min*to_user_units, calculation_parameters.z_max*to_user_units],
                                                     nolost=1,
                                                     ref=23)
 
             histogram_t = ticket['histogram']
-            bins_t      = ticket['bins']
+            bins_t      = ticket['bins']*to_m
         elif input_parameters.diffraction_plane == HybridDiffractionPlane.BOTH_2D:
             ticket = screen_plane_beam._beam.histo2(col_h=1,
                                                     col_v=3,
                                                     nbins_h=int(input_parameters.n_bins_x),
                                                     nbins_v=int(input_parameters.n_bins_z),
-                                                    xrange=[calculation_parameters.x_min, calculation_parameters.x_max],
-                                                    yrange=[calculation_parameters.z_min, calculation_parameters.z_max],
+                                                    xrange=[calculation_parameters.x_min*to_user_units, calculation_parameters.x_max*to_user_units],
+                                                    yrange=[calculation_parameters.z_min*to_user_units, calculation_parameters.z_max*to_user_units],
                                                     nolost=1,
                                                     ref=23)
 
             histogram_s  = ticket['histogram_h']
-            bins_s       = ticket['bin_h_edges']
+            bins_s       = ticket['bin_h_edges']*to_m
             histogram_t  = ticket['histogram_v']
-            bins_t       = ticket['bin_v_edges']
+            bins_t       = ticket['bin_v_edges']*to_m
             histogram_2D = ticket['histogram']
 
         return histogram_s, bins_s, histogram_t, bins_t, histogram_2D
@@ -367,7 +372,7 @@ class _ShadowOEHybridScreen():
 
         if input_parameters.diffraction_plane == HybridDiffractionPlane.BOTH_2D:
             ff_beam = image_plane_beam.duplicate(history=False)
-            ff_beam.wrapped_beam._oe_number = input_parameters.original_beam.wrapped_beam._oe_number
+            ff_beam._oe_number = input_parameters.original_beam.wrapped_beam._oe_number
 
             angle_num = numpy.sqrt(1 + (numpy.tan(calculation_parameters.dz_convolution)) ** 2 + (numpy.tan(calculation_parameters.dx_convolution)) ** 2)
 
@@ -381,7 +386,7 @@ class _ShadowOEHybridScreen():
                 # FAR FIELD PROPAGATION
                 if input_parameters.propagation_type in [HybridPropagationType.FAR_FIELD, HybridPropagationType.BOTH]:
                     ff_beam = image_plane_beam.duplicate(history=False)
-                    ff_beam.wrapped_beam._oe_number = oe_number
+                    ff_beam._oe_number = oe_number
 
                     angle_perpen = numpy.arctan(calculation_parameters.zp_screen / calculation_parameters.yp_screen)
                     angle_num    = numpy.sqrt(1 + (numpy.tan(angle_perpen)) ** 2 + (numpy.tan(calculation_parameters.dx_convolution)) ** 2)
@@ -394,7 +399,7 @@ class _ShadowOEHybridScreen():
                 # NEAR FIELD PROPAGATION
                 if input_parameters.propagation_type in [HybridPropagationType.NEAR_FIELD, HybridPropagationType.BOTH]:
                     nf_beam = image_plane_beam.duplicate(history=False)
-                    nf_beam.wrapped_beam._oe_number = oe_number
+                    nf_beam._oe_number = oe_number
 
                     nf_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)*to_user_units
 
@@ -413,29 +418,26 @@ class _ShadowOEHybridScreen():
                     ff_beam._beam.rays[:, 4] = 1 / angle_num
                     ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_convolution) / angle_num
 
-                    if image_plane_beam_lost.get_number_of_rays() > 0:
-                        ff_beam = ShadowBeam.mergeBeams(ff_beam, image_plane_beam_lost, which_flux=1, merge_history=0)
+                    if image_plane_beam_lost.get_number_of_rays() > 0: ff_beam = ShadowBeam.mergeBeams(ff_beam, image_plane_beam_lost, which_flux=1, merge_history=0)
 
                 # NEAR FIELD PROPAGATION
                 if input_parameters.propagation_type in [HybridPropagationType.NEAR_FIELD, HybridPropagationType.BOTH]:
                     if nf_beam is None:
                         nf_beam = image_plane_beam.duplicate(history=False)
-                        nf_beam.wrapped_beam._oe_number = oe_number
+                        nf_beam._oe_number = oe_number
 
                     nf_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)*to_user_units
 
         if input_parameters.propagation_type in [HybridPropagationType.FAR_FIELD, HybridPropagationType.BOTH]:
-            if image_plane_beam_lost.get_number_of_rays() > 0:
-                ff_beam = ShadowBeam.mergeBeams(ff_beam, image_plane_beam_lost, which_flux=1, merge_history=0)
+            if image_plane_beam_lost.get_number_of_rays() > 0: ff_beam = ShadowBeam.mergeBeams(ff_beam, image_plane_beam_lost, which_flux=1, merge_history=0)
             ff_beam.history = original_beam_history
 
         if input_parameters.propagation_type in [HybridPropagationType.NEAR_FIELD, HybridPropagationType.BOTH]:
-            if image_plane_beam_lost.get_number_of_rays() > 0:
-                nf_beam = ShadowBeam.mergeBeams(nf_beam, image_plane_beam_lost, which_flux=1, merge_history=0)
+            if image_plane_beam_lost.get_number_of_rays() > 0: nf_beam = ShadowBeam.mergeBeams(nf_beam, image_plane_beam_lost, which_flux=1, merge_history=0)
             nf_beam.history = original_beam_history
 
-        calculation_parameters.ff_beam = None if ff_beam is None else ShadowHybridBeam(beam=ff_beam,  length_units=input_parameters.original_beam.length_units)
-        calculation_parameters.nf_beam = None if nf_beam is None else ShadowHybridBeam(beam=nf_beam,  length_units=input_parameters.original_beam.length_units)
+        calculation_parameters.ff_beam = None if ff_beam is None else ShadowHybridBeam(beam=ff_beam,  length_units=input_parameters.beam.length_units)
+        calculation_parameters.nf_beam = None if nf_beam is None else ShadowHybridBeam(beam=nf_beam,  length_units=input_parameters.beam.length_units)
 
 class _ShadowApertureHybridScreen(_ShadowOEHybridScreen):
     def _fix_specific_oe_attributes(self, shadow_oe, original_shadow_oe, screen_index):
@@ -602,6 +604,12 @@ class _ShadowOEWithSurfaceHybridScreen(_ShadowOEHybridScreen):
 
         return shadow_oe._oe.RWIDX2*to_m, shadow_oe._oe.RWIDX1*to_m, shadow_oe._oe.RLEN2*to_m, shadow_oe._oe.RLEN1*to_m
 
+    def _get_focal_length_from_optical_element(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters) -> float:
+        shadow_oe = input_parameters.optical_element.wrapped_optical_element
+        to_m      = input_parameters.beam.length_units_to_m
+
+        return shadow_oe._oe.SIMAG * to_m
+
     @staticmethod
     def _read_shadow_angles(filename, mirror_beam=None) -> Tuple[numpy.ndarray, numpy.ndarray]:
         values    = numpy.loadtxt(congruence.checkFile(filename))
@@ -702,11 +710,9 @@ class _ShadowOELensHybridScreen(_ShadowApertureHybridScreen):
 
         return geometrical_parameters
 
-    def _check_compound_oe(self, input_parameters: HybridInputParameters):
-        calculation_parameters = AbstractHybridScreen.CalculationParameters()
-        
+    def _check_compound_oe(self, input_parameters: HybridInputParameters, calculation_parameters: AbstractHybridScreen.CalculationParameters):
         history_entry = input_parameters.beam.wrapped_beam.getOEHistory(input_parameters.beam.wrapped_beam._oe_number)
-        compound_oe = history_entry._shadow_oe_end
+        compound_oe   = history_entry._shadow_oe_end
 
         for oe in compound_oe._oe.list:
             if oe.FHIT_C == 0: raise Exception("Calculation not possible: at least one lens have infinite diameter")
@@ -763,8 +769,6 @@ class _ShadowOELensHybridScreen(_ShadowApertureHybridScreen):
         # in case of CRL, regeneration of the input beam as incident on the last lens
         calculation_parameters.set("shadow_beam", ShadowBeam.traceFromOE(input_parameters.beam.wrapped_beam, screen_slit))
         
-        return calculation_parameters
-
 class _ShadowOELensAndErrorHybridScreen(_ShadowOELensHybridScreen):
     def _get_error_profiles(self, input_parameters: HybridInputParameters, calculation_parameters: AbstractHybridScreen.CalculationParameters):
         coords_to_m    = input_parameters.get("crl_coords_to_m")
