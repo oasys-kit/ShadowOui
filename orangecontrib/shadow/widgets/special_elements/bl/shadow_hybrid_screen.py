@@ -44,6 +44,8 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         #
 # POSSIBILITY OF SUCH DAMAGE.                                             #
 # ----------------------------------------------------------------------- #
+import numpy
+
 from oasys.widgets import congruence
 from oasys.util.oasys_util import read_surface_file
 
@@ -463,7 +465,7 @@ class _ShadowOEWithSurfaceHybridScreen(_ShadowOEHybridScreen):
         super(_ShadowOEWithSurfaceHybridScreen, self)._fix_specific_oe_attributes(shadow_oe, original_shadow_oe, screen_index)
         shadow_oe._oe.F_RIPPLE = 0
 
-    def _get_footprint_spatial_coordinates(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters):
+    def _get_footprint_spatial_coordinates(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters) -> Tuple[numpy.ndarray, numpy.ndarray]:
         mirror_beam = self._read_shadow_file("mirr." + self._get_oe_string(input_parameters))
 
         xx_mirr = mirror_beam._beam.rays[:, 0]
@@ -473,31 +475,61 @@ class _ShadowOEWithSurfaceHybridScreen(_ShadowOEHybridScreen):
 
         return xx_mirr, yy_mirr
 
-    def _get_ray_angles(self, input_parameters: HybridInputParameters, calculation_parameters: AbstractHybridScreen.CalculationParameters):
+    def _get_rays_angles(self, input_parameters: HybridInputParameters, calculation_parameters: AbstractHybridScreen.CalculationParameters) -> Tuple[numpy.ndarray, numpy.ndarray]:
         mirror_beam = calculation_parameters.get("mirror_beam")
 
-        return self.read_shadow_angles("angle." + self._get_oe_string(input_parameters), mirror_beam)
+        return self._read_shadow_angles("angle." + self._get_oe_string(input_parameters), mirror_beam)
+
+    def _has_pitch_displacement(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters) -> Tuple[bool, float]:
+        shadow_oe = calculation_parameters.get("shadow_oe_end")
+        
+        return shadow_oe._oe.F_MOVE == 1 and shadow_oe._oe.X_ROT != 0.0, shadow_oe._oe.X_ROT
+
+    def _has_roll_displacement(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters) -> Tuple[bool, float]:
+        shadow_oe = calculation_parameters.get("shadow_oe_end")
+
+        return shadow_oe._oe.F_MOVE == 1 and shadow_oe._oe.Y_ROT != 0.0, shadow_oe._oe.Y_ROT
+
+    def _has_sagittal_offset(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters) -> Tuple[bool, float]:
+        shadow_oe = calculation_parameters.get("shadow_oe_end")
+
+        return shadow_oe._oe.F_MOVE == 1 and shadow_oe._oe.OFFX != 0.0, shadow_oe._oe.OFFX
+
+    def _has_normal_offset(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters) -> Tuple[bool, float]:
+        shadow_oe = calculation_parameters.get("shadow_oe_end")
+
+        return shadow_oe._oe.F_MOVE == 1 and shadow_oe._oe.OFFZ != 0.0, shadow_oe._oe.OFFZ
+
+    def _get_optical_element_angles(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters) -> Tuple[float, float]:
+        shadow_oe = calculation_parameters.get("shadow_oe_end")
+        
+        return numpy.radians(90-shadow_oe._oe.T_INCIDENCE), numpy.radians(90-shadow_oe._oe.T_REFLECTION)
+   
+    def _get_optical_element_spatial_limits(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters) -> Tuple[float, float, float, float]:
+        shadow_oe = calculation_parameters.get("shadow_oe_end")
+
+        return shadow_oe._oe.RWIDX2, shadow_oe._oe.RWIDX1, shadow_oe._oe.RLEN2, shadow_oe._oe.RLEN1
 
     @staticmethod
-    def read_shadow_angles(filename, mirror_beam=None):
+    def _read_shadow_angles(filename, mirror_beam=None) -> Tuple[numpy.ndarray, numpy.ndarray]:
         values    = numpy.loadtxt(congruence.checkFile(filename))
         dimension = len(mirror_beam._beam.rays)
 
-        angle_inc = numpy.zeros(dimension)
-        angle_ref = numpy.zeros(dimension)
+        incidence_angle  = numpy.zeros(dimension)
+        reflection_angle = numpy.zeros(dimension)
 
         ray_index = 0
         for index in range(0, len(values)):
             if values[index, 3] == 1:
-                angle_inc[ray_index] = values[index, 1]
-                angle_ref[ray_index] = values[index, 2]
+                incidence_angle[ray_index] = values[index, 1]
+                reflection_angle[ray_index] = values[index, 2]
 
                 ray_index += 1
 
-        angle_inc = (90.0 - angle_inc)/180.0*1e3*numpy.pi
-        angle_ref = (90.0 - angle_ref)/180.0*1e3*numpy.pi
+        incidence_angle  = numpy.radians(90.0 - incidence_angle)
+        reflection_angle = numpy.radians(90.0 - reflection_angle)
 
-        return angle_inc, angle_ref
+        return incidence_angle, reflection_angle
 
 class _ShadowOEWithSurfaceAndErrorHybridScreen(_ShadowOEWithSurfaceHybridScreen):
     def _fix_specific_oe_attributes(self, shadow_oe, original_shadow_oe, screen_index):

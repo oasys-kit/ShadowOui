@@ -446,7 +446,7 @@ class HybridScreenNew(AutomaticElement, HybridListener):
     # --------------------------------------------------
 
     def status_message(self, message : str): self.setStatusMessage(message)
-    def set_progress_bar(self, value):
+    def set_progress_value(self, value):
         if value >= 100: self.progressBarFinished()
         elif value <= 0: self.progressBarInit()
         else:            self.progressBarSet(value)
