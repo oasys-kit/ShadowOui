@@ -358,6 +358,87 @@ class _ShadowOEHybridScreen():
     
         return _ShadowOEHybridScreen._process_shadow_beam(image_beam)
 
+    def _apply_convolution_to_rays(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters):
+        image_plane_beam      = calculation_parameters.get("image_plane_beam")
+        image_plane_beam_lost = calculation_parameters.get("image_plane_beam_lost")
+        original_beam_history = calculation_parameters.get("original_beam_history")
+        oe_number             = input_parameters.original_beam.wrapped_beam._oe_number
+
+        ff_beam = None
+        nf_beam = None
+
+        if input_parameters.diffraction_plane == HybridDiffractionPlane.BOTH_2D:
+            ff_beam = image_plane_beam.duplicate(history=False)
+            ff_beam.wrapped_beam._oe_number = input_parameters.original_beam.wrapped_beam._oe_number
+
+            angle_num = numpy.sqrt(1 + (numpy.tan(calculation_parameters.dz_convolution)) ** 2 + (numpy.tan(calculation_parameters.dx_convolution)) ** 2)
+
+            ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
+            ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
+            ff_beam._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_convolution) / angle_num
+            ff_beam._beam.rays[:, 4] = 1 / angle_num
+            ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_convolution) / angle_num
+        else:
+            if input_parameters.diffraction_plane in [HybridDiffractionPlane.SAGITTAL, HybridDiffractionPlane.BOTH_2X1D]:
+                # FAR FIELD PROPAGATION
+                if input_parameters.propagation_type in [HybridPropagationType.FAR_FIELD, HybridPropagationType.BOTH]:
+                    ff_beam = image_plane_beam.duplicate(history=False)
+                    ff_beam.wrapped_beam._oe_number = oe_number
+
+                    angle_perpen = numpy.arctan(calculation_parameters.zp_screen / calculation_parameters.yp_screen)
+                    angle_num    = numpy.sqrt(1 + (numpy.tan(angle_perpen)) ** 2 + (numpy.tan(calculation_parameters.dx_convolution)) ** 2)
+
+                    ff_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_ff)
+                    ff_beam._beam.rays[:, 3] = numpy.tan(calculation_parameters.dx_convolution) / angle_num
+                    ff_beam._beam.rays[:, 4] = 1 / angle_num
+                    ff_beam._beam.rays[:, 5] = numpy.tan(angle_perpen) / angle_num
+
+                # NEAR FIELD PROPAGATION
+                if input_parameters.propagation_type in [HybridPropagationType.NEAR_FIELD, HybridPropagationType.BOTH]:
+                    nf_beam = image_plane_beam.duplicate(history=False)
+                    nf_beam.wrapped_beam._oe_number = oe_number
+
+                    nf_beam._beam.rays[:, 0] = copy.deepcopy(calculation_parameters.xx_image_nf)
+
+            if input_parameters.diffraction_plane in [HybridDiffractionPlane.TANGENTIAL, HybridDiffractionPlane.BOTH_2X1D]:
+                # FAR FIELD PROPAGATION
+                if input_parameters.propagation_type in [HybridPropagationType.FAR_FIELD, HybridPropagationType.BOTH]:
+                    if ff_beam is None:
+                        ff_beam = image_plane_beam.duplicate(history=False)
+                        ff_beam._oe_number = oe_number
+
+                    angle_perpen = numpy.arctan(calculation_parameters.xp_screen / calculation_parameters.yp_screen)
+                    angle_num    = numpy.sqrt(1 + (numpy.tan(angle_perpen)) ** 2 + (numpy.tan(calculation_parameters.dz_convolution)) ** 2)
+
+                    ff_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_ff)
+                    ff_beam._beam.rays[:, 3] = numpy.tan(angle_perpen) / angle_num
+                    ff_beam._beam.rays[:, 4] = 1 / angle_num
+                    ff_beam._beam.rays[:, 5] = numpy.tan(calculation_parameters.dz_convolution) / angle_num
+
+                    if image_plane_beam_lost.get_number_of_rays() > 0:
+                        ff_beam = ShadowBeam.mergeBeams(ff_beam, image_plane_beam_lost, which_flux=1, merge_history=0)
+
+                # NEAR FIELD PROPAGATION
+                if input_parameters.propagation_type in [HybridPropagationType.NEAR_FIELD, HybridPropagationType.BOTH]:
+                    if nf_beam is None:
+                        nf_beam = image_plane_beam.duplicate(history=False)
+                        nf_beam.wrapped_beam._oe_number = oe_number
+
+                    nf_beam._beam.rays[:, 2] = copy.deepcopy(calculation_parameters.zz_image_nf)
+
+        if input_parameters.propagation_type in [HybridPropagationType.FAR_FIELD, HybridPropagationType.BOTH]:
+            if image_plane_beam_lost.get_number_of_rays() > 0:
+                ff_beam = ShadowBeam.mergeBeams(ff_beam, image_plane_beam_lost, which_flux=1, merge_history=0)
+            ff_beam.history = original_beam_history
+
+        if input_parameters.propagation_type in [HybridPropagationType.NEAR_FIELD, HybridPropagationType.BOTH]:
+            if image_plane_beam_lost.get_number_of_rays() > 0:
+                nf_beam = ShadowBeam.mergeBeams(nf_beam, image_plane_beam_lost, which_flux=1, merge_history=0)
+            nf_beam.history = original_beam_history
+
+        calculation_parameters.ff_beam = None if ff_beam is None else ShadowHybridBeam(beam=ff_beam,  length_units=input_parameters.original_beam.length_units)
+        calculation_parameters.nf_beam = None if nf_beam is None else ShadowHybridBeam(beam=nf_beam,  length_units=input_parameters.original_beam.length_units)
+
 class _ShadowApertureHybridScreen(_ShadowOEHybridScreen):
     def _fix_specific_oe_attributes(self, shadow_oe, original_shadow_oe, screen_index):
         if (original_shadow_oe._oe.FMIRR == 5 and \
@@ -692,11 +773,11 @@ class ShadowMirrorOrGratingSizeHybridScreen(_ShadowOEWithSurfaceHybridScreen, Ab
     def __init__(self, wave_optics_provider: HybridWaveOpticsProvider):
         AbstractMirrorOrGratingSizeHybridScreen.__init__(self, wave_optics_provider)
 
-class ShadowMirrorSizeAndErrorHybridScreen(_ShadowOEWithSurfaceHybridScreen, AbstractMirrorSizeAndErrorHybridScreen):
+class ShadowMirrorSizeAndErrorHybridScreen(_ShadowOEWithSurfaceAndErrorHybridScreen, AbstractMirrorSizeAndErrorHybridScreen):
     def __init__(self, wave_optics_provider: HybridWaveOpticsProvider):
         AbstractMirrorSizeAndErrorHybridScreen.__init__(self, wave_optics_provider)
 
-class ShadowGratingSizeAndErrorHybridScreen(_ShadowOEWithSurfaceHybridScreen, AbstractGratingSizeAndErrorHybridScreen):
+class ShadowGratingSizeAndErrorHybridScreen(_ShadowOEWithSurfaceAndErrorHybridScreen, AbstractGratingSizeAndErrorHybridScreen):
     def __init__(self, wave_optics_provider: HybridWaveOpticsProvider):
         AbstractGratingSizeAndErrorHybridScreen.__init__(self, wave_optics_provider)
 
