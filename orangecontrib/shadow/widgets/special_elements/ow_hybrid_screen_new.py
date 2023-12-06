@@ -83,6 +83,8 @@ class HybridScreenNew(AutomaticElement, HybridListener):
     crl_material = Setting("Be")
     crl_delta = Setting(1e-6)
     crl_scaling_factor = Setting(1.0)
+    crl_coords_to_m = Setting(1.0)
+    crl_thickness_to_m = Setting(1.0)
 
     __input_beam = None
     __plotted_data = None
@@ -332,8 +334,8 @@ class HybridScreenNew(AutomaticElement, HybridListener):
 
             self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
-        factor1 = ShadowPlot.get_factor(var1, self.workspace_units_to_cm)
-        factor2 = ShadowPlot.get_factor(var2, self.workspace_units_to_cm)
+        factor1 = ShadowPlot.get_factor(var1, 1e2) # results are in m
+        factor2 = ShadowPlot.get_factor(var2, 1e2) # results are in m
 
         xmin, xmax = min(scaled_matrix.x_coord), max(scaled_matrix.x_coord)
         ymin, ymax = min(scaled_matrix.y_coord), max(scaled_matrix.y_coord)
@@ -367,7 +369,7 @@ class HybridScreenNew(AutomaticElement, HybridListener):
 
             self.tab[plot_canvas_index].layout().addWidget(self.plot_canvas[plot_canvas_index])
 
-        factor = ShadowPlot.get_factor(var, self.workspace_units_to_cm)
+        factor = ShadowPlot.get_factor(var, 1e2) # results are in m
 
         self.plot_canvas[plot_canvas_index].addCurve(scaled_array.scale*factor, scaled_array.np_array, "crv_"+ytitle, symbol='', color="blue", replace=True) #'+', '^', ','
         self.plot_canvas[plot_canvas_index]._backend.ax.get_yaxis().get_major_formatter().set_useOffset(True)
@@ -474,6 +476,8 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                         if self.crl_material_data == 0: additional_parameters["crl_material"] = self.crl_material
                         else:                           additional_parameters["crl_delta"]    = self.crl_delta
                         additional_parameters["crl_scaling_factor"] = self.crl_scaling_factor
+                        additional_parameters["crl_coords_to_m"]    = self.crl_coords_to_m
+                        additional_parameters["crl_thickness_to_m"] = self.crl_thickness_to_m
 
                     input_parameters = HybridInputParameters(listener=self,
                                                              beam=ShadowHybridBeam(beam=self.__input_beam,
@@ -482,8 +486,7 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                                                                                             name=history_entry._widget_class_name),
                                                              diffraction_plane=self.diffraction_plane,
                                                              propagation_type=self.propagation_type,
-                                                             near_field_image_distance=self.focal_length if self.focal_length_calculation == 1 else -1,
-                                                             far_field_image_distance=self.propagation_distance if self.propagation_distance_calculation == 1 else -1,
+                                                             propagation_distance=history_entry._shadow_oe_end._oe.T_IMAGE*self.workspace_units_to_m,
                                                              n_bins_x=int(self.n_bins_x),
                                                              n_bins_z=int(self.n_bins_z),
                                                              n_peaks=int(self.n_peaks),
@@ -497,14 +500,10 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                         calculation_result = hybrid_screen.run_hybrid_method(input_parameters)
 
                         # PARAMETERS IN SET MODE
-                        self.focal_length_calculated = input_parameters.near_field_image_distance
-                        self.propagation_distance    = input_parameters.far_field_image_distance
                         self.n_bins_x                = int(input_parameters.n_bins_x)
                         self.n_bins_z                = int(input_parameters.n_bins_z)
                         self.n_peaks                 = int(input_parameters.n_peaks)
                         self.fft_n_pts               = int(input_parameters.fft_n_pts)
-
-                        print(calculation_result.geometry_analysis)
 
                         self.__plotted_data = calculation_result
 
