@@ -638,7 +638,7 @@ class _ShadowOEWithSurfaceAndErrorHybridScreen(_ShadowOEWithSurfaceHybridScreen)
         if shadow_oe._oe.F_RIPPLE == 1 and shadow_oe._oe.F_G_S == 2: shadow_oe._oe.F_RIPPLE = 0
         else: raise Exception("O.E. has not Surface Error file (setup Advanced Option->Modified Surface:\n\nModification Type = Surface Error\nType of Defect: external spline)")
 
-    def _get_error_profile(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters):
+    def _get_error_profile(self, input_parameters: HybridInputParameters, calculation_parameters : AbstractHybridScreen.CalculationParameters) -> ScaledMatrix:
         return self._read_shadow_surface(input_parameters.optical_element.wrapped_optical_element._oe.FILE_RIP, dimension=2, to_m=input_parameters.beam.length_units_to_m)
 
     def _get_tangential_displacement_index(self, input_parameters: HybridInputParameters, calculation_parameters: AbstractHybridScreen.CalculationParameters):
