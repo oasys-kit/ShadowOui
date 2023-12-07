@@ -206,35 +206,35 @@ class HybridScreenNew(AutomaticElement, HybridListener):
 
         if self.diffraction_plane in [HybridDiffractionPlane.SAGITTAL, HybridDiffractionPlane.TANGENTIAL]:
             if self.propagation_type == HybridPropagationType.BOTH:
-                self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field"),
-                            gui.createTabPage(self.tabs, "Distribution of Position at Image Plane"),
-                            gui.createTabPage(self.tabs, u"\u2206" + "Position at Near Field"),
-                            gui.createTabPage(self.tabs, "Distribution of Position at Near Field")]
+                self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence (Far Field)"),
+                            gui.createTabPage(self.tabs, u"\u2206" + "Position (Near Field)"),
+                            gui.createTabPage(self.tabs, "Spatial Distribution (Far Field)"),
+                            gui.createTabPage(self.tabs, "Spatial Distribution (Near Field)")]
             elif self.propagation_type == HybridPropagationType.FAR_FIELD:
-                self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field"),
-                            gui.createTabPage(self.tabs, "Distribution of Position at Image Plane")]
+                self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence (Far Field)"),
+                            gui.createTabPage(self.tabs, "Spatial Distribution (Far Field)")]
             elif self.propagation_type == HybridPropagationType.NEAR_FIELD:
-                self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Position at Near Field"),
-                            gui.createTabPage(self.tabs, "Distribution of Position at Near Field")]
+                self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Position (Near Field)"),
+                            gui.createTabPage(self.tabs, "Spatial Distribution (Near Field)")]
         elif self.diffraction_plane == HybridDiffractionPlane.BOTH_2D:
-             self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field"),
-                         gui.createTabPage(self.tabs, "Distribution of Position at Image Plane")]
+             self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence (Far Field)"),
+                         gui.createTabPage(self.tabs, "Spatial Distribution (Far Field)")]
         elif self.diffraction_plane == HybridDiffractionPlane.BOTH_2X1D:
             if self.propagation_type == HybridPropagationType.BOTH:
-                self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field (S)"),
-                            gui.createTabPage(self.tabs, u"\u2206" + "Position at Near Field (S)"),
-                            gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field (T)"),
-                            gui.createTabPage(self.tabs, u"\u2206" + "Position at Near Field (T)"),
-                            gui.createTabPage(self.tabs, "Distribution of Position at Near Field"),
-                            gui.createTabPage(self.tabs, "Distribution of Position at Image Plane")]
+                self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence (Far Field (S))"),
+                            gui.createTabPage(self.tabs, u"\u2206" + "Position (Near Field (S))"),
+                            gui.createTabPage(self.tabs, u"\u2206" + "Divergence (Far Field (T))"),
+                            gui.createTabPage(self.tabs, u"\u2206" + "Position (Near Field (T))"),
+                            gui.createTabPage(self.tabs, "Spatial Distribution (Far Field)"),
+                            gui.createTabPage(self.tabs, "Spatial Distribution (Near Field)")]
             elif self.propagation_type == HybridPropagationType.FAR_FIELD:
-                self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field (S)"),
-                            gui.createTabPage(self.tabs, u"\u2206" + "Divergence at Far Field (T)"),
-                            gui.createTabPage(self.tabs, "Distribution of Position at Image Plane")]
+                self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Divergence (Far Field (S))"),
+                            gui.createTabPage(self.tabs, u"\u2206" + "Divergence (Far Field (T))"),
+                            gui.createTabPage(self.tabs, "Spatial Distribution (Far Field)")]
             elif self.propagation_type == HybridPropagationType.NEAR_FIELD:
-                self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Position at Near Field (S)"),
-                            gui.createTabPage(self.tabs, u"\u2206" + "Position at Near Field (T)"),
-                            gui.createTabPage(self.tabs, "Distribution of Position at Near Field")]
+                self.tab = [gui.createTabPage(self.tabs, u"\u2206" + "Position (Near Field (S))"),
+                            gui.createTabPage(self.tabs, u"\u2206" + "Position (Near Field (T))"),
+                            gui.createTabPage(self.tabs, "Spatial Distribution (Near Field)")]
 
         for tab in self.tab:
             tab.setFixedHeight(self.IMAGE_HEIGHT)
@@ -487,40 +487,47 @@ class HybridScreenNew(AutomaticElement, HybridListener):
 
         if do_plot_sagittal or do_plot_tangential: self.setStatusMessage("Plotting Results")
         
-        def plot_direction(direction="S", do_plot=True, progress=[84, 88, 92, 96], plot_beam=True):
+        def plot_direction(direction="S", do_plot=True, progress=[84, 88, 92, 96], start_index=0, plot_shadow=True):
             if direction=="S":
                 ax         = "X"
                 divergence = calculation_result.divergence_sagittal
                 position   = calculation_result.position_sagittal
+                var        = 1
             else:
                 ax         = "Z"
                 divergence = calculation_result.divergence_tangential
                 position   = calculation_result.position_tangential
-                
+                var        = 3
+
             if do_plot:
                 if self.propagation_type == HybridPropagationType.BOTH:
-                    self.plot_histo_hybrid(progress[0], divergence, 0, title=u"\u2206" + ax + "p", xtitle=r'$\Delta$' + ax + 'p [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
-                    if plot_beam: self.plot_histo(calculation_result.far_field_beam.wrapped_beam, progress[1], 1, plot_canvas_index=1, title=ax, xtitle=r'' + ax + ' [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
-                    self.plot_histo_hybrid(progress[2], position, 2, title=u"\u2206" + ax, xtitle=r'$\Delta$' + ax + ' [$\mu$m]', ytitle=r'Arbitrary Units', var=1)
-                    if plot_beam: self.plot_histo(calculation_result.near_field_beam.wrapped_beam, progress[3], 1, plot_canvas_index=3, title=ax, xtitle=r'' + ax + ' [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
+                    self.plot_histo_hybrid(progress[0], divergence, start_index + 0,     title=u"\u2206" + ax + "p", xtitle=r'$\Delta$' + ax + 'p [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
+                    self.plot_histo_hybrid(progress[2], position,   start_index + 1, title=u"\u2206" + ax, xtitle=r'$\Delta$' + ax + ' [$\mu$m]', ytitle=r'Arbitrary Units', var=1)
+                    if plot_shadow:
+                        self.plot_histo(calculation_result.far_field_beam.wrapped_beam,  progress[1], var, plot_canvas_index=start_index + 2, title=ax, xtitle=r'' + ax + ' [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
+                        self.plot_histo(calculation_result.near_field_beam.wrapped_beam, progress[3], var, plot_canvas_index=start_index + 3, title=ax, xtitle=r'' + ax + ' [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
                 elif self.propagation_type == HybridPropagationType.FAR_FIELD:
-                    self.plot_histo_hybrid(progress[1], divergence, 0, title=u"\u2206" + ax + "p", xtitle=r'$\Delta$' + ax + 'p [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
-                    if plot_beam: self.plot_histo(calculation_result.far_field_beam.wrapped_beam, progress[3], 1, plot_canvas_index=1, title=ax, xtitle=r'' + ax + ' [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
+                    self.plot_histo_hybrid(progress[1], divergence, start_index + 0, title=u"\u2206" + ax + "p", xtitle=r'$\Delta$' + ax + 'p [$\mu$rad]', ytitle=r'Arbitrary Units', var=4)
+                    if plot_shadow:
+                        self.plot_histo(calculation_result.far_field_beam.wrapped_beam, progress[3], var, plot_canvas_index=start_index + 1, title=ax, xtitle=r'' + ax + ' [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
                 elif self.propagation_type == HybridPropagationType.NEAR_FIELD:
-                    self.plot_histo_hybrid(progress[1], position, 0, title=u"\u2206" + ax, xtitle=r'$\Delta$' + ax + ' [$\mu$m]', ytitle=r'Arbitrary Units', var=1)
-                    if plot_beam: self.plot_histo(calculation_result.near_field_beam.wrapped_beam, progress[3], 1, plot_canvas_index=1, title=ax, xtitle=r'' + ax + ' [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
+                    self.plot_histo_hybrid(progress[1], position, start_index + 0, title=u"\u2206" + ax, xtitle=r'$\Delta$' + ax + ' [$\mu$m]', ytitle=r'Arbitrary Units', var=1)
+                    if plot_shadow:
+                        self.plot_histo(calculation_result.near_field_beam.wrapped_beam, progress[3], var, plot_canvas_index=start_index + 1, title=ax, xtitle=r'' + ax + ' [$\mu$m]', ytitle=r'Number of Rays', xum=("X [" + u"\u03BC" + "m]"))
             else:
                 if self.propagation_type == HybridPropagationType.BOTH:
-                    self.plot_emtpy(progress[0], 0)
-                    if plot_beam: self.plot_emtpy(progress[1], 1)
-                    self.plot_emtpy(progress[2], 2)
-                    if plot_beam: self.plot_emtpy(progress[3], 3)
+                    self.plot_emtpy(progress[0], start_index + 0)
+                    self.plot_emtpy(progress[1], start_index + 1)
+                    if plot_shadow:
+                        self.plot_emtpy(progress[2], start_index + 2)
+                        self.plot_emtpy(progress[3], start_index + 3)
                 else:
-                    self.plot_emtpy(progress[1], 0)
-                    if plot_beam: self.plot_emtpy(progress[3], 1)
+                    self.plot_emtpy(progress[1], start_index + 0)
+                    if plot_shadow:
+                        self.plot_emtpy(progress[3], start_index + 1)
 
-        if self.diffraction_plane == HybridDiffractionPlane.SAGITTAL:      plot_direction("S", do_plot_sagittal)
-        elif self.diffraction_plane == HybridDiffractionPlane.TANGENTIAL:  plot_direction("T", do_plot_tangential)
+        if   self.diffraction_plane == HybridDiffractionPlane.SAGITTAL:   plot_direction("S", do_plot_sagittal)
+        elif self.diffraction_plane == HybridDiffractionPlane.TANGENTIAL: plot_direction("T", do_plot_tangential)
         elif self.diffraction_plane == HybridDiffractionPlane.BOTH_2D:
             if do_plot_sagittal and do_plot_tangential:
                 self.plot_xy_hybrid(88, calculation_result.divergence_2D, plot_canvas_index=0, title="X',Z'",xtitle="X' [$\mu$rad]", ytitle="Z' [$\mu$rad]", var1=4, var2=6)
@@ -536,8 +543,8 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                     self.plot_emtpy(88, 0)
                     self.plot_emtpy(96, 1)
         elif self.diffraction_plane == HybridDiffractionPlane.BOTH_2X1D:
-            plot_direction("S", do_plot_sagittal,   progress=[82, 82, 84, 84], plot_beam=False)
-            plot_direction("T", do_plot_tangential, progress=[86, 88, 94, 98], plot_beam=True)
+            plot_direction("S", do_plot_sagittal,   progress=[82, 82, 84, 84], plot_shadow=False)
+            plot_direction("T", do_plot_tangential, progress=[86, 88, 94, 98], start_index=2 if self.propagation_type == HybridPropagationType.BOTH else 1, plot_shadow=True)
 
     def check_fields(self):
         if self.diffraction_plane in [HybridDiffractionPlane.SAGITTAL, HybridDiffractionPlane.BOTH_2D]:

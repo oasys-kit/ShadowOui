@@ -285,25 +285,7 @@ class _ShadowOEHybridScreen():
         bins_t       = None
         histogram_2D = None
 
-        if input_parameters.diffraction_plane in [HybridDiffractionPlane.SAGITTAL, HybridDiffractionPlane.BOTH_2X1D]:  # 1d in X
-            ticket = screen_plane_beam._beam.histo1(1,
-                                                    nbins=int(input_parameters.n_bins_x),
-                                                    xrange=[calculation_parameters.x_min*to_user_units, calculation_parameters.x_max*to_user_units],
-                                                    nolost=1,
-                                                    ref=23)
-
-            histogram_s = ticket['histogram']
-            bins_s      = ticket['bins']*to_m
-        elif input_parameters.diffraction_plane in [HybridDiffractionPlane.TANGENTIAL, HybridDiffractionPlane.BOTH_2X1D]:  # 1d in X
-            ticket = screen_plane_beam._beam.histo1(3,
-                                                    nbins=int(input_parameters.n_bins_z),
-                                                    xrange=[calculation_parameters.z_min*to_user_units, calculation_parameters.z_max*to_user_units],
-                                                    nolost=1,
-                                                    ref=23)
-
-            histogram_t = ticket['histogram']
-            bins_t      = ticket['bins']*to_m
-        elif input_parameters.diffraction_plane == HybridDiffractionPlane.BOTH_2D:
+        if input_parameters.diffraction_plane == HybridDiffractionPlane.BOTH_2D:
             ticket = screen_plane_beam._beam.histo2(col_h=1,
                                                     col_v=3,
                                                     nbins_h=int(input_parameters.n_bins_x),
@@ -318,6 +300,25 @@ class _ShadowOEHybridScreen():
             histogram_t  = ticket['histogram_v']
             bins_t       = ticket['bin_v_edges']*to_m
             histogram_2D = ticket['histogram']
+        else:
+            if input_parameters.diffraction_plane in [HybridDiffractionPlane.SAGITTAL, HybridDiffractionPlane.BOTH_2X1D]:  # 1d in X
+                ticket = screen_plane_beam._beam.histo1(1,
+                                                        nbins=int(input_parameters.n_bins_x),
+                                                        xrange=[calculation_parameters.x_min*to_user_units, calculation_parameters.x_max*to_user_units],
+                                                        nolost=1,
+                                                        ref=23)
+
+                histogram_s = ticket['histogram']
+                bins_s      = ticket['bins']*to_m
+            if input_parameters.diffraction_plane in [HybridDiffractionPlane.TANGENTIAL, HybridDiffractionPlane.BOTH_2X1D]:  # 1d in X
+                ticket = screen_plane_beam._beam.histo1(3,
+                                                        nbins=int(input_parameters.n_bins_z),
+                                                        xrange=[calculation_parameters.z_min*to_user_units, calculation_parameters.z_max*to_user_units],
+                                                        nolost=1,
+                                                        ref=23)
+
+                histogram_t = ticket['histogram']
+                bins_t      = ticket['bins']*to_m
 
         return histogram_s, bins_s, histogram_t, bins_t, histogram_2D
 
