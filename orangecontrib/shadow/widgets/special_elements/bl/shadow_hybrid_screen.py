@@ -76,7 +76,7 @@ class ShadowHybridOE(HybridOEWrapper):
         if   calculation_type == HybridCalculationType.SIMPLE_APERTURE                and not ("ScreenSlits" in self.name):                       raise Exception("Simple Aperture calculation runs for Screen-Slits widgets only")
         elif calculation_type == HybridCalculationType.MIRROR_OR_GRATING_SIZE         and not ("Mirror" in self.name or "Grating" in self.name): raise Exception("Mirror/Grating calculation runs for Mirror/Grating widgets only")
         elif calculation_type == HybridCalculationType.MIRROR_SIZE_AND_ERROR_PROFILE  and not ("Mirror" in self.name):                            raise Exception("Mirror calculation runs for Mirror widgets only")
-        elif calculation_type == HybridCalculationType.GRATING_SIZE_AND_ERROR_PROFILE and not ("Grating" in self.name):                           raise Exception("Grating calculation runs for Mirror widgets only")
+        elif calculation_type == HybridCalculationType.GRATING_SIZE_AND_ERROR_PROFILE and not ("Grating" in self.name):                           raise Exception("Grating calculation runs for Grating widgets only")
         elif calculation_type in [HybridCalculationType.CRL_SIZE, HybridCalculationType.CRL_SIZE_AND_ERROR_PROFILE] and \
                 not ("Lens" in self.name or "CRL" in self.name or "Transfocator" in self.name):                                                 raise Exception("CRL calculation runs for Lens, CRLs or Transfocators widgets only")
         

@@ -24,6 +24,7 @@ from silx.gui.plot.ImageView import ImageView
 from hybrid_methods.coherence.hybrid_screen import HybridListener, HybridScreenManager, \
     HybridCalculationType, HybridPropagationType, HybridDiffractionPlane, \
     HybridInputParameters, HybridCalculationResult, HybridGeometryAnalysis
+
 from orangecontrib.shadow.widgets.special_elements.bl.shadow_hybrid_screen import ShadowHybridOE, ShadowHybridBeam, IMPLEMENTATION
 
 class HybridScreenNew(AutomaticElement, HybridListener):
