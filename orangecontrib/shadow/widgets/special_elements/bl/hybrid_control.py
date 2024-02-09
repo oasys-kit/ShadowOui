@@ -23,6 +23,10 @@ from scipy.interpolate import RectBivariateSpline
 
 import xraylib
 
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+
+
 class HybridNotNecessaryWarning(Exception):
     def __init__(self, *args, **kwargs):
         pass
@@ -860,6 +864,11 @@ def hy_init(input_parameters=HybridInputParameters(), calculation_parameters=Hyb
         calculation_parameters.wIray_z = ScaledArray.initialize_from_range(ticket['histogram_v'], bins_v[0], bins_v[len(bins_v)-1])
         calculation_parameters.wIray_2d = ScaledMatrix.initialize_from_range(ticket['histogram'], bins_h[0], bins_h[len(bins_h)-1], bins_v[0], bins_v[len(bins_v)-1])
 
+        #plt.imshow(calculation_parameters.wIray_2d.get_z_values(), extent=(bins_h[0], bins_h[-1], bins_v[0], bins_v[-1]), interpolation='nearest', cmap=cm.copper)
+        #plt.xlabel(f"size {calculation_parameters.wIray_2d.get_z_values().shape[0]}")
+        #plt.ylabel(f"size {calculation_parameters.wIray_2d.get_z_values().shape[1]}")
+        #plt.show()
+
     calculation_parameters.gwavelength = numpy.average(calculation_parameters.wwavelength)
 
     if input_parameters.ghy_lengthunit == 0:
@@ -1547,11 +1556,21 @@ def propagate_2D(calculation_parameters, input_parameters):
                                                                 y_max=calculation_parameters.ghy_z_max)
 
         try:
-            for i in range(0, len(wavefront.electric_field_array.x_coord)):
-                for j in range(0, len(wavefront.electric_field_array.y_coord)):
-                    interpolated = calculation_parameters.wIray_2d.interpolate_value(wavefront.electric_field_array.x_coord[i],
-                                                                                     wavefront.electric_field_array.y_coord[j])
+            x_coord = wavefront.electric_field_array.x_coord
+            z_coord = wavefront.electric_field_array.y_coord
+
+            for i in range(0, len(x_coord)):
+                for j in range(0, len(z_coord)):
+                    interpolated = calculation_parameters.wIray_2d.interpolate_value(x_coord[i], z_coord[j])
                     wavefront.electric_field_array.set_z_value(i, j, numpy.sqrt(0.0 if interpolated < 0 else interpolated))
+
+            #intensity = wavefront.get_intensity()
+            #plt.imshow(intensity, extent=(x_coord[0], x_coord[-1], z_coord[0], z_coord[-1]), interpolation='nearest', cmap=cm.copper)
+            #plt.xlabel(f"size {intensity.shape[0]}")
+            #plt.ylabel(f"size {intensity.shape[1]}")
+            #plt.show()
+
+
         except IndexError:
             raise Exception("Unexpected Error during interpolation: try reduce Number of bins for I(Tangential) histogram")
 
@@ -1610,6 +1629,14 @@ def propagate_2D(calculation_parameters, input_parameters):
         input_parameters.widget.status_message("calculated plane wave: begin FF propagation (distance = " +  str(focallength_ff) + ")")
 
         propagated_wavefront = propagator2D.propagate_2D_fresnel(wavefront, focallength_ff)
+
+        intensity = propagated_wavefront.get_intensity()
+        x_coord = propagated_wavefront.electric_field_array.x_coord
+        z_coord = propagated_wavefront.electric_field_array.y_coord
+        plt.imshow(intensity, extent=(x_coord[0], x_coord[-1], z_coord[0], z_coord[-1]), interpolation='nearest', cmap=cm.copper)
+        plt.xlabel(f"size {intensity.shape[0]}")
+        plt.ylabel(f"size {intensity.shape[1]}")
+        plt.show()
 
         input_parameters.widget.set_progress_bar(70)
         input_parameters.widget.status_message("dif_zp: begin calculation")
