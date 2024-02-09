@@ -341,8 +341,8 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                     self.run_hybrid()
 
     def set_diffraction_plane(self):
-        self.le_n_bins_x.setEnabled(self.diffraction_plane in [HybridDiffractionPlane.SAGITTAL, HybridDiffractionPlane.BOTH_2X1D])
-        self.le_n_bins_z.setEnabled(self.diffraction_plane in [HybridDiffractionPlane.TANGENTIAL, HybridDiffractionPlane.BOTH_2X1D])
+        self.le_n_bins_x.setEnabled(self.diffraction_plane in [HybridDiffractionPlane.SAGITTAL, HybridDiffractionPlane.BOTH_2X1D, HybridDiffractionPlane.BOTH_2D])
+        self.le_n_bins_z.setEnabled(self.diffraction_plane in [HybridDiffractionPlane.TANGENTIAL, HybridDiffractionPlane.BOTH_2X1D, HybridDiffractionPlane.BOTH_2D])
 
         if self.calculation_type in [HybridCalculationType.MIRROR_OR_GRATING_SIZE,
                                      HybridCalculationType.MIRROR_SIZE_AND_ERROR_PROFILE,

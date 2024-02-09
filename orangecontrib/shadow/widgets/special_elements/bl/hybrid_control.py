@@ -1630,13 +1630,13 @@ def propagate_2D(calculation_parameters, input_parameters):
 
         propagated_wavefront = propagator2D.propagate_2D_fresnel(wavefront, focallength_ff)
 
-        intensity = propagated_wavefront.get_intensity()
-        x_coord = propagated_wavefront.electric_field_array.x_coord
-        z_coord = propagated_wavefront.electric_field_array.y_coord
-        plt.imshow(intensity, extent=(x_coord[0], x_coord[-1], z_coord[0], z_coord[-1]), interpolation='nearest', cmap=cm.copper)
-        plt.xlabel(f"size {intensity.shape[0]}")
-        plt.ylabel(f"size {intensity.shape[1]}")
-        plt.show()
+        #intensity = propagated_wavefront.get_intensity()
+        #x_coord = propagated_wavefront.electric_field_array.x_coord
+        #z_coord = propagated_wavefront.electric_field_array.y_coord
+        #plt.imshow(intensity, extent=(x_coord[0], x_coord[-1], z_coord[0], z_coord[-1]), interpolation='nearest', cmap=cm.copper)
+        #plt.xlabel(f"size {intensity.shape[0]}")
+        #plt.ylabel(f"size {intensity.shape[1]}")
+        #plt.show()
 
         input_parameters.widget.set_progress_bar(70)
         input_parameters.widget.status_message("dif_zp: begin calculation")
