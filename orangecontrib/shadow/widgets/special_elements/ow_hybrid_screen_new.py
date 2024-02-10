@@ -359,12 +359,12 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                                      HybridCalculationType.MIRROR_SIZE_AND_ERROR_PROFILE,
                                      HybridCalculationType.GRATING_SIZE_AND_ERROR_PROFILE] and self.diffraction_plane != HybridDiffractionPlane.BOTH_2D:
             self.cb_propagation_type.setEnabled(True)
-            self.cb_analyze_geometry.setEnabled(False)
-            self.analyze_geometry = 0
+            #self.cb_analyze_geometry.setEnabled(False)
+            #self.analyze_geometry = 0
         else:
             self.cb_propagation_type.setEnabled(False)
-            self.cb_analyze_geometry.setEnabled(True)
-            self.propagation_type = 0
+            #self.cb_analyze_geometry.setEnabled(True)
+            self.propagation_type = HybridPropagationType.FAR_FIELD
 
         self.set_propagation_type()
 

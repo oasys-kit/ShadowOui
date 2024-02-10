@@ -455,14 +455,14 @@ class _ShadowOEWithSurfaceHybridScreen(_ShadowOEHybridScreen):
                 if shadow_oe._oe.Z_ROT != 0.0:                               raise Exception("Only rotations around the X and Y axis are supported for Both (1D+1D) diffraction planes")
 
     def _calculate_geometrical_parameters(self, input_parameters: HybridInputParameters):
-        geometrical_parameters = ShadowSimpleApertureHybridScreen.GeometricalParameters()
+        geometrical_parameters = AbstractHybridScreen.GeometricalParameters()
 
         to_m          = input_parameters.beam.length_units_to_m
         beam_after    = input_parameters.beam.wrapped_beam
         history_entry = beam_after.getOEHistory(beam_after._oe_number)
 
         beam_before = history_entry._input_beam.duplicate()
-        oe_before = history_entry._shadow_oe_start.duplicate()
+        oe_before   = history_entry._shadow_oe_start.duplicate()
 
         if oe_before._oe.FHIT_C == 0:  # infinite
             geometrical_parameters.is_infinite = True
@@ -473,15 +473,17 @@ class _ShadowOEWithSurfaceHybridScreen(_ShadowOEHybridScreen):
             beam_before._beam.rays = beam_before._beam.rays[numpy.where(beam_before._beam.rays[:, 9] == 1)]  # GOOD ONLY BEFORE THE BEAM
 
             oe_before._oe.FWRITE = 1
+            oe_before._oe.FHIT_C = 0 # make it infinite to compute the size of the beam
             mirror_beam = ShadowBeam.traceFromOE(beam_before, oe_before, history=False)
             mirror_beam.loadFromFile("mirr." + str_n_oe)
+            oe_before._oe.FHIT_C = 1 # make it infinite to compute the size of the beam
 
             geometrical_parameters.max_tangential = oe_before._oe.RLEN1 * to_m
             geometrical_parameters.min_tangential = oe_before._oe.RLEN2 * to_m
             geometrical_parameters.max_sagittal   = oe_before._oe.RWIDX1 * to_m
             geometrical_parameters.min_sagittal   = oe_before._oe.RWIDX2 * to_m
 
-            ticket_tangential = mirror_beam._beam.histo1(3, nbins=500, nolost=1, ref=23)
+            ticket_tangential = mirror_beam._beam.histo1(2, nbins=500, nolost=1, ref=23)
             ticket_sagittal   = mirror_beam._beam.histo1(1, nbins=500, nolost=1, ref=23)
 
             geometrical_parameters.ticket_tangential = {'histogram' : ticket_tangential["histogram"], 'bins' : ticket_tangential["bin_center"]*to_m}
