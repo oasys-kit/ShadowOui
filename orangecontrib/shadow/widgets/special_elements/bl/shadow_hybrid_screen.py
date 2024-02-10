@@ -567,6 +567,9 @@ class _ShadowOEWithSurfaceHybridScreen(_ShadowOEHybridScreen):
         incidence_angle  = numpy.radians(90.0 - incidence_angle)
         reflection_angle = numpy.radians(90.0 - reflection_angle)
 
+        #print(numpy.min(1000*(incidence_angle)),  numpy.average(1000*(incidence_angle)),  numpy.max(1000*(incidence_angle)))
+        #print(numpy.min(1000*(reflection_angle)), numpy.average(1000*(reflection_angle)), numpy.max(1000*(reflection_angle)))
+
         return incidence_angle, reflection_angle
 
 class _ShadowOEWithSurfaceAndErrorHybridScreen(_ShadowOEWithSurfaceHybridScreen):
