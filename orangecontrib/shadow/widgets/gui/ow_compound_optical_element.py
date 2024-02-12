@@ -246,6 +246,7 @@ class CompoundOpticalElement(ow_generic_element.GenericElement):
 
         write_start_files, write_end_files, write_star_files, write_mirr_files = self.get_write_file_options()
 
+        shadow_oe._oe.user_units_to_cm = self.workspace_units_to_cm
         beam_out = ShadowBeam.traceFromCompoundOE(self.input_beam,
                                                   shadow_oe,
                                                   write_start_files=write_start_files,

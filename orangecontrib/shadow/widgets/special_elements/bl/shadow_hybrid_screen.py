@@ -377,31 +377,11 @@ class _ShadowOEHybridScreen():
 
 class _ShadowApertureHybridScreen(_ShadowOEHybridScreen):
     def _fix_specific_oe_attributes(self, shadow_oe, original_shadow_oe, screen_index):
-        if (original_shadow_oe._oe.FMIRR == 5 and \
-            original_shadow_oe._oe.F_CRYSTAL == 0 and \
-            original_shadow_oe._oe.F_REFRAC == 2 and \
-            original_shadow_oe._oe.F_SCREEN==1 and \
-            original_shadow_oe._oe.N_SCREEN==1):
-
-            shadow_oe._oe.I_ABS[screen_index]  = original_shadow_oe._oe.I_ABS[screen_index]
-            shadow_oe._oe.I_SLIT[screen_index] = original_shadow_oe._oe.I_SLIT[screen_index]
-
-            if original_shadow_oe._oe.I_SLIT[screen_index] == 1:
-                shadow_oe._oe.I_STOP[screen_index] = original_shadow_oe._oe.I_STOP[screen_index]
-                shadow_oe._oe.K_SLIT[screen_index] = original_shadow_oe._oe.K_SLIT[screen_index]
-
-                if original_shadow_oe._oe.K_SLIT[screen_index] == 2:
-                    shadow_oe._oe.FILE_SCR_EXT[screen_index] = original_shadow_oe._oe.FILE_SCR_EXT[screen_index]
-                else:
-                    shadow_oe._oe.RX_SLIT[screen_index] = original_shadow_oe._oe.RX_SLIT[screen_index]
-                    shadow_oe._oe.RZ_SLIT[screen_index] = original_shadow_oe._oe.RZ_SLIT[screen_index]
-                    shadow_oe._oe.CX_SLIT[screen_index] = original_shadow_oe._oe.CX_SLIT[screen_index]
-                    shadow_oe._oe.CZ_SLIT[screen_index] = original_shadow_oe._oe.CZ_SLIT[screen_index]
-
-            if original_shadow_oe._oe.I_ABS[screen_index] == 1:
-                shadow_oe._oe.THICK[screen_index]    = original_shadow_oe._oe.THICK[screen_index]
-                shadow_oe._oe.FILE_ABS[screen_index] = original_shadow_oe._oe.FILE_ABS[screen_index]
-        else:
+        if not (shadow_oe._oe.FMIRR == 5 and \
+                shadow_oe._oe.F_CRYSTAL == 0 and \
+                shadow_oe._oe.F_REFRAC == 2 and \
+                shadow_oe._oe.F_SCREEN==1 and \
+                shadow_oe._oe.N_SCREEN==1):
             raise Exception("Connected O.E. is not a Screen-Slit or CRL widget!")
 
     def _check_oe_displacements(self, input_parameters : HybridInputParameters):
@@ -709,7 +689,13 @@ class _ShadowOELensHybridScreen(_ShadowApertureHybridScreen):
         
         # in case of CRL, regeneration of the input beam as incident on the last lens
         calculation_parameters.set("shadow_beam", ShadowBeam.traceFromOE(input_parameters.beam.wrapped_beam, screen_slit))
-        
+
+    def _set_image_distance_from_optical_element(self, input_parameters: HybridInputParameters, calculation_parameters: AbstractHybridScreen.CalculationParameters):
+        shadow_oe = input_parameters.optical_element.wrapped_optical_element
+        to_m      = input_parameters.beam.length_units_to_m
+
+        calculation_parameters.image_plane_distance = shadow_oe._oe.list[-1].T_IMAGE * to_m
+
 class _ShadowOELensAndErrorHybridScreen(_ShadowOELensHybridScreen):
     def _get_error_profiles(self, input_parameters: HybridInputParameters, calculation_parameters: AbstractHybridScreen.CalculationParameters):
         coords_to_m    = input_parameters.get("crl_coords_to_m")

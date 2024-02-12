@@ -605,8 +605,8 @@ try:
                 self.plot_canvas = gui.imageWiew(parent=self)
 
                 self.plot_canvas.setColormap({"name":"temperature", "normalization":"linear", "autoscale":True, "vmin":0, "vmax":0, "colors":256})
-                self.plot_canvas.setMinimumWidth(590 * x_scale_factor)
-                self.plot_canvas.setMaximumWidth(590 * y_scale_factor)
+                self.plot_canvas.setMinimumWidth(int(590 * x_scale_factor))
+                self.plot_canvas.setMaximumWidth(int(590 * y_scale_factor))
 
                 self.info_box = ShadowPlot.InfoBoxWidget(x_scale_factor, y_scale_factor)
 
@@ -615,8 +615,8 @@ try:
                 layout.addWidget(self.info_box,    0, 1, 1, 1)
                 layout.addWidget(self.plot_canvas, 0, 0, 1, 1)
 
-                layout.setColumnMinimumWidth(0, 600*x_scale_factor)
-                layout.setColumnMinimumWidth(1, 230*x_scale_factor)
+                layout.setColumnMinimumWidth(0, int(600*x_scale_factor))
+                layout.setColumnMinimumWidth(1, int(230*x_scale_factor))
 
                 self.setLayout(layout)
 
