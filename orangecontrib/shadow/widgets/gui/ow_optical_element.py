@@ -2047,7 +2047,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
             self.setLayout(layout)
 
-        def calculate_surface(self, parent, bin_x=100, bin_y=100, sign=-1):
+        def calculate_surface(self, parent, bin_x=100, bin_y=100):
             if parent.is_infinite == 0:
                 x_min = -10
                 x_max = 10
