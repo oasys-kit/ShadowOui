@@ -1,7 +1,7 @@
 
 import os
 import sys
-from scipy.interpolate import RectBivariateSpline
+from scipy.optimize import root
 
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt, QSettings
@@ -2087,6 +2087,15 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                 self.c9 = round(parent.conic_coefficient_8, 10)
                 self.c10= round(parent.conic_coefficient_9, 10)
 
+                def equation_to_solve(Z):
+                    return self.c1*(X**2) + self.c2*(Y**2) + self.c3*(Z**2) + self.c4*X*Y + self.c5*Y*Z + self.c6*X*Z + self.c7*X + self.c8*Y + self.c9*Z + self.c10
+
+                z_start = numpy.zeros((bin_x + 1, bin_y + 1))
+                result = root(equation_to_solve, z_start, method='df-sane', tol=None)
+
+                z_values = result.x if result.success else z_start
+
+                '''
                 c = self.c1*(X**2) + self.c2*(Y**2) + self.c4*X*Y + self.c7*X + self.c8*Y + self.c10
                 b = self.c5*Y + self.c6*X + self.c9
                 a = self.c3
@@ -2096,7 +2105,9 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                     else:                             z_values = (-b + sign*numpy.sqrt(b**2 - 4*a*c))/(2*a)
                     z_values[b**2 - 4*a*c < 0] = numpy.nan
                 else:
-                    z_values = -c/b
+                    if parent.surface_curvature == 1: z_values = c/b
+                    else:                             z_values = -c/b
+                '''
 
             self.zz = z_values
 
