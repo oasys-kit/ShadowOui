@@ -2095,20 +2095,6 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
 
                 z_values = result.x if result.success else z_start
 
-                '''
-                c = self.c1*(X**2) + self.c2*(Y**2) + self.c4*X*Y + self.c7*X + self.c8*Y + self.c10
-                b = self.c5*Y + self.c6*X + self.c9
-                a = self.c3
-
-                if a != 0.0:
-                    if parent.surface_curvature == 1: z_values = (-b - sign*numpy.sqrt(b**2 - 4*a*c))/(2*a)
-                    else:                             z_values = (-b + sign*numpy.sqrt(b**2 - 4*a*c))/(2*a)
-                    z_values[b**2 - 4*a*c < 0] = numpy.nan
-                else:
-                    if parent.surface_curvature == 1: z_values = c/b
-                    else:                             z_values = -c/b
-                '''
-
             self.zz = z_values
 
             return X, Y, z_values
