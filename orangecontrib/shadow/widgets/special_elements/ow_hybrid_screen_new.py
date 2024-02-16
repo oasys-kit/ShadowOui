@@ -131,20 +131,22 @@ class HybridScreenNew(AutomaticElement, HybridListener):
 
         box_1 = oasysgui.widgetBox(tab_bas, "Calculation Parameters", addSpace=True, orientation="vertical", height=130)
 
-        self.cb_diffraction_plane = gui.comboBox(box_1, self, "diffraction_plane", label="Diffraction Plane", labelWidth=310,
-                                                 items=["Sagittal", "Tangential", "Both (2D)", "Both (1D+1D)"],
-                                                 callback=self.set_diffraction_plane,
-                                                 sendSelectedValue=False, orientation="horizontal")
-
         gui.comboBox(box_1, self, "calculation_type", label="Calculation", labelWidth=70,
                      items=["Diffraction by Simple Aperture",
                             "Diffraction by Mirror or Grating Size",
                             "Diffraction by Mirror Size + Figure Errors",
                             "Diffraction by Grating Size + Figure Errors",
                             "Diffraction by Lens Size",
-                            "Diffraction by Lens Size + Thickness Errors"],
+                            "Diffraction by Lens Size + Thickness Errors",
+                            "Diffraction by KB Size",
+                            "Diffraction by KB Size + Figure Errors"],
                      callback=self.set_calculation_type,
                      sendSelectedValue=False, orientation="horizontal")
+
+        self.cb_diffraction_plane = gui.comboBox(box_1, self, "diffraction_plane", label="Diffraction Plane", labelWidth=310,
+                                                 items=["Sagittal", "Tangential", "Both (2D)", "Both (1D+1D)"],
+                                                 callback=self.set_diffraction_plane,
+                                                 sendSelectedValue=False, orientation="horizontal")
 
         self.cb_propagation_type = gui.comboBox(box_1, self, "propagation_type", label="Propagation Type", labelWidth=310,
                                                 items=["Far Field", "Near Field", "Both"],
@@ -170,9 +172,7 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                      items=["No", "Yes"],
                      sendSelectedValue=False, orientation="horizontal")
 
-        self.set_diffraction_plane()
         self.set_calculation_type()
-        self.set_propagation_type()
 
         self.initializeTabs()
 
@@ -182,8 +182,6 @@ class HybridScreenNew(AutomaticElement, HybridListener):
         out_box.layout().addWidget(self.shadow_output)
 
         self.set_plot_quality()
-
-    def set_propagation_type(self): pass # maybe it can be useful again
 
     def set_plot_quality(self):
         self.progressBarInit()
@@ -337,46 +335,47 @@ class HybridScreenNew(AutomaticElement, HybridListener):
             if ShadowCongruence.checkGoodBeam(beam):
                 self.__input_beam = beam
 
-                if self.is_automatic_run:
-                    self.run_hybrid()
+                if self.is_automatic_run: self.run_hybrid()
+
+    def set_calculation_type(self):
+        self.cb_diffraction_plane.setEnabled(True)
+        self.cb_propagation_type.setEnabled(True)
+        self.cb_analyze_geometry.setEnabled(True)
+
+        if self.tabs_setting.count() == 2: self.tabs_setting.removeTab(1)
+
+        if self.calculation_type == HybridCalculationType.SIMPLE_APERTURE:
+            self.cb_propagation_type.setEnabled(False)
+            self.propagation_type = HybridPropagationType.FAR_FIELD
+        elif self.calculation_type in [HybridCalculationType.CRL_SIZE, HybridCalculationType.CRL_SIZE_AND_ERROR_PROFILE]:
+            self.diffraction_plane = HybridDiffractionPlane.BOTH_2D
+            self.propagation_type = HybridPropagationType.FAR_FIELD
+            self.cb_diffraction_plane.setEnabled(False)
+            self.cb_propagation_type.setEnabled(False)
+            if self.calculation_type == HybridCalculationType.CRL_SIZE_AND_ERROR_PROFILE: self.create_tab_thickness()
+        elif self.calculation_type in [HybridCalculationType.KB_SIZE, HybridCalculationType.KB_SIZE_AND_ERROR_PROFILE]:
+            self.diffraction_plane = HybridDiffractionPlane.BOTH_2X1D
+            self.cb_diffraction_plane.setEnabled(False)
+
+        if self.diffraction_plane == HybridDiffractionPlane.BOTH_2D:
+            self.cb_propagation_type.setEnabled(False)
+            self.propagation_type = HybridPropagationType.FAR_FIELD
+
+        if self.calculation_type in [HybridCalculationType.MIRROR_SIZE_AND_ERROR_PROFILE,
+                                     HybridCalculationType.GRATING_SIZE_AND_ERROR_PROFILE,
+                                     HybridCalculationType.CRL_SIZE_AND_ERROR_PROFILE,
+                                     HybridCalculationType.KB_SIZE_AND_ERROR_PROFILE]:
+            self.analyze_geometry = 0
+            self.cb_analyze_geometry.setEnabled(False)
+
+        self.set_diffraction_plane()
+        self.set_propagation_type()
 
     def set_diffraction_plane(self):
         self.le_n_bins_x.setEnabled(self.diffraction_plane in [HybridDiffractionPlane.SAGITTAL, HybridDiffractionPlane.BOTH_2X1D, HybridDiffractionPlane.BOTH_2D])
         self.le_n_bins_z.setEnabled(self.diffraction_plane in [HybridDiffractionPlane.TANGENTIAL, HybridDiffractionPlane.BOTH_2X1D, HybridDiffractionPlane.BOTH_2D])
 
-        if self.calculation_type in [HybridCalculationType.MIRROR_OR_GRATING_SIZE,
-                                     HybridCalculationType.MIRROR_SIZE_AND_ERROR_PROFILE,
-                                     HybridCalculationType.GRATING_SIZE_AND_ERROR_PROFILE] and self.diffraction_plane != HybridDiffractionPlane.BOTH_2D:
-            self.cb_propagation_type.setEnabled(True)
-        else:
-            self.cb_propagation_type.setEnabled(False)
-            self.propagation_type = HybridPropagationType.FAR_FIELD
-
-        self.set_propagation_type()
-
-    def set_calculation_type(self):
-        if self.calculation_type in [HybridCalculationType.MIRROR_OR_GRATING_SIZE,
-                                     HybridCalculationType.MIRROR_SIZE_AND_ERROR_PROFILE,
-                                     HybridCalculationType.GRATING_SIZE_AND_ERROR_PROFILE] and self.diffraction_plane != HybridDiffractionPlane.BOTH_2D:
-            self.cb_propagation_type.setEnabled(True)
-            #self.cb_analyze_geometry.setEnabled(False)
-            #self.analyze_geometry = 0
-        else:
-            self.cb_propagation_type.setEnabled(False)
-            #self.cb_analyze_geometry.setEnabled(True)
-            self.propagation_type = HybridPropagationType.FAR_FIELD
-
-        self.set_propagation_type()
-
-        self.cb_diffraction_plane.setEnabled(True)
-
-        if self.tabs_setting.count() == 2: self.tabs_setting.removeTab(1)
-
-        if self.calculation_type == HybridCalculationType.CRL_SIZE_AND_ERROR_PROFILE:
-            self.create_tab_thickness()
-            self.diffraction_plane = HybridDiffractionPlane.BOTH_2D
-            self.set_diffraction_plane()
-            self.cb_diffraction_plane.setEnabled(False)
+    def set_propagation_type(self): pass # maybe it can be useful again
 
     # --------------------------------------------------
     # HybridListener methods
@@ -402,8 +401,6 @@ class HybridScreenNew(AutomaticElement, HybridListener):
 
                     self.check_fields()
 
-                    history_entry = self.__input_beam.getOEHistory(self.__input_beam._oe_number)
-
                     additional_parameters = {}
 
                     if self.calculation_type == HybridCalculationType.CRL_SIZE_AND_ERROR_PROFILE:
@@ -415,9 +412,23 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                         additional_parameters["crl_thickness_to_m"] = self.crl_thickness_to_m
 
 
+                    if self.calculation_type in [HybridCalculationType.KB_SIZE, HybridCalculationType.KB_SIZE_AND_ERROR_PROFILE]:
+                        if self.__input_beam.historySize() < 3: raise ValueError("Calculation with KB not possible: not enough elements in the beamline")
+
+                        kb_mirror_1_history = self.__input_beam.getOEHistory(self.__input_beam._oe_number-1)
+                        kb_mirror_2_history = self.__input_beam.getOEHistory(self.__input_beam._oe_number)
+
+                        beam             = ShadowHybridBeam(beam=[kb_mirror_2_history._input_beam, self.__input_beam], length_units=self.workspace_units, history=True)
+                        optical_element  = ShadowHybridOE(optical_element=[kb_mirror_1_history._shadow_oe_start, kb_mirror_2_history._shadow_oe_start], name="KB")
+                    else:
+                        history_entry = self.__input_beam.getOEHistory(self.__input_beam._oe_number)
+
+                        beam             = ShadowHybridBeam(beam=self.__input_beam, length_units=self.workspace_units, history=True)
+                        optical_element  = ShadowHybridOE(optical_element=history_entry._shadow_oe_end, name=history_entry._widget_class_name)
+
                     input_parameters = HybridInputParameters(listener=self,
-                                                             beam=ShadowHybridBeam(beam=self.__input_beam.duplicate(history=True), length_units=self.workspace_units),
-                                                             optical_element=ShadowHybridOE(optical_element=history_entry._shadow_oe_end.duplicate(), name=history_entry._widget_class_name),
+                                                             beam=beam,
+                                                             optical_element=optical_element,
                                                              diffraction_plane=self.diffraction_plane,
                                                              propagation_type=self.propagation_type,
                                                              n_bins_x=int(self.n_bins_x),
@@ -427,6 +438,7 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                                                              analyze_geometry=self.analyze_geometry==1,
                                                              random_seed=None,  # TODO: add field
                                                              **additional_parameters)
+
                     try:
                         hybrid_screen = HybridScreenManager.Instance().create_hybrid_screen_manager(IMPLEMENTATION, self.calculation_type)
 
@@ -545,7 +557,19 @@ class HybridScreenNew(AutomaticElement, HybridListener):
                     self.plot_emtpy(96, 1)
         elif self.diffraction_plane == HybridDiffractionPlane.BOTH_2X1D:
             plot_direction("S", do_plot_sagittal,   progress=[82, 82, 84, 84], plot_shadow=False)
-            plot_direction("T", do_plot_tangential, progress=[86, 88, 94, 98], start_index=2 if self.propagation_type == HybridPropagationType.BOTH else 1, plot_shadow=True)
+            plot_direction("T", do_plot_tangential, progress=[86, 88, 94, 98], start_index=2 if self.propagation_type == HybridPropagationType.BOTH else 1, plot_shadow=False)
+
+            if self.propagation_type == HybridPropagationType.BOTH:
+                self.plot_xy(calculation_result.far_field_beam.wrapped_beam, 94, 1, 3, plot_canvas_index=4 if self.propagation_type == HybridPropagationType.BOTH else 2,
+                             title="X,Z", xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
+                self.plot_xy(calculation_result.near_field_beam.wrapped_beam, 94, 1, 3, plot_canvas_index=5 if self.propagation_type == HybridPropagationType.BOTH else 3,
+                             title="X,Z", xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
+            elif self.propagation_type == HybridPropagationType.FAR_FIELD:
+                self.plot_xy(calculation_result.far_field_beam.wrapped_beam, 94, 1, 3, plot_canvas_index=4 if self.propagation_type == HybridPropagationType.BOTH else 2,
+                             title="X,Z", xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
+            elif self.propagation_type == HybridPropagationType.NEAR_FIELD:
+                self.plot_xy(calculation_result.near_field_beam.wrapped_beam, 94, 1, 3, plot_canvas_index=4 if self.propagation_type == HybridPropagationType.BOTH else 2,
+                             title="X,Z", xtitle=r'X [$\mu$m]', ytitle=r'Z [$\mu$m]', xum=("X [" + u"\u03BC" + "m]"), yum=("Z [" + u"\u03BC" + "m]"))
 
     def check_fields(self):
         if self.diffraction_plane in [HybridDiffractionPlane.SAGITTAL, HybridDiffractionPlane.BOTH_2D]:
