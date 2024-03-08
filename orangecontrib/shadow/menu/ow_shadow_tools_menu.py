@@ -16,10 +16,10 @@ import orangecontrib.shadow.widgets.preprocessor.xsh_waviness as xsh_waviness
 import orangecontrib.shadow.widgets.preprocessor.height_profile_simulator as height_profile_simulator
 import orangecontrib.shadow.widgets.preprocessor.dabam_height_profile as dabam_height_profile
 
-import orangecontrib.shadow.widgets.plots.ow_plot_xy as ow_plot_xy
-import orangecontrib.shadow.widgets.plots.ow_histogram as ow_histogram
-import orangecontrib.shadow.widgets.plots.ow_info as ow_info
-import orangecontrib.shadow.widgets.plots.ow_focnew as ow_focnew
+from orangecontrib.shadow.widgets.plots.ow_plot_xy import PlotXY
+from orangecontrib.shadow.widgets.plots.ow_histogram import Histogram
+from orangecontrib.shadow.widgets.plots.ow_info import Info
+from orangecontrib.shadow.widgets.plots.ow_focnew import FocNew
 
 from orangecontrib.shadow.util.shadow_objects import ShadowFile
 
@@ -157,40 +157,21 @@ class ShadowToolsMenu(OMenu):
 
             if self.IS_DEVELOP: raise exception
 
+    def __set_preprocessor_enabled(self, enabled):
+        try:
+            for link in self.canvas_main_window.current_document().scheme().links:
+                if link.enabled != enabled:
+                    widget = self.canvas_main_window.current_document().scheme().widget_for_node(link.sink_node)
+                    if isinstance(widget, (PlotXY, Histogram, FocNew, Info)): link.set_enabled(enabled)
+        except Exception as exception:
+            super(ShadowToolsMenu, self).showCriticalMessage(message=exception.args[0])
+
     #ENABLE PLOTS
-    def executeAction_3(self, action):
-        try:
-            for link in self.canvas_main_window.current_document().scheme().links:
-                if not link.enabled:
-                    widget = self.canvas_main_window.current_document().scheme().widget_for_node(link.sink_node)
+    def executeAction_3(self, action): self.__set_preprocessor_enabled(True)
 
-                    if isinstance(widget, ow_plot_xy.PlotXY) or \
-                       isinstance(widget, ow_histogram.Histogram) or \
-                       isinstance(widget, ow_focnew.FocNew) or \
-                       isinstance(widget, ow_info.Info):
-                        link.set_enabled(True)
-        except Exception as exception:
-            QtWidgets.QMessageBox.critical(None, "Error",
-                exception.args[0],
-                QtWidgets.QMessageBox.Ok)
+    def executeAction_4(self, action): self.__set_preprocessor_enabled(False)
 
-    def executeAction_4(self, action):
-        try:
-            for link in self.canvas_main_window.current_document().scheme().links:
-                if link.enabled:
-                    widget = self.canvas_main_window.current_document().scheme().widget_for_node(link.sink_node)
-
-                    if isinstance(widget, ow_plot_xy.PlotXY) or \
-                       isinstance(widget, ow_histogram.Histogram) or \
-                       isinstance(widget, ow_focnew.FocNew) or \
-                       isinstance(widget, ow_info.Info):
-                        link.set_enabled(False)
-        except Exception as exception:
-            QtWidgets.QMessageBox.critical(None, "Error",
-                exception.args[0],
-                QtWidgets.QMessageBox.Ok)
-
-    def executeAction_5(self, action):
+    def __set_plot_visibility(self, vt, pg):
         try:
             for node in self.canvas_main_window.current_document().scheme().nodes:
                 widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
@@ -203,43 +184,13 @@ class ShadowToolsMenu(OMenu):
                         widget.plot_graph = 1
                         widget.set_PlotGraphs()
         except Exception as exception:
-            QtWidgets.QMessageBox.critical(None, "Error",
-                exception.args[0],
-                QtWidgets.QMessageBox.Ok)
+            super(ShadowToolsMenu, self).showCriticalMessage(message=exception.args[0])
 
-    def executeAction_6(self, action):
-        try:
-            for node in self.canvas_main_window.current_document().scheme().nodes:
-                widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
+    def executeAction_5(self, action): self.__set_plot_visibility(0, 1)
 
-                if isinstance(widget, AutomaticElement):
-                    if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
-                        widget.view_type = 1
-                        widget.set_PlotQuality()
-                    if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
-                        widget.plot_graph = 1
-                        widget.set_PlotGraphs()
-        except Exception as exception:
-            QtWidgets.QMessageBox.critical(None, "Error",
-                exception.args[0],
-                QtWidgets.QMessageBox.Ok)
+    def executeAction_6(self, action): self.__set_plot_visibility(1, 1)
 
-    def executeAction_7(self, action):
-        try:
-            for node in self.canvas_main_window.current_document().scheme().nodes:
-                widget = self.canvas_main_window.current_document().scheme().widget_for_node(node)
-
-                if isinstance(widget, AutomaticElement):
-                    if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
-                        widget.view_type = 2
-                        widget.set_PlotQuality()
-                    if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
-                        widget.plot_graph = 0
-                        widget.set_PlotGraphs()
-        except Exception as exception:
-            QtWidgets.QMessageBox.critical(None, "Error",
-                exception.args[0],
-                QtWidgets.QMessageBox.Ok)
+    def executeAction_7(self, action): self.__set_plot_visibility(2, 0)
 
     def executeAction_8(self, action):
         try:
@@ -433,29 +384,7 @@ class ShadowToolsMenu(OMenu):
         return widget_name, messages
 
     def showConfirmMessage(self, message):
-        msgBox = QtWidgets.QMessageBox()
-        msgBox.setIcon(QtWidgets.QMessageBox.Question)
-        msgBox.setText(message)
-        msgBox.setInformativeText(
-            "Element will be omitted.\nDo you want to continue importing procedure (a broken link will appear)?")
-        msgBox.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-        msgBox.setDefaultButton(QtWidgets.QMessageBox.No)
-        ret = msgBox.exec_()
-        return ret
-
-    def showWarningMessage(self, message):
-        msgBox = QtWidgets.QMessageBox()
-        msgBox.setIcon(QtWidgets.QMessageBox.Warning)
-        msgBox.setText(message)
-        msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        msgBox.exec_()
-
-    def showCriticalMessage(self, message):
-        msgBox = QtWidgets.QMessageBox()
-        msgBox.setIcon(QtWidgets.QMessageBox.Critical)
-        msgBox.setText(message)
-        msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        msgBox.exec_()
+        return super(ShadowToolsMenu, self).showConfirmMessage(message, informative_text="Element will be omitted.\nDo you want to continue importing procedure (a broken link will appear)?")
 
     #################################################################
     #
@@ -463,33 +392,17 @@ class ShadowToolsMenu(OMenu):
     #
     #################################################################
 
-    def getWidgetFromNode(self, node):
-        return self.canvas_main_window.current_document().scheme().widget_for_node(node)
-
     def createLinks(self, nodes):
-        previous_node = None
-        for node in nodes:
-            if not (isinstance(node, str) and node == ShadowToolsMenu.OMIT_WIDGET):
-                if not previous_node is None :
-                    if not (isinstance(previous_node, str) and previous_node == ShadowToolsMenu.OMIT_WIDGET):
-                        link = SchemeLink(source_node=previous_node, source_channel="Beam", sink_node=node, sink_channel="Input Beam")
-                        self.canvas_main_window.current_document().addLink(link=link)
-            previous_node = node
+        super(ShadowToolsMenu, self).createLinks(excluded_names=[ShadowToolsMenu.OMIT_WIDGET])
 
     def getWidgetDesc(self, widget_name):
-        if widget_name == ShadowToolsMenu.OMIT_WIDGET or widget_name == ShadowToolsMenu.ABORT_IMPORT:
-            return widget_name
-        else:
-            return self.canvas_main_window.widget_registry.widget(widget_name)
+        return super(ShadowToolsMenu, self).getWidgetDesc(widget_name, excluded_names=[ShadowToolsMenu.OMIT_WIDGET, ShadowToolsMenu.ABORT_IMPORT])
 
     def getWidgetDescFromShadowFile(self, filename):
         shadow_file, type = ShadowFile.readShadowFile(filename)
 
         widget_name, messages = self.getWidgetName(shadow_file, type)
         return self.getWidgetDesc(widget_name), messages
-
-    def createNewNode(self, widget_desc):
-        return self.canvas_main_window.current_document().createNewNode(widget_desc)
 
     def createNewNodeAndWidget(self, shadow_file, widget_desc):
         messages = []
@@ -509,7 +422,6 @@ class ShadowToolsMenu(OMenu):
     # SCREEN/SLITS TREATMENT
     #
     #################################################################
-
 
     def analyzeScreenSlit(self, shadow_file, widget_desc):
         nodes = []
