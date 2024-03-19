@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QApplication
 
 import orangecanvas.resources as resources
 
-from syned.gui.error_profile.abstract_dabam_height_profile import OWAbstractDabamHeightProfile
+from syned_gui.error_profile.abstract_dabam_height_profile import OWAbstractDabamHeightProfile
 
 from Shadow import ShadowTools as ST
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData

@@ -57,7 +57,7 @@ except:
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
 from Shadow import ShadowTools as ST
 
-from syned.gui.error_profile.abstract_multiple_height_profile_simulator_S import OWAbstractMultipleHeightProfileSimulatorS
+from syned_gui.error_profile.abstract_multiple_height_profile_simulator_S import OWAbstractMultipleHeightProfileSimulatorS
 
 class OWMultipleHeightProfileSimulatorS(OWAbstractMultipleHeightProfileSimulatorS):
     name = "Multiple Height Profile Simulator (S)"

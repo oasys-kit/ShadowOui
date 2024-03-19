@@ -51,7 +51,7 @@ from Shadow import OE, IdealLensOE, CompoundOE
 from orangecontrib.shadow.util.shadow_objects import ShadowBeam
 from orangecontrib.shadow.util.shadow_util import ShadowCongruence
 
-from syned.gui.beamline_rendering.ow_abstract_beamline_renderer import AbstractBeamlineRenderer, AspectRatioModifier, Orientations, OpticalElementsColors, initialize_arrays, get_height_shift, get_inclinations
+from syned_gui.beamline_rendering.ow_abstract_beamline_renderer import AbstractBeamlineRenderer, AspectRatioModifier, Orientations, OpticalElementsColors, initialize_arrays, get_height_shift, get_inclinations
 
 class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
     name = "Beamline Renderer"

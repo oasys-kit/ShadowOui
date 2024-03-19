@@ -2,7 +2,7 @@ import os
 
 import orangecanvas.resources as resources
 
-from syned.gui.error_profile.abstract_height_profile_simulator import OWAbstractHeightErrorProfileSimulator
+from syned_gui.error_profile.abstract_height_profile_simulator import OWAbstractHeightErrorProfileSimulator
 
 from Shadow import ShadowTools as ST
 from orangecontrib.shadow.util.shadow_objects import ShadowPreProcessorData
