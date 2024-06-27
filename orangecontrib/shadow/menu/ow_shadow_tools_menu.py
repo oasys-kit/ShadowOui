@@ -178,10 +178,10 @@ class ShadowToolsMenu(OMenu):
 
                 if isinstance(widget, AutomaticElement):
                     if hasattr(widget, "view_type") and hasattr(widget, "set_PlotQuality"):
-                        widget.view_type = 0
+                        widget.view_type = vt
                         widget.set_PlotQuality()
                     if hasattr(widget, "plot_graph") and hasattr(widget, "set_PlotGraphs"):
-                        widget.plot_graph = 1
+                        widget.plot_graph = pg
                         widget.set_PlotGraphs()
         except Exception as exception:
             super(ShadowToolsMenu, self).showCriticalMessage(message=exception.args[0])
