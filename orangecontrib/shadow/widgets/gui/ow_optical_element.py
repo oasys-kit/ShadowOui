@@ -2091,7 +2091,7 @@ class OpticalElement(ow_generic_element.GenericElement, WidgetDecorator):
                     return self.c1*(X**2) + self.c2*(Y**2) + self.c3*(Z**2) + self.c4*X*Y + self.c5*Y*Z + self.c6*X*Z + self.c7*X + self.c8*Y + self.c9*Z + self.c10
 
                 z_start = numpy.zeros((bin_x + 1, bin_y + 1))
-                result = root(equation_to_solve, z_start, method='df-sane', tol=None)
+                result = root(equation_to_solve, z_start.T, method='df-sane', tol=None)
 
                 z_values = result.x if result.success else z_start
 
