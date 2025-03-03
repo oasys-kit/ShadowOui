@@ -1574,7 +1574,11 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                                 P_0 = ShadowMath.vector_sum(origin_point, ShadowMath.vector_multiply(v_out_temp, t_0))
 
                                 b = ShadowMath.vector_modulus(P_0)
-                                a = numpy.sqrt(self.detector_distance ** 2 - b ** 2)
+                                if self.diffracted_arm_type == 0:   distance = self.detector_distance
+                                elif self.diffracted_arm_type == 1: distance = self.analyzer_distance
+                                elif self.diffracted_arm_type == 2: distance = self.area_detector_distance
+
+                                a = numpy.sqrt(distance** 2 - b** 2)
 
                                 # N.B. punti di uscita hanno solo direzione in avanti.
                                 P_2 = ShadowMath.vector_sum(origin_point,
@@ -1681,13 +1685,11 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     ############################################################
 
     def generateXRDPattern(self, bar_value, diffracted_rays, avg_wavelength, reflections):
-
         number_of_diffracted_rays = len(diffracted_rays)
 
         diffracted_beam = ShadowBeam()
 
         if (number_of_diffracted_rays > 0 and self.run_simulation):
-
             diffracted_beam._beam.rays = numpy.array(diffracted_rays)
 
             percentage_fraction = 50 / len(reflections)
@@ -1725,7 +1727,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                         if self.area_detector_beam is None:
                             self.area_detector_beam = diffracted_beam
                         else:
-                            self.area_detector_beam = ShadowBeam.mergeBeams(self.area_detector_beam, diffracted_beam)
+                            self.area_detector_beam = ShadowBeam.mergeBeams(self.area_detector_beam, diffracted_beam, which_flux=1, merge_history=0)
 
                         # Creation of 1D pattern: weighted (with intensity) histogram of twotheta angles
                         x_coord = self.area_detector_beam._beam.rays[:, 0]
@@ -1862,7 +1864,6 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     ############################################################
         
     def calculateBackground(self, bar_value):
-
         percentage_fraction = 50/len(self.twotheta_angles)
 
         cursor = range(0, len(self.twotheta_angles))
@@ -2154,21 +2155,16 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     ############################################################
 
     def traceFromAnalyzer(self, diffracted_beam, angle_index):
-
-        input_beam = diffracted_beam.duplicate(history=False)
+        input_beam    = diffracted_beam.duplicate(history=False)
 
         empty_element = ShadowOpticalElement.create_empty_oe()
-
         empty_element._oe.DUMMY = self.workspace_units_to_cm
-
         empty_element._oe.T_SOURCE     = 0.0
         empty_element._oe.T_IMAGE      = self.analyzer_distance
         empty_element._oe.T_INCIDENCE  = 0.0
         empty_element._oe.T_REFLECTION = 180.0-self.twotheta_angles[angle_index]
         empty_element._oe.ALPHA        = 0.0
-
-
-        empty_element._oe.FWRITE = 3
+        empty_element._oe.FWRITE  = 3
         empty_element._oe.F_ANGLE = 0
 
         n_screen = 1
@@ -2191,7 +2187,6 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         rz_slit[0] = self.vertical_acceptance_analyzer
         cx_slit[0] = 0.0
         cz_slit[0] = 0.0
-
 
         empty_element._oe.set_screens(n_screen,
                                     i_screen,
@@ -2229,23 +2224,19 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         out_beam = ShadowBeam.traceFromOE(input_beam, empty_element, history=False)
 
         crystal = ShadowOpticalElement.create_plane_crystal()
-
         crystal._oe.DUMMY = self.workspace_units_to_cm
-
         crystal._oe.T_SOURCE     = 0
         crystal._oe.T_IMAGE      = 1
         crystal._oe.T_INCIDENCE  = 90-self.analyzer_bragg_angle
         crystal._oe.T_REFLECTION = 90-self.analyzer_bragg_angle
         crystal._oe.ALPHA        = 180
-
-        crystal._oe.F_REFLEC = 0
+        crystal._oe.F_REFLEC  = 0
         crystal._oe.F_CRYSTAL = 1
         crystal._oe.FILE_REFL = bytes(congruence.checkFileName(self.rocking_curve_file), 'utf-8')
         crystal._oe.F_REFLECT = 0
         crystal._oe.F_BRAGG_A = 0
         crystal._oe.A_BRAGG = 0.0
         crystal._oe.F_REFRACT = 0
-
 
         if (self.mosaic_angle_spread_fwhm > 0):
             crystal._oe.F_MOSAIC = 1
@@ -2270,19 +2261,15 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     ############################################################
 
     def traceFromSlits(self, diffracted_beam, angle_index):
-
         input_beam = diffracted_beam.duplicate(history=False)
 
-        empty_element = ShadowOpticalElement.create_empty_oe()
-
-        empty_element._oe.DUMMY = self.workspace_units_to_cm
-
+        empty_element                  = ShadowOpticalElement.create_empty_oe()
+        empty_element._oe.DUMMY        = self.workspace_units_to_cm
         empty_element._oe.T_SOURCE     = 0.0
         empty_element._oe.T_IMAGE      = self.analyzer_distance
         empty_element._oe.T_INCIDENCE  = 0.0
         empty_element._oe.T_REFLECTION = 180.0-self.twotheta_angles[angle_index]
         empty_element._oe.ALPHA        = 0.0
-
         empty_element._oe.FWRITE = 3
         empty_element._oe.F_ANGLE = 0
 
@@ -2352,8 +2339,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     def traceTo2DDetector(self, bar_value, diffracted_beam, avg_wavelength, twotheta_bragg, normalization,
                           debye_waller_B, statistic_factor):
 
-        input_beam = diffracted_beam.duplicate(history=False)
-
+        input_beam    = diffracted_beam.duplicate(history=False)
         empty_element = ShadowOpticalElement.create_empty_oe()
 
         empty_element._oe.DUMMY = self.workspace_units_to_cm
@@ -2605,7 +2591,6 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     ############################################################
 
     def backupOutFile(self):
-
         directory_out = os.getcwd() + '/Output'
 
         filename = str(self.output_file_name).strip()
