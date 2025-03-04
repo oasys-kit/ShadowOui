@@ -214,6 +214,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
     random_generator_flat = random.Random()
 
     area_detector_beam = None
+    area_detector_pattern = None
 
     def __init__(self):
         super().__init__()
@@ -1013,13 +1014,17 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
                 data_to_plot.append(x_values)
 
-            self.plot_canvas_area.addImage(numpy.array(data_to_plot),
+            data_to_plot = numpy.array(data_to_plot)
+
+            self.plot_canvas_area.addImage(data_to_plot,
                                            origin=origin,
                                            scale=scale,
                                            colormap={"name":"gray", "normalization":"log", "autoscale":True, "vmin":0, "vmax":0, "colors":256})
             self.plot_canvas_area.setGraphXLabel("X [" + self.workspace_units_label + "]")
             self.plot_canvas_area.setGraphYLabel("Z [" + self.workspace_units_label + "]")
             self.plot_canvas_area.setKeepDataAspectRatio(True)
+
+            self.area_detector_pattern = data_to_plot
 
             #time.sleep(0.1)
 
@@ -2488,6 +2493,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
 
         if self.keep_result == 0 or len(self.twotheta_angles) == 0 or self.reset_button_pressed:
             self.area_detector_beam = None
+            self.area_detector_pattern = None
             self.twotheta_angles = []
             self.counts = []
             self.caglioti_fits = []
@@ -2536,7 +2542,7 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
         base_dir = os.path.dirname(self.output_file_name).strip()
         base_dir = base_dir if base_dir != "" else "."
 
-        base_name = base_dir + "/" + os.path.splitext(os.path.basename(self.output_file_name))[0]
+        base_name = os.path.join(base_dir, os.path.splitext(os.path.basename(self.output_file_name))[0])
 
         if not os.path.exists(base_dir):
             if not reset:
@@ -2546,6 +2552,9 @@ class XRDCapillary(ow_automatic_element.AutomaticElement):
                 if not reset:
                     raise Exception("No writing permissions  on directory '" + base_dir + "'")
             else:
+                if not self.area_detector_pattern is None:
+                    with open(base_name + "_2D.npy", 'wb') as f: numpy.save(f, self.area_detector_pattern)
+
                 out_file = open(self.output_file_name, "w")
                 out_file.write("tth counts error\n")
 
