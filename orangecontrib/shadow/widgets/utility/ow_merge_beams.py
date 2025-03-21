@@ -297,6 +297,8 @@ class MergeBeams(OWWidget):
         except Exception as e:
             QtWidgets.QMessageBox.critical(self, "Error", str(e), QtWidgets.QMessageBox.Ok)
 
+            if self.IS_DEVELOP: raise e
+
     def set_UseWeights(self):
         self.le_weight_input_beam1.setEnabled( self.use_weights == 1 and not  self.input_beam1 is None)
         self.le_weight_input_beam2.setEnabled( self.use_weights == 1 and not  self.input_beam2 is None)

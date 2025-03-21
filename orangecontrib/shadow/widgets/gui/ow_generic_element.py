@@ -26,28 +26,31 @@ class GenericElement(ow_automatic_element.AutomaticElement):
     def __init__(self, show_automatic_box=True):
         super().__init__(show_automatic_box)
 
-        self.main_tabs = oasysgui.tabWidget(self.mainArea)
-        plot_tab = oasysgui.createTabPage(self.main_tabs, "Plots")
-        out_tab = oasysgui.createTabPage(self.main_tabs, "Output")
+        if self.want_main_area == 1:
+            self.main_tabs = oasysgui.tabWidget(self.mainArea)
+            plot_tab = oasysgui.createTabPage(self.main_tabs, "Plots")
+            out_tab = oasysgui.createTabPage(self.main_tabs, "Output")
 
-        view_box = oasysgui.widgetBox(plot_tab, "Plotting Style", addSpace=False, orientation="horizontal")
-        view_box_1 = oasysgui.widgetBox(view_box, "", addSpace=False, orientation="vertical", width=350)
+            view_box = oasysgui.widgetBox(plot_tab, "Plotting Style", addSpace=False, orientation="horizontal")
+            view_box_1 = oasysgui.widgetBox(view_box, "", addSpace=False, orientation="vertical", width=350)
 
-        self.view_type_combo = gui.comboBox(view_box_1, self, "view_type", label="Select level of Plotting",
-                                            labelWidth=220,
-                                            items=["Detailed Plot", "Preview", "None"],
-                                            callback=self.set_PlotQuality, sendSelectedValue=False, orientation="horizontal")
-        self.tab = []
-        self.tabs = oasysgui.tabWidget(plot_tab)
+            self.view_type_combo = gui.comboBox(view_box_1, self, "view_type", label="Select level of Plotting",
+                                                labelWidth=220,
+                                                items=["Detailed Plot", "Preview", "None"],
+                                                callback=self.set_PlotQuality, sendSelectedValue=False, orientation="horizontal")
+            self.tab = []
+            self.tabs = oasysgui.tabWidget(plot_tab)
 
-        self.initializeTabs()
+            self.initializeTabs()
 
-        self.enableFootprint(False)
+            self.enableFootprint(False)
 
-        self.shadow_output = oasysgui.textArea(height=580, width=800)
+            self.shadow_output = oasysgui.textArea(height=580, width=800)
 
-        out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
-        out_box.layout().addWidget(self.shadow_output)
+            out_box = gui.widgetBox(out_tab, "System Output", addSpace=True, orientation="horizontal")
+            out_box.layout().addWidget(self.shadow_output)
+        else:
+            self.setFixedWidth(self.CONTROL_AREA_WIDTH+10)
 
     def initializeTabs(self):
         current_tab = self.tabs.currentIndex()
