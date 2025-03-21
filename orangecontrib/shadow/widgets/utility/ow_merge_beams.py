@@ -269,51 +269,44 @@ class MergeBeams(OWWidget):
                                            QtWidgets.QMessageBox.Ok)
 
     def merge_beams(self):
-        merged_beam = None
+        try:
+            merged_beam = None
 
-        if self.use_weights == 1:
-            total_intensity = 0.0
             for index in range(1, 11):
                 current_beam = getattr(self, "input_beam" + str(index))
                 if not current_beam is None:
-                    total_intensity += current_beam._beam.rays[:, 6]**2 + current_beam._beam.rays[:, 7]**2 + current_beam._beam.rays[:, 8]**2 + \
-                                       current_beam._beam.rays[:, 15]**2 + current_beam._beam.rays[:, 16]**2 + current_beam._beam.rays[:, 17]**2
+                    current_beam = current_beam.duplicate()
 
-        for index in range(1, 11):
-            current_beam = getattr(self, "input_beam" + str(index))
-            if not current_beam is None:
-                current_beam = current_beam.duplicate()
+                    if self.use_weights == 1:
+                        weight = getattr(self, "weight_input_beam" + str(index))
+                        if not (0.0 <= weight <= 1): raise ValueError(f"Weight #{index} is not in [0, 1]")
 
-                if self.use_weights == 1:
-                    current_intensity = current_beam._beam.rays[:, 6]**2 + current_beam._beam.rays[:, 7]**2 + current_beam._beam.rays[:, 8]**2 + \
-                                        current_beam._beam.rays[:, 15]**2 + current_beam._beam.rays[:, 16]**2 + current_beam._beam.rays[:, 17]**2
+                        electric_field_factor = numpy.sqrt(weight)
 
-                    current_weight = current_intensity/total_intensity
-                    new_weight = getattr(self, "weight_input_beam" + str(index))
-                    ratio = new_weight/current_weight
+                        current_beam._beam.rays[:, 6]  *= electric_field_factor
+                        current_beam._beam.rays[:, 7]  *= electric_field_factor
+                        current_beam._beam.rays[:, 8]  *= electric_field_factor
+                        current_beam._beam.rays[:, 15] *= electric_field_factor
+                        current_beam._beam.rays[:, 16] *= electric_field_factor
+                        current_beam._beam.rays[:, 17] *= electric_field_factor
 
-                    current_beam._beam.rays[:, 6] *= numpy.sqrt(ratio)
-                    current_beam._beam.rays[:, 7] *= numpy.sqrt(ratio)
-                    current_beam._beam.rays[:, 8] *= numpy.sqrt(ratio)
-                    current_beam._beam.rays[:, 15] *= numpy.sqrt(ratio)
-                    current_beam._beam.rays[:, 16] *= numpy.sqrt(ratio)
-                    current_beam._beam.rays[:, 17] *= numpy.sqrt(ratio)
+                    if    merged_beam is None: merged_beam = current_beam
+                    else: merged_beam = ShadowBeam.mergeBeams(merged_beam, current_beam, which_flux=3, merge_history=0)
 
-                if merged_beam is None: merged_beam = current_beam
-                else: merged_beam = ShadowBeam.mergeBeams(merged_beam, current_beam, which_flux=3, merge_history=0)
-
-        self.send("Beam", merged_beam)
+            self.send("Beam", merged_beam)
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Error", str(e), QtWidgets.QMessageBox.Ok)
 
     def set_UseWeights(self):
-        self.le_weight_input_beam1.setEnabled(self.use_weights == 1 and not  self.input_beam1 is None)
-        self.le_weight_input_beam2.setEnabled(self.use_weights == 1 and not  self.input_beam2 is None)
-        self.le_weight_input_beam3.setEnabled(self.use_weights == 1 and not  self.input_beam3 is None)
-        self.le_weight_input_beam4.setEnabled(self.use_weights == 1 and not  self.input_beam4 is None)
-        self.le_weight_input_beam5.setEnabled(self.use_weights == 1 and not  self.input_beam5 is None)
-        self.le_weight_input_beam6.setEnabled(self.use_weights == 1 and not  self.input_beam6 is None)
-        self.le_weight_input_beam7.setEnabled(self.use_weights == 1 and not  self.input_beam7 is None)
-        self.le_weight_input_beam8.setEnabled(self.use_weights == 1 and not  self.input_beam8 is None)
-        self.le_weight_input_beam9.setEnabled(self.use_weights == 1 and not  self.input_beam9 is None)
+        self.le_weight_input_beam1.setEnabled( self.use_weights == 1 and not  self.input_beam1 is None)
+        self.le_weight_input_beam2.setEnabled( self.use_weights == 1 and not  self.input_beam2 is None)
+        self.le_weight_input_beam3.setEnabled( self.use_weights == 1 and not  self.input_beam3 is None)
+        self.le_weight_input_beam4.setEnabled( self.use_weights == 1 and not  self.input_beam4 is None)
+        self.le_weight_input_beam5.setEnabled( self.use_weights == 1 and not  self.input_beam5 is None)
+        self.le_weight_input_beam6.setEnabled( self.use_weights == 1 and not  self.input_beam6 is None)
+        self.le_weight_input_beam7.setEnabled( self.use_weights == 1 and not  self.input_beam7 is None)
+        self.le_weight_input_beam8.setEnabled( self.use_weights == 1 and not  self.input_beam8 is None)
+        self.le_weight_input_beam9.setEnabled( self.use_weights == 1 and not  self.input_beam9 is None)
         self.le_weight_input_beam10.setEnabled(self.use_weights == 1 and not  self.input_beam10 is None)
 
 
