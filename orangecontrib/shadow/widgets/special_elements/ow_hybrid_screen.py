@@ -717,8 +717,8 @@ class HybridScreen(AbstractHybridScreen):
                 "doc":"Feedback signal to start a new beam simulation",
                 "id":"Trigger"}]
 
-    name = "Hybrid Screen"
-    description = "Shadow HYBRID: Hybrid Screen"
+    name = "Hybrid Screen (Legacy)"
+    description = "Shadow HYBRID: Hybrid Screen (Legacy)"
     icon = "icons/hybrid_screen.png"
     maintainer = "Luca Rebuffi and Xianbo Shi"
     maintainer_email = "lrebuffi(@at@)anl.gov, xshi(@at@)aps.anl.gov"
