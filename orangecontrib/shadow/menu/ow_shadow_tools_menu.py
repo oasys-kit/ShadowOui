@@ -393,7 +393,7 @@ class ShadowToolsMenu(OMenu):
     #################################################################
 
     def createLinks(self, nodes):
-        super(ShadowToolsMenu, self).createLinks(excluded_names=[ShadowToolsMenu.OMIT_WIDGET])
+        super(ShadowToolsMenu, self).createLinks(nodes, excluded_names=[ShadowToolsMenu.OMIT_WIDGET], source_channel="Beam", sink_channel="Input Beam")
 
     def getWidgetDesc(self, widget_name):
         return super(ShadowToolsMenu, self).getWidgetDesc(widget_name, excluded_names=[ShadowToolsMenu.OMIT_WIDGET, ShadowToolsMenu.ABORT_IMPORT])
