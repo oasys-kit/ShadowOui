@@ -57,11 +57,13 @@ class EllipsoidElement(ow_curved_element.CurvedElement):
         if self.is_infinite == 0:
             self.acceptance_slits_mode=1
             self.cb_acceptance_slits_mode.setEnabled(False)
+        else:
+            self.cb_acceptance_slits_mode.setEnabled(True)
 
         self.set_AcceptanceSlitsMode()
 
     def set_AcceptanceSlitsMode(self):
-        self.le_auto_slit_width_xaxis .setEnabled(self.acceptance_slits_mode==1)
+        self.le_auto_slit_width_xaxis.setEnabled(self.acceptance_slits_mode==1)
         self.le_auto_slit_height_zaxis.setEnabled(self.acceptance_slits_mode==1)
         self.le_auto_slit_center_xaxis.setEnabled(self.acceptance_slits_mode==1)
         self.le_auto_slit_center_zaxis.setEnabled(self.acceptance_slits_mode==1)
