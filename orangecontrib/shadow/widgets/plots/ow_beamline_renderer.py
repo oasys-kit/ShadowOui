@@ -75,7 +75,7 @@ class ShadowBeamlineRenderer(AbstractBeamlineRenderer):
             if ShadowCongruence.checkGoodBeam(beam):
                 self.input_beam = beam
 
-                self.render(on_receiving_input=True)
+                self.perform_rendering(on_receiving_input=True)
 
     def get_units_attributes(self):
         return self.workspace_units_label, self.workspace_units_to_mm
